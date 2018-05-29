@@ -1,0 +1,13 @@
+# FILENAME  submitSelection
+#   SUBDAGs     submitJobs_ee.dag
+#   SCRIPTS     
+#
+# SUBMITS   entire ee selection,
+#           combines all output files,
+#           and overlays histograms
+#
+# HARDCODED selection ("ee")
+
+
+SUBDAG  EXTERNAL    submission  submitJobs_ee.dag
+SCRIPT  POST        submission  runStacker.sh ee
