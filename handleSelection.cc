@@ -10,8 +10,10 @@
 #include "TTreeReaderArray.h"
 #include "TLorentzVector.h"
 
-TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_ll, TH1F *h_l1, TH1F *h_l2);
-TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_ll, TH1F *h_l1, TH1F *h_l2);
+TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH1F *h_pt2,
+        TH1F *h_eta1, TH1F *h_eta2);
+TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH1F *h_pt2,
+        TH1F *h_eta1, TH1F *h_eta2);
 
 
 using namespace std;
@@ -36,37 +38,45 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
     // Name of output file
-    TString output;
+    TString output, lepton, Lepton;
     if (selMuMu)
-        output = "mumu_";
+    {
+        output = "mumu_";   lepton = "muon";        Lepton = "Muon";
+    }
     else
-        output = "ee_";
+    {
+        output = "ee_";     lepton = "electron";    Lepton = "Electron";
+    }
     output +=  suffix + "_" + id + ".root";
 
 
     // Histograms
-    const unsigned M  = 3;      TString hname[M];          
-    const unsigned LL = 0;      hname[LL] = "DileptonMass";
-    const unsigned P1 = 1;      hname[P1] = "Lepton1Pt";   
-    const unsigned P2 = 2;      hname[P2] = "Lepton2Pt";   
+    const unsigned M  = 5;      TString hname[M],               htitle[M];
+    const unsigned LL = 0;      hname[LL] = "DileptonMass";     htitle[LL] = "Di" + lepton + "Mass";
+    const unsigned P1 = 1;      hname[P1] = "Lepton1Pt";        htitle[P1] = Lepton + "1Pt";
+    const unsigned E1 = 2;      hname[E1] = "Lepton1Eta";       htitle[E1] = Lepton + "1Eta";
+    const unsigned P2 = 3;      hname[P2] = "Lepton2Pt";        htitle[P2] = Lepton + "2Pt";
+    const unsigned E2 = 4;      hname[E2] = "Lepton2Eta";       htitle[E1] = Lepton + "2Eta";
 
 
     Int_t bins[M];      Double_t low[M],    up[M];
-    bins[LL] = 40;      low[LL] = 0;        up[LL] = 200;
+    bins[LL] = 30;      low[LL] = 75;       up[LL] = 105;
     bins[P1] = 75;      low[P1] = 0;        up[P1] = 150;
     bins[P2] = 50;      low[P2] = 0;        up[P2] = 100;
+    bins[E1] = 50;      low[E1] = -2.5;     up[E1] = 2.5;
+    bins[E2] = 50;      low[E2] = -2.5;     up[E2] = 2.5;
 
     TH1F *h[M];
     for (unsigned j = 0; j < M; j++)
-        h[j] = new TH1F(hname[j] + "_" + suffix, hname[j], bins[j], low[j], up[j]);
+        h[j] = new TH1F(hname[j] + "_" + suffix, htitle[j], bins[j], low[j], up[j]);
 
 
     // Read trees
     TH1D *hTotalEvents;
     if (selMuMu)
-        hTotalEvents = select_mumu(path + dir + file, suffix, h[LL], h[P1], h[P2]);
+        hTotalEvents = select_mumu(path + dir + file, suffix, h[LL], h[P1], h[P2], h[E1], h[E2]);
     else
-        hTotalEvents = select_ee(path + dir + file, suffix, h[LL], h[P1], h[P2]);
+        hTotalEvents = select_ee(path + dir + file, suffix, h[LL], h[P1], h[P2], h[E1], h[E2]);
 
 
     // Write to file
@@ -90,10 +100,12 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
 
-TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_ll, TH1F *h_l1, TH1F *h_l2)
+TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH1F *h_pt2,
+        TH1F *h_eta1, TH1F *h_eta2)
 {
     // Cuts
-    Double_t MLL_MIN = 20;
+    Double_t MLL_MIN = 80, MLL_MAX = 100;
+    Double_t PT_MIN = 25;
 
     // Open root file
     TFile *file = TFile::Open(rootFile);
@@ -139,15 +151,19 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_ll, TH1F *h_l1, TH1F
 
             for (unsigned j = 1; j < nMuons; j++)
             {
-                if (muonQ[0] * muonQ[j] < 1) 
+                if (muonQ[0] * muonQ[j] < 1
+                        && muonP4[0].Pt() > PT_MIN
+                        && muonP4[j].Pt() > PT_MIN) 
                 {
                     Double_t mll = (muonP4[0] + muonP4[j]).M();
-                    if (mll > MLL_MIN)
+                    if (mll > MLL_MIN && mll < MLL_MAX)
                     {
                         h_tot->Fill(6);
-                        h_ll->Fill(mll);
-                        h_l1->Fill(muonP4[0].Pt());
-                        h_l2->Fill(muonP4[j].Pt());
+                        h_mll->Fill(mll);
+                        h_pt1->Fill(muonP4[0].Pt());
+                        h_eta1->Fill(muonP4[0].Eta());
+                        h_pt2->Fill(muonP4[j].Pt());
+                        h_eta2->Fill(muonP4[j].Eta());
                         break;
                     }
                 }
@@ -162,10 +178,12 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_ll, TH1F *h_l1, TH1F
 
 
 
-TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_ll, TH1F *h_l1, TH1F *h_l2)
+TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH1F *h_pt2,
+        TH1F *h_eta1, TH1F *h_eta2)
 {
     // Cuts
-    Double_t MLL_MIN = 20;
+    Double_t MLL_MIN = 80, MLL_MAX = 100;
+    Double_t PT_MIN = 25;
 
     // Open root file
     TFile *file = TFile::Open(rootFile);
@@ -203,15 +221,19 @@ TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_ll, TH1F *h_l1, TH1F *
 
             for (unsigned j = 1; j < nElecs; j++)
             {
-                if (elecQ[0] * elecQ[j] < 1) 
+                if (elecQ[0] * elecQ[j] < 1
+                        && elecP4[0].Pt() > PT_MIN
+                        && elecP4[j].Pt() > PT_MIN) 
                 {
                     Double_t mll = (elecP4[0] + elecP4[j]).M();
-                    if (mll > MLL_MIN)
+                    if (mll > MLL_MIN && mll < MLL_MAX)
                     {
                         h_tot->Fill(6);
-                        h_ll->Fill(mll);
-                        h_l1->Fill(elecP4[0].Pt());
-                        h_l2->Fill(elecP4[j].Pt());
+                        h_mll->Fill(mll);
+                        h_pt1->Fill(elecP4[0].Pt());
+                        h_eta1->Fill(elecP4[0].Eta());
+                        h_pt2->Fill(elecP4[j].Pt());
+                        h_eta2->Fill(elecP4[j].Eta());
                         break;
                     }
                 }

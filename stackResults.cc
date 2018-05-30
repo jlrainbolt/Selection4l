@@ -45,7 +45,8 @@ void stackResults(const TString inFile)
 
 
     // Create stacks, canvases, legend
-    vector<TString> hname = {"DileptonMass", "Lepton1Pt", "Lepton2Pt", "TotalEvents"};
+    vector<TString> hname = {"DileptonMass", "Lepton1Pt", "Lepton2Pt", "Lepton1Eta", "Lepton2Eta",
+        "TotalEvents"};
     vector<THStack*> dataStack, mcStack;
     vector<TCanvas*> canvas;
     for (unsigned h = 0; h < hname.size(); h++)
