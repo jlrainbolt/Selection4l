@@ -1,0 +1,85 @@
+# FILENAME  submitJobs_mumu.dag
+#   SUBDAG of   submitSelection_mumu.dag
+#   JOBS        submitRun.sub
+#   SCRIPTS     runHadd.sh
+#
+# SUBMITS   mumu selection jobs for SingleMuon dataset and all MC samples
+#           and combines output files for each run
+#
+# HARDCODED selection ("$(selec)"), sample names $(suffix), sample sizes $(nFiles)
+#
+
+
+CONFIG  submitJobs_test.dag.config
+
+
+JOB             muon_2016   submitRun.sub 
+
+VARS            muon_2016   selection="$selec"
+VARS            muon_2016   suffix="muon_2016"
+VARS            muon_2016   nFiles="5"
+
+SCRIPT  POST    muon_2016   runHadd.sh $(selec) $JOB
+
+
+JOB             dy_m-10to50 submitRun.sub
+
+VARS            dy_m-10to50 selection="$selec"
+VARS            dy_m-10to50 suffix="dy_m-10to50"
+VARS            dy_m-10to50 nFiles="1"
+
+SCRIPT  POST    dy_m-10to50 runHadd.sh $(selec) $JOB
+
+
+JOB             dy_m-50     submitRun.sub
+
+VARS            dy_m-50     selection="$selec"
+VARS            dy_m-50     suffix="dy_m-50"
+VARS            dy_m-50     nFiles="5"
+
+SCRIPT  POST    dy_m-50     runHadd.sh $(selec) $JOB
+
+
+JOB             ttbar       submitRun.sub
+
+VARS            ttbar       selection="$selec"
+VARS            ttbar       suffix="ttbar"
+VARS            ttbar       nFiles="1"
+
+SCRIPT  POST    ttbar       runHadd.sh $(selec) $JOB
+
+
+JOB             ttz_2l2nu   submitRun.sub
+
+VARS            ttz_2l2nu   selection="$selec"
+VARS            ttz_2l2nu   suffix="ttz_2l2nu"
+VARS            ttz_2l2nu   nFiles="1"
+
+SCRIPT  POST    ttz_2l2nu   runHadd.sh $(selec) $JOB
+
+
+JOB             ww_2l2nu    submitRun.sub
+
+VARS            ww_2l2nu    selection="$selec"
+VARS            ww_2l2nu    suffix="ww_2l2nu"
+VARS            ww_2l2nu    nFiles="1"
+
+SCRIPT  POST    ww_2l2nu    runHadd.sh $(selec) $JOB
+
+
+JOB             wz_3lnu     submitRun.sub
+
+VARS            wz_3lnu     selection="$selec"
+VARS            wz_3lnu     suffix="wz_3lnu"
+VARS            wz_3lnu     nFiles="1"
+
+SCRIPT  POST    wz_3lnu     runHadd.sh $(selec) $JOB
+
+
+JOB             zz_4l       submitRun.sub
+
+VARS            zz_4l       selection="$selec"
+VARS            zz_4l       suffix="zz_4l"
+VARS            zz_4l       nFiles="1"
+
+SCRIPT  POST    zz_4l       runHadd.sh $(selec) $JOB
