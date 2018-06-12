@@ -172,7 +172,7 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH
                         eventWeight *= PUWeight;
                         eventWeight *= muonIDEff[0] * muonIDEff[j];
                         eventWeight *= muonIsoEff[0] * muonIsoEff[j];
-                        eventWeight *= 1 - (1 - muonTriggerEff[0]) * (1 - muonTriggerEff[j]);
+                        eventWeight *= 1. - (1. - muonTriggerEff[0]) * (1. - muonTriggerEff[j]);
 
                         h_tot->Fill(6);
                         h_tot->Fill(7, eventWeight);
@@ -211,8 +211,12 @@ TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH1F
 
     // Branches
     TTreeReaderValue<Bool_t> passTrigger_(reader, "passTrigger");
+    TTreeReaderValue<Float_t> eventWeight_(reader, "eventWeight");
+    TTreeReaderValue<Float_t> PUWeight_(reader, "PUWeight");
     TTreeReaderArray<TLorentzVector> elecP4_(reader, "electronP4");
     TTreeReaderValue<std::vector<Short_t>> elecQ_(reader, "electronQ");
+    TTreeReaderValue<std::vector<Float_t>> elecRecoEff_(reader, "electronRecoEff");
+    TTreeReaderValue<std::vector<Float_t>> elecTriggerEff_(reader, "electronTriggerEff");
 //  TTreeReaderValue<std::vector<Bool_t>> elecIsStd_(reader, "elecPassStdCuts");
     TTreeReaderValue<UShort_t> nElecs_(reader, "nElectrons");
     TTreeReaderValue<UShort_t> nStdElecs_(reader, "nStdElectrons");
@@ -222,6 +226,7 @@ TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH1F
     while (reader.Next())
     {
         Bool_t passTrigger = *passTrigger_;
+        Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
         vector<TLorentzVector> elecP4;
         vector<Int_t> elecQ;
 //      vector<Bool_t> elecIsStd;
@@ -247,6 +252,10 @@ TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_pt1, TH1F
                     Double_t mll = (elecP4[0] + elecP4[j]).M();
                     if (mll > MLL_MIN && mll < MLL_MAX)
                     {
+                        eventWeight *= PUWeight;
+                        eventWeight *= elecRecoEff[0] * elecRecoEff[j];
+                        eventWeight *= 1 - (1 - elecTriggerEff[0]) * (1 - elecTriggerEff[j]);
+
                         h_tot->Fill(6);
                         h_mll->Fill(mll);
                         h_pt1->Fill(elecP4[0].Pt());
