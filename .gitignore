@@ -10,6 +10,10 @@ __init__.py
 # ROOT
 *.root
 
+# vim
+*.swp
+*.swo
+
 # Stuff
 *~
 *.log

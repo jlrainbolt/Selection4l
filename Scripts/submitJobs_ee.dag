@@ -1,0 +1,100 @@
+# FILENAME  submitJobs_ee.dag
+#   SUBDAG of   submitSelection_ee.dag
+#   JOBS        submitRun.sub
+#   SCRIPTS     runHadd.sh
+#
+# SUBMITS   ee selection jobs for SingleElectron dataset and all MC samples
+#           and combines output files for each run
+#
+# HARDCODED selection ("ee"), sample names ($suffix), sample sizes ($nFiles)
+#
+
+
+JOB             electron_2016   submitRun.sub 
+
+VARS            electron_2016   selection="ee"
+VARS            electron_2016   suffix="electron_2016"
+VARS            electron_2016   nFiles="2"
+
+SCRIPT  POST    electron_2016   runHadd.sh ee $JOB
+
+
+#JOB             zjets_m-10to50     submitRun.sub
+  
+#VARS            zjets_m-10to50     selection="ee"
+#VARS            zjets_m-10to50     suffix="zjets_m-10to50"
+#VARS            zjets_m-10to50     nFiles="1"
+  
+#SCRIPT  POST    zjets_m-10to50     runHadd.sh ee $JOB
+  
+  
+#JOB             zjets_m-50         submitRun.sub
+  
+#VARS            zjets_m-50         selection="ee"
+#VARS            zjets_m-50         suffix="zjets_m-50"
+#VARS            zjets_m-50         nFiles="2"
+  
+#SCRIPT  POST    zjets_m-50         runHadd.sh ee $JOB
+
+
+JOB             dy_m-10to50     submitRun.sub
+ 
+VARS            dy_m-10to50     selection="ee"
+VARS            dy_m-10to50     suffix="dy_m-10to50"
+VARS            dy_m-10to50     nFiles="1"
+ 
+SCRIPT  POST    dy_m-10to50     runHadd.sh ee $JOB
+ 
+ 
+JOB             dy_m-50         submitRun.sub
+ 
+VARS            dy_m-50         selection="ee"
+VARS            dy_m-50         suffix="dy_m-50"
+VARS            dy_m-50         nFiles="5"
+ 
+SCRIPT  POST    dy_m-50         runHadd.sh ee $JOB
+
+
+JOB             ttbar           submitRun.sub
+
+VARS            ttbar           selection="ee"
+VARS            ttbar           suffix="ttbar"
+VARS            ttbar           nFiles="1"
+
+SCRIPT  POST    ttbar           runHadd.sh ee $JOB
+
+
+JOB             ttz_2l2nu       submitRun.sub
+
+VARS            ttz_2l2nu       selection="ee"
+VARS            ttz_2l2nu       suffix="ttz_2l2nu"
+VARS            ttz_2l2nu       nFiles="1"
+
+SCRIPT  POST    ttz_2l2nu       runHadd.sh ee $JOB
+
+
+JOB             ww_2l2nu        submitRun.sub
+
+VARS            ww_2l2nu        selection="ee"
+VARS            ww_2l2nu        suffix="ww_2l2nu"
+VARS            ww_2l2nu        nFiles="1"
+
+SCRIPT  POST    ww_2l2nu        runHadd.sh ee $JOB
+
+
+JOB             wz_3lnu         submitRun.sub
+
+VARS            wz_3lnu         selection="ee"
+VARS            wz_3lnu         suffix="wz_3lnu"
+VARS            wz_3lnu         nFiles="1"
+
+SCRIPT  POST    wz_3lnu         runHadd.sh ee $JOB
+
+
+JOB             zz_4l           submitRun.sub
+
+VARS            zz_4l           selection="ee"
+VARS            zz_4l           suffix="zz_4l"
+VARS            zz_4l           nFiles="1"
+
+SCRIPT  POST    zz_4l           runHadd.sh ee $JOB

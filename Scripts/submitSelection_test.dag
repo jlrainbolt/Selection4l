@@ -1,0 +1,13 @@
+# FILENAME  submitSelection_test.dag
+#   SUBDAGs     submitJobs_test.dag
+#   SCRIPTS     
+#
+# SUBMITS   entire ee selection,
+#           combines all output files,
+#           and overlays histograms
+
+
+SUBDAG  EXTERNAL    submission  submitJobs_test.dag
+VARS                submission  selection_="mumu"
+SCRIPT  PRE         submission  loadRoot.sh mumu
+SCRIPT  POST        submission  runStacker.sh mumu
