@@ -8,8 +8,15 @@
 
 using namespace std;
 
-void stackResults(const TString inFile)
+void stackResults(const TString inFile, const TString selection)
 {   
+    // Choose electron or muon
+    Bool_t selMuMu;
+    if (selection == "mumu")
+        selMuMu = kTRUE;
+    else if (selection == "ee")
+        selMuMu = kFALSE;
+
     TFile *file = TFile::Open(inFile, "UPDATE");
 
     // Get lists of samples and their contents
@@ -45,8 +52,15 @@ void stackResults(const TString inFile)
 
 
     // Create stacks, canvases, legend
-    vector<TString> hname = {"DileptonMass", "Lepton1Pt", "Lepton2Pt", "Lepton1Eta", "Lepton2Eta",
-        "nPV", "nExtraLeps", "extraLepPt", "extraLepEta", "TotalEvents"};
+    vector<TString> hname = {"DileptonMass", "DileptonPt", "Lepton1Pt", "Lepton2Pt", "Lepton1Eta", 
+        "Lepton2Eta", "nPV", "nExtraLeps", "xLepPt", "xLepEta", "xLepQ", "xLepIso", "xLepTrkIso",
+        "xLepD0", "xLepDz", "xLepIsTrig", "TotalEvents"};
+    if (selMuMu)
+    {
+        vector<TString> hname2 = {"xLepIsGLB", "xLepNMatchStn", "xLepNPixHits","xLepNTkLayers",
+            "xLepNValidHits", "xLepMuNChi2"};
+        hname.insert(hname.end(), hname2.begin(), hname2.end());
+    }
     vector<THStack*> dataStack, mcStack;
     vector<TCanvas*> canvas;
     for (unsigned h = 0; h < hname.size(); h++)

@@ -37,7 +37,7 @@ done
 
 
 # Create canvases and stacks
-root.exe -q -b "stackResults.cc(\"$outFile\")"
+root.exe -q -b "stackResults.cc(\"$outFile\", \"$selection\")"
 echo "Created combined histograms in $outFile".
 
 
