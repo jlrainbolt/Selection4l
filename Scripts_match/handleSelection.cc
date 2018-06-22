@@ -13,13 +13,12 @@
 TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1F *h_pt1,
         TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2, TH1F *h_npv, TH1F *h_njets, TH1F *h_n_bad,
         TH1F *x_pt, TH1F *x_eta, TH1F *x_q, TH1F *x_iso, TH1F *x_tiso, TH1F *x_d0, TH1F *x_dz, 
-        TH1F *x_trig, TH1F *x_gbl, TH1F *x_nstn, TH1F *x_npix, TH1F *x_nlyr, TH1F *x_nhits, 
+        TH1F *x_gbl, TH1F *x_trig, TH1F *x_nstn, TH1F *x_npix, TH1F *x_nlyr, TH1F *x_nhits, 
         TH1F *x_chi2);
 TH1D* select_ee(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1F *h_pt1,
         TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2, TH1F *h_npv, TH1F *h_njets, TH1F *h_n_bad,
         TH1F *x_pt, TH1F *x_eta, TH1F *x_q, TH1F *x_iso, TH1F *x_tiso, TH1F *x_d0, TH1F *x_dz,
         TH1F *x_trig);
-        //TH1F *x_sceta, TH1F *x_sieie, TH1F *x_hovere, TH1F *x_einv, TH1F *x_nmiss, TH1F *x_conv);
 
 
 using namespace std;
@@ -74,37 +73,14 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     const unsigned TI = 13;   hname[TI] = "xLepTrkIso";     htitle[TI] = "Extra " + lepton+"s Track Iso/Pt";
     const unsigned D0 = 14;   hname[D0] = "xLepD0";         htitle[D0] = "Extra " + lepton+"s d_0";
     const unsigned DZ = 15;   hname[DZ] = "xLepDz";         htitle[DZ] = "Extra " + lepton+"s d_z";
-    const unsigned TG = 16;   hname[TG] = "xLepIsTrig";     htitle[TG] = "Extra " + lepton+"s Trig";
+    const unsigned GB = 16;   hname[GB] = "xLepIsGLB";      htitle[GB] = "Extra " + lepton+"s GLB";
+    const unsigned TG = 17;   hname[TG] = "xLepIsTrig";     htitle[TG] = "Extra " + lepton+"s Trig";
+    const unsigned MS = 18;   hname[MS] = "xLepNMatchStn";  htitle[MS] = "Extra " + lepton+"s NMatchStn";
+    const unsigned PH = 19;   hname[PH] = "xLepNPixHits";   htitle[PH] = "Extra " + lepton+"s NPixHits";
+    const unsigned TL = 20;   hname[TL] = "xLepNTkLayers";  htitle[TL] = "Extra " + lepton+"s NTkLayers";
+    const unsigned VH = 21;   hname[VH] = "xLepNValidHits"; htitle[VH] = "Extra " + lepton+"s NValidHits";
+    const unsigned X2 = 22;   hname[X2] = "xLepMuNChi2";    htitle[X2] = "Extra " + lepton+"s muNChi2";
 
-    // these are different for muons/electrons
-    const unsigned GB = 17,   SE = 17;
-    const unsigned MS = 18,   SI = 18;
-    const unsigned PH = 19,   HE = 19;
-    const unsigned TL = 20,   EI = 20;
-    const unsigned VH = 21,   MH = 21;
-    const unsigned X2 = 22,   IC = 22;
-    if (selMuMu)
-    {
-        hname[GB] = "xLepIsGLB";            htitle[GB] = "Extra muons GLB";
-        hname[MS] = "xLepNMatchStn";        htitle[MS] = "Extra muons NMatchStn";
-        hname[PH] = "xLepNPixHits";         htitle[PH] = "Extra muons NPixHits";
-        hname[TL] = "xLepNTkLayers";        htitle[TL] = "Extra muons NTkLayers";
-        hname[VH] = "xLepNValidHits";       htitle[VH] = "Extra muons NValidHits";
-        hname[X2] = "xLepMuNChi2";          htitle[X2] = "Extra muons muNChi2";
-    }
-    else
-    {
-        hname[SE] = "xLepScEta";            htitle[SE] = "Extra electrons sc eta";
-        hname[EI] = "xLepSieie";            htitle[EI] = "Extra electrons sieie";
-        hname[HE] = "xLepHOverE";           htitle[HE] = "Extra electrons H over E";
-        hname[EI] = "xLepEnergyInv";        htitle[EI] = "Extra electrons inverse energy";
-        hname[MH] = "xLepNMissHits";        htitle[MH] = "Extra electrons missing hits";
-        hname[IC] = "xLepIsConv";           htitle[IC] = "Extra electrons converted";
-    }
-
-    // electrons only
-//  const unsigned DE = 23;   hname[DE] = "xLepDEtaIn";     htitle[DE] = "Extra electrons dEtaIn";
-//  const unsigned DP = 24;   hname[DE] = "xLepDPhiIn";     htitle[DE] = "Extra electrons dPhiIn";
 
     Int_t bins[M];      Double_t low[M],    up[M];
     bins[LL] = 30;      low[LL] = 75;       up[LL] = 105;
@@ -118,8 +94,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     bins[NX] = 7;       low[NX] = -0.5;     up[NX] = 6.5;
     if (selMuMu)
     {
-//      bins[PX] = 35;      low[PX] = 15;       up[PX] = 50;
-        bins[PX] = 75;      low[PX] = 0;        up[PX] = 75;
+        bins[PX] = 35;      low[PX] = 15;       up[PX] = 50;
         bins[CI] = 30;      low[CI] = 0;        up[CI] = 0.15;
         bins[TI] = 30;      low[TI] = 0;        up[TI] = 0.15;
     }
@@ -133,25 +108,13 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     bins[QX] = 3;       low[QX] = -1.5;     up[QX] = 1.5;
     bins[D0] = 50;      low[D0] = -2.5;     up[D0] = 2.5;
     bins[DZ] = 50;      low[DZ] = -50;      up[DZ] = 50;
-    if (selMuMu)
-    {
-        bins[GB] = 2;       low[GB] = -0.5;     up[GB] = 1.5;
-        bins[TG] = 2;       low[TG] = -0.5;     up[TG] = 1.5;
-        bins[MS] = 7;       low[MS] = -0.5;     up[MS] = 6.5;
-        bins[PH] = 7;       low[PH] = -0.5;     up[PH] = 6.5;
-        bins[TL] = 19;      low[TL] = -0.5;     up[TL] = 18.5;
-        bins[VH] = 50;      low[VH] = 0;        up[VH] = 50;
-        bins[X2] = 31;      low[X2] = -0.5;     up[X2] = 30.5;
-    }
-    else
-    {
-        bins[SE] = 50;      low[SE] = -2.5;     up[SE] = 2.5;
-        bins[EI] = 50;      low[EI] = -0.05;    up[EI] = 0.05;
-        bins[HE] = 50;      low[HE] = -0.1;     up[HE] = 0.1;
-        bins[HE] = 50;      low[HE] = -0.1;     up[HE] = 0.1;
-    }
-//  bins[DE]
-//  bins[DP]
+    bins[GB] = 2;       low[GB] = -0.5;     up[GB] = 1.5;
+    bins[TG] = 2;       low[TG] = -0.5;     up[TG] = 1.5;
+    bins[MS] = 7;       low[MS] = -0.5;     up[MS] = 6.5;
+    bins[PH] = 7;       low[PH] = -0.5;     up[PH] = 6.5;
+    bins[TL] = 19;      low[TL] = -0.5;     up[TL] = 18.5;
+    bins[VH] = 50;      low[VH] = 0;        up[VH] = 50;
+    bins[X2] = 31;      low[X2] = -0.5;     up[X2] = 30.5;
 
     TH1F *h[M];
     for (unsigned j = 0; j < M; j++)
@@ -162,8 +125,8 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     TH1D *hTotalEvents;
     if (selMuMu)
         hTotalEvents = select_mumu(path + dir + file, suffix, h[LL], h[QT], h[P1], h[P2], h[E1],
-                h[E2], h[PV], h[JT], h[NX], h[PX], h[EX], h[QX], h[CI], h[TI], h[D0], h[DZ], h[TG], 
-                h[GB], h[MS], h[PH], h[TL], h[VH], h[X2]);
+                h[E2], h[PV], h[JT], h[NX], h[PX], h[EX], h[QX], h[CI], h[TI], h[D0], h[DZ], h[GB], 
+                h[TG], h[MS], h[PH], h[TL], h[VH], h[X2]);
     else
         hTotalEvents = select_ee(path + dir + file, suffix, h[LL], h[QT], h[P1], h[P2], h[E1],
                 h[E2], h[PV], h[JT], h[NX], h[PX], h[EX], h[QX], h[CI], h[TI], h[D0], h[DZ], h[TG]);
@@ -193,13 +156,14 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1F *h_pt1,
         TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2, TH1F *h_npv, TH1F *h_njets, TH1F *h_n_bad, 
         TH1F *x_pt, TH1F *x_eta, TH1F *x_q, TH1F *x_iso, TH1F *x_tiso, TH1F *x_d0, TH1F *x_dz,
-        TH1F *x_trig, TH1F *x_gbl, TH1F *x_nstn, TH1F *x_npix, TH1F *x_nlyr, TH1F *x_nhits,
+        TH1F *x_gbl, TH1F *x_trig, TH1F *x_nstn, TH1F *x_npix, TH1F *x_nlyr, TH1F *x_nhits,
         TH1F *x_chi2)
 {
     // Cuts
     Double_t MLL_MIN = 80, MLL_MAX = 100;
     Double_t PT_MIN = 25, ISO_MAX = 0.15;
-    Double_t E_PT_MIN = 15, E_PT_MAX = 50, LOOSE_PT_MIN;
+    Double_t E_PT_MIN = 15, E_PT_MAX = 50, G_DR_MAX = 0.05;
+    Bool_t MATCH_COND = kTRUE;   // Whether we want muons with gen matches
 
     // Open root file
     TFile *file = TFile::Open(rootFile);
@@ -236,6 +200,13 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1
     TTreeReaderValue<std::vector<Float_t>> muonMuNChi2_(reader, "muonMuNChi2");
     TTreeReaderValue<UShort_t> nMuons_(reader, "nMuons");
     TTreeReaderValue<UShort_t> nStdMuons_(reader, "nStdMuons");
+    
+    // gen-level muons
+    TTreeReaderValue<UShort_t> nGenMuons_(reader, "nGenMuons");
+    TTreeReaderArray<TLorentzVector> genP4_(reader, "genMuonP4");
+//  TTreeReaderValue<std::vector<Short_t>> genQ_(reader, "genMuonQ");
+//  TTreeReaderValue<std::vector<Short_t>> genStatus_(reader, "genMuonStatus");
+
 
 //  reader.GetTree()->Print();
 
@@ -245,20 +216,20 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1
         Bool_t passTrigger = *passTrigger_;
         Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
         UShort_t nPV = *nPV_, nJets = *nJets_;
-        vector<TLorentzVector> muonP4;
-        vector<Short_t> muonQ;
+        vector<TLorentzVector> muonP4, genP4;
+        vector<Short_t> muonQ;  //, genQ, genStatus;
         vector<Float_t> muonIso, muonTrkIso, muonSF, muonD0, muonDz;
         vector<Float_t> muonIDEff, muonIsoEff, muonTrigEffData, muonTrigEffMC, muonMuNChi2;
         vector<Bool_t> muonIsStd, muonIsPF, muonIsGLB, muonTrigger;
         vector<UShort_t> muonNMatchStn, muonNPixHits, muonNTkLayers, muonNValidHits;
-        UShort_t nMuons = *nMuons_, nStdMuons = *nStdMuons_;
+        UInt_t nMuons = *nMuons_, nStdMuons = *nStdMuons_, nGenMuons = *nGenMuons_;
 
         // For selection
-        vector<Bool_t> muonIsIso, muonIsLoose;
-        Short_t nGoodMuons = nMuons, nIsoMuons = 0, nLooseMuons = 0;
+        vector<Bool_t> muonIsIso, muonHasMatch;
+        Int_t nIsoMuons = 0, nMatchMuons = 0;
 
 
-        if (passTrigger && nStdMuons == 2)  // && nMuons > 2)
+        if (passTrigger && nStdMuons == 2)// && nMuons == 2)
         {
             for (const TLorentzVector& muonP4__: muonP4_)
                 muonP4.push_back(muonP4__);
@@ -286,41 +257,61 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1
                 muonMuNChi2.push_back((*muonMuNChi2_)[i]);
             }
 
+            for (const TLorentzVector& genP4__: genP4_)
+                genP4.push_back(genP4__);
+
+//          for (unsigned a = 0; a < nGenMuons; a++)
+//          {
+//              genQ.push_back((*genQ_)[a]);
+//              genStatus.push_back((*genStatus_)[a]);
+//          }
+
             // Apply momentum correction
             for (unsigned i = 0; i < nMuons; i++)
                 muonP4[i].SetPtEtaPhiM(muonP4[i].Pt() * muonSF[i], muonP4[i].Eta(), muonP4[i].Phi(),
                         muonP4[i].M());
 
-            // Find isolated and loose muons
+            // Apply isolation requirement
             for (unsigned i = 0; i < nMuons; i++)
             {
-//              if (muonIso[i] / muonP4[i].Pt() < ISO_MAX)
-//              {
-//                  muonIsIso.push_back(kTRUE);
-//                  nIsoMuons++;
-//              }
-//              else
-//                  muonIsIso.push_back(kFALSE);
-  
-                if (muonIsPF[i] && muonIsGLB[i] 
-                        && muonP4[i].Pt() > LOOSE_PT_MIN)
+                if (muonIso[i] / muonP4[i].Pt() < ISO_MAX)
                 {
-                    muonIsLoose.push_back(kTRUE);
-                    nLooseMuons++;
+                    muonIsIso.push_back(kTRUE);
+                    nIsoMuons++;
                 }
                 else
-                    muonIsLoose.push_back(kFALSE);
+                    muonIsIso.push_back(kFALSE);
             }
 
-//          if (nIsoMuons == nStdMuons)
-            if (nLooseMuons == nStdMuons)
+
+            // Look for matching gen-level muons
+            for (unsigned i = 0; i < nMuons; i++)
             {
+                if (nGenMuons > 0)
+                {
+                    Bool_t foundMatch = kFALSE;
+                    for (unsigned a = 0; a < nGenMuons; a++)
+                    {
+                        if (muonP4[i].DeltaR(genP4[a]) < G_DR_MAX)
+                        {
+                            foundMatch = kTRUE;
+                            break;
+                        }
+                    }
+                    muonHasMatch.push_back(foundMatch);
+                }
+                else    // Force data to be written
+                    muonHasMatch.push_back(MATCH_COND);
+            }
+
+
+//          if (nIsoMuons == nStdMuons)
+//          {
                 for (unsigned j = 1; j < nMuons; j++)
                 {
                     if (muonQ[0] * muonQ[j] < 1
                             && muonP4[0].Pt() > PT_MIN && muonP4[j].Pt() > PT_MIN
-                            && muonIsStd[0] && muonIsStd[j]
-                            && muonIsPF[0] && muonIsPF[j])
+                            && muonIsStd[0] && muonIsStd[j] && muonIsPF[0] && muonIsPF[j])
                     {
                         Double_t mll = (muonP4[0] + muonP4[j]).M();
                         if (mll > MLL_MIN && mll < MLL_MAX)
@@ -336,22 +327,34 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1
 
                             h_tot->Fill(6);
                             h_tot->Fill(7, eventWeight);
-                            h_mll->Fill(mll, eventWeight);
-                            h_qt->Fill((muonP4[0] + muonP4[j]).Pt(), eventWeight);
-                            h_pt1->Fill(muonP4[0].Pt(), eventWeight);
-                            h_eta1->Fill(muonP4[0].Eta(), eventWeight);
-                            h_pt2->Fill(muonP4[j].Pt(), eventWeight);
-                            h_eta2->Fill(muonP4[j].Eta(), eventWeight);
-                            h_npv->Fill(nPV, eventWeight);
-                            h_njets->Fill(nJets, eventWeight);
+                            if (muonHasMatch[0] == MATCH_COND && muonHasMatch[j] == MATCH_COND)
+                            {
+                                h_mll->Fill(mll, eventWeight);
+                                h_qt->Fill((muonP4[0] + muonP4[j]).Pt(), eventWeight);
+                                h_npv->Fill(nPV, eventWeight);
+                                h_njets->Fill(nJets, eventWeight);
+                            }
+                            if (muonHasMatch[0] == MATCH_COND)
+                            {
+                                h_pt1->Fill(muonP4[0].Pt(), eventWeight);
+                                h_eta1->Fill(muonP4[0].Eta(), eventWeight);
+                            }
+                            if (muonHasMatch[j] == MATCH_COND)
+                            {
+                                h_pt2->Fill(muonP4[j].Pt(), eventWeight);
+                                h_eta2->Fill(muonP4[j].Eta(), eventWeight);
+                            }
 
                             // Fill bad muon histograms
                             for (unsigned k = 0; k < nMuons; k++)
                             {
-                                if (!muonIsLoose[k] && !muonIsStd[k])
-//                              if (muonIsIso[k] && !muonIsStd[k]
-//                                      && muonP4[k].Pt() > E_PT_MIN && muonP4[k].Pt() < E_PT_MAX)
+//                              if (!muonIsStd[k])
+                                if (muonIsIso[k] && !muonIsStd[k]
+                                        && muonP4[k].Pt() > E_PT_MIN && muonP4[k].Pt() < E_PT_MAX
+                                        && muonHasMatch[k] == MATCH_COND)
                                 {
+                                    nMatchMuons++;
+
                                     x_pt->Fill(muonP4[k].Pt(), eventWeight);
                                     x_eta->Fill(muonP4[k].Eta(), eventWeight);
                                     x_q->Fill(muonQ[k], eventWeight);
@@ -366,16 +369,17 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1
                                     x_nlyr->Fill(muonNTkLayers[k], eventWeight);
                                     x_nhits->Fill(muonNValidHits[k], eventWeight);
                                     x_chi2->Fill(muonMuNChi2[k], eventWeight);
+
                                 }
                             }
 //                          h_n_bad->Fill(nIsoMuons - nStdMuons, eventWeight);
-                            h_n_bad->Fill(nLooseMuons - nStdMuons, eventWeight);
+                            h_n_bad->Fill(nMatchMuons, eventWeight);
 
                             break;
                         }
                     }
                 }
-            }
+//          }
         }
     }
     file->Close();  delete file;
