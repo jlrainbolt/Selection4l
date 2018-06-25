@@ -8,8 +8,15 @@
 
 using namespace std;
 
-void stackResults(const TString inFile)
-{   
+void stackResults(const TString inFile, const TString selection)
+{
+    // Choose selection type
+    Bool_t sel2l = kFALSE, sel4l = kFALSE;
+    if (selection == "mumu" || selection == "2m" || selection == "ee" || selection == "2e")
+        sel2l = kTRUE;
+    else if (selection == "4mu" || selection == "4m" || selection == "4e")
+        sel4l = kTRUE;
+
     TFile *file = TFile::Open(inFile, "UPDATE");
 
     // Get lists of samples and their contents
@@ -45,8 +52,16 @@ void stackResults(const TString inFile)
 
 
     // Create stacks, canvases, legend
-    vector<TString> hname = {"DileptonMass", "Lepton1Pt", "Lepton2Pt", "Lepton1Eta", "Lepton2Eta",
-        "nPV", "TotalEvents"};
+    vector<TString> hname;
+    if (sel2l)
+        hname = {"DileptonMass", "DileptonPt", "Lep1Pt", "Lep2Pt", "Lep1Eta", "Lep2Eta",
+                 "nPV", "TotalEvents"};
+    else if (sel4l)
+        hname = {"4lepMass", "4lepPt", "Z1Mass", "Z2Mass", "Z1Pt", "Z2Pt",
+                 "Lep1Pt", "Lep2Pt", "Lep3Pt", "Lep4Pt",
+                 "Lep1Eta", "Lep2Eta", "Lep3Eta", "Lep4Eta",
+                 "nPV", "TotalEvents"};
+
     vector<THStack*> dataStack, mcStack;
     vector<TCanvas*> canvas;
     for (unsigned h = 0; h < hname.size(); h++)

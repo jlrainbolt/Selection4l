@@ -1,0 +1,14 @@
+# FILENAME  submitSelection
+#   SUBDAGs     submitJobs_4e.dag
+#   SCRIPTS     
+#
+# SUBMITS   entire 4e selection,
+#           combines all output files,
+#           and overlays histograms
+#
+# HARDCODED selection ("4e")
+
+
+SUBDAG  EXTERNAL    submission  submitJobs_4e.dag
+SCRIPT  PRE         submission  prepArea.sh
+SCRIPT  POST        submission  runStacker.sh 4e

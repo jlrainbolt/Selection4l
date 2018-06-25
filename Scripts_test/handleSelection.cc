@@ -199,7 +199,7 @@ TH1D* select_mumu(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt, TH1
     // Cuts
     Double_t MLL_MIN = 80, MLL_MAX = 100;
     Double_t PT_MIN = 25, ISO_MAX = 0.15;
-    Double_t E_PT_MIN = 15, E_PT_MAX = 50, LOOSE_PT_MIN;
+    Double_t E_PT_MIN = 15, E_PT_MAX = 50, LOOSE_PT_MIN = 10;
 
     // Open root file
     TFile *file = TFile::Open(rootFile);

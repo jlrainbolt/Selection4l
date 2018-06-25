@@ -8,17 +8,52 @@ using namespace std;
 void prepareFile(const TString selection)
 {
     // Choose electron or muon
-    Bool_t selMuMu;
-    if (selection == "mumu")
-        selMuMu = kTRUE;
-    else if (selection == "ee")
-        selMuMu = kFALSE;
-    TString lepton = ((selMuMu) ? "muon" : "electron");
+    Bool_t sel2l = kFALSE, sel4l = kFALSE;
+    Bool_t sel2m = kFALSE, sel2e = kFALSE;
+    Bool_t sel4e = kFALSE, sel4m = KFALSE;
+//  Bool_t sel2e2m = kFALSE, sel2m2e = kFALSE;
+    if (selection == "mumu" || selection == "2m")
+    {
+        sel2l = kTRUE;
+        sel2m = kTRUE;
+    }
+    else if (selection == "ee" || selection == "2e")
+    {
+        sel2l = kTRUE;
+        sel2e = kTRUE;
+    }
+    else if (selection == "4e")
+    {
+        sel4l = kTRUE;
+        sel4e = kTRUE;
+    }
+    else if (selection == "4mu" || selection == "4m")
+    {
+        sel4l = kTRUE;
+        sel4mu = kTRUE;
+    }
 
 
     // Name of output file
     TString year   = "_2016";
     TString output = selection + year + ".root";
+    TString lepton, Lepton;
+    if (sel2m)
+    {
+        lepton = "muon";        Lepton = "Muon";
+    }
+    else if (sel2e)
+    {
+        lepton = "electron";    Lepton = "Electron";
+    }
+    else if (sel4e)
+    {
+        lepton = "electron";    Lepton = "Electron";
+    }
+    else if (sel4m)
+    {
+        lepton = "muon";        Lepton = "muon";
+    }
 
 
     // Sample indices           // Suffixes                         // Cross sections 

@@ -15,5 +15,6 @@ then
     echo "Loaded ROOT 6.10.02"
 fi
 
+./cleanDirectory.sh
 
 echo "Submitting $selection jobs..."

@@ -5,15 +5,18 @@ year="2016"
 
 outFile="$selection""_""$year"".root"
 
-case $selection in
-    "mumu")
-        lepton="muon"
-        ;;
-    "ee")
-        lepton="electron"
-        ;;
-esac
-dataset="$lepton""_""$year"
+#case $selection in
+#    "mumu")
+#        lepton="muon"
+#        ;;
+#    "ee")
+#        lepton="electron"
+#        ;;
+#    "4m")
+#        lepton="muon"
+#        ;;
+#esac
+#dataset="$lepton""_""$year"
 
 
 # Create empty file to put everything in
@@ -37,7 +40,7 @@ done
 
 
 # Create canvases and stacks
-root.exe -q -b "stackResults.cc(\"$outFile\")"
+root.exe -q -b "stackResults.cc(\"$outFile\", \"$selection\")"
 echo "Created combined histograms in $outFile".
 
 
