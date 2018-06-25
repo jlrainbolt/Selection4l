@@ -54,7 +54,7 @@ void stackResults(const TString inFile, const TString selection)
     // Create stacks, canvases, legend
     vector<TString> hname;
     if (sel2l)
-        hname = {"DileptonMass", "DileptonPt", "Lep1Pt", "Lep2Pt", "Lep1Eta", "Lep2Eta",
+        hname = {"DilepMass", "DilepPt", "Lep1Pt", "Lep2Pt", "Lep1Eta", "Lep2Eta",
                  "nPV", "TotalEvents"};
     else if (sel4l)
         hname = {"4lepMass", "4lepPt", "Z1Mass", "Z2Mass", "Z1Pt", "Z2Pt",
@@ -90,9 +90,11 @@ void stackResults(const TString inFile, const TString selection)
         }
     }
 
-    for (int j_ = mcSubdir.size(); j_ > 0; j_--)
+    for (unsigned j = 0; j < mcSubdir.size(); j++)
     {
-        unsigned j = j_ - 1;
+//  for (int j_ = mcSubdir.size(); j_ > 0; j_--)
+//  {
+//      unsigned j = j_ - 1;
         TH1* hTotalEvents;
         mcSubdir[j]->GetObject("TotalEvents_" + mcSuffix[j], hTotalEvents);
         Float_t ngen = hTotalEvents->GetBinContent(1) - 2 * hTotalEvents->GetBinContent(10);

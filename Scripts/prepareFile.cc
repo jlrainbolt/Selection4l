@@ -10,7 +10,7 @@ void prepareFile(const TString selection)
     // Choose electron or muon
     Bool_t sel2l = kFALSE, sel4l = kFALSE;
     Bool_t sel2m = kFALSE, sel2e = kFALSE;
-    Bool_t sel4e = kFALSE, sel4m = KFALSE;
+    Bool_t sel4e = kFALSE, sel4m = kFALSE;
 //  Bool_t sel2e2m = kFALSE, sel2m2e = kFALSE;
     if (selection == "mumu" || selection == "2m")
     {
@@ -30,7 +30,7 @@ void prepareFile(const TString selection)
     else if (selection == "4mu" || selection == "4m")
     {
         sel4l = kTRUE;
-        sel4mu = kTRUE;
+        sel4m = kTRUE;
     }
 
 
