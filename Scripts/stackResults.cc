@@ -60,7 +60,7 @@ void stackResults(const TString inFile, const TString selection)
         hname = {"4lepMass", "4lepPt", "Z1Mass", "Z2Mass", "Z1Pt", "Z2Pt",
                  "Lep1Pt", "Lep2Pt", "Lep3Pt", "Lep4Pt",
                  "Lep1Eta", "Lep2Eta", "Lep3Eta", "Lep4Eta",
-                 "nPV", "TotalEvents"};
+                 "nPV", "nZZCands", "nSelLeps", "TotalEvents"};
 
     vector<THStack*> dataStack, mcStack;
     vector<TCanvas*> canvas;
@@ -117,6 +117,15 @@ void stackResults(const TString inFile, const TString selection)
     // Draw on canvases
     for (unsigned h = 0; h < hname.size(); h++)
     {
+        dataStack[h]->SetMinimum(0);
+        mcStack[h]->SetMinimum(0);
+
+        if (h == hname.size() - 1)
+        {
+            dataStack[h]->SetMaximum(1000);
+            mcStack[h]->SetMaximum(1000);
+        }
+
         canvas[h]->cd();
         if (dataStack[h]->GetMaximum() > mcStack[h]->GetMaximum())
         {

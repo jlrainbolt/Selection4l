@@ -13,27 +13,29 @@
 #include "TLorentzVector.h"
 
 TH1D* Select2m(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt,
-        TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2,
-        TH1F *h_npv);
+               TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2,
+               TH1F *h_npv);
 TH1D* Select2e(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt,
-        TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2, 
-        TH1F *h_npv);
+               TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2, 
+               TH1F *h_npv);
 TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
-        TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
-        TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
-        TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4,
-        TH1F *h_npv);
+               TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
+               TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
+               TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4,
+               TH1F *h_npv, TH1F* h_nzz, TH1F* h_nlep);
 TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
-        TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
-        TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
-        TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4,
-        TH1F *h_npv);
+               TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
+               TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
+               TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4,
+               TH1F *h_npv, TH1F* h_nzz, TH1F* h_nlep);
 
 
 using namespace std;
 
 void handleSelection(const TString selection, const TString suffix, const TString id)
 {
+    Bool_t fineBinning = kFALSE, medBinning = kTRUE;
+
     // Choose electron or muon
     Bool_t sel2l = kFALSE, sel4l = kFALSE;
     Bool_t sel2m = kFALSE, sel2e = kFALSE;
@@ -88,13 +90,13 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
     // Histograms
-    const unsigned M  = 15;   TString hname[M],     htitle[M];
-    unsigned ZZ = 0;    hname[ZZ] = "4lepMass";     htitle[ZZ] = "4-lepton Mass";
-    unsigned T4 = 1;    hname[T4] = "4lepPt";       htitle[T4] = "4-lepton Pt";
-    unsigned Z1 = 2;    hname[Z1] = "Z1Mass";       htitle[Z1] = "Z_1 Mass";
-    unsigned Z2 = 3;    hname[Z2] = "Z2Mass";       htitle[Z2] = "Z_2 Mass";
-    unsigned T1 = 4;    hname[T1] = "Z1Pt";         htitle[T1] = "Z_1 Pt";
-    unsigned T2 = 5;    hname[T2] = "Z2Pt";         htitle[T2] = "Z_2 Pt";
+    const unsigned M = 17;   TString hname[M],      htitle[M];
+    unsigned ZZ = 0;    hname[ZZ] = "4lepMass";     htitle[ZZ] = "4-" + lepton + " Mass";
+    unsigned T4 = 1;    hname[T4] = "4lepPt";       htitle[T4] = "4-" + lepton + "Pt";
+    unsigned Z1 = 2;    hname[Z1] = "Z1Mass";       htitle[Z1] = "Z_{1} Mass";
+    unsigned Z2 = 3;    hname[Z2] = "Z2Mass";       htitle[Z2] = "Z_{2} Mass";
+    unsigned T1 = 4;    hname[T1] = "Z1Pt";         htitle[T1] = "Z_{1} Pt";
+    unsigned T2 = 5;    hname[T2] = "Z2Pt";         htitle[T2] = "Z_{2} Pt";
     unsigned P1 = 6;    hname[P1] = "Lep1Pt";       htitle[P1] = Lepton + " 1 Pt";
     unsigned P2 = 7;    hname[P2] = "Lep2Pt";       htitle[P2] = Lepton + " 2 Pt";
     unsigned P3 = 8;    hname[P3] = "Lep3Pt";       htitle[P3] = Lepton + " 3 Pt";
@@ -104,24 +106,46 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     unsigned E3 = 12;   hname[E3] = "Lep3Eta";      htitle[E3] = Lepton + " 3 Eta";
     unsigned E4 = 13;   hname[E4] = "Lep4Eta";      htitle[E4] = Lepton + " 4 Eta";
     unsigned PV = 14;   hname[PV] = "nPV";          htitle[PV] = "# of Primary Vertices";
+    unsigned NC = 15;   hname[NC] = "nZZCands";     htitle[NC] = "# of ZZ Candidates";
+    unsigned NL = 16;   hname[NL] = "nSelLeps";     htitle[NL] = "# of Selected " + Lepton + "s";
 
     Int_t bins[M];      Double_t low[M],    up[M];
-    bins[ZZ] = 60;      low[ZZ] = 80;       up[ZZ] = 100;
-    bins[ZZ] = 30;      low[ZZ] = 60;       up[ZZ] = 120;
-    bins[T4] = 30;      low[T4] = 0;        up[T4] = 120;
-    bins[Z1] = 30;      low[Z1] = 0;        up[Z1] = 120;
-    bins[Z2] = 30;      low[Z2] = 0;        up[Z2] = 60;
-    bins[T1] = 40;      low[T1] = 0;        up[T1] = 160;
-    bins[T2] = 30;      low[T2] = 0;        up[T2] = 120;
-    bins[P1] = 30;      low[P1] = 0;        up[P1] = 120;
-    bins[P2] = 30;      low[P2] = 0;        up[P2] = 90;
-    bins[P3] = 30;      low[P3] = 0;        up[P3] = 60;
-    bins[P4] = 30;      low[P4] = 0;        up[P4] = 60;
-    bins[E1] = 25;      low[E1] = -2.5;     up[E1] = 2.5;
-    bins[E2] = 25;      low[E2] = -2.5;     up[E2] = 2.5;
-    bins[E3] = 25;      low[E3] = -2.5;     up[E3] = 2.5;
-    bins[E4] = 25;      low[E4] = -2.5;     up[E4] = 2.5;
-    bins[PV] = 26;      low[PV] = -1;       up[PV] = 51;
+    bins[ZZ] = 30;      low[ZZ] = 60;       up[ZZ] = 180;
+    bins[T4] = 15;      low[T4] = 0;        up[T4] = 120;
+    bins[Z1] = 15;      low[Z1] = 0;        up[Z1] = 120;
+    bins[Z2] = 15;      low[Z2] = 0;        up[Z2] = 60;
+    bins[T1] = 15;      low[T1] = 0;        up[T1] = 150;
+    bins[T2] = 15;      low[T2] = 0;        up[T2] = 150;
+    bins[P1] = 15;      low[P1] = 0;        up[P1] = 150;
+    bins[P2] = 15;      low[P2] = 0;        up[P2] = 90;
+    bins[P3] = 15;      low[P3] = 0;        up[P3] = 60;
+    bins[P4] = 15;      low[P4] = 0;        up[P4] = 30;
+    bins[E1] = 13;      low[E1] = -2.6;     up[E1] = 2.6;
+    bins[E2] = 13;      low[E2] = -2.6;     up[E2] = 2.6;
+    bins[E3] = 13;      low[E3] = -2.6;     up[E3] = 2.6;
+    bins[E4] = 13;      low[E4] = -2.6;     up[E4] = 2.6;
+    bins[PV] = 13;      low[PV] = -1;       up[PV] = 51;
+    bins[NC] = 10;      low[NC] = 0.5;      up[NC] = 10.5;
+    bins[NL] = 10;      low[NL] = 0.5;      up[NL] = 10.5;
+
+    if (fineBinning)
+    {
+        bins[ZZ] = 235;     low[ZZ] = 60;       up[ZZ] = 1000;
+        bins[T4] = 250;     low[T4] = 0;        up[T4] = 1000;
+        bins[Z1] = 150;     bins[Z2] = 150;     bins[T1] = 150;     bins[T2] = 150;
+        bins[P1] = 150;     bins[P2] = 150;     bins[P3] = 150;     bins[P4] = 150;
+        bins[E1] = 130;     bins[E2] = 130;     bins[E3] = 130;     bins[E4] = 130;
+        bins[PV] = 130;
+    }
+    else if (medBinning)
+    {
+        bins[ZZ] = 60;      low[ZZ] = 60;       up[ZZ] = 180;
+        bins[T4] = 60;      low[T4] = 0;        up[T4] = 180;
+        bins[Z1] = 60;      bins[Z2] = 60;      bins[T1] = 60;      bins[T2] = 60;
+        bins[P1] = 60;      bins[P2] = 60;      bins[P3] = 60;      bins[P4] = 60;
+        bins[E1] = 52;      bins[E2] = 52;      bins[E3] = 52;      bins[E4] = 52;
+        bins[PV] = 52;
+    }
 
     unsigned LL, QT;
     if (sel2l)
@@ -148,22 +172,22 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     TH1D *hTotalEvents;
     if (sel2m)
         hTotalEvents = Select2m(path + dir + file, suffix, h[LL], h[QT], 
-                h[P1], h[P2], h[E1], h[E2],
-                h[PV]);
+                                h[P1], h[P2], h[E1], h[E2],
+                                h[PV]);
     else if (sel2e)
         hTotalEvents = Select2e(path + dir + file, suffix, h[LL], h[QT], 
-                h[P1], h[P2], h[E1], h[E2],
-                h[PV]);
+                                h[P1], h[P2], h[E1], h[E2],
+                                h[PV]);
     else if (sel4m)
         hTotalEvents = Select4m(path + dir + file, suffix, h[ZZ], h[QT],
-                h[Z1], h[Z2], h[T1], h[T2],
-                h[P1], h[P2], h[P3], h[P4], h[E1], h[E2], h[E3], h[E4],
-                h[PV]);
+                                h[Z1], h[Z2], h[T1], h[T2],
+                                h[P1], h[P2], h[P3], h[P4], h[E1], h[E2], h[E3], h[E4],
+                                h[PV], h[NC], h[NL]);
     else if (sel4e)
         hTotalEvents = Select4e(path + dir + file, suffix, h[ZZ], h[QT],
-                h[Z1], h[Z2], h[T1], h[T2],
-                h[P1], h[P2], h[P3], h[P4], h[E1], h[E2], h[E3], h[E4],
-                h[PV]);
+                                h[Z1], h[Z2], h[T1], h[T2],
+                                h[P1], h[P2], h[P3], h[P4], h[E1], h[E2], h[E3], h[E4],
+                                h[PV], h[NC], h[NL]);
 
 
     // Write to file
@@ -192,8 +216,8 @@ TH1D* Select2m(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt,
                TH1F *h_npv)
 {
     // Cuts
-    Double_t MLL_MIN = 80, MLL_MAX = 100;
-    Double_t PT_MIN = 25, LOOSE_PT_MIN = 10;
+    Float_t MLL_MIN = 80, MLL_MAX = 100;
+    Float_t PT_MIN = 25, LOOSE_PT_MIN = 10;
 
 
     // Open root file
@@ -346,8 +370,8 @@ TH1D* Select2e(TString rootFile, TString suffix, TH1F *h_mll, TH1F *h_qt,
                TH1F *h_npv)
 {
     // Cuts
-    Double_t MLL_MIN = 80, MLL_MAX = 100;
-    Double_t PT_MIN = 25;
+    Float_t MLL_MIN = 80, MLL_MAX = 100;
+    Float_t PT_MIN = 25;
 
 
     // Open root file
@@ -477,14 +501,22 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
                TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
                TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4, 
-               TH1F *h_npv)
+               TH1F *h_npv, TH1F *h_nzz, TH1F *h_nlep)
 {
     // Cuts, etc.
-    Double_t MZ1_MIN = 12, MZ_MIN = 4, MZ_MAX = 120;
-    Double_t M4L_MIN = 80, M4L_MAX = 100;
-    Double_t PT_MIN = 5, PT1_MIN = 20, PT2_MIN = 10;
-    Double_t DR_MIN = 0.02, MLL_MIN = 4;
-    Double_t Z_MASS = 91.2;
+    // muons
+    Float_t PT_MIN = 5, PT1_MIN = 20, PT2_MIN = 10;
+    Float_t ETA_MAX = 2.4;
+    Float_t D0_MAX = 0.5, DZ_MAX = 1.0;
+    Float_t ISO_MAX = 0.35;
+
+    // pairs. etc.
+//  Float_t M4L_MIN = 70, M4L_MAX = 1000;
+    Float_t M4L_MIN = 60, M4L_MAX = 180;
+//  Float_t MZ1_MIN = 12, MZ_MIN = 4, MZ_MAX = 120;
+    Float_t MZ1_MIN = 40, MZ_MIN = 12, MZ_MAX = 120;
+    Float_t MLL_MIN = 4, DR_MIN = 0.02;
+    Float_t Z_MASS = 91.2;
 
 
     // Open root file
@@ -510,6 +542,8 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
     TTreeReaderValue<std::vector<Bool_t>> muonIsGood_(reader, "muonPassStdCuts");
     TTreeReaderValue<std::vector<Bool_t>> muonIsPF_(reader, "muonIsPF");
     TTreeReaderValue<std::vector<Bool_t>> muonIsGLB_(reader, "muonIsGLB");
+    TTreeReaderValue<std::vector<Float_t>> muonD0_(reader, "muonD0");
+    TTreeReaderValue<std::vector<Float_t>> muonDz_(reader, "muonDz");
 
     // weighting
     TTreeReaderValue<Float_t> eventWeight_(reader, "eventWeight");
@@ -530,7 +564,7 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
         vector<TLorentzVector> muonP4;
         vector<Short_t> muonQ;
-        vector<Float_t> muonSF, muonIso;
+        vector<Float_t> muonSF, muonIso, muonD0, muonDz;
         vector<Bool_t> muonIsGood, muonIsPF, muonIsGLB;
 
         Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
@@ -556,6 +590,8 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
             muonIsGood.push_back((*muonIsGood_)[i]);
             muonIsPF.push_back((*muonIsPF_)[i]);
             muonIsGLB.push_back((*muonIsGLB_)[i]);
+            muonD0.push_back((*muonD0_)[i]);
+            muonDz.push_back((*muonDz_)[i]);
             muonIDEff.push_back((*muonIDEff_)[i]);
             muonIsoEff.push_back((*muonIsoEff_)[i]);
             muonTrigEffData.push_back((*muonTrigEffData_)[i]);
@@ -569,7 +605,10 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                                    muonP4[i].Phi(), muonP4[i].M());
 
             // Loose muon selection
-            if (muonIsPF[i] && muonIsGLB[i])
+            if (muonIsPF[i] && muonIsGLB[i]
+                && muonP4[i].Pt() > PT_MIN && fabs(muonP4[i].Eta()) < ETA_MAX
+                && fabs(muonD0[i]) < D0_MAX && fabs(muonDz[i]) < DZ_MAX
+                && muonIso[i] / muonP4[i].Pt() < ISO_MAX)
             {
                 muonIsLoose.push_back(kTRUE);
                 nLooseMuons++;
@@ -579,39 +618,40 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
         }
 
 
-        // Make sure there are no gross muons
+        // Make sure there are enough loose muons
         if (nLooseMuons < 4)
             continue;
 
 
         // Selection
         // Find Z candidates
-        vector<std::pair<unsigned, unsigned>> zCands;
-        for (unsigned i = 0; i < nMuons-1; i++)
+        vector<std::pair<unsigned, unsigned>> zCand;
+        for (unsigned j = 1; j < nMuons; j++)
         {
-            if (!muonIsLoose[i] || muonP4[i].Pt() < PT_MIN)
+            if (!muonIsLoose[j])
                 continue;
-            for (unsigned j = i+1; j < nMuons; j++)
+            for (unsigned i = 0; i < j; i++)
             {
-                if (!muonIsLoose[j] || muonP4[j].Pt() < PT_MIN || muonQ[i] * muonQ[j] > 0)
+                if (!muonIsLoose[i] || muonQ[i] == muonQ[j])
                     continue;
 
                 Double_t mll = (muonP4[i] + muonP4[j]).M();
                 if (mll > MZ_MIN && mll < MZ_MAX)
-                    zCands.push_back(std::make_pair(i, j));
+                    zCand.push_back(std::make_pair(i, j));
             }
         }
-        if (zCands.size() < 2)
+        if (zCand.size() < 2)
             continue;
   
 
         // Find ZZ candidates
-        vector<std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>>> zzCands;
-        for (unsigned i = 0; i < zCands.size()-1; i++)
+        vector<std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>>> zzCand;
+        vector<Double_t> zzCand_m4l, zzCand_mZ1;
+        for (unsigned j = 1; j < zCand.size(); j++)
         {
-            for (unsigned j = i+1; j < zCands.size(); j++)
+            for (unsigned i = 0; i < j; i++)
             {
-                std::pair<unsigned, unsigned> Zi = zCands[i], Zj = zCands[j];
+                std::pair<unsigned, unsigned> Zi = zCand[i], Zj = zCand[j];
 
                 // Make sure pairs do not overlap
                 if (Zi.first == Zj.first || Zi.first == Zj.second
@@ -653,12 +693,12 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
                 // Smart cut
                 std::pair<unsigned, unsigned> Zx, Zy, Za, Zb;
-                if (Z1_qs.first * Z2_qs.first > 0)
+                if (Z1_qs.first == Z2_qs.first)
                 {
                     Zx = std::make_pair(Z1.first, Z2.second);
                     Zy = std::make_pair(Z2.first, Z1.second);
                 }
-                else if (Z1_qs.first * Z2_qs.second > 0)
+                else if (Z1_qs.first == Z2_qs.second)
                 {
                     Zx = std::make_pair(Z1.first, Z2.first);
                     Zy = std::make_pair(Z1.second, Z2.second);
@@ -679,7 +719,7 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                     mll_a = mll_y;  mll_b = mll_x;
                 }
 
-                if (fabs(mll_a - Z_MASS) < fabs(Z1_p4.M() - Z_MASS) && mll_b < MLL_MIN)
+                if (fabs(mll_a - Z_MASS) < fabs(Z1_p4.M() - Z_MASS) && mll_b < MZ_MIN)
                     continue;
 
 
@@ -701,9 +741,9 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
                 // Ghost removal
                 Bool_t foundGhost = kFALSE;
-                for (unsigned x = 0; x < 4-1; x++)
+                for (unsigned y = 1; y < selMuonP4.size(); y++)
                 {
-                    for (unsigned y = x+1; y < 4; y++)
+                    for (unsigned x = 0; x < y; x++)
                     {
                         if (selMuonP4[x].DeltaR(selMuonP4[y]) < DR_MIN)
                         {
@@ -720,9 +760,9 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
                 // QCD suppression
                 Bool_t foundQCD = kFALSE;
-                for (unsigned x = 0; x < 4-1; x++)
+                for (unsigned y = 1; y < selMuonP4.size(); y++)
                 {
-                    for (unsigned y = x+1; y < 4; y++)
+                    for (unsigned x = 0; x < y; x++)
                     {
                         if (selMuonQ[x] * selMuonQ[y] > 0)
                             continue;
@@ -740,18 +780,33 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                     continue;
   
 
-                zzCands.push_back(std::make_pair(Z1, Z2));
+                zzCand.push_back(std::make_pair(Z1, Z2));
+                zzCand_mZ1.push_back(Z1_p4.M());
+                zzCand_m4l.push_back(ZZ_p4.M());
             }
         }
-        if (zzCands.size() < 1)
+        if (zzCand.size() < 1)
             continue;
 
 
         // Select best ZZ candidate
+        unsigned zz = 0;
+        Float_t massDiff = 1000.;
+        for (unsigned m = 0; m < zzCand.size(); m++)
+        {
+            Float_t massDiff_ = fabs(zzCand_mZ1[m] - Z_MASS);
+//          Float_t massDiff_ = fabs(zzCand_m4l[m] - Z_MASS);
+            if (massDiff_ < massDiff)
+            {
+                massDiff = massDiff_;
+                zz = m;
+            }
+        }
+        cout << endl;
 
 
         // Fill info
-        std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>> ZZ = zzCands[0];
+        std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>> ZZ = zzCand[zz];
         std::pair<unsigned, unsigned> Z1 = ZZ.first, Z2 = ZZ.second;
         std::pair<TLorentzVector, TLorentzVector> Z1_p4s, Z2_p4s;
         Z1_p4s = std::make_pair(muonP4[Z1.first], muonP4[Z1.second]);
@@ -782,6 +837,7 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
         h_tot->Fill(6);
         h_tot->Fill(7, eventWeight);
+
         h_m4l->Fill(ZZ_p4.M(), eventWeight);
         h_qt4l->Fill(ZZ_p4.Pt(), eventWeight);
   
@@ -801,6 +857,8 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
         h_eta4->Fill(muonP4[z[3]].Eta(), eventWeight);
     
         h_npv->Fill(nPV, eventWeight);
+        h_nzz->Fill(zzCand.size(), eventWeight);
+        h_nlep->Fill(nLooseMuons, eventWeight);
     }
     file->Close();  delete file;
 
@@ -810,18 +868,24 @@ TH1D* Select4m(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
 
 
-TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
+TH1D *Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
                TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
                TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4, 
-               TH1F *h_npv)
+               TH1F *h_npv, TH1F *h_nzz, TH1F *h_nlep)
 {
-    // Cuts, etc.
-    Double_t MZ1_MIN = 12, MZ_MIN = 4, MZ_MAX = 120;
-    Double_t M4L_MIN = 80, M4L_MAX = 100;
-    Double_t PT_MIN = 5, PT1_MIN = 20, PT2_MIN = 10;
-    Double_t DR_MIN = 0.02, MLL_MIN = 4;
-    Double_t Z_MASS = 91.2;
+    // Cuts
+    // electrons
+    Float_t PT_MIN = 5, PT1_MIN = 20, PT2_MIN = 10;
+    Float_t ETA_MAX = 2.5;
+    Float_t D0_MAX = 0.5, DZ_MAX = 1.0;
+    Float_t ISO_MAX = 0.34;
+
+    // pairs, etc/
+    Float_t M4L_MIN = 60, M4L_MAX = 180;
+    Float_t MZ1_MIN = 12, MZ_MIN = 4, MZ_MAX = 120;
+    Float_t DR_MIN = 0.02, MLL_MIN = 4;
+    Float_t Z_MASS = 91.2;
 
 
     // Open root file
@@ -845,6 +909,10 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
     TTreeReaderValue<std::vector<Float_t>> elecIso_(reader, "electronCombIso");
     TTreeReaderValue<std::vector<Float_t>> elecSF_(reader, "electronSF");
     TTreeReaderValue<std::vector<Bool_t>> elecIsGood_(reader, "electronPassStdCuts");
+    TTreeReaderValue<std::vector<Bool_t>> elecPassID_(reader, "electronPassID");
+    TTreeReaderValue<std::vector<Bool_t>> elecPassIso_(reader, "electronPassIso");
+    TTreeReaderValue<std::vector<Float_t>> elecD0_(reader, "electronD0");
+    TTreeReaderValue<std::vector<Float_t>> elecDz_(reader, "electronDz");
 
     // weighting
     TTreeReaderValue<Float_t> eventWeight_(reader, "eventWeight");
@@ -855,7 +923,6 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
 
     // Read in events
-    Double_t nSel = 0, nSelWeight = 0;
     while (reader.Next())
     {
         // Branch quantity vectors
@@ -865,11 +932,14 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
         vector<TLorentzVector> elecP4;
         vector<Short_t> elecQ;
-        vector<Float_t> elecSF, elecIso;
-        vector<Bool_t> elecIsGood;
+        vector<Float_t> elecSF, elecIso, elecD0, elecDz;
+        vector<Bool_t> elecIsGood, elecPassID, elecPassIso;
 
         Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
         vector<Float_t> elecRecoEff, elecTrigEffData, elecTrigEffMC;
+
+        vector<Bool_t> elecIsLoose;
+        UShort_t nLooseElecs = 0;
 
 
         // Veto events that are not triggered or do not have enough leptons 
@@ -886,43 +956,70 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
             elecSF.push_back((*elecSF_)[i]);
             elecIso.push_back((*elecIso_)[i]);
             elecIsGood.push_back((*elecIsGood_)[i]);
+            elecPassID.push_back((*elecPassID_)[i]);
+            elecPassIso.push_back((*elecPassIso_)[i]);
+            elecD0.push_back((*elecD0_)[i]);
+            elecDz.push_back((*elecDz_)[i]);
             elecRecoEff.push_back((*elecRecoEff_)[i]);
             elecTrigEffData.push_back((*elecTrigEffData_)[i]);
             elecTrigEffMC.push_back((*elecTrigEffMC_)[i]);
         }
 
 
-        // Energy correction
         for (unsigned i = 0; i < nElecs; i++)
+        {
+            // Energy correction
             elecP4[i].SetPtEtaPhiM(elecP4[i].Pt() * elecSF[i], elecP4[i].Eta(), 
                                    elecP4[i].Phi(), elecP4[i].M());
 
+            // Loose electron selection
+            if (elecPassID[i] && elecPassIso[i]
+                && elecP4[i].Pt() > PT_MIN && fabs(elecP4[i].Eta()) < ETA_MAX
+                && fabs(elecD0[i]) < D0_MAX && fabs(elecDz[i]) < DZ_MAX)
+//              && elecIso[i] / elecP4[i].Pt() < ISO_MAX)
+            {
+                elecIsLoose.push_back(kTRUE);
+                nLooseElecs++;
+            }
+            else
+                elecIsLoose.push_back(kFALSE);
+        }
+
   
+        // Make sure there are enough loose electrons
+        if (nLooseElecs < 4)
+            continue;
+
+
         // Selection
         // Find Z candidates
-        vector<std::pair<unsigned, unsigned>> zCands;
-        for (unsigned i = 0; i < nElecs-1; i++)
+        vector<std::pair<unsigned, unsigned>> zCand;
+        for (unsigned j = 1; j < nElecs; j++)
         {
-            for (unsigned j = i+1; j < nElecs; j++)
+            if (!elecIsLoose[j])
+                continue;
+
+            for (unsigned i = 0; i < j; i++)
             {
-                if (elecQ[i] * elecQ[j] < 0 && elecP4[i].Pt() > PT_MIN && elecP4[j].Pt() > PT_MIN)
-                {
-                    Double_t mll = (elecP4[0] + elecP4[j]).M();
-                    if (mll > MZ_MIN && mll < MZ_MAX)
-                        zCands.push_back(std::make_pair(i, j));
-                }
+                if (!elecIsLoose[i] || elecQ[i] == elecQ[j])
+                    continue;
+
+                Double_t mll = (elecP4[i] + elecP4[j]).M();
+                if (mll > MZ_MIN && mll < MZ_MAX)
+                    zCand.push_back(std::make_pair(i, j));
             }
         }
-        if (zCands.size() < 2)
+        if (zCand.size() < 2)
             continue;
 
         // Find ZZ candidates
-        vector<std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>>> zzCands;
-        for (unsigned i = 0; i < zCands.size()-1; i++)
+        vector<std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>>> zzCand;
+        vector<Double_t> zzCand_m4l, zzCand_mZ1;
+        for (unsigned j = 1; j < zCand.size(); j++)
         {
-            for (unsigned j = i+1; j < zCands.size(); j++)
+            for (unsigned i = 0; i < j; i++)
             {
-                std::pair<unsigned, unsigned> Zi = zCands[i], Zj = zCands[j];
+                std::pair<unsigned, unsigned> Zi = zCand[i], Zj = zCand[j];
 
                 // Make sure pairs do not overlap
                 if (Zi.first == Zj.first || Zi.first == Zj.second
@@ -959,6 +1056,7 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                 vector<unsigned> z = {Z1.first, Z1.second, Z2.first, Z2.second};
                 std::sort(z.begin(), z.end());
   
+
                 // Mass requirements
                 if (Z1_p4.M() < MZ1_MIN || ZZ_p4.M() < M4L_MIN || ZZ_p4.M() > M4L_MAX)
                     continue;
@@ -966,12 +1064,12 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
 
                 // Smart cut
                 std::pair<unsigned, unsigned> Zx, Zy, Za, Zb;
-                if (Z1_qs.first * Z2_qs.first > 0)
+                if (Z1_qs.first == Z2_qs.first)
                 {
                     Zx = std::make_pair(Z1.first, Z2.second);
                     Zy = std::make_pair(Z2.first, Z1.second);
                 }
-                else if (Z1_qs.first * Z2_qs.second > 0)
+                else if (Z1_qs.first == Z2_qs.second)
                 {
                     Zx = std::make_pair(Z1.first, Z2.first);
                     Zy = std::make_pair(Z1.second, Z2.second);
@@ -992,7 +1090,7 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                     mll_a = mll_y;  mll_b = mll_x;
                 }
 
-                if (fabs(mll_a - Z_MASS) < fabs(Z1_p4.M() - Z_MASS) && mll_b < MLL_MIN)
+                if (fabs(mll_a - Z_MASS) < fabs(Z1_p4.M() - Z_MASS) && mll_b < MZ_MIN)
                     continue;
 
 
@@ -1051,18 +1149,32 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
                     continue;
                 // Pt2 requirement, others
   
-                zzCands.push_back(std::make_pair(Z1, Z2));
+                zzCand.push_back(std::make_pair(Z1, Z2));
+                zzCand_mZ1.push_back(Z1_p4.M());
+                zzCand_m4l.push_back(ZZ_p4.M());
             }
         }
-        if (zzCands.size() < 1)
+        if (zzCand.size() < 1)
             continue;
 
 
         // Choose best ZZ cand
+        unsigned zz = 0;
+        Float_t massDiff = 1000.;
+        for (unsigned m = 0; m < zzCand.size(); m++)
+        {
+//          Float_t massDiff_ = fabs(zzCand_m4l[m] - Z_MASS);
+            Float_t massDiff_ = fabs(zzCand_mZ1[m] - Z_MASS);
+            if (massDiff_ < massDiff)
+            {
+                massDiff = massDiff_;
+                zz = m;
+            }
+        }
 
 
         // Fill
-        std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>> ZZ = zzCands[0];
+        std::pair<std::pair<unsigned, unsigned>, std::pair<unsigned, unsigned>> ZZ = zzCand[zz];
         std::pair<unsigned, unsigned> Z1 = ZZ.first, Z2 = ZZ.second;
         std::pair<TLorentzVector, TLorentzVector> Z1_p4s, Z2_p4s;
         Z1_p4s = std::make_pair(elecP4[Z1.first], elecP4[Z1.second]);
@@ -1083,17 +1195,15 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
         eventWeight *= elecRecoEff[x] * elecRecoEff[y];
         if (elecTrigEffMC[x] > 0 || elecTrigEffMC[y] > 0)
         {
-            eventWeight *= 1. - (1. - elecTrigEffData[x])*(1. - elecTrigEffData[y]);
-            eventWeight /= 1. - (1. - elecTrigEffMC[x])*(1. - elecTrigEffMC[y]);
+            eventWeight *= 1. - (1. - elecTrigEffData[x]) * (1. - elecTrigEffData[y]);
+            eventWeight /= 1. - (1. - elecTrigEffMC[x]) * (1. - elecTrigEffMC[y]);
         }
 
   
         // Fill histograms
         h_tot->Fill(6);
-//      nSel++;
-  
-//      nSelWeight += eventWeight;
         h_tot->Fill(7, eventWeight);
+
         h_m4l->Fill(ZZ_p4.M(), eventWeight);
         h_qt4l->Fill(ZZ_p4.Pt(), eventWeight);
   
@@ -1113,16 +1223,9 @@ TH1D* Select4e(TString rootFile, TString suffix, TH1F *h_m4l, TH1F *h_qt4l,
         h_eta4->Fill(elecP4[z[3]].Eta(), eventWeight);
   
         h_npv->Fill(nPV, eventWeight);
+        h_nzz->Fill(zzCand.size(), eventWeight);
+        h_nlep->Fill(nLooseElecs, eventWeight);
     }
     file->Close();  delete file;
-
-//  h_tot->SetBinContent(6, nSel);
-//  h_tot->SetBinContent(7, nSelWeight);
-
-    TH1D *h_tot_ = new TH1D("TotalEvents_" + suffix, h_tot->GetTitle(), h_tot->GetNbinsX(), 
-                            h_tot->GetXaxis()->GetXmin(), h_tot->GetXaxis()->GetXmax());
-    for (unsigned i = 0; i < h_tot->GetNbinsX(); i++)
-        h_tot_->SetBinContent(i, h_tot->GetBinContent(i));
-
-    return h_tot_;
+    return h_tot;
 }

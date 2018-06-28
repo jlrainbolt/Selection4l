@@ -26,7 +26,7 @@ root.exe -q -b "handleSelection.cc(\"$selection\", \"$suffix\", \"$id\")"
 # Copy output to scratch dir if needed
 if [ $TEMP ]
 then
-    cp *.root $_CONDOR_SCRATCH_DIR/.
+#   cp *.root $_CONDOR_SCRATCH_DIR/.
 
 
     echo ""
