@@ -14,27 +14,9 @@ JOB             muon_2016   submitRun.sub
 
 VARS            muon_2016   selection="4m"
 VARS            muon_2016   suffix="muon_2016"
-VARS            muon_2016   nFiles="5"
+VARS            muon_2016   nFiles="7"
 
 SCRIPT  POST    muon_2016   runHadd.sh 4m $JOB
-
-
-#JOB             zjets_m-10to50 submitRun.sub
-  
-#VARS            zjets_m-10to50 selection="4m"
-#VARS            zjets_m-10to50 suffix="zjets_m-10to50"
-#VARS            zjets_m-10to50 nFiles="1"
-  
-#SCRIPT  POST    zjets_m-10to50 runHadd.sh 4m $JOB
-  
-  
-#JOB             zjets_m-50     submitRun.sub
-  
-#VARS            zjets_m-50     selection="4m"
-#VARS            zjets_m-50     suffix="zjets_m-50"
-#VARS            zjets_m-50     nFiles="2"
-  
-#SCRIPT  POST    zjets_m-50     runHadd.sh 4m $JOB
 
 
 JOB             dy_m-10to50 submitRun.sub
@@ -50,16 +32,34 @@ JOB             dy_m-50     submitRun.sub
 
 VARS            dy_m-50     selection="4m"
 VARS            dy_m-50     suffix="dy_m-50"
-VARS            dy_m-50     nFiles="5"
+VARS            dy_m-50     nFiles="9"
 
 SCRIPT  POST    dy_m-50     runHadd.sh 4m $JOB
+
+
+JOB             ggH_zz_4l   submitRun.sub
+
+VARS            ggH_zz_4l   selection="4m"
+VARS            ggH_zz_4l   suffix="ggH_zz_4l"
+VARS            ggH_zz_4l   nFiles="1"
+
+SCRIPT  POST    ggH_zz_4l   runHadd.sh 4m $JOB
+
+
+JOB             H_zz_4l     submitRun.sub
+
+VARS            H_zz_4l     selection="4m"
+VARS            H_zz_4l     suffix="H_zz_4l"
+VARS            H_zz_4l     nFiles="1"
+
+SCRIPT  POST    H_zz_4l     runHadd.sh 4m $JOB
 
 
 JOB             ttbar       submitRun.sub
 
 VARS            ttbar       selection="4m"
 VARS            ttbar       suffix="ttbar"
-VARS            ttbar       nFiles="1"
+VARS            ttbar       nFiles="4"
 
 SCRIPT  POST    ttbar       runHadd.sh 4m $JOB
 

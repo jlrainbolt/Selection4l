@@ -58,10 +58,10 @@ void stackResults(const TString inFile, const TString selection)
         hname = {"DilepMass", "DilepPt", "Lep1Pt", "Lep2Pt", "Lep1Eta", "Lep2Eta",
                  "nPV", "TotalEvents"};
     else if (sel4l)
-        hname = {"4lepMass", "4lepPt", "Z1Mass", "Z2Mass", "Z1Pt", "Z2Pt",
+        hname = {"4lepMass", "4lepMass2", "4lepPt", "Z1Mass", "Z2Mass", "Z1Pt", "Z2Pt",
                  "Lep1Pt", "Lep2Pt", "Lep3Pt", "Lep4Pt",
                  "Lep1Eta", "Lep2Eta", "Lep3Eta", "Lep4Eta",
-                 "nPV", "nZZCands", "nSelLeps", "TotalEvents"};
+                 "nPV", "nSelLeps", "TotalEvents"};
 
     vector<THStack*> dataStack, mcStack;
     vector<TCanvas*> canvas;
