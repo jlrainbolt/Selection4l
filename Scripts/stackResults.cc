@@ -19,6 +19,7 @@ void stackResults(const TString inFile, const TString selection)
 
     TFile *file = TFile::Open(inFile, "UPDATE");
 
+
     // Get lists of samples and their contents
     TDirectory *dir = file->GetDirectory("/Histograms", kTRUE, "GetDirectory");
     TIter next(dir->GetListOfKeys());
@@ -73,7 +74,7 @@ void stackResults(const TString inFile, const TString selection)
     TLegend *legend = new TLegend(.75, .55, .95, .95);
 
 
-    // Fill stacks and legend
+    // Fill stacks
     for (int i = 0; i < dataSubdir.size(); i++)
     {
         for (unsigned h = 0; h < hname.size(); h++)
@@ -90,11 +91,12 @@ void stackResults(const TString inFile, const TString selection)
         }
     }
 
-    for (unsigned j = 0; j < mcSubdir.size(); j++)
+    for (unsigned j_ = 0; j_ < mcSubdir.size(); j_++)
     {
-//  for (int j_ = mcSubdir.size(); j_ > 0; j_--)
-//  {
-//      unsigned j = j_ - 1;
+        unsigned j = j_;
+        if (sel2l)
+            j = mcSubdir.size() - 1 - j_;
+
         TH1* hTotalEvents;
         mcSubdir[j]->GetObject("TotalEvents_" + mcSuffix[j], hTotalEvents);
         Float_t ngen = hTotalEvents->GetBinContent(1) - 2 * hTotalEvents->GetBinContent(10);
@@ -108,24 +110,35 @@ void stackResults(const TString inFile, const TString selection)
 
             if (j == 0)
                 mcStack[h]->SetTitle(hist->GetTitle());
-            if (h == 0)
-                legend->AddEntry(hist, mcSuffix[j], "F");
         }
+    }
+
+
+    // Fill legend
+    for (unsigned j_ = 0; j_ < mcSubdir.size(); j_++)
+    {
+        unsigned j = j_;
+        if (sel4l)
+            j = mcSubdir.size() - 1 - j_;
+
+        TH1* hist;
+        mcSubdir[j]->GetObject(hname[0] + "_" + mcSuffix[j], hist);
+        legend->AddEntry(hist, mcSuffix[j], "F");
     }
 
 
     // Draw on canvases
     for (unsigned h = 0; h < hname.size(); h++)
     {
-        dataStack[h]->SetMinimum(0);
-        mcStack[h]->SetMinimum(0);
-
-        if (h == hname.size() - 1)
+        dataStack[h]->SetMinimum(0.001);
+        mcStack[h]->SetMinimum(0.001);
+/*
+        if (sel4l && h == hname.size() - 1)
         {
             dataStack[h]->SetMaximum(1000);
             mcStack[h]->SetMaximum(1000);
         }
-
+*/
         canvas[h]->cd();
         if (dataStack[h]->GetMaximum() > mcStack[h]->GetMaximum())
         {

@@ -10,5 +10,5 @@
 
 
 SUBDAG  EXTERNAL    submission  submitJobs_ee.dag
-SCRIPT  PRE         submission  prepArea.sh
+#SCRIPT  PRE         submission  prepArea.sh
 SCRIPT  POST        submission  runStacker.sh ee

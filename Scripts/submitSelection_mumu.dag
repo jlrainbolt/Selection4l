@@ -10,5 +10,6 @@
 
 
 SUBDAG  EXTERNAL    submission  submitJobs_mumu.dag
-SCRIPT  PRE         submission  prepArea.sh
+#SCRIPT  PRE         submission  prepArea.sh
+#SCRIPT  PRE         submission  cleanDirectory.sh
 SCRIPT  POST        submission  runStacker.sh mumu
