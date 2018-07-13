@@ -17,25 +17,17 @@ bool sort_dec_pt (TLorentzVector i, TLorentzVector j) { return (i.Pt() > j.Pt())
 
 TH1D* Select2l(const TString rootFile, const TString suffix,
                const Bool_t mumu,
-               TH1F *h_mll, TH1F *h_qt,
+               TH1D *h_acc, TH1F *h_mll, TH1F *h_qt,
                TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2,
                TH1F *h_npv);
   
 TH1D* Select4l(const TString rootFile, const TString suffix,
                const Bool_t muPair1, const Bool_t muPair2,
-               TH1F *h_m4l, TH1F *h_qt4l,
+               TH1D *h_acc, TH1F *h_m4l, TH1F *h_qt4l,
                TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
                TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
                TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4,
                TH1F *h_npv, TH1F* h_m4l2, TH1F* h_nlep);
-
-
-
-TH1D*  Tight2l(const TString rootFile, const TString suffix,
-               const Bool_t mumu,
-               TH1F *h_mll, TH1F *h_qt,
-               TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2,
-               TH1F *h_npv);
  
 
 using namespace std;
@@ -83,7 +75,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     }
     else if (selection == "2e2mu" || selection == "2e2m")
     {
-        sel4l = kTRUE;      muPair1 = kTRUE;    muPair2 = kFALSE;
+        sel4l = kTRUE;      muPair1 = kFALSE;    muPair2 = kTRUE;
     }
 
     if (sel2l)
@@ -206,32 +198,38 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     // Make histograms
     TH1F *h[M];
     for (unsigned j = 0; j < M; j++)
+    {
         h[j] = new TH1F(hname[j] + "_" + suffix, htitle[j], bins[j], low[j], up[j]);
+        h[j]->Sumw2(kTRUE);
+    }
+    TH1D *hTotalEvents;
+    TH1D *hAcceptedEvents = new TH1D("AcceptedEvents_" + suffix, "AcceptedEvents", 10, 0.5, 10.5);
+    hAcceptedEvents->Sumw2(kTRUE);
 
 
 
     //--- SELECTION ---//
 
     // Read trees
-    TH1D *hTotalEvents;
     if (sel2l)
         hTotalEvents = Select2l(path + dir + file, suffix, muPair1,
-                                h[LL], h[QT], 
+                                hAcceptedEvents, h[LL], h[QT], 
                                 h[P1], h[P2], h[E1], h[E2],
                                 h[PV]);
     else if (sel4l)
         hTotalEvents = Select4l(path + dir + file, suffix, muPair1, muPair2,
-                                h[ZZ], h[QT],
+                                hAcceptedEvents, h[ZZ], h[QT],
                                 h[Z1], h[Z2], h[T1], h[T2],
                                 h[P1], h[P2], h[P3], h[P4], h[E1], h[E2], h[E3], h[E4],
                                 h[PV], h[ZM], h[NL]);
- 
+
 
     // Write to file
     TFile *outFile = new TFile(output, "RECREATE");
     for (unsigned j = 0; j < M; j++)
         h[j]->Write();
     hTotalEvents->Write();
+    hAcceptedEvents->Write();
     outFile->Close();
 
 
@@ -242,6 +240,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     for (unsigned j = 0; j < M; j++)
         delete h[j];
     delete hTotalEvents;
+    delete hAcceptedEvents;
 
     return;
 }
@@ -257,7 +256,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 //--- DILEPTON ---//
 
 TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
-               TH1F *h_mll, TH1F *h_qt,
+               TH1D *h_acc, TH1F *h_mll, TH1F *h_qt,
                TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2,
                TH1F *h_npv)
 {
@@ -270,7 +269,7 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
 
     Float_t MLL_MIN = 80, MLL_MAX = 100;
     Float_t PT1_MIN = 25, PT2_MIN = 10;
-    Float_t LOOSE_PT_MIN = mumu ? 7 : 5;
+//  Float_t ID_PT_MIN = mumu ? 7 : 5;
 
     Double_t LEP_MASS = mumu ? 0.105658369 : 0.000511;
 
@@ -279,10 +278,26 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
     //--- ROOT FILE ---//
 
     TFile *file = TFile::Open(rootFile);
-    TH1D* h_tot;
+    TH1D *h_tot, *h_acc_;
     file->GetObject("TotalEvents_" + suffix, h_tot);
-    h_tot->SetDirectory(0);
+    h_tot->SetDirectory(0); h_tot->Sumw2(kTRUE);
+    file->GetObject("AcceptedEvents_" + suffix, h_acc_);
     TTreeReader reader("tree_" + suffix, file);
+
+
+    // Copy applicable result from accepted events histogram
+    if (h_acc_)
+    {
+        unsigned binIdx = 1;
+        if (mumu)       // mumu = 3
+            binIdx = 3;
+        else            // ee   = 4
+            binIdx = 4;
+
+        h_acc->SetBinContent(1, h_acc_->GetBinContent(1));
+        h_acc->SetBinContent(2, h_acc_->GetBinContent(binIdx));
+        delete h_acc_;
+    }
 
 
 
@@ -290,22 +305,23 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
 
     TString Lep = mumu ? "Muon" : "Electron";
     TString lep = mumu ? "muon" : "electron";
-    TString BadLep = mumu ? "Electron" : "Muon";
+//  TString ID = mumu ? "Loose" : "Medium";
+    TString Reco = mumu ? "ID" : "Reco";
 
     // Event
-    TTreeReaderValue<Bool_t> evtGoodTrigger_(reader, "evt"+Lep+"Triggered");
-    TTreeReaderValue<Bool_t> evtBadTrigger_(reader, "evt"+BadLep+"Triggered");
+    TTreeReaderValue<Bool_t> passTrigger_(reader, "evt"+Lep+"Triggered");
     TTreeReaderValue<UShort_t> nPV_(reader, "nPV");
+    TTreeReaderValue<UShort_t> nPartons_(reader, "nPartons");
     TTreeReaderValue<UShort_t> nLeps_(reader, "n"+Lep+"s");
     TTreeReaderValue<UShort_t> nHZZLeps_(reader, "nHZZ"+Lep+"s");
-    TTreeReaderValue<UShort_t> nLooseLeps_(reader, "nLoose"+Lep+"s");
+//  TTreeReaderValue<UShort_t> nIDLeps_(reader, "n"+ID+Lep+"s");
 
 
     // Leptons
     TTreeReaderArray<TLorentzVector> lepP4_(reader, lep+"P4");
     TTreeReaderValue<vector<Short_t>> lepQ_(reader, lep+"Q");
     TTreeReaderValue<vector<Bool_t>> lepIsHZZ_(reader, lep+"IsHZZ");
-    TTreeReaderValue<vector<Bool_t>> lepIsLoose_(reader, lep+"IsLoose");
+//  TTreeReaderValue<vector<Bool_t>> lepIsID_(reader, lep+"Is"+ID);
 
 
     // Scaling & weighting
@@ -313,9 +329,7 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
     TTreeReaderValue<Float_t> eventWeight_(reader, "eventWeight");
     TTreeReaderValue<Float_t> PUWeight_(reader, "PUWeight");
 
-    TString recoBranchName = mumu ? "muonHZZIDEff" : "electronHZZRecoEff";
-    TTreeReaderValue<vector<Float_t>> lepRecoEff_(reader, recoBranchName);
-
+    TTreeReaderValue<vector<Float_t>> lepRecoEff_(reader, lep+"HZZ"+Reco+"Eff");
     TTreeReaderValue<vector<Float_t>> lepTrigEffData_(reader, lep+"TriggerEffData");
     TTreeReaderValue<vector<Float_t>> lepTrigEffMC_(reader, lep+"TriggerEffMC");
     TTreeReaderValue<vector<Bool_t>> lepTriggered_(reader, lep+"Triggered");
@@ -332,13 +346,13 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
     {
         //--- BRANCHES ---//
 
-        Bool_t passTrigger = (*evtGoodTrigger_ && !*evtBadTrigger_);
-        UShort_t nPV = *nPV_;
-        UShort_t nLeps = *nLeps_, nHZZLeps = *nHZZLeps_, nLooseLeps = *nLooseLeps_;
+        Bool_t passTrigger = (*passTrigger_);
+        UShort_t nPV = *nPV_, nPartons = *nPartons_;
+        UShort_t nLeps = *nLeps_, nHZZLeps = *nHZZLeps_;    // , nIDLeps = *nIDLeps_;
 
         vector<TLorentzVector> lepP4;
         vector<Short_t> lepQ;
-        vector<Bool_t> lepIsHZZ, lepIsLoose;
+        vector<Bool_t> lepIsHZZ;    // , lepIsID;
 
         Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
         vector<Float_t> lepSF, lepRecoEff, lepTrigEffData, lepTrigEffMC;
@@ -348,7 +362,7 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
 
         //--- PRESELECTION ---//
 
-        if (!passTrigger || nHZZLeps < 2)
+        if (!passTrigger || nHZZLeps != 2)
             continue;
 
 
@@ -361,7 +375,7 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
         {
             lepQ.push_back((*lepQ_)[i]);
             lepIsHZZ.push_back((*lepIsHZZ_)[i]);
-            lepIsLoose.push_back((*lepIsLoose_)[i]);
+//          lepIsID.push_back((*lepIsID_)[i]);
 
             lepSF.push_back((*lepSF_)[i]);
             lepRecoEff.push_back((*lepRecoEff_)[i]);
@@ -377,15 +391,21 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
             // Apply Pt scaling
             lepP4[i].SetPtEtaPhiM(lepP4[i].Pt()*lepSF[i], lepP4[i].Eta(), lepP4[i].Phi(), LEP_MASS);
 
+//          // Remove electrons that do not pass ID
+//          if (!mumu && (lepIsHZZ[i] && !lepIsID[i]))
+//          {
+//              lepIsHZZ[i] = kFALSE;       nHZZLeps--;
+//          }
+
             // Remove leptons with Pt below threshold
             if (lepIsHZZ[i] && lepP4[i].Pt() < PT2_MIN)
             {
                 lepIsHZZ[i] = kFALSE;       nHZZLeps--;
             }
-            if (lepIsLoose[i] && lepP4[i].Pt() < LOOSE_PT_MIN)
-            {
-                lepIsLoose[i] = kFALSE;     nLooseLeps--;
-            }
+//          if (lepIsID[i] && lepP4[i].Pt() < ID_PT_MIN)
+//          {
+//              lepIsID[i] = kFALSE;        nIDLeps--;
+//          }
         }
 
 
@@ -393,17 +413,18 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
         //--- SELECTION ---//
 
         // Make sure we have the right number of leps
-        if (nHZZLeps != 2 || nLooseLeps > nHZZLeps)
+//      if (nHZZLeps != 2 || nIDLeps > nHZZLeps)
+        if (nHZZLeps != 2)
             continue;
 
-
-        // Find indices of pair
-        unsigned x = 0, y = 0;
 
         // Make sure leading lepton is good
-        if (!lepIsHZZ[x] || lepP4[0].Pt() < PT1_MIN)
+        if (!lepIsHZZ[0] || lepP4[0].Pt() < PT1_MIN)
             continue;
 
+
+        // Pair leading lepton
+        unsigned x = 0, y = 0;
         bool foundPair = kFALSE;
         for (unsigned j = 1; j < nLeps; j++)
         {
@@ -419,6 +440,13 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
             }
         }
         if (x == y)
+            continue;
+
+
+        // Record MC selection
+        h_acc->Fill(3, eventWeight);
+
+        if (suffix.Contains("dy") && nPartons != 0)
             continue;
 
 
@@ -473,7 +501,7 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
 
 TH1D* Select4l(const TString rootFile, const TString suffix,
                const Bool_t muPair1, const Bool_t muPair2,
-               TH1F *h_m4l, TH1F *h_qt4l,
+               TH1D *h_acc, TH1F *h_m4l, TH1F *h_qt4l,
                TH1F *h_m12, TH1F *h_m34, TH1F *h_qt12, TH1F *h_qt34,
                TH1F *h_pt1, TH1F *h_pt2, TH1F *h_pt3, TH1F *h_pt4,
                TH1F *h_eta1, TH1F *h_eta2, TH1F *h_eta3, TH1F *h_eta4,
@@ -487,10 +515,10 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
     //--- CUTS & CONSTS ---//
 
     Float_t PT1_MIN = 25, PT2_MIN = 10;
-    Float_t M4L_MIN = 70, M4L_MAX = 1000;
-//  Float_t M4L_MIN = 60, M4L_MAX = 180;
-    Float_t MZ1_MIN = 40, MZ_MIN = 12, MZ_MAX = 120;
-//  Float_t MZ1_MIN = 12, MZ_MIN = 4, MZ_MAX = 120;
+//  Float_t M4L_MIN = 70, M4L_MAX = 1000;
+    Float_t M4L_MIN = 80, M4L_MAX = 100;
+//  Float_t MZ1_MIN = 40, MZ_MIN = 12, MZ_MAX = 120;
+    Float_t MZ1_MIN = 12, MZ_MIN = 4, MZ_MAX = 120;
     Float_t MLL_MIN = 4, DR_MIN = 0.02;
 
     Double_t Z_MASS = 91.2;
@@ -501,10 +529,30 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
     //--- ROOT FILE ---//
 
     TFile *file = TFile::Open(rootFile);
-    TH1D* h_tot;
+    TH1D *h_tot, *h_acc_;
     file->GetObject("TotalEvents_" + suffix, h_tot);
-    h_tot->SetDirectory(0);
+    h_tot->SetDirectory(0); h_tot->Sumw2(kTRUE);
+    file->GetObject("AcceptedEvents_" + suffix, h_acc_);
     TTreeReader reader("tree_" + suffix, file);
+
+
+    // Copy applicable result from accepted events histogram
+    if (h_acc_)
+    {
+        unsigned binIdx = 1;
+        if (muPair1 && muPair2)         // 4m   = 6
+            binIdx = 6;
+        else if (muPair1 && !muPair2)   // 2m2e = 7
+            binIdx = 7;
+        else if (!muPair1 && muPair2)   // 2e2m = 8
+            binIdx = 8;
+        else if (!muPair1 && !muPair2)  // 4e   = 9
+            binIdx = 9;
+
+        h_acc->SetBinContent(1, h_acc_->GetBinContent(1));
+        h_acc->SetBinContent(2, h_acc_->GetBinContent(binIdx));
+        delete h_acc_;
+    }
 
 
 
@@ -525,13 +573,14 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
 
         TString Lep = mus ? "Muon" : "Electron";
         TString lep = mus ? "muon" : "electron";
-        TString BadLep = mus ? "Electron" : "Muon";
+//      TString ID = mus ? "Loose" : "Loose";
+        TString Reco = mus ? "ID" : "Reco";
 
 
         // Event
-        TTreeReaderValue<Bool_t> evtGoodTrigger_(reader, "evt"+Lep+"Triggered");
-        TTreeReaderValue<Bool_t> evtBadTrigger_(reader, "evt"+BadLep+"Triggered");
+        TTreeReaderValue<Bool_t> passTrigger_(reader, "evt"+Lep+"Triggered");
         TTreeReaderValue<UShort_t> nPV_(reader, "nPV");
+        TTreeReaderValue<UShort_t> nPartons_(reader, "nPartons");
         TTreeReaderValue<UShort_t> nLeps_(reader, "n"+Lep+"s");
         TTreeReaderValue<UShort_t> nHZZLeps_(reader, "nHZZ"+Lep+"s");
 
@@ -539,6 +588,7 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
         // Leptons
         TTreeReaderArray<TLorentzVector> lepP4_(reader, lep+"P4");
         TTreeReaderValue<vector<Short_t>> lepQ_(reader, lep+"Q");
+//      TTreeReaderValue<vector<Bool_t>> lepIsID_(reader, lep+"Is"+ID);
         TTreeReaderValue<vector<Bool_t>> lepIsHZZ_(reader, lep+"IsHZZ");
 
 
@@ -547,9 +597,7 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
         TTreeReaderValue<Float_t> eventWeight_(reader, "eventWeight");
         TTreeReaderValue<Float_t> PUWeight_(reader, "PUWeight");
 
-        TString recoBranchName = mus ? "muonHZZIDEff" : "electronHZZRecoEff";
-        TTreeReaderValue<vector<Float_t>> lepRecoEff_(reader, recoBranchName);
-
+        TTreeReaderValue<vector<Float_t>> lepRecoEff_(reader, lep+"HZZ"+Reco+"Eff");
         TTreeReaderValue<vector<Float_t>> lepTrigEffData_(reader, lep+"TriggerEffData");
         TTreeReaderValue<vector<Float_t>> lepTrigEffMC_(reader, lep+"TriggerEffMC");
         TTreeReaderValue<vector<Bool_t>> lepTriggered_(reader, lep+"Triggered");
@@ -566,17 +614,19 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
         {
             //--- BRANCHES ---//
 
-            Bool_t passTrigger = (*evtGoodTrigger_ && !*evtBadTrigger_);
-            UShort_t nPV = *nPV_;
+            Bool_t passTrigger = (*passTrigger_);
+            UShort_t nPV = *nPV_, nPartons = *nPartons_;
             UShort_t nLeps = *nLeps_, nHZZLeps = *nHZZLeps_;
 
             vector<TLorentzVector> lepP4;
             vector<Short_t> lepQ;
-            vector<Bool_t> lepIsHZZ;
+            vector<Bool_t> lepIsHZZ;    // , lepIsID;
 
             Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
             vector<Float_t> lepSF, lepRecoEff, lepTrigEffData, lepTrigEffMC;
             vector<Bool_t> lepTriggered;
+
+            vector<Bool_t> elecPassID;
 
 
 
@@ -594,6 +644,7 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             for (unsigned i = 0; i < nLeps; i++)
             {
                 lepQ.push_back((*lepQ_)[i]);
+//              lepIsID.push_back((*lepIsID_)[i]);
                 lepIsHZZ.push_back((*lepIsHZZ_)[i]);
 
                 lepSF.push_back((*lepSF_)[i]);
@@ -604,10 +655,22 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             }
 
 
-            // Apply Pt scaling
+            // Adjust lepton requirements
             for (unsigned i = 0; i < nLeps; i++)
+            {
+                // Apply Pt scaling
                 lepP4[i].SetPtEtaPhiM(lepP4[i].Pt() * lepSF[i],
-                                      lepP4[i].Eta(), lepP4[i].Phi(), LEP_MASS);
+                        lepP4[i].Eta(), lepP4[i].Phi(), LEP_MASS);
+
+//              // Remove electrons that do not pass ID
+//              if (!mus && (lepIsHZZ[i] && !lepIsID[i]))
+//              {
+//                  lepIsHZZ[i] = kFALSE;       nHZZLeps--;
+//              }
+
+            }
+//          if (nHZZLeps < 4)
+//              continue;
 
 
 
@@ -814,27 +877,16 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             sort(z.begin(), z.end());
 
 
+            // Record MC selection
+            h_acc->Fill(3, eventWeight);
+            if (suffix.Contains("dy") && nPartons != 0)
+                continue;
+
+
 
             //--- WEIGHTING ---//
 
-            // Calculate reco & trigger efficiency scale factors
-            float recoEff = 1., triggerEff = 1.;
-            float num = 1., denom = 1.;
-            for (unsigned k = 0; k < z.size(); k++)
-            {
-                if (lepIsHZZ[k])    // Should always be true
-                    recoEff *= lepRecoEff[k];
-
-                if (lepTriggered[k])
-                {
-                    num *= 1. - lepTrigEffData[k];      denom *= 1. - lepTrigEffMC[k];
-                }
-            }
-            if (denom != 1.)
-                triggerEff = (1. - num) / (1. - denom);
-
-/*
-            // Calculate trigger efficiency scale factor
+            // Calculate trigger efficiency scale factor using leading leptons
             unsigned x = z[0], y = z[1];
             float triggerEff = 1.;
             if (lepTriggered[x] && lepTriggered[y])
@@ -851,9 +903,11 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
                 triggerEff = lepTrigEffData[y] / lepTrigEffMC[y];
 
 
-            // Calculate reco efficiency scale factor
-            float recoEff = lepRecoEff[x] * lepRecoEff[y];
-*/
+            // Calculate reco efficiency scale factor using all leptons
+            float recoEff = 1.;
+            for (unsigned k = 0; k < z.size(); k++)
+                recoEff *= lepRecoEff[z[k]];
+
 
             // Apply weights
             eventWeight *= PUWeight * recoEff * triggerEff;
@@ -906,14 +960,16 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
 
         //--- BRANCHES ---//
 
-        TString Lep1 = muPair1 ? "Muon" : "Electron", Lep2 = muPair2 ? "Muon" : "Electron";
-        TString lep1 = muPair1 ? "muon" : "electron", lep2 = muPair2 ? "muon" : "electron";
+        TString Lep1 = muPair1 ? "Muon" : "Electron",   Lep2 = muPair2 ? "Muon" : "Electron";
+        TString lep1 = muPair1 ? "muon" : "electron",   lep2 = muPair2 ? "muon" : "electron";
+//      TString ID1 = muPair1 ? "Loose" : "Medium",     ID2 = muPair2 ? "Loose" : "Medium";
+        TString Reco1 = muPair1 ?  "ID" : "Reco",       Reco2 = muPair2 ?  "ID" : "Reco";
 
 
         // Event
-        TTreeReaderValue<Bool_t> evtGoodTrigger_(reader, "evt"+Lep1+"Triggered");
-        TTreeReaderValue<Bool_t> evtBadTrigger_(reader, "evt"+Lep2+"Triggered");
+        TTreeReaderValue<Bool_t> passTrigger_(reader, "evt"+Lep1+"Triggered");
         TTreeReaderValue<UShort_t> nPV_(reader, "nPV");
+        TTreeReaderValue<UShort_t> nPartons_(reader, "nPartons");
 
         TTreeReaderValue<UShort_t> nLeps_(reader, "nLeptons");
         TTreeReaderValue<UShort_t> nHZZLeps_(reader, "nHZZLeptons");
@@ -928,10 +984,12 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
         // Leptons
         TTreeReaderArray<TLorentzVector> lep1P4_(reader, lep1+"P4");
         TTreeReaderValue<vector<Short_t>> lep1Q_(reader, lep1+"Q");
+//      TTreeReaderValue<vector<Bool_t>> lep1IsID_(reader, lep1+"Is"+ID1);
         TTreeReaderValue<vector<Bool_t>> lep1IsHZZ_(reader, lep1+"IsHZZ");
 
         TTreeReaderArray<TLorentzVector> lep2P4_(reader, lep2+"P4");
         TTreeReaderValue<vector<Short_t>> lep2Q_(reader, lep2+"Q");
+//      TTreeReaderValue<vector<Bool_t>> lep2IsID_(reader, lep2+"Is"+ID2);
         TTreeReaderValue<vector<Bool_t>> lep2IsHZZ_(reader, lep2+"IsHZZ");
 
 
@@ -944,8 +1002,8 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
 
         TString lep1RecoBranchName = muPair1 ? "muonHZZIDEff" : "electronHZZRecoEff";
         TString lep2RecoBranchName = muPair2 ? "muonHZZIDEff" : "electronHZZRecoEff";
-        TTreeReaderValue<vector<Float_t>> lep1RecoEff_(reader, lep1RecoBranchName);
-        TTreeReaderValue<vector<Float_t>> lep2RecoEff_(reader, lep2RecoBranchName);
+        TTreeReaderValue<vector<Float_t>> lep1RecoEff_(reader, lep1+"HZZ"+Reco1+"Eff");
+        TTreeReaderValue<vector<Float_t>> lep2RecoEff_(reader, lep2+"HZZ"+Reco2+"Eff");
 
         TTreeReaderValue<vector<Float_t>> lep1TrigEffData_(reader, lep1+"TriggerEffData");
         TTreeReaderValue<vector<Float_t>> lep1TrigEffMC_(reader, lep1+"TriggerEffMC");
@@ -961,15 +1019,15 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
         {
             //--- BRANCHES ---//
 
-            Bool_t passTrigger = (*evtGoodTrigger_ && !*evtBadTrigger_);
-            UShort_t nPV = *nPV_;
+            Bool_t passTrigger = (*passTrigger_);
+            UShort_t nPV = *nPV_, nPartons = *nPartons_;
             UShort_t nLeps = *nLeps_, nHZZLeps = *nHZZLeps_;
             UShort_t nLep1s = *nLep1s_, nHZZLep1s = *nHZZLep1s_;
             UShort_t nLep2s = *nLep2s_, nHZZLep2s = *nHZZLep2s_;
 
             vector<TLorentzVector> lep1P4, lep2P4;
             vector<Short_t> lep1Q, lep2Q;
-            vector<Bool_t> lep1IsHZZ, lep2IsHZZ;
+            vector<Bool_t> lep1IsHZZ, lep2IsHZZ;    // lep1IsID, lep2IsID; 
 
             Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
             vector<Float_t> lep1SF, lep2SF, lep1RecoEff, lep2RecoEff;
@@ -993,6 +1051,7 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             for (unsigned i = 0; i < nLep1s; i++)
             {
                 lep1Q.push_back((*lep1Q_)[i]);
+//              lep1IsID.push_back((*lep1IsID_)[i]);
                 lep1IsHZZ.push_back((*lep1IsHZZ_)[i]);
 
                 lep1SF.push_back((*lep1SF_)[i]);
@@ -1002,6 +1061,23 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
                 lep1Triggered.push_back((*lep1Triggered_)[i]);
             }
 
+            // Adjust lepton requirements
+            for (unsigned i = 0; i < nLep1s; i++)
+            {
+                // Apply Pt scaling
+                lep1P4[i].SetPtEtaPhiM(lep1P4[i].Pt() * lep1SF[i],
+                                       lep1P4[i].Eta(), lep1P4[i].Phi(), LEP1_MASS);
+/*
+                // Remove electrons that do not pass ID
+                if (!muPair1 && (lep1IsHZZ[i] && !lep1IsID[i]))
+                {
+                    lep1IsHZZ[i] = kFALSE;      nHZZLep1s--;    nHZZLeps--;
+                }
+*/
+            }
+//          if (nHZZLep1s < 2)
+//              continue;
+
 
             // Subleading flavor
             for (const TLorentzVector& lep2P4__: lep2P4_)
@@ -1009,21 +1085,29 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             for (unsigned i = 0; i < nLep2s; i++)
             {
                 lep2Q.push_back((*lep2Q_)[i]);
+//              lep2IsID.push_back((*lep2IsID_)[i]);
                 lep2IsHZZ.push_back((*lep2IsHZZ_)[i]);
 
                 lep2SF.push_back((*lep2SF_)[i]);
                 lep2RecoEff.push_back((*lep2RecoEff_)[i]);
             }
 
-
-            // Apply Pt scaling
-            for (unsigned i = 0; i < nLep1s; i++)
-                lep1P4[i].SetPtEtaPhiM(lep1P4[i].Pt() * lep1SF[i],
-                                       lep1P4[i].Eta(), lep1P4[i].Phi(), LEP1_MASS);
-
+            // Adjust lepton requirements
             for (unsigned i = 0; i < nLep2s; i++)
+            {
+                // Apply Pt scaling
                 lep2P4[i].SetPtEtaPhiM(lep2P4[i].Pt() * lep2SF[i],
                                        lep2P4[i].Eta(), lep2P4[i].Phi(), LEP2_MASS);
+/*
+                // Remove electrons that do not pass ID
+                if (!muPair2 && (lep2IsHZZ[i] && !lep2IsID[i]))
+                {
+                    lep2IsHZZ[i] = kFALSE;      nHZZLep2s--;    nHZZLeps--;
+                }
+*/
+            }
+//          if (nHZZLep2s < 2)
+//              continue;
 
 
 
@@ -1201,10 +1285,17 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             sort(z_p4s.begin(), z_p4s.end(), sort_dec_pt);
 
 
+            // Record MC selection
+            h_acc->Fill(3, eventWeight);
+
+            if (suffix.Contains("dy") && nPartons != 0)
+                continue;
+
+
 
             //--- WEIGHTING ---//
 
-            // Calculate trigger efficiency scale factor
+            // Calculate trigger efficiency scale factor using leading leptons
             unsigned x = Z1.first, y = Z1.second;
             float triggerEff = 1.;
             if (lep1Triggered[x] && lep1Triggered[y])
@@ -1221,7 +1312,7 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
                 triggerEff = lep1TrigEffData[y] / lep1TrigEffMC[y];
 
 
-            // Calculate reco efficiency scale factor
+            // Calculate reco efficiency scale factor using all leptons
             float recoEff = 1.;
             recoEff *= lep1RecoEff[x] * lep1RecoEff[y];
             recoEff *= lep2RecoEff[Z2.first] * lep2RecoEff[Z2.second];
@@ -1259,212 +1350,6 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             h_m4l2->Fill(ZZ_p4.M(), eventWeight);
             h_nlep->Fill(nHZZLeps, eventWeight);
         }
-    }
-    file->Close();  delete file;
-
-    return h_tot;
-}
-
-
-
-
-
-TH1D*  Tight2l(const TString rootFile, const TString suffix, const Bool_t mumu,
-               TH1F *h_mll, TH1F *h_qt,
-               TH1F *h_pt1, TH1F *h_pt2, TH1F *h_eta1, TH1F *h_eta2,
-               TH1F *h_npv)
-{
-    ////////////////////
-    // INITIALIZATION //
-    ////////////////////
-
-    /* CUTS & CONSTANTS */
-    Float_t MLL_MIN = 80, MLL_MAX = 100;
-    Float_t TIGHT_PT_MIN = 25, LOOSE_PT_MIN = 10;
-
-    Double_t LEP_MASS = mumu ? 0.105658369 : 0.000511;
-
-
-
-    /* ROOT FILE */
-    TFile *file = TFile::Open(rootFile);
-    TH1D* h_tot;
-    file->GetObject("TotalEvents_" + suffix, h_tot);
-    h_tot->SetDirectory(0);
-    TTreeReader reader("tree_" + suffix, file);
-
-
-
-    /* BRANCHES */
-    TString Lep = mumu ? "Muon" : "Electron";
-    TString lep = mumu ? "muon" : "electron";
-    TString BadLep = mumu ? "Electron" : "Muon";
-
-    // Event
-    TTreeReaderValue<Bool_t> evtGoodTrigger_(reader, "evt"+Lep+"Triggered");
-    TTreeReaderValue<Bool_t> evtBadTrigger_(reader, "evt"+BadLep+"Triggered");
-    TTreeReaderValue<UShort_t> nPV_(reader, "nPV");
-    TTreeReaderValue<UShort_t> nLeps_(reader, "n"+Lep+"s");
-    TTreeReaderValue<UShort_t> nTightLeps_(reader, "nTight"+Lep+"s");
-    TTreeReaderValue<UShort_t> nLooseLeps_(reader, "nLoose"+Lep+"s");
-
-
-    // Leptons
-    TTreeReaderArray<TLorentzVector> lepP4_(reader, lep+"P4");
-    TTreeReaderValue<vector<Short_t>> lepQ_(reader, lep+"Q");
-    TTreeReaderValue<vector<Bool_t>> lepIsTight_(reader, lep+"IsTight");
-    TTreeReaderValue<vector<Bool_t>> lepIsLoose_(reader, lep+"IsLoose");
-
-
-    // Scaling & weighting
-    TTreeReaderValue<vector<Float_t>> lepSF_(reader, lep+"SF");
-    TTreeReaderValue<Float_t> eventWeight_(reader, "eventWeight");
-    TTreeReaderValue<Float_t> PUWeight_(reader, "PUWeight");
-
-    TTreeReaderValue<vector<Float_t>> lepIDEff_(reader, "muonTightIDEff");
-    TTreeReaderValue<vector<Float_t>> lepIsoEff_(reader, "muonTightIsoEff");
-    TTreeReaderValue<vector<Float_t>> lepRecoEff_(reader, "electronRecoEff");
-
-    TTreeReaderValue<vector<Float_t>> lepTrigEffData_(reader, lep+"TriggerEffData");
-    TTreeReaderValue<vector<Float_t>> lepTrigEffMC_(reader, lep+"TriggerEffMC");
-    TTreeReaderValue<vector<Bool_t>> lepTriggered_(reader, lep+"Triggered");
-
-
-
-
-    ////////////////
-    // EVENT LOOP //
-    ////////////////
-
-    while (reader.Next())
-    {
-        /* BRANCHES */
-        Bool_t passTrigger = (*evtGoodTrigger_ && !*evtBadTrigger_);
-        UShort_t nPV = *nPV_;
-        UShort_t nLeps = *nLeps_, nTightLeps = *nTightLeps_, nLooseLeps = *nLooseLeps_;
-
-        vector<TLorentzVector> lepP4;
-        vector<Short_t> lepQ;
-        vector<Bool_t> lepIsTight, lepIsLoose;
-
-        Float_t eventWeight = *eventWeight_, PUWeight = *PUWeight_;
-        vector<Float_t> lepSF, lepRecoEff, lepTrigEffData, lepTrigEffMC;
-        vector<Bool_t> lepTriggered;
-
-
-
-        /* PRESELECTION */
-        if (!passTrigger || nTightLeps < 2)
-            continue;
-
-
-
-        /* LEPTONS */
-        for (const TLorentzVector& lepP4__: lepP4_)
-            lepP4.push_back(lepP4__);
-        for (unsigned i = 0; i < nLeps; i++)
-        {
-            lepQ.push_back((*lepQ_)[i]);
-            lepIsTight.push_back((*lepIsTight_)[i]);
-            lepIsLoose.push_back((*lepIsLoose_)[i]);
-
-            lepSF.push_back((*lepSF_)[i]);
-            if (mumu)
-                lepRecoEff.push_back((*lepIDEff_)[i] * (*lepIsoEff_)[i]);
-            else
-                lepRecoEff.push_back((*lepRecoEff_)[i]);
-            lepTrigEffData.push_back((*lepTrigEffData_)[i]);
-            lepTrigEffMC.push_back((*lepTrigEffMC_)[i]);
-            lepTriggered.push_back((*lepTriggered_)[i]);
-        }
-
-
-        // Adjust lepton requirements
-        for (unsigned i = 0; i < nLeps; i++)
-        {
-            // Apply Pt scaling
-            lepP4[i].SetPtEtaPhiM(lepP4[i].Pt()*lepSF[i], lepP4[i].Eta(), lepP4[i].Phi(), LEP_MASS);
-
-            // Remove leptons with Pt below threshold
-            if (lepIsTight[i] && lepP4[i].Pt() < TIGHT_PT_MIN)
-            {
-                lepIsTight[i] = kFALSE;     nTightLeps--;
-            }
-            if (lepIsLoose[i] && lepP4[i].Pt() < LOOSE_PT_MIN)
-            {
-                lepIsLoose[i] = kFALSE;     nLooseLeps--;
-            }
-        }
-
-
-
-        /* SELECTION */
-        // Make sure we have the right number of leps
-        if (nTightLeps != 2 || nLooseLeps != nTightLeps)
-            continue;
-
-
-        // Find indices of pair
-        unsigned x = 0, y = 0;
-
-        if (!lepIsTight[x])
-            continue;
-
-        bool foundPair = kFALSE;
-        for (unsigned j = 1; j < nLeps; j++)
-        {
-            if (!lepIsTight[j])
-                continue;
-            if (lepQ[x] == lepQ[j])
-                continue;
-
-            Double_t mll = (lepP4[x] + lepP4[j]).M();
-            if (mll > MLL_MIN && mll < MLL_MAX)
-            {
-                y = j;  break;
-            }
-        }
-        if (x == y)
-            continue;
-
-
-
-        /* WEIGHTING */
-        // Calculate trigger efficiency scale factor
-        float triggerEff = 1.;
-        if (lepTriggered[x] && lepTriggered[y])
-        {
-            if (lepTrigEffMC[x] > 0 || lepTrigEffMC[y] > 0)
-            {
-                triggerEff *= 1. - (1. - lepTrigEffData[x]) * (1. - lepTrigEffData[y]);
-                triggerEff /= 1. - (1. - lepTrigEffMC[x]) * (1. - lepTrigEffMC[y]);
-            }
-        }
-        else if (lepTriggered[x])
-            triggerEff = lepTrigEffData[x] / lepTrigEffMC[x];
-        else if (lepTriggered[y])
-            triggerEff = lepTrigEffData[y] / lepTrigEffMC[y];
-
-
-        // Calculate reco efficiency scale factor
-        float recoEff = lepRecoEff[x] * lepRecoEff[y];
-
-
-        // Apply weights
-        eventWeight *= PUWeight * recoEff * triggerEff;
-
-
-
-        /* HISTOGRAMS */
-        h_tot->Fill(6);
-        h_tot->Fill(7, eventWeight);
-        h_mll->Fill((lepP4[x] + lepP4[y]).M(), eventWeight);
-        h_qt->Fill((lepP4[x] + lepP4[y]).Pt(), eventWeight);
-        h_pt1->Fill(lepP4[x].Pt(), eventWeight);
-        h_eta1->Fill(lepP4[x].Eta(), eventWeight);
-        h_pt2->Fill(lepP4[y].Pt(), eventWeight);
-        h_eta2->Fill(lepP4[y].Eta(), eventWeight);
-        h_npv->Fill(nPV, eventWeight);
     }
     file->Close();  delete file;
 

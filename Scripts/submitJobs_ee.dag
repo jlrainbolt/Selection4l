@@ -37,6 +37,78 @@ VARS            dy_m-50         nFiles="9"
 SCRIPT  POST    dy_m-50         runHadd.sh ee $JOB
 
 
+JOB             z1jets_m-10to50 submitRun.sub
+
+VARS            z1jets_m-10to50 selection="ee"
+VARS            z1jets_m-10to50 suffix="z1jets_m-10to50"
+VARS            z1jets_m-10to50 nFiles="1"
+
+SCRIPT  POST    z1jets_m-10to50 runHadd.sh ee $JOB
+
+
+JOB             z1jets_m-50     submitRun.sub
+
+VARS            z1jets_m-50     selection="ee"
+VARS            z1jets_m-50     suffix="z1jets_m-50"
+VARS            z1jets_m-50     nFiles="6"
+
+SCRIPT  POST    z1jets_m-50     runHadd.sh ee $JOB
+
+
+JOB             z2jets_m-10to50 submitRun.sub
+
+VARS            z2jets_m-10to50 selection="ee"
+VARS            z2jets_m-10to50 suffix="z2jets_m-10to50"
+VARS            z2jets_m-10to50 nFiles="1"
+
+SCRIPT  POST    z2jets_m-10to50 runHadd.sh ee $JOB
+
+
+JOB             z2jets_m-50     submitRun.sub
+
+VARS            z2jets_m-50     selection="ee"
+VARS            z2jets_m-50     suffix="z2jets_m-50"
+VARS            z2jets_m-50     nFiles="2"
+
+SCRIPT  POST    z2jets_m-50     runHadd.sh ee $JOB
+
+
+JOB             z3jets_m-10to50 submitRun.sub
+
+VARS            z3jets_m-10to50 selection="ee"
+VARS            z3jets_m-10to50 suffix="z3jets_m-10to50"
+VARS            z3jets_m-10to50 nFiles="1"
+
+SCRIPT  POST    z3jets_m-10to50 runHadd.sh ee $JOB
+
+
+JOB             z3jets_m-50     submitRun.sub
+
+VARS            z3jets_m-50     selection="ee"
+VARS            z3jets_m-50     suffix="z3jets_m-50"
+VARS            z3jets_m-50     nFiles="1"
+
+SCRIPT  POST    z3jets_m-50     runHadd.sh ee $JOB
+
+
+JOB             z4jets_m-10to50 submitRun.sub
+
+VARS            z4jets_m-10to50 selection="ee"
+VARS            z4jets_m-10to50 suffix="z4jets_m-10to50"
+VARS            z4jets_m-10to50 nFiles="1"
+
+SCRIPT  POST    z4jets_m-10to50 runHadd.sh ee $JOB
+
+
+JOB             z4jets_m-50     submitRun.sub
+
+VARS            z4jets_m-50     selection="ee"
+VARS            z4jets_m-50     suffix="z4jets_m-50"
+VARS            z4jets_m-50     nFiles="1"
+
+SCRIPT  POST    z4jets_m-50     runHadd.sh ee $JOB
+
+
 JOB             ggH_zz_4l       submitRun.sub
                                 
 VARS            ggH_zz_4l       selection="ee"
