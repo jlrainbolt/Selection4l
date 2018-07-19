@@ -1,0 +1,15 @@
+# FILENAME  submitSelection
+#   SUBDAGs     submitJobs_2m2e.dag
+#   SCRIPTS     
+#
+# SUBMITS   entire 2m2e selection,
+#           combines all output files,
+#           and overlays histograms
+#
+# HARDCODED selection ("2m2e")
+
+
+SUBDAG  EXTERNAL    submission  submitJobs_2m2e.dag
+#SCRIPT  PRE         submission  prepArea.sh
+#SCRIPT  PRE         submission  cleanDirectory.sh
+SCRIPT  POST        submission  runStacker.sh 2m2e

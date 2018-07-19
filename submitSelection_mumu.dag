@@ -1,0 +1,15 @@
+# FILENAME  submitSelection
+#   SUBDAGs     submitJobs_mumu.dag
+#   SCRIPTS     
+#
+# SUBMITS   entire mumu selection,
+#           combines all output files,
+#           and overlays histograms
+#
+# HARDCODED selection ("mumu")
+
+
+SUBDAG  EXTERNAL    submission  submitJobs_mumu.dag
+#SCRIPT  PRE         submission  prepArea.sh
+#SCRIPT  PRE         submission  cleanDirectory.sh
+SCRIPT  POST        submission  runStacker.sh mumu
