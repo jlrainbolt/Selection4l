@@ -14,7 +14,7 @@ log         = run.log
 
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files    = handleSelection.cc
+transfer_input_files    = handleSelection.cc, hzz_muon_id_sf.root, hzz_muon_id_smear.root 
 
 
 arguments   = "$(selection) $(suffix) $INT(id)"

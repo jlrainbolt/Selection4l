@@ -11,20 +11,16 @@ void GetQuantities(const TString rootFile,
                    Double_t *nEvents, Double_t *nUnc, Double_t *nFid, Double_t *nAcc);
 
 
-void calculateBF(const TString filePath, const TString fileSuffix)
+void calculateMuonBF(const TString filePath, const TString fileSuffix)
 {
     // Constants
     Double_t Zto2l = 0.03366, f_nr = 0.96;
 
 
     // Storage for quantities                                       // Not actually used
-    const unsigned N = 6;           TString prefix[N];              Double_t frac[N];
+    const unsigned N = 2;           TString prefix[N];              Double_t frac[N];
     unsigned MM = 0;                prefix[MM] = "mumu";            frac[MM] = 0.5;
-    unsigned EE = 1;                prefix[EE] = "ee";              frac[EE] = 0.5;
-    unsigned M4 = 2;                prefix[M4] = "4m";              frac[M4] = 0.2655;
-    unsigned ME = 3;                prefix[ME] = "2m2e";            frac[ME] = 0.4690 * 0.5;
-    unsigned EM = 4;                prefix[EM] = "2e2m";            frac[EM] = 0.4690 * 0.5;
-    unsigned E4 = 5;                prefix[E4] = "4e";              frac[E4] = 0.2655;
+    unsigned M4 = 1;                prefix[M4] = "4m";              frac[M4] = 0.2655;
 
     Double_t nEvents[N], nUnc[N], nFid[N], nAcc[N];
 
@@ -47,9 +43,6 @@ void calculateBF(const TString filePath, const TString fileSuffix)
         GetQuantities(filePath + prefix[i] + "_" + fileSuffix + ".root", 
                       &nEvents[i], &nUnc[i], &nFid[i], &nAcc[i]);
         cout << endl;
-
-        if (i == EE)
-            cout << endl;
     }
     cout << "==================================================";
     cout << "==================================================" << endl;
@@ -73,41 +66,17 @@ void calculateBF(const TString filePath, const TString fileSuffix)
 
         cout << setw(5) << prefix[i] << "\t   ";
         cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t" << nFid[i] << endl;
-
-        if (i == EE)
-            cout << endl;
     }
     cout << "==================================================";
     cout << "==================================================" << endl << endl << endl;
 
 
-    // Calculate total BF (no lepton discrimination)
-    unsigned T = 0;
-    Double_t result[N], uncf[N], unc[N];
-
-    Double_t yield_2l = 0, yield_4l = 0, var_2l = 0, var_4l = 0;
-    for (unsigned i = 0; i < M4; i++)
-    {
-        yield_2l += yield[i];
-        var_2l += error[i] * error[i];
-    }
-    for (unsigned i = M4; i < N; i++)
-    {
-        yield_4l += yield[i];
-        var_4l += error[i] * error[i];
-    }
-    result[T] = 2. * Zto2l * yield_4l / yield_2l;
-    uncf[T] = var_2l / (yield_2l * yield_2l);
-    uncf[T] += var_4l / (yield_4l * yield_4l);
-    uncf[T] = sqrt(uncf[T]);
-    unc[T] = uncf[T] * result[T];
-
-
     // Individual BFs for each 4l channel
+    Double_t result[N], uncf[N], unc[N];
     for (unsigned i = M4; i < N; i++)
     {
         // Index of DY selection
-        unsigned j = i/2 - 1;
+        unsigned j = 0;
 
         result[i] = Zto2l * yield[i] / yield[j]; 
         uncf[i] += (error[i] * error[i]) / (yield[i] * yield[i]);
@@ -115,18 +84,6 @@ void calculateBF(const TString filePath, const TString fileSuffix)
         uncf[i] = sqrt(uncf[i]);
         unc[i] = uncf[i] * result[i];
     }
-
-
-    // Sum of individual channels
-    unsigned S = 1;
-    result[S] = 0;
-    for (unsigned i = M4; i < N; i++)
-    {
-        result[S] += result[i];
-        unc[S] += unc[i] * unc[i];
-    }
-    unc[S] = sqrt(unc[S]);
-    uncf[S] = unc[S] / result[S];
 
 
 
@@ -139,30 +96,14 @@ void calculateBF(const TString filePath, const TString fileSuffix)
     cout << "--------------------------------------------------";
     cout << "--------------------------------------------------" << endl;
 
-    cout << " Z -> 4l" << "    (TOT)\t";
-    cout << setw(11) << result[T] << "  +-  " << setw(8) << unc[T] << "\t\t";
-    cout << uncf[T] << endl << endl;
-
-
     for (unsigned i = M4; i < N; i++)
     {
-        if (i == ME)
-            cout << " Z -> " << prefix[i] << "  (MUMU)\t";
-        else if (i == EM)
-            cout << " Z -> " << prefix[i] << "  (EE)\t";
-        else
-            cout << " Z -> " << prefix[i] << "\t\t";
+        cout << " Z -> " << prefix[i] << "\t\t";
         cout << setw(11) << result[i] << "  +-  " << setw(8) << unc[i] << "\t\t";
         cout << uncf[i] << endl;
     }
-    cout << endl;
-
-
-    cout << " Z -> 4l" << "    (SUM)\t";
-    cout << setw(11) << result[S] << "  +-  " << setw(8) << unc[S] << "\t\t";
-    cout << uncf[S] << endl;
-    cout << "--------------------------------------------------";
-    cout << "--------------------------------------------------" << endl << endl << endl;
+    cout << "==================================================";
+    cout << "==================================================" << endl << endl << endl;
 }
 
 

@@ -10,5 +10,4 @@
 
 
 SUBDAG  EXTERNAL    submission  submitJobs_2e2m.dag
-#SCRIPT  PRE         submission  prepArea.sh
 SCRIPT  POST        submission  runStacker.sh 2e2m

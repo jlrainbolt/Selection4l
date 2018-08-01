@@ -61,7 +61,8 @@ void stackResults(const TString inFile, const TString selection)
         }
     }
 
-    // Get accepted events histogram before scaling
+
+    // Get accepted events hist before scaling
     unsigned si;    TH1* hAcceptedEvents;
     for (unsigned j = 0; j < mcSubdir.size(); j++)
     {
@@ -79,13 +80,15 @@ void stackResults(const TString inFile, const TString selection)
     if (sel2l)
         hname = {"DilepMass", "DilepPt",
                  "Lep1Pt", "Lep2Pt", "Lep1Eta", "Lep2Eta",
-                 "nPV", "TotalEvents", "AcceptedEvents"};
+                 "nPV", "ScaleFactor",
+                 "TotalEvents", "AcceptedEvents"};
     else if (sel4l)
         hname = {"4lepMass", "4lepMass2", "4lepPt", 
                  "Z1Mass", "Z2Mass", "Z1Pt", "Z2Pt",
                  "Lep1Pt", "Lep2Pt", "Lep3Pt", "Lep4Pt",
                  "Lep1Eta", "Lep2Eta", "Lep3Eta", "Lep4Eta",
-                 "nPV", "nSelLeps", "TotalEvents", "AcceptedEvents"};
+                 "nPV", "nSelLeps", "ScaleFactor",
+                 "TotalEvents", "AcceptedEvents"};
 
     vector<THStack*> dataStack, mcStack;
     vector<TH1*> dataSum, mcSum, sigSum, bgSum;

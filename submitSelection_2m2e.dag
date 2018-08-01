@@ -10,6 +10,4 @@
 
 
 SUBDAG  EXTERNAL    submission  submitJobs_2m2e.dag
-#SCRIPT  PRE         submission  prepArea.sh
-#SCRIPT  PRE         submission  cleanDirectory.sh
 SCRIPT  POST        submission  runStacker.sh 2m2e
