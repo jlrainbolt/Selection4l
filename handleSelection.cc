@@ -111,7 +111,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
     // Path to directory where ALL trees are stored
-    TString path = "root://cmsxrootd.fnal.gov//store/user/jrainbol/Trees/2016/";
+    TString path = "root://cmsxrootd.fnal.gov//store/user/jrainbol/Trees/2016_12a/";
 
 
     // Names of ROOT files and trees for each sample
@@ -137,27 +137,27 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
     // Hist indices         // Names                    
-    const unsigned M=17;    TString hname[M],           
-    unsigned ZZ = 0;        hname[ZZ] = "4lepMass";     
-    unsigned T4 = 1;        hname[T4] = "4lepPt";       
-    unsigned Z1 = 2;        hname[Z1] = "Z1Mass";       
-    unsigned Z2 = 3;        hname[Z2] = "Z2Mass";       
-    unsigned T1 = 4;        hname[T1] = "Z1Pt";         
-    unsigned T2 = 5;        hname[T2] = "Z2Pt";         
-    unsigned P1 = 6;        hname[P1] = "Lep1Pt";       
-    unsigned P2 = 7;        hname[P2] = "Lep2Pt";       
-    unsigned P3 = 8;        hname[P3] = "Lep3Pt";       
-    unsigned P4 = 9;        hname[P4] = "Lep4Pt";       
-    unsigned E1 = 10;       hname[E1] = "Lep1Eta";      
-    unsigned E2 = 11;       hname[E2] = "Lep2Eta";      
-    unsigned E3 = 12;       hname[E3] = "Lep3Eta";      
-    unsigned E4 = 13;       hname[E4] = "Lep4Eta";      
-    unsigned PV = 14;       hname[PV] = "nPV";          
-    unsigned NL = 15;       hname[NL] = "nSelLeps";     
-    unsigned SF = 16;       hname[SF] = "ScaleFactor";  
+    const unsigned M=17;    TString hname[M];
+    unsigned ZZ = 0;        hname[ZZ] = "4lepMass";
+    unsigned T4 = 1;        hname[T4] = "4lepPt";
+    unsigned Z1 = 2;        hname[Z1] = "Z1Mass";
+    unsigned Z2 = 3;        hname[Z2] = "Z2Mass";
+    unsigned T1 = 4;        hname[T1] = "Z1Pt";
+    unsigned T2 = 5;        hname[T2] = "Z2Pt";
+    unsigned P1 = 6;        hname[P1] = "Lep1Pt";
+    unsigned P2 = 7;        hname[P2] = "Lep2Pt";
+    unsigned P3 = 8;        hname[P3] = "Lep3Pt";
+    unsigned P4 = 9;        hname[P4] = "Lep4Pt";
+    unsigned E1 = 10;       hname[E1] = "Lep1Eta";
+    unsigned E2 = 11;       hname[E2] = "Lep2Eta";
+    unsigned E3 = 12;       hname[E3] = "Lep3Eta";
+    unsigned E4 = 13;       hname[E4] = "Lep4Eta";
+    unsigned PV = 14;       hname[PV] = "nPV";
+    unsigned NL = 15;       hname[NL] = "nSelLeps";
+    unsigned SF = 16;       hname[SF] = "ScaleFactor";
 
     // Titles
-    htitle[M];
+    TString htitle[M];
     htitle[ZZ] = "4-" + lep + " Mass";
     htitle[T4] = "4-" + lep + "Pt";
     htitle[Z1] = "Z_{1} (Di" + lep12 + ") Mass";
