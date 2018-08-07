@@ -8,7 +8,7 @@ using namespace std;
 
 
 void GetQuantities(const TString rootFile,
-                   Double_t *nEvents, Double_t *nUnc, Double_t *nFid, Double_t *nAcc);
+                   Double_t *nEvents, Double_t *nUnc, Double_t *nSpc, Double_t *nSel);
 
 
 void calculateMuonBF(const TString filePath, const TString fileSuffix)
@@ -22,7 +22,7 @@ void calculateMuonBF(const TString filePath, const TString fileSuffix)
     unsigned MM = 0;                prefix[MM] = "mumu";            frac[MM] = 0.5;
     unsigned M4 = 1;                prefix[M4] = "4m";              frac[M4] = 0.2655;
 
-    Double_t nEvents[N], nUnc[N], nFid[N], nAcc[N];
+    Double_t nEvents[N], nUnc[N], nSpc[N], nSel[N];
 
 
 
@@ -41,7 +41,7 @@ void calculateMuonBF(const TString filePath, const TString fileSuffix)
     {
         cout << setw(5) << prefix[i] << "\t   ";
         GetQuantities(filePath + prefix[i] + "_" + fileSuffix + ".root", 
-                      &nEvents[i], &nUnc[i], &nFid[i], &nAcc[i]);
+                      &nEvents[i], &nUnc[i], &nSpc[i], &nSel[i]);
         cout << endl;
     }
     cout << "==================================================";
@@ -51,7 +51,7 @@ void calculateMuonBF(const TString filePath, const TString fileSuffix)
 
 
     // Table of scaled yields for sanity check
-    cout << "           SCALED\t\t\tFIDUCIAL" << endl;
+    cout << "           SCALED\t\t\tPHASE SPACE\t\t\tSELECTED" << endl;
     cout << "--------------------------------------------------";
     cout << "--------------------------------------------------" << endl;
 
@@ -60,12 +60,13 @@ void calculateMuonBF(const TString filePath, const TString fileSuffix)
     Double_t scale[N], yield[N], error[N];
     for (unsigned i = 0; i < N; i++)
     {
-        scale[i] = nFid[i] / nAcc[i];
+        scale[i] = nSpc[i] / nSel[i];
         yield[i] = nEvents[i] * scale[i];
         error[i] = nUnc[i] * scale[i];
 
         cout << setw(5) << prefix[i] << "\t   ";
-        cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t" << nFid[i] << endl;
+        cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t";
+        cout << nSpc[i] << "\t\t\t" << nSel[i] << endl;
     }
     cout << "==================================================";
     cout << "==================================================" << endl << endl << endl;
@@ -112,14 +113,14 @@ void calculateMuonBF(const TString filePath, const TString fileSuffix)
 
 
 void GetQuantities(const TString rootFile,
-                   Double_t *nEvents, Double_t *nUnc, Double_t *nFid, Double_t *nAcc)
+                   Double_t *nEvents, Double_t *nUnc, Double_t *nSpc, Double_t *nSel)
 {
     TFile *file = TFile::Open(rootFile, "READ");
     TDirectory *dir = file->GetDirectory("/Calculation", kTRUE, "GetDirectory");
     TH1 *hAccepted;
     dir->GetObject("AcceptedEvents", hAccepted);
-    *nFid = hAccepted->GetBinContent(2);
-    *nAcc = hAccepted->GetBinContent(3);
+    *nSpc = hAccepted->GetBinContent(2);
+    *nSel = hAccepted->GetBinContent(3);
 
     TH1 *hData;
     TDirectory *data_subdir = dir->GetDirectory("All Data");

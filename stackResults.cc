@@ -256,18 +256,19 @@ void stackResults(const TString inFile, const TString selection)
 
     // Get acceptance/efficiency factors
     Double_t nSamp = hAcceptedEvents->GetBinContent(1);
-    Double_t nFid = hAcceptedEvents->GetBinContent(2);
-    Double_t nAcc = hAcceptedEvents->GetBinContent(3);
-    buff << "    cout << \" ACCEPTANCE\" << endl;" << endl;
+    Double_t nSpc = hAcceptedEvents->GetBinContent(2);
+    Double_t nSel = hAcceptedEvents->GetBinContent(3);
+    Double_t accEff = nSel / nSpc, eUnc = accEff * sqrt(1./nSel + 1./nSpc);
+    buff << "    cout << \" ACCEPTANCE & EFFICIENCY (UNSCALED)\" << endl;" << endl;
     buff << "    cout << \"------------------------------------------------------\" << endl;"<<endl;
-    buff << "    cout << \" (RAW)" << setw(22) << "Total " + selName << "\\t\\t";
+    buff << "    cout << \"" << setw(16) << "Total " + selName << "\\t";
     buff << setw(10) << nSamp << "\" << endl;" << endl;
-    buff << "    cout << \" (RAW)" << setw(22) << "Fiducial " + selName << "\\t\\t";
-    buff << setw(10) << nFid << "\" << endl;" << endl;
-    buff << "    cout << \" (RAW)" << setw(22) << "Accepted " + selection << "\\t\\t";
-    buff << setw(10) << nAcc << "\" << endl << endl;" << endl;
-    buff << "    cout << \"" << setw(28) << "Acc " + selection + " / Fid " + selName << "\\t\t";
-    buff << setw(10) << nAcc / nFid << "\" << endl;" << endl;
+    buff << "    cout << \"" << setw(16) << "Phase space " + selection << "\\t";
+    buff << setw(10) << nSpc << "\\t+- " << setw(10) << sqrt(nSpc) << "\" << endl;" << endl;
+    buff << "    cout << \"" << setw(16) << "Selected " + selection << "\\t";
+    buff << setw(10) << nSel << "\\t+- " << setw(10) << sqrt(nSel) << "\" << endl << endl;" << endl;
+    buff << "    cout << \"" << setw(16) << selection + " acc * eff" << "\\t";
+    buff << setw(10) << nSel / nSpc << "\\t+- " << setw(10) << eUnc << "\" << endl;" << endl;
     buff << "    cout << \"------------------------------------------------------\" << endl;"<<endl;
 
 

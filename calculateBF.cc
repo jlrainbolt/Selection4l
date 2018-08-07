@@ -8,7 +8,7 @@ using namespace std;
 
 
 void GetQuantities(const TString rootFile,
-                   Double_t *nEvents, Double_t *nUnc, Double_t *nFid, Double_t *nAcc);
+                   Double_t *nEvents, Double_t *nUnc, Double_t *nSpc, Double_t *nSel);
 
 
 void calculateBF(const TString filePath, const TString fileSuffix)
@@ -26,7 +26,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
     unsigned EM = 4;                prefix[EM] = "2e2m";            frac[EM] = 0.4690 * 0.5;
     unsigned E4 = 5;                prefix[E4] = "4e";              frac[E4] = 0.2655;
 
-    Double_t nEvents[N], nUnc[N], nFid[N], nAcc[N];
+    Double_t nEvents[N], nUnc[N], nSpc[N], nSel[N];
 
 
 
@@ -45,7 +45,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
     {
         cout << setw(5) << prefix[i] << "\t   ";
         GetQuantities(filePath + prefix[i] + "_" + fileSuffix + ".root", 
-                      &nEvents[i], &nUnc[i], &nFid[i], &nAcc[i]);
+                      &nEvents[i], &nUnc[i], &nSpc[i], &nSel[i]);
         cout << endl;
 
         if (i == EE)
@@ -58,7 +58,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
 
 
     // Table of scaled yields for sanity check
-    cout << "           SCALED\t\t\tFIDUCIAL" << endl;
+    cout << "           SCALED\t\t\tPHASE SPACE" << endl;
     cout << "--------------------------------------------------";
     cout << "--------------------------------------------------" << endl;
 
@@ -67,12 +67,12 @@ void calculateBF(const TString filePath, const TString fileSuffix)
     Double_t scale[N], yield[N], error[N];
     for (unsigned i = 0; i < N; i++)
     {
-        scale[i] = nFid[i] / nAcc[i];
+        scale[i] = nSpc[i] / nSel[i];
         yield[i] = nEvents[i] * scale[i];
         error[i] = nUnc[i] * scale[i];
 
         cout << setw(5) << prefix[i] << "\t   ";
-        cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t" << nFid[i] << endl;
+        cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t" << nSpc[i] << endl;
 
         if (i == EE)
             cout << endl;
@@ -171,14 +171,14 @@ void calculateBF(const TString filePath, const TString fileSuffix)
 
 
 void GetQuantities(const TString rootFile,
-                   Double_t *nEvents, Double_t *nUnc, Double_t *nFid, Double_t *nAcc)
+                   Double_t *nEvents, Double_t *nUnc, Double_t *accEff, Double_t *eUnc)
 {
     TFile *file = TFile::Open(rootFile, "READ");
     TDirectory *dir = file->GetDirectory("/Calculation", kTRUE, "GetDirectory");
     TH1 *hAccepted;
     dir->GetObject("AcceptedEvents", hAccepted);
-    *nFid = hAccepted->GetBinContent(2);
-    *nAcc = hAccepted->GetBinContent(3);
+    Double_t nSpc = hAccepted->GetBinContent(2), nSel = hAccepted->GetBinContent(3);
+    *accEff = nSel / nSpc;      *eUnc = *accEff * sqrt(1./nSel + 1./nSpc);
 
     TH1 *hData;
     TDirectory *data_subdir = dir->GetDirectory("All Data");

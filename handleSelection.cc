@@ -47,11 +47,11 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
 
 //--- GLOBAL VARIABLES ---//
 
-bool systOn     = kTRUE;    // TString SFType  = "Total";
+bool systOn     = kFALSE;     // TString SFType  = "Total";
 // if this is kFALSE, the below don't matter
 
-bool smearID    = kFALSE;    // TString SFType  = "ID/Reco";
-bool smearPtMC  = kTRUE;     TString SFType  = "Energy";
+bool smearID    = kTRUE;     TString SFType  = "ID/Reco";
+bool smearPtMC  = kFALSE;    // TString SFType  = "Energy";
 bool smearPtData= kFALSE;    // TString SFType  = "Energy";
 
 
@@ -128,37 +128,58 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
     // Lepton names 
     TString Lep12, Lep34, Lep, lep12, lep34, lep;
-    Lep12   = muPair1 ? "Muon" : "Electron";        lep12   = muPair1 ? "muon" : "electron";
-    Lep34   = muPair2 ? "Muon" : "Electron";        lep34   = muPair2 ? "muon" : "electron";
+    Lep12   = muPair1 ? "Muon" : "Electron";
+    lep12   = muPair1 ? "muon" : "electron";
+    Lep34   = muPair2 ? "Muon" : "Electron";
+    lep34   = muPair2 ? "muon" : "electron";
     Lep     = (muPair1 == muPair2) ? Lep12 : "Lepton";
     lep     = (muPair1 == muPair2) ? lep12 : "lepton";
 
 
-    // Hist indices     // Names                    // Titles
-    const unsigned M=18;    TString hname[M],       htitle[M];
-    unsigned ZZ = 0;    hname[ZZ] = "4lepMass";     htitle[ZZ] = "4-" + lep + " Mass";
-    unsigned T4 = 1;    hname[T4] = "4lepPt";       htitle[T4] = "4-" + lep + "Pt";
-    unsigned Z1 = 2;    hname[Z1] = "Z1Mass";       htitle[Z1] = "Z_{1} (Di" + lep12 + ") Mass";
-    unsigned Z2 = 3;    hname[Z2] = "Z2Mass";       htitle[Z2] = "Z_{2} (Di" + lep34 + ") Mass";
-    unsigned T1 = 4;    hname[T1] = "Z1Pt";         htitle[T1] = "Z_{1} (Di" + lep12 + ") Pt";
-    unsigned T2 = 5;    hname[T2] = "Z2Pt";         htitle[T2] = "Z_{2} (Di" + lep34 + ") Pt";
-    unsigned P1 = 6;    hname[P1] = "Lep1Pt";       htitle[P1] = Lep + " 1 Pt";
-    unsigned P2 = 7;    hname[P2] = "Lep2Pt";       htitle[P2] = Lep + " 2 Pt";
-    unsigned P3 = 8;    hname[P3] = "Lep3Pt";       htitle[P3] = Lep + " 3 Pt";
-    unsigned P4 = 9;    hname[P4] = "Lep4Pt";       htitle[P4] = Lep + " 4 Pt";
-    unsigned E1 = 10;   hname[E1] = "Lep1Eta";      htitle[E1] = Lep + " 1 Eta";
-    unsigned E2 = 11;   hname[E2] = "Lep2Eta";      htitle[E2] = Lep + " 2 Eta";
-    unsigned E3 = 12;   hname[E3] = "Lep3Eta";      htitle[E3] = Lep + " 3 Eta";
-    unsigned E4 = 13;   hname[E4] = "Lep4Eta";      htitle[E4] = Lep + " 4 Eta";
-    unsigned PV = 14;   hname[PV] = "nPV";          htitle[PV] = "# of Primary Vertices";
-    unsigned ZM = 15;   hname[ZM] = "4lepMass2";    htitle[ZM] = htitle[ZZ];
-    unsigned NL = 16;   hname[NL] = "nSelLeps";     htitle[NL] = "# of Selected " + Lep + "s";
-    unsigned SF = 17;   hname[SF] = "ScaleFactor";  htitle[SF] = "SF ("+SFType+")";
+    // Hist indices         // Names                    
+    const unsigned M=17;    TString hname[M],           
+    unsigned ZZ = 0;        hname[ZZ] = "4lepMass";     
+    unsigned T4 = 1;        hname[T4] = "4lepPt";       
+    unsigned Z1 = 2;        hname[Z1] = "Z1Mass";       
+    unsigned Z2 = 3;        hname[Z2] = "Z2Mass";       
+    unsigned T1 = 4;        hname[T1] = "Z1Pt";         
+    unsigned T2 = 5;        hname[T2] = "Z2Pt";         
+    unsigned P1 = 6;        hname[P1] = "Lep1Pt";       
+    unsigned P2 = 7;        hname[P2] = "Lep2Pt";       
+    unsigned P3 = 8;        hname[P3] = "Lep3Pt";       
+    unsigned P4 = 9;        hname[P4] = "Lep4Pt";       
+    unsigned E1 = 10;       hname[E1] = "Lep1Eta";      
+    unsigned E2 = 11;       hname[E2] = "Lep2Eta";      
+    unsigned E3 = 12;       hname[E3] = "Lep3Eta";      
+    unsigned E4 = 13;       hname[E4] = "Lep4Eta";      
+    unsigned PV = 14;       hname[PV] = "nPV";          
+    unsigned NL = 15;       hname[NL] = "nSelLeps";     
+    unsigned SF = 16;       hname[SF] = "ScaleFactor";  
+
+    // Titles
+    htitle[M];
+    htitle[ZZ] = "4-" + lep + " Mass";
+    htitle[T4] = "4-" + lep + "Pt";
+    htitle[Z1] = "Z_{1} (Di" + lep12 + ") Mass";
+    htitle[Z2] = "Z_{2} (Di" + lep34 + ") Mass";
+    htitle[T1] = "Z_{1} (Di" + lep12 + ") Pt";
+    htitle[T2] = "Z_{2} (Di" + lep34 + ") Pt";
+    htitle[P1] = Lep + " 1 Pt";
+    htitle[P2] = Lep + " 2 Pt";
+    htitle[P3] = Lep + " 3 Pt";
+    htitle[P4] = Lep + " 4 Pt";
+    htitle[E1] = Lep + " 1 Eta";
+    htitle[E2] = Lep + " 2 Eta";
+    htitle[E3] = Lep + " 3 Eta";
+    htitle[E4] = Lep + " 4 Eta";
+    htitle[PV] = "# of Primary Vertices";
+    htitle[NL] = "# of Selected " + Lep + "s";
+    htitle[SF] = "SF (" + SFType + ")";
 
 
     // Binning
     Int_t bins[M];      Double_t low[M],    up[M];
-    bins[ZZ] = 30;      low[ZZ] = 60;       up[ZZ] = 180;
+    bins[ZZ] = 20;      low[ZZ] = 70;       up[ZZ] = 170;
     bins[T4] = 15;      low[T4] = 0;        up[T4] = 120;
     bins[Z1] = 15;      low[Z1] = 0;        up[Z1] = 120;
     bins[Z2] = 15;      low[Z2] = 0;        up[Z2] = 120;
@@ -173,13 +194,12 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     bins[E3] = 13;      low[E3] = -2.6;     up[E3] = 2.6;
     bins[E4] = 13;      low[E4] = -2.6;     up[E4] = 2.6;
     bins[PV] = 13;      low[PV] = -1;       up[PV] = 51;
-    bins[ZM] = 20;      low[ZM] = 70;       up[ZM] = 170;
     bins[NL] = 10;      low[NL] = 0.5;      up[NL] = 10.5;
-    bins[SF] = 100;     low[SF] = 0;      up[SF] = 2;
+    bins[SF] = 100;     low[SF] = 0;        up[SF] = 2;
 
     if (fineBinning)
     {
-        bins[ZZ] = 235;     low[ZZ] = 60;       up[ZZ] = 1000;
+        bins[ZZ] = 50;
         bins[T4] = 250;     low[T4] = 0;        up[T4] = 1000;
         bins[Z1] = 150;
         bins[Z2] = 150;
@@ -194,7 +214,6 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
         bins[E3] = 50;      low[E3] = -2.5;     up[E3] = 2.5;
         bins[E4] = 50;      low[E4] = -2.5;     up[E4] = 2.5;
         bins[PV] = 51;      low[PV] = -0.5;     up[PV] = 50.5;
-        bins[ZM] = 50;
     }
     else if (medBinning)
     {
@@ -317,7 +336,7 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
     //--- SYSTEMATICS ---//
 
     // Lepton ID SF (temp fix)
-    TFile *file_id = TFile::Open("hzz_"+lep+"_id_sf.root");
+    TFile *file_id = TFile::Open("hzz_muon_id_sf.root");
     TH2 *h_id;
     file_id->GetObject("FINAL", h_id);
     h_id->SetDirectory(0);
@@ -328,8 +347,10 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
     TFile *file_unc = TFile::Open("hzz_muon_id_smear.root");
     TH2 *h_unc;
     file_unc->GetObject("SMEAR", h_unc);
+//  file_id->GetObject("ERROR", h_unc);
     h_unc->SetDirectory(0);
     file_unc->Close();
+//  file_id->Close();
 
 
     // Lepton Pt smear
@@ -477,9 +498,9 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
 
 
             // Apply ID smear
-            if (systOn && !isData)
+            if (systOn)
             {
-                if (smearID)
+                if (smearID && !isData)
                     lepRecoSF[i] += GetBinContentPtEta(h_unc, lepP4[i]);
             }
         }
@@ -519,13 +540,6 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
             continue;
 
 
-        // Record MC selection
-        h_acc->Fill(3, eventWeight);
-
-        if (suffix.Contains("dy") && nPartons != 0)
-            continue;
-
-
 
         //--- WEIGHTING ---//
 
@@ -556,6 +570,14 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
 
         //--- HISTOGRAMS ---//
 
+        // Record MC selection
+        h_acc->Fill(3, eventWeight);
+
+        if (suffix.Contains("dy") && nPartons != 0)
+            continue;
+
+
+        // Fill other histograms
         h_tot->Fill(6);
         h_tot->Fill(7, eventWeight);
         h_mll->Fill((lepP4[x] + lepP4[y]).M(), eventWeight);
@@ -566,18 +588,13 @@ TH1D* Select2l(const TString rootFile, const TString suffix, const Bool_t mumu,
         h_eta2->Fill(lepP4[y].Eta(), eventWeight);
         h_npv->Fill(nPV, eventWeight);
 
-        if (systOn)
+        if (smearID)
+            h_sf->Fill(recoWeight);
+        else if (smearPtData || smearPtMC)
         {
-            if (smearID)
-                h_sf->Fill(recoWeight);
-            else if (smearPtData || smearPtMC)
-            {
-                h_sf->Fill(lepEnergySF[x]);
-                h_sf->Fill(lepEnergySF[y]);
-            }
+            h_sf->Fill(lepEnergySF[x]);
+            h_sf->Fill(lepEnergySF[y]);
         }
-        else
-            h_sf->Fill(eventWeight);
 
     }
     file->Close();  delete file;
@@ -635,8 +652,10 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
     TFile *file_unc = TFile::Open("hzz_muon_id_smear.root");
     TH2 *h_unc;
     file_unc->GetObject("SMEAR", h_unc);
+//  file_id->GetObject("ERROR", h_unc);
     h_unc->SetDirectory(0);
     file_unc->Close();
+//  file_id->Close();
 
 
     // Lepton Pt smear
@@ -806,9 +825,9 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
 
 
                     // Apply systematics
-                    if (systOn && !isData)
+                    if (systOn)
                     {
-                        if (smearID)
+                        if (smearID && !isData)
                             lepRecoSF[i] += GetBinContentPtEta(h_unc, lepP4[i]);
                     }
                 }
@@ -1019,13 +1038,6 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             sort(z.begin(), z.end());
 
 
-            // Record MC selection
-            h_acc->Fill(3, eventWeight);
-            if (suffix.Contains("dy") && nPartons != 0)
-                continue;
-            count++;
-
-
 
             //--- WEIGHTING ---//
 
@@ -1071,6 +1083,14 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
 
             //--- HISTOGRAMS ---//
 
+            // Record MC selection
+            h_acc->Fill(3, eventWeight);
+            if (suffix.Contains("dy") && nPartons != 0)
+                continue;
+            count++;
+
+
+            // Fill other histograms
             h_tot->Fill(6);
             h_tot->Fill(7, eventWeight);
 
@@ -1096,21 +1116,16 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             h_m4l2->Fill(ZZ_p4.M(), eventWeight);
             h_nlep->Fill(nHZZLeps, eventWeight);
 
-            if (systOn)
+            if (smearID)
+                h_sf->Fill(recoWeight);
+            else if (smearPtData || smearPtMC)
             {
-                if (smearID)
-                    h_sf->Fill(recoWeight);
-                else if (smearPtData || smearPtMC)
+                for (unsigned k_ = 0; k_ < z.size(); k_++)
                 {
-                    for (unsigned k_ = 0; k_ < z.size(); k_++)
-                    {
-                        unsigned k = z[k_];
-                        h_sf->Fill(lepEnergySF[k]);
-                    }
+                    unsigned k = z[k_];
+                    h_sf->Fill(lepEnergySF[k]);
                 }
             }
-            else
-                h_sf->Fill(eventWeight);
         }
     }
 
@@ -1490,13 +1505,6 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
             sort(z_p4s.begin(), z_p4s.end(), sort_dec_pt);
 
 
-            // Record MC selection
-            h_acc->Fill(3, eventWeight);
-
-            if (suffix.Contains("dy") && nPartons != 0)
-                continue;
-
-
 
             //--- WEIGHTING ---//
 
@@ -1530,6 +1538,14 @@ TH1D* Select4l(const TString rootFile, const TString suffix,
 
             //--- HISTOGRAMS ---//
 
+            // Record MC selection
+            h_acc->Fill(3, eventWeight);
+
+            if (suffix.Contains("dy") && nPartons != 0)
+                continue;
+
+
+            // Fill other histograms
             h_tot->Fill(6);
             h_tot->Fill(7, eventWeight);
 
