@@ -78,17 +78,13 @@ void stackResults(const TString inFile, const TString selection)
     // Create stacks, canvases, legend
     vector<TString> hname;
     if (sel2l)
-        hname = {"DilepMass", "DilepPt",
-                 "Lep1Pt", "Lep2Pt", "Lep1Eta", "Lep2Eta",
-                 "nPV", "ScaleFactor",
-                 "TotalEvents", "AcceptedEvents"};
+        hname = {"nPV", "met", "z1m", "z1pt", "l1pt", "l1eta", "l1iso", "l2pt", "l2eta", "l2iso",
+                    "TotalEvents", "AcceptedEvents"};
     else if (sel4l)
-        hname = {"4lepMass", "4lepMass2", "4lepPt", 
-                 "Z1Mass", "Z2Mass", "Z1Pt", "Z2Pt",
-                 "Lep1Pt", "Lep2Pt", "Lep3Pt", "Lep4Pt",
-                 "Lep1Eta", "Lep2Eta", "Lep3Eta", "Lep4Eta",
-                 "nPV", "nSelLeps", "ScaleFactor",
-                 "TotalEvents", "AcceptedEvents"};
+        hname = {"nPV", "met", "zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt",
+                    "l1pt", "l1eta", "l1iso", "l2pt", "l2eta", "l2iso",
+                    "l3pt", "l3eta", "l3iso", "l4pt", "l4eta", "l4iso",
+                    "TotalEvents", "AcceptedEvents"};
 
     vector<THStack*> dataStack, mcStack;
     vector<TH1*> dataSum, mcSum, sigSum, bgSum;
