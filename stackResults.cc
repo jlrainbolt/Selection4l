@@ -78,13 +78,15 @@ void stackResults(const TString inFile, const TString selection)
     // Create stacks, canvases, legend
     vector<TString> hname;
     if (sel2l)
-        hname = {"nPV", "met", "z1m", "z1pt", "l1pt", "l1eta", "l1iso", "l2pt", "l2eta", "l2iso",
+        hname = {"nPV", "met", "z1m", "z1pt",
+                    "l1pt", "l1eta", "l1iso", "l1pdg", "l2pt", "l2eta", "l2iso", "l2pdg",
                     "TotalEvents", "AcceptedEvents"};
     else if (sel4l)
         hname = {"nPV", "met", "zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt",
-                    "l1pt", "l1eta", "l1iso", "l2pt", "l2eta", "l2iso",
-                    "l3pt", "l3eta", "l3iso", "l4pt", "l4eta", "l4iso",
-                    "TotalEvents", "AcceptedEvents"};
+                    "l1pt", "l1eta", "l1iso", "l1pdg", "l2pt", "l2eta", "l2iso", "l2pdg",
+                    "l3pt", "l3eta", "l3iso", "l3pdg", "l4pt", "l4eta", "l4iso", "l4pdg",
+                    "TotalEvents", "AcceptedEvents",
+                    "l1pt_d", "z2m_d", "m3l_d", "angle_d"};
 
     vector<THStack*> dataStack, mcStack;
     vector<TH1*> dataSum, mcSum, sigSum, bgSum;
@@ -123,7 +125,7 @@ void stackResults(const TString inFile, const TString selection)
             TH1* hist;
             dataSubdir[i]->GetObject(hname[h] + "_" + dataSuffix[i], hist);
             hist->SetLineColor(dataColor[i]);   hist->SetLineWidth(2);
-        /*  hist->Sumw2();  */      dataStack[h]->Add(hist);
+            dataStack[h]->Add(hist);
 
             if (i == 0)
                 dataStack[h]->SetTitle(hist->GetTitle());
@@ -224,6 +226,15 @@ void stackResults(const TString inFile, const TString selection)
         dataStack[h]->Draw("E SAME");
         legend->Draw();
     }
+   
+
+    // Create signal - bg histograms 
+    vector<TH1*> diffHist;
+    for (unsigned h = 0; h < hname.size(); h++)
+    {
+        diffHist.push_back((TH1*) dataSum[h]->Clone());
+        diffHist.back()->Add(bgSum[h], -1);
+    }
 
 
     // Get signal/background MC yields
@@ -275,6 +286,11 @@ void stackResults(const TString inFile, const TString selection)
     TDirectory *x_dir = file->mkdir("Calculation");
     x_dir->cd();
     hAcceptedEvents->Write();
+
+    TDirectory *x_diffSubdir = x_dir->mkdir("Signal - Background");
+    x_diffSubdir->cd();
+    for (unsigned h = 0; h < hname.size(); h++)
+        diffHist[h]->Write();
 
     TDirectory *x_dataSubdir = x_dir->mkdir("All Data");
     x_dataSubdir->cd();

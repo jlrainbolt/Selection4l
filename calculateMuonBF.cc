@@ -79,7 +79,7 @@ void calculateMuonBF(const TString filePath, const TString fileSuffix)
         // Index of DY selection
         unsigned j = 0;
 
-        result[i] = Zto2l * yield[i] / yield[j]; 
+        result[i] = Zto2l * f_nr * yield[i] / yield[j]; 
         uncf[i] += (error[i] * error[i]) / (yield[i] * yield[i]);
         uncf[i] += (error[j] * error[j]) / (yield[j] * yield[j]);
         uncf[i] = sqrt(uncf[i]);

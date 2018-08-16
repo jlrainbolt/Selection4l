@@ -58,7 +58,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
 
 
     // Table of scaled yields for sanity check
-    cout << "           SCALED\t\t\tPHASE SPACE" << endl;
+    cout << "           SCALED\t\t\tPHASE SPACE\t\t\tSELECTED" << endl;
     cout << "--------------------------------------------------";
     cout << "--------------------------------------------------" << endl;
 
@@ -72,7 +72,8 @@ void calculateBF(const TString filePath, const TString fileSuffix)
         error[i] = nUnc[i] * scale[i];
 
         cout << setw(5) << prefix[i] << "\t   ";
-        cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t" << nSpc[i] << endl;
+        cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t";
+        cout << nSpc[i] << "\t\t\t" << nSel[i] << endl;
 
         if (i == EE)
             cout << endl;
@@ -96,7 +97,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
         yield_4l += yield[i];
         var_4l += error[i] * error[i];
     }
-    result[T] = 2. * Zto2l * yield_4l / yield_2l;
+    result[T] = 2. * f_nr * Zto2l * yield_4l / yield_2l;
     uncf[T] = var_2l / (yield_2l * yield_2l);
     uncf[T] += var_4l / (yield_4l * yield_4l);
     uncf[T] = sqrt(uncf[T]);
@@ -109,7 +110,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
         // Index of DY selection
         unsigned j = i/2 - 1;
 
-        result[i] = Zto2l * yield[i] / yield[j]; 
+        result[i] = f_nr * Zto2l * yield[i] / yield[j]; 
         uncf[i] += (error[i] * error[i]) / (yield[i] * yield[i]);
         uncf[i] += (error[j] * error[j]) / (yield[j] * yield[j]);
         uncf[i] = sqrt(uncf[i]);
@@ -128,6 +129,8 @@ void calculateBF(const TString filePath, const TString fileSuffix)
     unc[S] = sqrt(unc[S]);
     uncf[S] = unc[S] / result[S];
 
+
+    // scale is result[i]/yield[i]
 
 
 
@@ -169,22 +172,21 @@ void calculateBF(const TString filePath, const TString fileSuffix)
 
 
 
-
 void GetQuantities(const TString rootFile,
-                   Double_t *nEvents, Double_t *nUnc, Double_t *accEff, Double_t *eUnc)
+        Double_t *nEvents, Double_t *nUnc, Double_t *nSpc, Double_t *nSel)
 {
     TFile *file = TFile::Open(rootFile, "READ");
     TDirectory *dir = file->GetDirectory("/Calculation", kTRUE, "GetDirectory");
     TH1 *hAccepted;
     dir->GetObject("AcceptedEvents", hAccepted);
-    Double_t nSpc = hAccepted->GetBinContent(2), nSel = hAccepted->GetBinContent(3);
-    *accEff = nSel / nSpc;      *eUnc = *accEff * sqrt(1./nSel + 1./nSpc);
+    *nSpc = hAccepted->GetBinContent(2);
+    *nSel = hAccepted->GetBinContent(3);
 
     TH1 *hData;
     TDirectory *data_subdir = dir->GetDirectory("All Data");
     data_subdir->GetObject("TotalEvents", hData);
     cout << setw(11) << hData->GetBinContent(7) << "  +-  " << setw(7) << hData->GetBinError(7);
-    cout << "\t"; 
+    cout << "\t";
 
     TH1 *hAllMC;
     TDirectory *allMC_subdir = dir->GetDirectory("All MC");
@@ -195,7 +197,7 @@ void GetQuantities(const TString rootFile,
     TH1 *hBgMC;
     TDirectory *bgMC_subdir = dir->GetDirectory("Background MC");
     bgMC_subdir->GetObject("TotalEvents", hBgMC);
-    
+
     TH1 *hDiff = (TH1*) hData->Clone();     hDiff->Add(hBgMC, -1);
     *nEvents = hDiff->GetBinContent(7);
     *nUnc = hDiff->GetBinError(7);

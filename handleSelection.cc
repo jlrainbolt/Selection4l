@@ -143,8 +143,12 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     UShort_t        nPV;
     Float_t         met, weight;
     TLorentzVector  z1p4, z2p4, zzp4, l1p4, l2p4, l3p4, l4p4;
-    Short_t         l1pdg, l2pdg, l3pdg, l4pdg;
+    Short_t         z1pdg, z2pdg, l1pdg, l2pdg, l3pdg, l4pdg;
     Float_t         l1iso, l2iso, l3iso, l4iso;
+
+    TLorentzVector  z1l1p4, z1l2p4, z2l1p4, z2l2p4, tlp4;
+    Short_t         z1l1pdg, z1l2pdg, z2l1pdg, z2l2pdg;
+    Float_t         z1l1iso, z1l2iso, z2l1iso, z2l2iso, angle;
 
 
     // Branches
@@ -160,6 +164,13 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     {
         tree->Branch("l3p4", &l3p4);  tree->Branch("l3pdg", &l3pdg);  tree->Branch("l3iso", &l3iso);
         tree->Branch("l4p4", &l4p4);  tree->Branch("l4pdg", &l4pdg);  tree->Branch("l4iso", &l4iso);
+
+        tree->Branch("z1l1p4", &z1l1p4);   // tree->Branch("z1l1pdg", &z1l1pdg);  tree->Branch*"z1l1iso
+        tree->Branch("z1l2p4", &z1l2p4);
+        tree->Branch("z2l1p4", &z2l1p4);   // tree->Branch("z2l2p4", &z2l2p4);
+        tree->Branch("z2l2p4", &z2l2p4);
+        tree->Branch("tlp4", &tlp4);
+        tree->Branch("angle", &angle);
     }
 
 
@@ -819,6 +830,10 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 tie(l1p4, l1pdg, l1iso) = lepTuple[0];      tie(l2p4, l2pdg, l2iso) = lepTuple[1];
                 tie(l3p4, l3pdg, l3iso) = lepTuple[2];      tie(l4p4, l4pdg, l4iso) = lepTuple[3];
 
+                z1l1p4 = lepP4[x];  z1l2p4 = lepP4[y];      z2l1p4 = lepP4[xx]; z2l2p4 = lepP4[yy];
+                tlp4 = l2p4 + l3p4 + l4p4;
+                angle = z1l2p4.Angle(z2p4.Vect());
+
                 tree->Fill();
             } 
         }
@@ -1339,6 +1354,10 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
             zzp4 = z1p4 + z2p4;
             tie(l1p4, l1pdg, l1iso) = lepTuple[0];      tie(l2p4, l2pdg, l2iso) = lepTuple[1];
             tie(l3p4, l3pdg, l3iso) = lepTuple[2];      tie(l4p4, l4pdg, l4iso) = lepTuple[3];
+
+            z1l1p4 = lep1P4[x]; z1l2p4 = lep1P4[y];     z2l1p4 = lep2P4[xx];    z2l2p4 = lep2P4[yy];
+            tlp4 = l2p4 + l3p4 + l4p4;
+            angle = z1l2p4.Angle(z2p4.Vect());
 
             tree->Fill();
         }

@@ -41,7 +41,7 @@ void prepareFile(const TString selection)
     }
 
 
-    // Dataset
+    // Output name (in future pass outSuff as arg?)
     int year = 2016;    TString yearStr;    yearStr.Form("%i", year);
     TString output = selection + "_" + yearStr + ".root";
 
@@ -111,79 +111,100 @@ void prepareFile(const TString selection)
         isSignal[i] = new TParameter<Bool_t>("isSignal", signal[i]);
     }
 
-    //FIXME
     // Draw validation histograms
-    TString mp4 = sel2l ? "z1p4" : "zzp4";
-    vector<tuple<TString, TString, Int_t, Double_t, Double_t>> opt;
+    vector<tuple<TString, TString, Int_t, Double_t, Double_t>> val;
     //                           name       member          bins    xmin    xmax
-        opt.push_back(make_tuple("nPV",     "nPV",          51,     -0.5,   50.5));
-        opt.push_back(make_tuple("met",     "met",          100,    0,      100));
     if (sel2l)
     {
-        opt.push_back(make_tuple("z1m",     "z1p4.M()",     100,    80,     100));
-        opt.push_back(make_tuple("z1pt",    "z1p4.Pt()",    100,    0,      200));
+        val.push_back(make_tuple("nPV",     "nPV",          51,     -0.5,   50.5));
+        val.push_back(make_tuple("met",     "met",          100,    0,      100));
 
-        opt.push_back(make_tuple("l1pt",    "l1p4.Pt()",    100,    0,      200));
-        opt.push_back(make_tuple("l1eta",   "l1p4.Eta()",   100,    -2.5,   2.5));
-        opt.push_back(make_tuple("l1iso",   "l1iso",        100,    0,      0.35));
+        val.push_back(make_tuple("z1m",     "z1p4.M()",     100,    80,     100));
+        val.push_back(make_tuple("z1pt",    "z1p4.Pt()",    100,    0,      200));
 
-        opt.push_back(make_tuple("l2pt",    "l2p4.Pt()",    100,    0,      200));
-        opt.push_back(make_tuple("l2eta",   "l2p4.Eta()",   100,    -2.5,   2.5));
-        opt.push_back(make_tuple("l2iso",   "l2iso",        100,    0,      0.35));
+        val.push_back(make_tuple("l1pt",    "l1p4.Pt()",    100,    0,      200));
+        val.push_back(make_tuple("l1eta",   "l1p4.Eta()",   100,    -2.5,   2.5));
+        val.push_back(make_tuple("l1iso",   "l1iso",        100,    0,      0.35));
+        val.push_back(make_tuple("l1pdg",   "l1pdg",        31,     -15.5,  15.5));
+
+        val.push_back(make_tuple("l2pt",    "l2p4.Pt()",    100,    0,      200));
+        val.push_back(make_tuple("l2eta",   "l2p4.Eta()",   100,    -2.5,   2.5));
+        val.push_back(make_tuple("l2iso",   "l2iso",        100,    0,      0.35));
+        val.push_back(make_tuple("l2pdg",   "l2pdg",        31,     -15.5,  15.5));
     }
     else if (sel4l)
     {
-        opt.push_back(make_tuple("zzm",     "zzp4.M()",     100,    80,     100));
-        opt.push_back(make_tuple("zzpt",    "zzp4.Pt()",    100,    0,      200));
+        val.push_back(make_tuple("nPV",     "nPV",          25,     0,      50));
+        val.push_back(make_tuple("met",     "met",          20,     0,      100));
 
-        opt.push_back(make_tuple("z1m",     "z1p4.M()",     100,    0,      100));
-        opt.push_back(make_tuple("z1pt",    "z1p4.Pt()",    100,    0,      200));
+        val.push_back(make_tuple("zzm",     "zzp4.M()",     20,     80,     100));
+        val.push_back(make_tuple("zzpt",    "zzp4.Pt()",    20,     0,      200));
 
-        opt.push_back(make_tuple("z2m",     "z2p4.M()",     100,    0,      50));
-        opt.push_back(make_tuple("z2pt",    "z2p4.Pt()",    100,    0,      100));
+        val.push_back(make_tuple("z1m",     "z1p4.M()",     20,     0,      100));
+        val.push_back(make_tuple("z1pt",    "z1p4.Pt()",    20,     0,      200));
 
-        opt.push_back(make_tuple("l1pt",    "l1p4.Pt()",    100,    0,      200));
-        opt.push_back(make_tuple("l1eta",   "l1p4.Eta()",   100,    -2.5,   2.5));
-        opt.push_back(make_tuple("l1iso",   "l1iso",        100,    0,      0.35));
+        val.push_back(make_tuple("z2m",     "z2p4.M()",     20,     0,      50));
+        val.push_back(make_tuple("z2pt",    "z2p4.Pt()",    20,     0,      100));
 
-        opt.push_back(make_tuple("l2pt",    "l2p4.Pt()",    100,    0,      100));
-        opt.push_back(make_tuple("l2eta",   "l2p4.Eta()",   100,    -2.5,   2.5));
-        opt.push_back(make_tuple("l2iso",   "l2iso",        100,    0,      0.35));
+        val.push_back(make_tuple("l1pt",    "l1p4.Pt()",    20,     0,      200));
+        val.push_back(make_tuple("l1eta",   "l1p4.Eta()",   25,     -2.5,   2.5));
+        val.push_back(make_tuple("l1iso",   "l1iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l1pdg",   "l1pdg",        31,     -15.5,  15.5));
 
-        opt.push_back(make_tuple("l3pt",    "l3p4.Pt()",    100,    0,      50));
-        opt.push_back(make_tuple("l3eta",   "l3p4.Eta()",   100,    -2.5,   2.5));
-        opt.push_back(make_tuple("l3iso",   "l3iso",        100,    0,      0.35));
+        val.push_back(make_tuple("l2pt",    "l2p4.Pt()",    20,     0,      100));
+        val.push_back(make_tuple("l2eta",   "l2p4.Eta()",   25,     -2.5,   2.5));
+        val.push_back(make_tuple("l2iso",   "l2iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l2pdg",   "l2pdg",        31,     -15.5,  15.5));
 
-        opt.push_back(make_tuple("l4pt",    "l4p4.Pt()",    100,    0,      50));
-        opt.push_back(make_tuple("l4eta",   "l4p4.Eta()",   100,    -2.5,   2.5));
-        opt.push_back(make_tuple("l4iso",   "l4iso",        100,    0,      0.35));
+        val.push_back(make_tuple("l3pt",    "l3p4.Pt()",    20,     0,      50));
+        val.push_back(make_tuple("l3eta",   "l3p4.Eta()",   25,     -2.5,   2.5));
+        val.push_back(make_tuple("l3iso",   "l3iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l3pdg",   "l3pdg",        31,     -15.5,  15.5));
+
+        val.push_back(make_tuple("l4pt",    "l4p4.Pt()",    20,     0,      50));
+        val.push_back(make_tuple("l4eta",   "l4p4.Eta()",   25,     -2.5,   2.5));
+        val.push_back(make_tuple("l4iso",   "l4iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l4pdg",   "l4pdg",        31,     -15.5,  15.5));
+
+
+        // Differential distributions
+        val.push_back(make_tuple("l1pt_d",  "l1p4.Pt()",    10,     25,     125));
+        val.push_back(make_tuple("z2m_d",   "z2p4.M()",     10,     4,      54));
+        val.push_back(make_tuple("m3l_d",   "tlp4.M()",     10,     0,      80));
+        val.push_back(make_tuple("angle_d", "angle",        10,     0,      3.14));
     }
 
-    //  if (sel4l) {
 
-    // Write to file
+    // Draw histograms and write to file
     TFile *outFile = new TFile(output, "RECREATE");
-    TDirectory *dir = outFile->mkdir("Histograms");
-    dir->cd();
-    TDirectory *subdir[N];
+    TDirectory *histDir = outFile->mkdir("Histograms");
+    TDirectory *histSubdir[N];
+
     for (unsigned i = 0; i < N; i++)
     {
-        subdir[i] = dir->mkdir(suffix[i]);
         cout << "Creating " << suffix[i] << " histograms..." << endl;
+
         TFile *inFile = TFile::Open(selection + "_" + suffix[i] + ".root");
         TTree *tree;
         inFile->GetObject("tree_" + suffix[i], tree);
 
-        subdir[i]->cd();
-        for (unsigned j = 0; j < opt.size(); j++)
+        histSubdir[i] = histDir->mkdir(suffix[i]);
+        histSubdir[i]->cd();
+        for (unsigned j = 0; j < val.size(); j++)
         {
-            TString varexp, hname = get<0>(opt[j]);
-            varexp.Form(get<1>(opt[j]) + ">>" + hname + "(%i,%g,%g)",
-                        get<2>(opt[j]), get<3>(opt[j]), get<4>(opt[j]));
+            TString varexp, hname = get<0>(val[j]);
+            varexp.Form(get<1>(val[j]) + ">>" + hname + "(%i,%g,%g)",
+                        get<2>(val[j]), get<3>(val[j]), get<4>(val[j]));
             tree->Draw(varexp, "weight");
             TH1F* hist;
             gDirectory->GetObject(hname, hist);
-            hist->SetName(hname + "_" + suffix[i]);
+
+            if (hist)
+                hist->SetName(hname + "_" + suffix[i]);
+            else
+                hist = new TH1F(hname + "_" + suffix[i], get<1>(val[j])+" {weight}",
+                                get<2>(val[j]), get<3>(val[j]), get<4>(val[j]));
+
             hist->Write();
         }
         TH1D *hTotalEvents, *hAcceptedEvents;
