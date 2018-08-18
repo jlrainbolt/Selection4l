@@ -58,7 +58,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
 
 
     // Table of scaled yields for sanity check
-    cout << "           SCALED\t\t\tPHASE SPACE\t\t\tSELECTED" << endl;
+    cout << "           SCALED\t\t\tPHASE SPACE\t\tSELECTED\t\tSCALE" << endl;
     cout << "--------------------------------------------------";
     cout << "--------------------------------------------------" << endl;
 
@@ -73,7 +73,7 @@ void calculateBF(const TString filePath, const TString fileSuffix)
 
         cout << setw(5) << prefix[i] << "\t   ";
         cout << setw(11) << yield[i] << "  +-  " << setw(7) << error[i] << "\t";
-        cout << nSpc[i] << "\t\t\t" << nSel[i] << endl;
+        cout << nSpc[i] << "\t\t" << nSel[i] << "\t\t" << scale[i] << endl;
 
         if (i == EE)
             cout << endl;

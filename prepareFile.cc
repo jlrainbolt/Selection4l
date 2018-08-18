@@ -8,7 +8,9 @@
 
 using namespace std;
 
-void prepareFile(const TString selection)
+
+
+void prepareFile(const TString path, const TString selection)
 {
     //--- PARSING ---//
 
@@ -77,38 +79,48 @@ void prepareFile(const TString selection)
     unsigned WZ = 16;       suffix[WZ] = "wz_3lnu";             xs[WZ] = 4.42965;
     unsigned ZZ = 17;       suffix[ZZ] = "zz_4l";               xs[ZZ] = 1.212;
 
+    
+    // Create colormap (Matlab "lines")
+    unsigned lBlack = 0, lBlue = 1, lOrange = 2, lYellow = 3, lPurple = 4, lGreen = 5, lLtBlue = 6,
+             lRed = 7;
+    const unsigned L = 8;   Int_t colIdx[L];
+    for (unsigned i = 0; i < L; i++)
+        colIdx[i] = 1179 + (Int_t) i;
+
+
     // Colors                   // Data tag             // Signal tag
     Int_t col[N];               Bool_t data[N],         signal[N];
-    col[RD] = kBlack;           data[RD] = kTRUE;       signal[RD] = kFALSE;
-    col[DI] = kRed + 2;         data[DI] = kFALSE;      signal[DI] = sel2l ? kTRUE : kFALSE;
-    col[YI] = kRed;             data[YI] = kFALSE;      signal[YI] = sel2l ? kTRUE : kFALSE;
-    col[D1] = kRed - 3;         data[D1] = kFALSE;      signal[D1] = sel2l ? kTRUE : kFALSE;
-    col[Y1] = kRed - 4;         data[Y1] = kFALSE;      signal[Y1] = sel2l ? kTRUE : kFALSE;
-    col[D2] = kRed - 5;         data[D2] = kFALSE;      signal[D2] = sel2l ? kTRUE : kFALSE;
-    col[Y2] = kRed - 6;         data[Y2] = kFALSE;      signal[Y2] = sel2l ? kTRUE : kFALSE;
-    col[D3] = kRed - 7;         data[D3] = kFALSE;      signal[D3] = sel2l ? kTRUE : kFALSE;
-    col[Y3] = kRed - 8;         data[Y3] = kFALSE;      signal[Y3] = sel2l ? kTRUE : kFALSE;
-    col[D4] = kRed - 9;         data[D4] = kFALSE;      signal[D4] = sel2l ? kTRUE : kFALSE;
-    col[Y4] = kRed - 10;        data[Y4] = kFALSE;      signal[Y4] = sel2l ? kTRUE : kFALSE;
-    col[GH] = kMagenta + 2;     data[GH] = kFALSE;      signal[GH] = kFALSE;
-    col[QH] = kMagenta;         data[QH] = kFALSE;      signal[QH] = kFALSE;
-    col[TT] = kBlue;            data[TT] = kFALSE;      signal[TT] = kFALSE;
-    col[TZ] = kBlue + 2;        data[TZ] = kFALSE;      signal[TZ] = kFALSE;
-    col[WW] = kCyan;            data[WW] = kFALSE;      signal[WW] = kFALSE;
-    col[WZ] = kCyan + 2;;       data[WZ] = kFALSE;      signal[WZ] = kFALSE;
-    col[ZZ] = kGreen;           data[ZZ] = kFALSE;      signal[ZZ] = sel4l ? kTRUE : kFALSE;
+    col[RD] = lBlack;           data[RD] = kTRUE;       signal[RD] = kFALSE;
+    col[DI] = lOrange;          data[DI] = kFALSE;      signal[DI] = sel2l ? kTRUE : kFALSE;
+    col[YI] = lOrange;          data[YI] = kFALSE;      signal[YI] = sel2l ? kTRUE : kFALSE;
+    col[D1] = lRed;             data[D1] = kFALSE;      signal[D1] = sel2l ? kTRUE : kFALSE;
+    col[Y1] = lRed;             data[Y1] = kFALSE;      signal[Y1] = sel2l ? kTRUE : kFALSE;
+    col[D2] = lRed;             data[D2] = kFALSE;      signal[D2] = sel2l ? kTRUE : kFALSE;
+    col[Y2] = lRed;             data[Y2] = kFALSE;      signal[Y2] = sel2l ? kTRUE : kFALSE;
+    col[D3] = lRed;             data[D3] = kFALSE;      signal[D3] = sel2l ? kTRUE : kFALSE;
+    col[Y3] = lRed;             data[Y3] = kFALSE;      signal[Y3] = sel2l ? kTRUE : kFALSE;
+    col[D4] = lRed;             data[D4] = kFALSE;      signal[D4] = sel2l ? kTRUE : kFALSE;
+    col[Y4] = lRed;             data[Y4] = kFALSE;      signal[Y4] = sel2l ? kTRUE : kFALSE;
+    col[GH] = lPurple;          data[GH] = kFALSE;      signal[GH] = kFALSE;
+    col[QH] = lPurple;          data[QH] = kFALSE;      signal[QH] = kFALSE;
+    col[TT] = lBlue;            data[TT] = kFALSE;      signal[TT] = kFALSE;
+    col[TZ] = lBlue;            data[TZ] = kFALSE;      signal[TZ] = kFALSE;
+    col[WW] = lLtBlue;          data[WW] = kFALSE;      signal[WW] = kFALSE;
+    col[WZ] = lLtBlue;          data[WZ] = kFALSE;      signal[WZ] = kFALSE;
+    col[ZZ] = lGreen;           data[ZZ] = kFALSE;      signal[ZZ] = sel4l ? kTRUE : kFALSE;
 
 
     // Convert to TParameters
     TParameter<Float_t> *luminosity = new TParameter<Float_t>("lumi", lumi);
-    TParameter<Float_t> *xsec[N];   TParameter<Int_t> *color[N];
+    TParameter<Float_t> *xsec[N];
+    TParameter<Int_t> *color[N];
     TParameter<Bool_t> *isData[N], *isSignal[N];
     for (unsigned i = 0; i < N; i++)
     {
         xsec[i] = new TParameter<Float_t>("xsec", xs[i]);
-        color[i] = new TParameter<Int_t>("color", col[i]);
         isData[i] = new TParameter<Bool_t>("isData", data[i]);
         isSignal[i] = new TParameter<Bool_t>("isSignal", signal[i]);
+        color[i] = new TParameter<Int_t>("color", colIdx[col[i]]);
     }
 
     // Draw validation histograms
@@ -168,10 +180,13 @@ void prepareFile(const TString selection)
 
 
         // Differential distributions
-        val.push_back(make_tuple("l1pt_d",  "l1p4.Pt()",    10,     25,     125));
-        val.push_back(make_tuple("z2m_d",   "z2p4.M()",     10,     4,      54));
-        val.push_back(make_tuple("m3l_d",   "tlp4.M()",     10,     0,      80));
-        val.push_back(make_tuple("angle_d", "angle",        10,     0,      3.14));
+        // FIXME to include overflow?
+        val.push_back(make_tuple("l1pt_d",  "l1p4.Pt()",    8,      20,     100));
+        val.push_back(make_tuple("z2m_d",   "z2p4.M()",     8,      0,      40));
+        val.push_back(make_tuple("m3l_d",   "tlp4.M()",     8,      0,      80));
+        val.push_back(make_tuple("angle_d", "angle",        8,      0,      3.2));
+        val.push_back(make_tuple("cos_d",   "cos(angle)",   8,      -1,     1));
+        val.push_back(make_tuple("cos2_d",   "cos(angle)*cos(angle)",   10,     0,      1));
     }
 
 
@@ -184,7 +199,7 @@ void prepareFile(const TString selection)
     {
         cout << "Creating " << suffix[i] << " histograms..." << endl;
 
-        TFile *inFile = TFile::Open(selection + "_" + suffix[i] + ".root");
+        TFile *inFile = TFile::Open(path + selection + "_" + suffix[i] + ".root");
         TTree *tree;
         inFile->GetObject("tree_" + suffix[i], tree);
 
@@ -234,8 +249,8 @@ void prepareFile(const TString selection)
     for (unsigned i = 0; i < N; i++)
     {
         delete xsec[i];
-        delete color[i];
         delete isData[i];
+        delete color[i];
         delete isSignal[i];
     }
 }

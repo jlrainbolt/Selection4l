@@ -5,10 +5,15 @@
 #include "TFile.h"
 #include "TMacro.h"
 #include "TH1.h"
+#include "TColor.h"
 #include "TParameter.h"
 
 
 using namespace std;
+
+void ApplyAlpha(float rgb[][3], const int, const float);
+
+
 
 void stackResults(const TString inFile, const TString selection)
 {
@@ -27,6 +32,24 @@ void stackResults(const TString inFile, const TString selection)
     TFile *file = TFile::Open(inFile, "UPDATE");
 
 
+    // Create colors
+    const unsigned L = 8;
+    Float_t lines[L][3] = { {0, 0, 0},                  // Black    0
+                            {0, 0.4470, 0.7410},        // Blue     1
+                            {0.8500, 0.3250, 0.0980},   // "Red"    2
+                            {0.9290, 0.6940, 0.1250},   // Yellow   3
+                            {0.4940, 0.1840, 0.5560},   // Purple   4
+                            {0.4660, 0.6740, 0.1880},   // Green    5
+                            {0.3010, 0.7450, 0.9330},   // Lt blue  6
+                            {0.6350, 0.0780, 0.1840}};  // Dk red   7
+    Float_t alpha = 0.75;   ApplyAlpha(lines, L, alpha);
+    TColor *lines_[L];
+    for (unsigned i = 0; i < L; i++)
+    {
+        lines_[i] = new TColor(1179 + (Int_t) i, lines[i][0], lines[i][1], lines[i][2]);
+    }
+
+
     // Get lists of samples and their contents
     TDirectory *dir = file->GetDirectory("/Histograms", kTRUE, "GetDirectory");
     TIter next(dir->GetListOfKeys());
@@ -43,19 +66,22 @@ void stackResults(const TString inFile, const TString selection)
         TString suffix = subdirKey->GetName();
         TDirectory *subdir;             subdir = dir->GetDirectory(suffix);
         TParameter<Bool_t> *isData;     subdir->GetObject("isData", isData);
-        TParameter<Bool_t> *isSignal;   subdir->GetObject("isSignal", isSignal);
         TParameter<Int_t> *color;       subdir->GetObject("color", color);
+        TParameter<Bool_t> *isSignal;   subdir->GetObject("isSignal", isSignal);
         TParameter<Float_t> *factor;
+
         if (isData->GetVal())
         {
             dataSubdir.push_back(subdir);
-            dataSuffix.push_back(suffix);       dataColor.push_back(color->GetVal());
+            dataSuffix.push_back(suffix);
+            dataColor.push_back(color->GetVal());
             subdir->GetObject("lumi", factor);  lumi = factor->GetVal();
         }
         else
         {
             mcSubdir.push_back(subdir);
-            mcSuffix.push_back(suffix);         mcColor.push_back(color->GetVal());
+            mcSuffix.push_back(suffix);
+            mcColor.push_back(color->GetVal());
             subdir->GetObject("xsec", factor);  xsec.push_back(factor->GetVal());
             mcSignal.push_back(isSignal->GetVal());
         }
@@ -124,6 +150,7 @@ void stackResults(const TString inFile, const TString selection)
         {
             TH1* hist;
             dataSubdir[i]->GetObject(hname[h] + "_" + dataSuffix[i], hist);
+            hist->Sumw2(kTRUE);
             hist->SetLineColor(dataColor[i]);   hist->SetLineWidth(2);
             dataStack[h]->Add(hist);
 
@@ -143,7 +170,7 @@ void stackResults(const TString inFile, const TString selection)
     for (unsigned j_ = 0; j_ < mcSubdir.size(); j_++)
     {
         unsigned j = j_;
-        if (sel4l)
+        if (sel2l)
             j = mcSubdir.size() - 1 - j_;
 
         TH1* hTotalEvents;
@@ -160,6 +187,7 @@ void stackResults(const TString inFile, const TString selection)
             TH1* hist;
             mcSubdir[j]->GetObject(hname[h] + "_" + mcSuffix[j], hist);
             hist->SetFillColor(mcColor[j]); hist->SetLineColor(mcColor[j]);
+            hist->Sumw2(kTRUE);
             hist->Scale(weight);    mcStack[h]->Add(hist);
 
             if (j == 0)
@@ -338,4 +366,16 @@ void stackResults(const TString inFile, const TString selection)
 
     file->Close();
 // DELETE YOUR SHIT
+}
+
+
+
+
+void ApplyAlpha(float rgb[][3], const int size, const float alpha)
+{
+    for (unsigned i = 0; i < size; i++)
+    {
+        for (unsigned j = 0; j < 3; j++)
+            rgb[i][j] += (1 - rgb[i][j]) * (1 - alpha);
+    }
 }
