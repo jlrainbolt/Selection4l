@@ -79,18 +79,18 @@ void prepareFile(const TString path, const TString selection)
     unsigned WZ = 16;       suffix[WZ] = "wz_3lnu";             xs[WZ] = 4.42965;
     unsigned ZZ = 17;       suffix[ZZ] = "zz_4l";               xs[ZZ] = 1.212;
 
-    
+/*    
     // Create colormap (Matlab "lines")
     unsigned lBlack = 0, lBlue = 1, lOrange = 2, lYellow = 3, lPurple = 4, lGreen = 5, lLtBlue = 6,
              lRed = 7;
     const unsigned L = 8;   Int_t colIdx[L];
     for (unsigned i = 0; i < L; i++)
         colIdx[i] = 1179 + (Int_t) i;
-
+*/
 
     // Colors                   // Data tag             // Signal tag
     Int_t col[N];               Bool_t data[N],         signal[N];
-    col[RD] = lBlack;           data[RD] = kTRUE;       signal[RD] = kFALSE;
+    col[RD] = kBlack;           data[RD] = kTRUE;       signal[RD] = kFALSE;
     col[DI] = lOrange;          data[DI] = kFALSE;      signal[DI] = sel2l ? kTRUE : kFALSE;
     col[YI] = lOrange;          data[YI] = kFALSE;      signal[YI] = sel2l ? kTRUE : kFALSE;
     col[D1] = lRed;             data[D1] = kFALSE;      signal[D1] = sel2l ? kTRUE : kFALSE;
@@ -105,8 +105,8 @@ void prepareFile(const TString path, const TString selection)
     col[QH] = lPurple;          data[QH] = kFALSE;      signal[QH] = kFALSE;
     col[TT] = lBlue;            data[TT] = kFALSE;      signal[TT] = kFALSE;
     col[TZ] = lBlue;            data[TZ] = kFALSE;      signal[TZ] = kFALSE;
-    col[WW] = lLtBlue;          data[WW] = kFALSE;      signal[WW] = kFALSE;
-    col[WZ] = lLtBlue;          data[WZ] = kFALSE;      signal[WZ] = kFALSE;
+    col[WW] = lLightBlue;       data[WW] = kFALSE;      signal[WW] = kFALSE;
+    col[WZ] = lLightBlue;       data[WZ] = kFALSE;      signal[WZ] = kFALSE;
     col[ZZ] = lGreen;           data[ZZ] = kFALSE;      signal[ZZ] = sel4l ? kTRUE : kFALSE;
 
 
@@ -120,7 +120,7 @@ void prepareFile(const TString path, const TString selection)
         xsec[i] = new TParameter<Float_t>("xsec", xs[i]);
         isData[i] = new TParameter<Bool_t>("isData", data[i]);
         isSignal[i] = new TParameter<Bool_t>("isSignal", signal[i]);
-        color[i] = new TParameter<Int_t>("color", colIdx[col[i]]);
+        color[i] = new TParameter<Int_t>("color", col[i]);
     }
 
     // Draw validation histograms
@@ -146,6 +146,7 @@ void prepareFile(const TString path, const TString selection)
     }
     else if (sel4l)
     {
+//      int bins = (muPair1 && muPair2) ?  
         val.push_back(make_tuple("nPV",     "nPV",          25,     0,      50));
         val.push_back(make_tuple("met",     "met",          20,     0,      100));
 
@@ -186,7 +187,7 @@ void prepareFile(const TString path, const TString selection)
         val.push_back(make_tuple("m3l_d",   "tlp4.M()",     8,      0,      80));
         val.push_back(make_tuple("angle_d", "angle",        8,      0,      3.2));
         val.push_back(make_tuple("cos_d",   "cos(angle)",   8,      -1,     1));
-        val.push_back(make_tuple("cos2_d",   "cos(angle)*cos(angle)",   10,     0,      1));
+        val.push_back(make_tuple("cos2_d",  "cos(angle)*cos(angle)", 10, 0, 1));
     }
 
 

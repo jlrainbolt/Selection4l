@@ -69,7 +69,7 @@ void stackDists(const TString filePath, const TString fileSuffix)
     // Axis titles
     TString BF = "\\mathcal{B}(\\mbox{Z} \\to 4\\ell)";
     TString pT1 = "p_{\\mbox{T} 1}", Z2 = "\\mbox{Z}_{2}";
-    vector<TString> dtitle = {pT1, "m_{"+Z2+"}", "m_{3\\ell}", "\\theta_{"+pT1+","+Z2+"}"};
+    vector<TString> dtitle = {pT1, "m_{"+Z2+"}", "m_{3\\ell}", "\\theta("+pT1+",m_{"Z2+"})"};
     vector<TString> dunit = {"10 GeV", "5 GeV", "10 GeV", "0.4 rad"};
 
 
@@ -91,8 +91,8 @@ void stackDists(const TString filePath, const TString fileSuffix)
             hist->SetTitle("");
             hist->Sumw2(kTRUE);
             hist->Scale(weight); 
-            hist->SetLineColorAlpha(color[i], 0.75);       //  hist->SetLineWidth(2);
-            hist->SetFillColorAlpha(color[i], 0.75);
+            hist->SetLineColor(color[i]);       //  hist->SetLineWidth(2);
+            hist->SetFillColor(color[i]);
             stack[j]->Add(hist);
             hists[i].push_back(hist);
 
@@ -197,9 +197,9 @@ void ApplyAlpha(float rgb[][3], const int size, const float alpha)
 
 void FaceliftTH1(TH1 *hist)
 {
-    int helv = 43;      // font code 3 is expressed in pixels
-    // Point font sizes
-    float axlabel = 24, axtitle = 36, axoff = 1.1;
+    int helv = 43;                      // font code 3 is expressed in pixels
+    float axlabel = 24, axtitle = 36;   // point font sizes
+    float axoff = 1.1;                  // fix for y axis offset
 
     hist->SetStats(0);
     hist->SetMinimum(0);
@@ -208,7 +208,6 @@ void FaceliftTH1(TH1 *hist)
     hist->GetXaxis()->SetLabelSize(axlabel);
     hist->GetXaxis()->SetTitleFont(helv);
     hist->GetXaxis()->SetTitleSize(axtitle);
-//  hist->GetXaxis()->SetTitleOffset(axoff);
 
     hist->GetYaxis()->SetLabelFont(helv);
     hist->GetYaxis()->SetLabelSize(axlabel);
