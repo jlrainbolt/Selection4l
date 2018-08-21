@@ -91,23 +91,23 @@ void prepareFile(const TString path, const TString selection)
     // Colors                   // Data tag             // Signal tag
     Int_t col[N];               Bool_t data[N],         signal[N];
     col[RD] = kBlack;           data[RD] = kTRUE;       signal[RD] = kFALSE;
-    col[DI] = lOrange;          data[DI] = kFALSE;      signal[DI] = sel2l ? kTRUE : kFALSE;
-    col[YI] = lOrange;          data[YI] = kFALSE;      signal[YI] = sel2l ? kTRUE : kFALSE;
-    col[D1] = lRed;             data[D1] = kFALSE;      signal[D1] = sel2l ? kTRUE : kFALSE;
-    col[Y1] = lRed;             data[Y1] = kFALSE;      signal[Y1] = sel2l ? kTRUE : kFALSE;
-    col[D2] = lRed;             data[D2] = kFALSE;      signal[D2] = sel2l ? kTRUE : kFALSE;
-    col[Y2] = lRed;             data[Y2] = kFALSE;      signal[Y2] = sel2l ? kTRUE : kFALSE;
-    col[D3] = lRed;             data[D3] = kFALSE;      signal[D3] = sel2l ? kTRUE : kFALSE;
-    col[Y3] = lRed;             data[Y3] = kFALSE;      signal[Y3] = sel2l ? kTRUE : kFALSE;
-    col[D4] = lRed;             data[D4] = kFALSE;      signal[D4] = sel2l ? kTRUE : kFALSE;
-    col[Y4] = lRed;             data[Y4] = kFALSE;      signal[Y4] = sel2l ? kTRUE : kFALSE;
+    col[DI] = lYellow;          data[DI] = kFALSE;      signal[DI] = sel2l ? kTRUE : kFALSE;
+    col[YI] = lYellow;          data[YI] = kFALSE;      signal[YI] = sel2l ? kTRUE : kFALSE;
+    col[D1] = lYellow;          data[D1] = kFALSE;      signal[D1] = sel2l ? kTRUE : kFALSE;
+    col[Y1] = lYellow;          data[Y1] = kFALSE;      signal[Y1] = sel2l ? kTRUE : kFALSE;
+    col[D2] = lYellow;          data[D2] = kFALSE;      signal[D2] = sel2l ? kTRUE : kFALSE;
+    col[Y2] = lYellow;          data[Y2] = kFALSE;      signal[Y2] = sel2l ? kTRUE : kFALSE;
+    col[D3] = lYellow;          data[D3] = kFALSE;      signal[D3] = sel2l ? kTRUE : kFALSE;
+    col[Y3] = lYellow;          data[Y3] = kFALSE;      signal[Y3] = sel2l ? kTRUE : kFALSE;
+    col[D4] = lYellow;          data[D4] = kFALSE;      signal[D4] = sel2l ? kTRUE : kFALSE;
+    col[Y4] = lYellow;          data[Y4] = kFALSE;      signal[Y4] = sel2l ? kTRUE : kFALSE;
     col[GH] = lPurple;          data[GH] = kFALSE;      signal[GH] = kFALSE;
     col[QH] = lPurple;          data[QH] = kFALSE;      signal[QH] = kFALSE;
-    col[TT] = lBlue;            data[TT] = kFALSE;      signal[TT] = kFALSE;
-    col[TZ] = lBlue;            data[TZ] = kFALSE;      signal[TZ] = kFALSE;
-    col[WW] = lLightBlue;       data[WW] = kFALSE;      signal[WW] = kFALSE;
-    col[WZ] = lLightBlue;       data[WZ] = kFALSE;      signal[WZ] = kFALSE;
-    col[ZZ] = lGreen;           data[ZZ] = kFALSE;      signal[ZZ] = sel4l ? kTRUE : kFALSE;
+    col[TT] = lGreen;           data[TT] = kFALSE;      signal[TT] = kFALSE;
+    col[TZ] = lGreen;           data[TZ] = kFALSE;      signal[TZ] = kFALSE;
+    col[WW] = lOrange;          data[WW] = kFALSE;      signal[WW] = kFALSE;
+    col[WZ] = lOrange;          data[WZ] = kFALSE;      signal[WZ] = kFALSE;
+    col[ZZ] = lLightBlue;       data[ZZ] = kFALSE;      signal[ZZ] = sel4l ? kTRUE : kFALSE;
 
 
     // Convert to TParameters

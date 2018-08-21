@@ -27,11 +27,11 @@ void stackResults(const TString inFile, const TString selection)
         sel2l = kTRUE;      selName = "DY";     sigSuffix = "dy_m-50";
     }
     else if (selection == "2m2e" || selection == "2mu2e" || selection == "2e2m" || selection== "2e2mu"
-             || selection == "4mu" || selection == "4m" || selection == "4e")
+             || selection == "4mu" || selection == "4m" || selection == "4e" || selection == "4l")
     {
         sel4l = kTRUE;      selName = "4l";     sigSuffix = "zz_4l";
     }
-
+/*
     if (selection == "mumu" || selection == "2m" || selection == "4mu" || selection == "4m")
     {
         muPair1 = kTRUE;        muPair2 = kTRUE;
@@ -48,26 +48,9 @@ void stackResults(const TString inFile, const TString selection)
     {
         muPair1 = kFALSE;       muPair2 = kFALSE;
     }
+*/
     TFile *file = TFile::Open(inFile, "UPDATE");
 
-/*
-    // Create colors
-    const unsigned L = 8;
-    Float_t lines[L][3] = { {0, 0, 0},                  // Black    0
-                            {0, 0.4470, 0.7410},        // Blue     1
-                            {0.8500, 0.3250, 0.0980},   // "Red"    2
-                            {0.9290, 0.6940, 0.1250},   // Yellow   3
-                            {0.4940, 0.1840, 0.5560},   // Purple   4
-                            {0.4660, 0.6740, 0.1880},   // Green    5
-                            {0.3010, 0.7450, 0.9330},   // Lt blue  6
-                            {0.6350, 0.0780, 0.1840}};  // Dk red   7
-    Float_t alpha = 0.75;   ApplyAlpha(lines, L, alpha);
-    TColor *lines_[L];
-    for (unsigned i = 0; i < L; i++)
-    {
-        lines_[i] = new TColor(1179 + (Int_t) i, lines[i][0], lines[i][1], lines[i][2]);
-    }
-*/
 
     // Get lists of samples and their contents
     TDirectory *dir = file->GetDirectory("/Histograms", kTRUE, "GetDirectory");
@@ -121,17 +104,52 @@ void stackResults(const TString inFile, const TString selection)
 
 
     // Create stacks, canvases, legend
-    vector<TString> hname, htitle;
+    vector<TString> hname, hxtitle, hytitle;
     if (sel2l)
+    {
         hname = {"nPV", "met", "z1m", "z1pt",
                     "l1pt", "l1eta", "l1iso", "l1pdg", "l2pt", "l2eta", "l2iso", "l2pdg",
                     "TotalEvents", "AcceptedEvents"};
+
+        hxtitle = {"n_{\\mbox{PV}}", _met, _m(_ll), _pT(_ll),
+                    _pT(1), _eta(1), _iso+"_{1}", "id 1",
+                    _pT(2), _eta(2), _iso+"_{2}", "id 2",
+                    "", ""};
+
+        hytitle = {_EventsPer(_unit), _EventsPer(.5, _GeV),
+                    _EventsPer(.2, _GeV), _EventsPer(2, _GeV),
+                    _EventsPer(2, _GeV), _EventsPer(.05, _rad), "", "",
+                    _EventsPer(2, _GeV), _EventsPer(.05, _rad), "", "",
+                    "", ""};
+    }
     else if (sel4l)
+    {
         hname = {"nPV", "met", "zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt",
                     "l1pt", "l1eta", "l1iso", "l1pdg", "l2pt", "l2eta", "l2iso", "l2pdg",
                     "l3pt", "l3eta", "l3iso", "l3pdg", "l4pt", "l4eta", "l4iso", "l4pdg",
                     "TotalEvents", "AcceptedEvents",
                     "l1pt_d", "z2m_d", "m3l_d", "angle_d"};
+
+        hxtitle = {"N_{\\mbox{PV}}", _met, _m(_4l), _pT(_4l), _m(_Z1), _pT(_Z1), _m(_Z2), _pT(_Z2), 
+                    _pT(1), _eta(1), _iso+"_{1}", "id 1",
+                    _pT(2), _eta(2), _iso+"_{2}", "id 2",
+                    _pT(3), _eta(3), _iso+"_{3}", "id 3",
+                    _pT(4), _eta(4), _iso+"_{4}", "id 4",
+                    "", "",
+                    _pT(1), _m(_Z2), _m("234"), "\\theta_{"+_p4(2)+_and+_p4(_Z2)+"}"};
+
+        hytitle = {_EventsPer(_unit), _EventsPer(.5, _GeV),
+                    _EventsPer(_GeV), _EventsPer(10, _GeV),
+                    _EventsPer(5, _GeV), _EventsPer(10, _GeV),
+                    _EventsPer(2.5, _GeV), _EventsPer(5, _GeV),
+                    _EventsPer(10, _GeV), _EventsPer(.2, _rad), "", "",
+                    _EventsPer(5, _GeV), _EventsPer(.2, _rad), "", "",
+                    _EventsPer(5, _GeV), _EventsPer(.2, _rad), "", "",
+                    _EventsPer(5, _GeV), _EventsPer(.2, _rad), "", "",
+                    "", "",
+                    _EventsPer(10, _GeV), _EventsPer(5, _GeV), _EventsPer(10, _GeV),
+                    _EventsPer(.2, _rad)};
+    }
 
     vector<THStack*> dataStack, mcStack;
     vector<TH1*> dataSum, mcSum, sigSum, bgSum;
@@ -227,24 +245,30 @@ void stackResults(const TString inFile, const TString selection)
 
 
     // Fill legend with dummy histograms
-    float c_mrg = .12;
-    TLegend *legend = new TLegend(.75, .25, .95, .95);
+    float LeftPosition = 0.5,       LeftMargin = 2. * lCanvasMargin - lLegendMargin;
+    float RightPosition = 1,        RightMargin = -lLegendMargin;
+    float TopPosition = 1,          TopMargin = -lLegendMargin;
+    float BottomPosition = TopPosition - 0.065 * 6.;
+    float BottomMargin = 2. * lCanvasMargin - lLegendMargin;
+    TLegend *legend = new TLegend(LeftPosition + LeftMargin, BottomPosition - TopMargin,
+                                    TopPosition + TopMargin, TopPosition + TopMargin);
 
-    TString dentry = muPair1 ? "SingleMuon" : "SingleElectron";
-    TString lentry[6] = {"DYJetsToLL", "DY*JetsToLL", "HToZZTo4L", "TT, TTZ", "WW, WZ", "ZZTo4L"};
-    Int_t lfill[6] = {lOrange, lRed, lPurple, lBlue, lLightBlue, lGreen};
+    TString dentry = _sp+"\\mbox{Data}";
+    TString lentry[5] = {_sp+_ZZ+_to+_4l, _sp+_Z+_to+_ll, _sp+_H, _sp+_ttbar, _sp+_W+_V};
+    Int_t lfill[5] = {lBlue, lYellow, lPurple, lGreen, lRed};
 
     TH1D* dummy = new TH1D(dentry, "", 1, 0, 1);
     dummy->SetLineColor(kBlack);
     dummy->SetLineWidth(2);
     legend->AddEntry(dummy, dentry, "EL");
-    for (unsigned h = 0; h < 6; h++)
+    for (unsigned h = 0; h < 5; h++)
     {
         TH1D* hist = new TH1D(lentry[h], "", 1, 0, 1);
         hist->SetFillColor(lfill[h]);
         hist->SetLineColor(lfill[h]);
         legend->AddEntry(hist, lentry[h], "F");
     }
+    Facelift(legend);
 
 
     // Draw on canvases
@@ -252,19 +276,20 @@ void stackResults(const TString inFile, const TString selection)
     {
         Facelift(canvas[h]);
         canvas[h]->cd();
-       
+/*
         // ROOT sucks so you gotta draw the legend before changing its coordinates 
         legend->Draw();
         Facelift(legend);
         gPad->Modified();
-
-        gPad->RedrawAxis();
-
+*/
+            dataStack[h]->Draw("E");
         // Also stacks must be drawn in order for their axes to exist (Rene Brun, WHY??)
         if (dataStack[h]->GetMaximum() > mcStack[h]->GetMaximum())
         {
             dataStack[h]->Draw("E");
             Facelift(dataStack[h]);
+            dataStack[h]->GetXaxis()->SetTitle(hxtitle[h]);
+            dataStack[h]->GetYaxis()->SetTitle(hytitle[h]);
             gPad->Modified();
         
             mcStack[h]->Draw("HIST SAME");
@@ -277,12 +302,18 @@ void stackResults(const TString inFile, const TString selection)
         { 
             mcStack[h]->Draw("HIST");
             Facelift(mcStack[h]);
+            mcStack[h]->GetXaxis()->SetTitle(hxtitle[h]);
+            mcStack[h]->GetYaxis()->SetTitle(hytitle[h]);
             gPad->Modified();
 
             dataStack[h]->Draw("E SAME");
             Facelift(dataStack[h]);
             gPad->Modified();
         }
+        gPad->RedrawAxis();
+
+        legend->Draw();
+        gPad->Modified();
     }
    
 
@@ -374,7 +405,10 @@ void stackResults(const TString inFile, const TString selection)
     TDirectory *c_dir = file->mkdir("Canvases");
     c_dir->cd();
     for (unsigned h = 0; h < hname.size(); h++)
+    {
         canvas[h]->Write();
+//      canvas[h]->SaveAs("../2016_12a/" + selection + "_" + hname[h] + ".png");
+    }
 
     TDirectory *s_dir = file->mkdir("Stacks");
     TDirectory *s_mcSubdir = s_dir->mkdir("Monte Carlo");
