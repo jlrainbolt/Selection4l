@@ -1,7 +1,7 @@
 #! /bin/sh
 
 selection="$1"
-year="2016"
+year="2017"
 
 outFile="$selection""_""$year"".root"
 

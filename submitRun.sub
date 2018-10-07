@@ -5,17 +5,15 @@ executable  = runHandler.sh
 universe    = vanilla
 
 
-id          = $(Process) + 1
-
-output      = run_$(suffix)_$INT(id).out
-error       = run_$(suffix)_$INT(id).err
+output      = run_$(suffix)_$INT(Process).out
+error       = run_$(suffix)_$INT(Process).err
 log         = run.log
 
 
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files    = handleSelection.cc, hzz_muon_id_sf.root, hzz_muon_id_smear.root, hzz_electron_id_sf.root, hzz_electron_id_smear.root 
+transfer_input_files    = handleSelection.cc
 
 
-arguments   = "$(selection) $(suffix) $INT(id)"
+arguments   = "$(selection) $(suffix) $INT(Process)"
 queue $INT(nFiles)

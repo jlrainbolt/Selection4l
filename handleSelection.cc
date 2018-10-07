@@ -87,46 +87,20 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
     // Dataset
-    int year = 2016;
-    bool trig1l = kTRUE, trig2l = kFALSE;
-
-    TString yearStr;        yearStr.Form("%i", year);
+    int year = 2017;
+    TString yearStr = TString::Format("%i", year);
     bool isData = suffix.Contains(yearStr);
-
-    TString dir, suffIncDY;
-    if (trig1l)
-    {
-        dir = yearStr + "_12a";
-        suffIncDY = "dy";
-    }
-    else if (trig2l)
-    {
-        dir = yearStr + "_12d";
-        suffIncDY = "zjets";
-    }
-    bool isIncDY = suffix.Contains(suffIncDY);
-    
-
-    // Branches
-    TString genWeightStr = trig1l ? "eventWeight" : "genWeight";
-    TString FiredLeg1Str = trig1l ? "Triggered" : "FiredLeg1";
-    TString FiredLeg2Str = trig1l ? "Triggered" : "FiredLeg2";
-    TString EnergySFStr = trig1l ? "SF" : "EnergySF";
-    TString muonIDSFStr = trig1l? "muonHZZIDWeight" : "muonHZZIDSF";
-    TString elecIDSFStr = trig1l? "electronHZZRecoWeight" : "electronHZZIDSF";
-    TString TrigEffLeg1DataStr = trig1l ? "TriggerEffData" : "TrigEffLeg1Data";
-    TString TrigEffLeg1MCStr = trig1l ? "TriggerEffMC" : "TrigEffLeg1MC";
-    TString TrigEffLeg2DataStr = trig1l ? "TriggerEffData" : "TrigEffLeg2Data";
-    TString TrigEffLeg2MCStr = trig1l ? "TriggerEffMC" : "TrigEffLeg2MC";
+    TString dir = yearStr; // + "_old";
 
 
     // Cuts & consts
-    Float_t M_MIN = 80,     M_MAX = 100;
-    Float_t PT1_MIN = trig1l ? 25 : 20,     PT2_MIN = 10;
-    Float_t MU_PT_MIN = 5,                  ELE_PT_MIN = 7;
-    Float_t MLL_MIN = 4,    MZ1_MIN = 12,   MZ_MIN = 4,     MZ_MAX = 120;
+    Float_t M_MIN = 80,         M_MAX = 100;
+    Float_t MU_PT1_MIN = 20,    ELE_PT1_MIN = 25;
+    Float_t MU_PT2_MIN = 10,    ELE_PT2_MIN = 15;
+    Float_t MU_PT_MIN = 5,      ELE_PT_MIN = 7;
+    Float_t MLL_MIN = 4,        MZ1_MIN = 12,   MZ_MIN = 4,     MZ_MAX = 120;
     Float_t DR_MIN = 0.02;
-    Float_t Z_MASS = 91.2,  MU_MASS = 0.105658369,  ELE_MASS = 0.000511;
+    Float_t Z_MASS = 91.2,      MU_MASS = 0.105658369,  ELE_MASS = 0.000511;
 
 
 
@@ -182,11 +156,13 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
     // Path to directory
-    TString path = "root://cmsxrootd.fnal.gov//store/user/jrainbol/Trees/";
+//  TString path = "root://cmsxrootd.fnal.gov//store/user/jrainbol/Trees/";
+    TString path = "root://cmseos.fnal.gov//store/user/jrainbol/Trees/";
 
 
     // Input ROOT file
     TString input = path + dir + "/" + suffix + "/" + suffix + "_" + id + ".root";
+    cout << input << endl;
     TFile *file = TFile::Open(input);
     TTreeReader reader("tree_" + suffix, file);
 
@@ -197,17 +173,25 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     TH1D *hTotalEvents, *hAcceptedEvents;
     file->GetObject("TotalEvents_" + suffix, hTotalEvents);
     hTotalEvents->SetDirectory(outFile);        hTotalEvents->Sumw2(kTRUE);
-    file->GetObject("AcceptedEvents_" + suffix, hAcceptedEvents);
-    hAcceptedEvents->SetDirectory(outFile);     //  hAcceptedEvents->Sumw2(kTRUE);
+    file->GetObject("PhaseSpaceEvents_" + suffix, hAcceptedEvents);
+
+    if (hAcceptedEvents)    // trying to access an empty hist will produce a seg fault...
+    {
+        hAcceptedEvents->SetDirectory(outFile);
+        hAcceptedEvents->SetName("AcceptedEvents_" + suffix);
+        hAcceptedEvents->SetTitle("AcceptedEvents");
 
 
-    // Fill hAcceptedEvents with correct info
-    Double_t bin1 = hAcceptedEvents->GetBinContent(1); 
-    Double_t bin2 = hAcceptedEvents->GetBinContent(binIdx); 
+        // Fill hAcceptedEvents with correct info
+        Double_t bin1 = hAcceptedEvents->GetBinContent(1); 
+        Double_t bin2 = hAcceptedEvents->GetBinContent(binIdx); 
 
-    hAcceptedEvents->Reset();
-    hAcceptedEvents->SetBinContent(1, bin1);
-    hAcceptedEvents->SetBinContent(2, bin2);
+        hAcceptedEvents->Reset();
+        hAcceptedEvents->SetBinContent(1, bin1);
+        hAcceptedEvents->SetBinContent(2, bin2);
+    }
+    else                    // ... so we have to create one of our own
+        hAcceptedEvents = new TH1D("AcceptedEvents_" + suffix, "AcceptedEvents", 10, 0.5, 10.5);
 
 
 
@@ -226,9 +210,10 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
         TString Lep = muPair1 ? "Muon" : "Electron",   lep = muPair1 ? "muon" : "electron";
         Short_t pdg = muPair1 ? 13 : 11;
         Float_t LEP_MASS = muPair1 ? MU_MASS : ELE_MASS;
-        Float_t PT_MIN = muPair1 ? MU_PT_MIN : ELE_PT_MIN;
-        TString lepIDSFStr = muPair1 ? muonIDSFStr : elecIDSFStr;
-        TString th2Name = muPair1 ? "FINAL" : "EGamma_SF2D";
+        Float_t PT1_MIN  = muPair1 ? MU_PT1_MIN : ELE_PT1_MIN;
+        Float_t PT2_MIN  = muPair1 ? MU_PT2_MIN : ELE_PT2_MIN;
+        Float_t PT_MIN   = muPair1 ? MU_PT_MIN : ELE_PT_MIN;
+        TString StringMVA = muPair1 ? "IsLoose" : "PassNoIsoMVA";
 
 
         // Event
@@ -243,67 +228,35 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
         TTreeReaderValue<UShort_t>  nHZZAll_(reader, "nHZZLeptons");
         TTreeReaderValue<UShort_t>  nPartons_(reader, "nPartons");
 
-        TTreeReaderValue<Float_t>   genWeight_(reader, genWeightStr);
+        TTreeReaderValue<Float_t>   genWeight_(reader, "genWeight");
         TTreeReaderValue<Float_t>   PUWeight_(reader, "PUWeight");
 
 
         // Leptons
         TTreeReaderArray<TLorentzVector>    lepP4_(reader, lep+"P4");
         TTreeReaderValue<vector<Short_t>>   lepQ_(reader, lep+"Q");
-        TTreeReaderValue<vector<Bool_t>>    lepFiredLeg1_(reader, lep+FiredLeg1Str);
-        TTreeReaderValue<vector<Bool_t>>    lepFiredLeg2_(reader, lep+FiredLeg2Str);
+        TTreeReaderValue<vector<Bool_t>>    lepFiredLeg1_(reader, lep+"FiredLeg1");
+        TTreeReaderValue<vector<Bool_t>>    lepFiredLeg2_(reader, lep+"FiredLeg2");
         TTreeReaderValue<vector<Bool_t>>    lepIsHZZ_(reader, lep+"IsHZZ");
+        TTreeReaderValue<vector<Bool_t>>    lepPassMVA_(reader, lep+StringMVA);
 
-        TTreeReaderValue<vector<Float_t>>   lepEnergySF_(reader, lep+EnergySFStr);
-        TTreeReaderValue<vector<Float_t>>   lepIDSF_(reader, lepIDSFStr);
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1Data_(reader, lep+TrigEffLeg1DataStr);
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1MC_(reader, lep+TrigEffLeg1MCStr);
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2Data_(reader, lep+TrigEffLeg2DataStr);
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2MC_(reader, lep+TrigEffLeg2MCStr);
+        TTreeReaderValue<vector<Float_t>>   lepEnergySF_(reader, lep+"EnergySF");
+        TTreeReaderValue<vector<Float_t>>   lepIDSF_(reader, lep+"HZZIDSF");
+        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1Data_(reader, lep+"TrigEffLeg1Data");
+        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1MC_(reader, lep+"TrigEffLeg1MC");
+        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2Data_(reader, lep+"TrigEffLeg2Data");
+        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2MC_(reader, lep+"TrigEffLeg2MC");
 
         TTreeReaderValue<vector<Float_t>>   lepIso_(reader, lep+"CombIso");
-/*
-        if (trig2l)
-        {
-            // Event
-            TTreeReaderValue<UInt_t>    evtNum_(reader, "evtNumber.eventNumber");
-            TTreeReaderValue<UShort_t>  nPV_(reader, "nPV");
-            TTreeReaderValue<Float_t>   met_(reader, "met");
 
-            TTreeReaderValue<Bool_t>    passTrigger_(reader, "evt"+Lep+"Triggered");
-            TTreeReaderValue<UShort_t>  nLeps_(reader, "n"+Lep+"s");
-            TTreeReaderValue<UShort_t>  nHZZLeps_(reader, "nHZZ"+Lep+"s");
-            TTreeReaderValue<UShort_t>  nPartons_(reader, "nPartons");
-
-            TTreeReaderValue<Float_t>   genWeight_(reader, "genWeight");
-            TTreeReaderValue<Float_t>   PUWeight_(reader, "PUWeight");
-
-
-            // Leptons
-            TTreeReaderArray<TLorentzVector>    lepP4_(reader, lep+"P4");
-            TTreeReaderValue<vector<Short_t>>   lepQ_(reader, lep+"Q");
-            TTreeReaderValue<vector<Bool_t>>    lepFiredLeg1_(reader, lep+"FiredLeg1");
-            TTreeReaderValue<vector<Bool_t>>    lepFiredLeg2_(reader, lep+"FiredLeg2");
-            TTreeReaderValue<vector<Bool_t>>    lepIsHZZ_(reader, lep+"IsHZZ");
-
-            TTreeReaderValue<vector<Float_t>>   lepEnergySF_(reader, lep+"EnergySF");
-            TTreeReaderValue<vector<Float_t>>   lepIDSF_(reader, lep+"HZZIDSF");
-            TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1Data_(reader, lep+"TrigEffLeg1Data");
-            TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1MC_(reader, lep+"TrigEffLeg1MC");
-            TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2Data_(reader, lep+"TrigEffLeg2Data");
-            TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2MC_(reader, lep+"TrigEffLeg2MC");
-
-            TTreeReaderValue<vector<Float_t>>   lepIso_(reader, lep+"CombIso");
-        }
-*/
 
 
         //--- HISTOGRAMS ---//
-
-        // Fix for single-lepton trigger files
+/*
+        // Fix for bad ID SF
         TFile *file_id = TFile::Open("hzz_"+lep+"_id_sf.root");
-        TH2 *h_id, *h_unc;
-        file_id->GetObject(th2Name, h_id);
+        TH2 *h_id;//, *h_unc;
+        file_id->GetObject("FINAL", h_id);
         h_id->SetDirectory(0);
         file_id->Close();
         
@@ -317,7 +270,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
             h_unc->SetDirectory(0);
             file_unc->Close();
         }
-
+*/
 
 
 
@@ -329,18 +282,20 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
         unsigned event = 0;
         while (reader.Next() && event < 100)
         {
-            //  event++;
+//          event++;
+
+
+            //--- TRIGGER SELECTION ---//
 
             Bool_t   passTrigger;
-            if (!isData)
-            {
-                if (muPair1)
-                    passTrigger = *passMuonTrig_ && !*passElecTrig_;
-                else
-                    passTrigger = *passElecTrig_;
-            }
+            if (muPair1)
+                passTrigger = *passMuonTrig_ && !*passElecTrig_;
             else
-                passTrigger = kTRUE;
+                passTrigger = *passElecTrig_;
+
+
+
+            //--- FILL CONTAINERS ---//
 
             UShort_t nLeps = *nLeps_,           nHZZLeps = *nHZZLeps_;
             UShort_t nHZZAll = *nHZZAll_,       nPartons = *nPartons_;
@@ -348,7 +303,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
             vector<TLorentzVector> lepP4;
             vector<Short_t> lepQ;
-            vector<Bool_t> lepFiredLeg1, lepFiredLeg2, lepIsHZZ;
+            vector<Bool_t> lepFiredLeg1, lepFiredLeg2, lepIsHZZ, lepPassMVA;
             vector<Float_t> lepEnergySF, lepIDSF;
             vector<Float_t> lepTrigEffLeg1Data, lepTrigEffLeg1MC;
             vector<Float_t> lepTrigEffLeg2Data, lepTrigEffLeg2MC;
@@ -378,6 +333,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 lepFiredLeg1.push_back((*lepFiredLeg1_)[i]);
                 lepFiredLeg2.push_back((*lepFiredLeg2_)[i]);
                 lepIsHZZ.push_back((*lepIsHZZ_)[i]);
+                lepPassMVA.push_back((*lepPassMVA_)[i]);
 
                 lepEnergySF.push_back((*lepEnergySF_)[i]);
                 lepIDSF.push_back((*lepIDSF_)[i]);
@@ -412,15 +368,23 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 }
 
 
-                // ID scale factor
-                if (!isData && trig1l)
-                    lepIDSF[i] = GetBinContentPtEta(h_id, lepP4[i]);
-                if (systOn)
+                // Remove electrons which do not pass MVA
+                if (!muPair1)
                 {
-                    if (smearID && !isData)
-                        lepIDSF[i] += GetBinContentPtEta(h_unc, lepP4[i]);
+                    if (lepIsHZZ[i] && !lepPassMVA[i])
+                    {
+                        lepIsHZZ[i] = kFALSE;       nHZZLeps--;
+                    }
+                }
+
+
+                // Remove "ghost" leptons based on Pt
+                if (lepIsGhost[i] && !lepPassMVA[i])
+                {
+                    lepIsGhost[i] = kFALSE;       nHZZLeps--;
                 }
             }
+//          event++;
 
 
 
@@ -451,8 +415,8 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                         continue;
                     if (lepQ[x] == lepQ[j])
                         continue;
-                    //  if (trig2l && !lepFiredLeg2[j])
-                    //      continue;
+                    if (!lepFiredLeg2[j])
+                        continue;
 
                     Float_t mll = (lepP4[x] + lepP4[j]).M();
                     if (mll > M_MIN && mll < M_MAX)
@@ -474,41 +438,23 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 if (!isData)
                 {
                     // Trigger efficiency
-                    if (trig1l)
+//                  if ((lepFiredLeg1[x] || lepFiredLeg2[x]) && (lepFiredLeg1[y] || lepFiredLeg2[y]))
+                    if (kFALSE)
                     {
-                        if (lepFiredLeg1[x] && lepFiredLeg1[y])
-                        {
-                            if (lepTrigEffLeg1MC[x] > 0 || lepTrigEffLeg1MC[y] > 0)
-                            {
-                                triggerWeight *= 1. - (1. - lepTrigEffLeg1Data[x]) * (1. - lepTrigEffLeg1Data[y]);
-                                triggerWeight /= 1. - (1. - lepTrigEffLeg1MC[x]) * (1. - lepTrigEffLeg1MC[y]);
-                            }
-                        }
-                        else if (lepFiredLeg1[x])
-                            triggerWeight = lepTrigEffLeg1Data[x] / lepTrigEffLeg1MC[x];
-                        else if (lepFiredLeg1[y])
-                            triggerWeight = lepTrigEffLeg1Data[y] / lepTrigEffLeg1MC[y];
+                        float trigEffData, trigEffMC;
+
+                        trigEffData  = lepTrigEffLeg1Data[x] * lepTrigEffLeg2Data[y];
+                        trigEffData += lepTrigEffLeg1Data[y] * lepTrigEffLeg2Data[x];
+                        trigEffData -= lepTrigEffLeg1Data[x] * lepTrigEffLeg1Data[y];
+
+                        trigEffMC  = lepTrigEffLeg1MC[x] * lepTrigEffLeg2MC[y];
+                        trigEffMC += lepTrigEffLeg1MC[y] * lepTrigEffLeg2MC[x];
+                        trigEffMC -= lepTrigEffLeg1MC[x] * lepTrigEffLeg1MC[y];
+                        if (trigEffMC == 0)
+                            trigEffMC = 1;
+
+                        triggerWeight = trigEffData / trigEffMC;
                     }
-                    else if (trig2l)
-                    {
-                        if ((lepFiredLeg1[x] || lepFiredLeg2[x]) && (lepFiredLeg1[y] || lepFiredLeg2[y]))
-                        {
-                            float trigEffData, trigEffMC;
-
-                            trigEffData  = lepTrigEffLeg1Data[x] * lepTrigEffLeg2Data[y];
-                            trigEffData += lepTrigEffLeg1Data[y] * lepTrigEffLeg2Data[x];
-                            trigEffData -= lepTrigEffLeg1Data[x] * lepTrigEffLeg1Data[y];
-
-                            trigEffMC  = lepTrigEffLeg1MC[x] * lepTrigEffLeg2MC[y];
-                            trigEffMC += lepTrigEffLeg1MC[y] * lepTrigEffLeg2MC[x];
-                            trigEffMC -= lepTrigEffLeg1MC[x] * lepTrigEffLeg1MC[y];
-                            if (trigEffMC == 0)
-                                trigEffMC = 1;
-
-                            triggerWeight = trigEffData / trigEffMC;
-                        }
-                    }
-
 
                     // ID efficiency
                     idWeight = lepIDSF[x] * lepIDSF[y];
@@ -520,9 +466,6 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 //--- HISTOGRAMS ---//
 
                 hAcceptedEvents->Fill(3, eventWeight);
-
-                if (isIncDY && nPartons != 0)
-                    continue;
 
                 hTotalEvents->Fill(6);
                 hTotalEvents->Fill(7, eventWeight);
@@ -550,11 +493,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
             else if (sel4l)
             {
-                // Remove parton events from inclusive DY sample
-                if (isIncDY && nPartons != 0)
-                    continue;
-
-                if (nHZZLeps < 4)
+                if (nHZZLeps < 4)   // should be !=?  but what about ghost suppression...guess I would have to do that earlier
                     continue;
 
 
@@ -771,39 +710,22 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 {
                     // Trigger efficiency
                     // Uses only leading leptons, FIXME
-                    if (trig1l)
+//                  if ((lepFiredLeg1[x] || lepFiredLeg2[x]) && (lepFiredLeg1[y] || lepFiredLeg2[y]))
+                    if (kFALSE)
                     {
-                        if (lepFiredLeg1[x] && lepFiredLeg1[y])
-                        {
-                            if (lepTrigEffLeg1MC[x] > 0 || lepTrigEffLeg1MC[y] > 0)
-                            {
-                                triggerWeight *= 1. - (1. - lepTrigEffLeg1Data[x]) * (1. - lepTrigEffLeg1Data[y]);
-                                triggerWeight /= 1. - (1. - lepTrigEffLeg1MC[x]) * (1. - lepTrigEffLeg1MC[y]);
-                            }
-                        }
-                        else if (lepFiredLeg1[x])
-                            triggerWeight = lepTrigEffLeg1Data[x] / lepTrigEffLeg1MC[x];
-                        else if (lepFiredLeg1[y])
-                            triggerWeight = lepTrigEffLeg1Data[y] / lepTrigEffLeg1MC[y];
-                    }
-                    else if (trig2l)
-                    {
-                        if ((lepFiredLeg1[x] || lepFiredLeg2[x]) && (lepFiredLeg1[y] || lepFiredLeg2[y]))
-                        {
-                            float trigEffData, trigEffMC;
+                        float trigEffData, trigEffMC;
 
-                            trigEffData  = lepTrigEffLeg1Data[x] * lepTrigEffLeg2Data[y];
-                            trigEffData += lepTrigEffLeg1Data[y] * lepTrigEffLeg2Data[x];
-                            trigEffData -= lepTrigEffLeg1Data[x] * lepTrigEffLeg1Data[y];
+                        trigEffData  = lepTrigEffLeg1Data[x] * lepTrigEffLeg2Data[y];
+                        trigEffData += lepTrigEffLeg1Data[y] * lepTrigEffLeg2Data[x];
+                        trigEffData -= lepTrigEffLeg1Data[x] * lepTrigEffLeg1Data[y];
 
-                            trigEffMC  = lepTrigEffLeg1MC[x] * lepTrigEffLeg2MC[y];
-                            trigEffMC += lepTrigEffLeg1MC[y] * lepTrigEffLeg2MC[x];
-                            trigEffMC -= lepTrigEffLeg1MC[x] * lepTrigEffLeg1MC[y];
-                            if (trigEffMC == 0)
-                                trigEffMC = 1;
+                        trigEffMC  = lepTrigEffLeg1MC[x] * lepTrigEffLeg2MC[y];
+                        trigEffMC += lepTrigEffLeg1MC[y] * lepTrigEffLeg2MC[x];
+                        trigEffMC -= lepTrigEffLeg1MC[x] * lepTrigEffLeg1MC[y];
+                        if (trigEffMC == 0)
+                            trigEffMC = 1;
 
-                            triggerWeight = trigEffData / trigEffMC;
-                        }
+                        triggerWeight = trigEffData / trigEffMC;
                     }
 
 
@@ -860,10 +782,10 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
         Float_t LEP2_MASS = muPair2 ? MU_MASS : ELE_MASS;
         Float_t LEP1_PT_MIN = muPair1 ? MU_PT_MIN : ELE_PT_MIN;
         Float_t LEP2_PT_MIN = muPair2 ? MU_PT_MIN : ELE_PT_MIN;
-        TString lep1IDSFStr = muPair1 ? muonIDSFStr : elecIDSFStr;
-        TString lep2IDSFStr = muPair2 ? muonIDSFStr : elecIDSFStr;
-        TString th2lep1Name = muPair1 ? "FINAL" : "EGamma_SF2D";
-        TString th2lep2Name = muPair2 ? "FINAL" : "EGamma_SF2D";
+        Float_t PT1_MIN  = muPair1 ? MU_PT1_MIN : ELE_PT1_MIN;
+        Float_t PT2_MIN  = muPair1 ? MU_PT2_MIN : ELE_PT2_MIN;
+        TString StringMVA1 = muPair1 ? "IsLoose" : "PassNoIsoMVA";
+        TString StringMVA2 = muPair2 ? "IsLoose" : "PassNoIsoMVA";
 
 
         // Event
@@ -880,23 +802,24 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
         TTreeReaderValue<UShort_t>  nHZZAll_(reader, "nHZZLeptons");
         TTreeReaderValue<UShort_t>  nPartons_(reader, "nPartons");
 
-        TTreeReaderValue<Float_t>   genWeight_(reader, genWeightStr);
+        TTreeReaderValue<Float_t>   genWeight_(reader, "genWeight");
         TTreeReaderValue<Float_t>   PUWeight_(reader, "PUWeight");
 
 
         // Leading flavor leptons
         TTreeReaderArray<TLorentzVector>    lep1P4_(reader, lep1+"P4");
         TTreeReaderValue<vector<Short_t>>   lep1Q_(reader, lep1+"Q");
-        TTreeReaderValue<vector<Bool_t>>    lep1FiredLeg1_(reader, lep1+FiredLeg1Str);
-        TTreeReaderValue<vector<Bool_t>>    lep1FiredLeg2_(reader, lep1+FiredLeg2Str);
+        TTreeReaderValue<vector<Bool_t>>    lep1FiredLeg1_(reader, lep1+"FiredLeg1");
+        TTreeReaderValue<vector<Bool_t>>    lep1FiredLeg2_(reader, lep1+"FiredLeg2");
         TTreeReaderValue<vector<Bool_t>>    lep1IsHZZ_(reader, lep1+"IsHZZ");
+        TTreeReaderValue<vector<Bool_t>>    lep1PassMVA_(reader, lep1+StringMVA1);
 
-        TTreeReaderValue<vector<Float_t>>   lep1EnergySF_(reader, lep1+EnergySFStr);
-        TTreeReaderValue<vector<Float_t>>   lep1IDSF_(reader, lep1IDSFStr);
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg1Data_(reader, lep1+TrigEffLeg1DataStr);
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg1MC_(reader, lep1+TrigEffLeg1MCStr);
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg2Data_(reader, lep1+TrigEffLeg2DataStr);
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg2MC_(reader, lep1+TrigEffLeg2MCStr);
+        TTreeReaderValue<vector<Float_t>>   lep1EnergySF_(reader, lep1+"EnergySF");
+        TTreeReaderValue<vector<Float_t>>   lep1IDSF_(reader, lep1+"HZZIDSF");
+        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg1Data_(reader, lep1+"TrigEffLeg1Data");
+        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg1MC_(reader, lep1+"TrigEffLeg1MC");
+        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg2Data_(reader, lep1+"TrigEffLeg2Data");
+        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg2MC_(reader, lep1+"TrigEffLeg2MC");
 
         TTreeReaderValue<vector<Float_t>>   lep1Iso_(reader, lep1+"CombIso");
 
@@ -904,17 +827,18 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
         // Subleading flavor leptons
         TTreeReaderArray<TLorentzVector>    lep2P4_(reader, lep2+"P4");
         TTreeReaderValue<vector<Short_t>>   lep2Q_(reader, lep2+"Q");
-        TTreeReaderValue<vector<Bool_t>>    lep2FiredLeg1_(reader, lep2+FiredLeg1Str);
-        TTreeReaderValue<vector<Bool_t>>    lep2FiredLeg2_(reader, lep2+FiredLeg2Str);
+        TTreeReaderValue<vector<Bool_t>>    lep2FiredLeg1_(reader, lep2+"FiredLeg1");
+        TTreeReaderValue<vector<Bool_t>>    lep2FiredLeg2_(reader, lep2+"FiredLeg2");
         TTreeReaderValue<vector<Bool_t>>    lep2IsHZZ_(reader, lep2+"IsHZZ");
+        TTreeReaderValue<vector<Bool_t>>    lep2PassMVA_(reader, lep2+StringMVA2);
 
-        TTreeReaderValue<vector<Float_t>>   lep2EnergySF_(reader, lep2+EnergySFStr);
-        TTreeReaderValue<vector<Float_t>>   lep2IDSF_(reader, lep2IDSFStr);
+        TTreeReaderValue<vector<Float_t>>   lep2EnergySF_(reader, lep2+"EnergySF");
+        TTreeReaderValue<vector<Float_t>>   lep2IDSF_(reader, lep2+"HZZIDSF");
 
         TTreeReaderValue<vector<Float_t>>   lep2Iso_(reader, lep2+"CombIso");
 
 
-
+/*
         //--- HISTOGRAMS ---//
 
         // Fix for single-lepton trigger files
@@ -945,7 +869,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
             h_unc2->SetDirectory(0);
             file_unc2->Close();
         }
-
+*/
 
 
 
@@ -977,8 +901,8 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
             vector<TLorentzVector> lep1P4, lep2P4;
             vector<Short_t> lep1Q, lep2Q;
-            vector<Bool_t> lep1FiredLeg1, lep1FiredLeg2, lep1IsHZZ;
-            vector<Bool_t> lep2FiredLeg1, lep2FiredLeg2, lep2IsHZZ;
+            vector<Bool_t> lep1FiredLeg1, lep1FiredLeg2, lep1IsHZZ, lep1PassMVA;
+            vector<Bool_t> lep2FiredLeg1, lep2FiredLeg2, lep2IsHZZ, lep2PassMVA;
             vector<Float_t> lep1EnergySF, lep1IDSF, lep2EnergySF, lep2IDSF;
             vector<Float_t> lep1TrigEffLeg1Data, lep1TrigEffLeg1MC;
             vector<Float_t> lep1TrigEffLeg2Data, lep1TrigEffLeg2MC;
@@ -988,12 +912,9 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
             //--- PRESELECTION ---//
 
-            // Remove parton events from inclusive DY sample
-            if (isIncDY && nPartons != 0)
-                continue;
-
             if (!passTrigger)
                 continue;
+
 
             if (nHZZLep1s < 2 || nHZZLep2s < 2)
                 continue;
@@ -1011,6 +932,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 lep1FiredLeg1.push_back((*lep1FiredLeg1_)[i]);
                 lep1FiredLeg2.push_back((*lep1FiredLeg2_)[i]);
                 lep1IsHZZ.push_back((*lep1IsHZZ_)[i]);
+                lep1PassMVA.push_back((*lep1PassMVA_)[i]);
 
                 lep1EnergySF.push_back((*lep1EnergySF_)[i]);
                 lep1IDSF.push_back((*lep1IDSF_)[i]);
@@ -1031,6 +953,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 lep2FiredLeg1.push_back((*lep2FiredLeg1_)[i]);
                 lep2FiredLeg2.push_back((*lep2FiredLeg2_)[i]);
                 lep2IsHZZ.push_back((*lep2IsHZZ_)[i]);
+                lep2PassMVA.push_back((*lep2PassMVA_)[i]);
 
                 lep2EnergySF.push_back((*lep2EnergySF_)[i]);
                 lep2IDSF.push_back((*lep2IDSF_)[i]);
@@ -1064,14 +987,23 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 }
 
 
+                // Remove electrons which do not pass MVA
+                if (!muPair1)
+                {
+                    if (lep1IsHZZ[i] && !lep1PassMVA[i])
+                    {
+                        lep1IsHZZ[i] = kFALSE;      nHZZLep1s--;
+                    }
+                }
+
+/*
                 // ID scale factor
-                if (!isData && trig1l)
-                    lep1IDSF[i] = GetBinContentPtEta(h_id1, lep1P4[i]);
                 if (systOn)
                 {
                     if (smearID && !isData)
                         lep1IDSF[i] += GetBinContentPtEta(h_unc1, lep1P4[i]);
                 }
+*/
             }
 
             // Subleading flavor
@@ -1096,15 +1028,27 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 }
 
 
+                // Remove electrons which do not pass MVA
+                if (!muPair2)
+                {
+                    if (lep2IsHZZ[i] && !lep2PassMVA[i])
+                    {
+                        lep2IsHZZ[i] = kFALSE;      nHZZLep2s--;
+                    }
+                }
+
+/*
                 // ID scale factor
-                if (!isData && trig1l)
-                    lep2IDSF[i] = GetBinContentPtEta(h_id2, lep2P4[i]);
                 if (systOn)
                 {
                     if (smearID && !isData)
                         lep2IDSF[i] += GetBinContentPtEta(h_unc2, lep2P4[i]);
                 }
+*/
             }
+            // should be !=?  but what about ghost suppression...guess I would have to do that earlier
+            if (nHZZLep1s < 2 || nHZZLep2s < 2)
+                continue;
 
 
 
@@ -1130,8 +1074,6 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                         continue;
                     if (lep1Q[i] == lep1Q[j])
                         continue;
-                    //  if (trig2l && !lep1FiredLeg2[j])
-                    //      continue;
 
                     Float_t mll = (lep1P4[i] + lep1P4[j]).M();
                     if (mll > MZ1_MIN && mll < MZ_MAX)
@@ -1222,9 +1164,10 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                             break;
                     }
                     if (foundGhost)
+                    {
                         continue;
 
-
+/*
                     // QCD suppression
                     vector<Short_t> selLepQ = {Z1_qs.first, Z1_qs.second,
                         Z2_qs.first, Z2_qs.second};
@@ -1246,7 +1189,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                     }
                     if (foundQCD)
                         continue;
-
+*/
 
                     zzCand.push_back(make_pair(Z1, Z2));
                     zzCand_mZ1.push_back(Z1_p4.M());
@@ -1296,40 +1239,6 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
             {
                 // Trigger efficiency
                 // Uses only leading leptons, FIXME
-                if (trig1l)
-                {
-                    if (lep1FiredLeg1[x] && lep1FiredLeg1[y])
-                    {
-                        if (lep1TrigEffLeg1MC[x] > 0 || lep1TrigEffLeg1MC[y] > 0)
-                        {
-                            triggerWeight *= 1. - (1. - lep1TrigEffLeg1Data[x]) * (1. - lep1TrigEffLeg1Data[y]);
-                            triggerWeight /= 1. - (1. - lep1TrigEffLeg1MC[x]) * (1. - lep1TrigEffLeg1MC[y]);
-                        }
-                    }
-                    else if (lep1FiredLeg1[x])
-                        triggerWeight = lep1TrigEffLeg1Data[x] / lep1TrigEffLeg1MC[x];
-                    else if (lep1FiredLeg1[y])
-                        triggerWeight = lep1TrigEffLeg1Data[y] / lep1TrigEffLeg1MC[y];
-                }
-                else if (trig2l)
-                {
-                    if ((lep1FiredLeg1[x] || lep1FiredLeg2[x]) && (lep1FiredLeg1[y] || lep1FiredLeg2[y]))
-                    {
-                        float trigEffData, trigEffMC;
-
-                        trigEffData  = lep1TrigEffLeg1Data[x] * lep1TrigEffLeg2Data[y];
-                        trigEffData += lep1TrigEffLeg1Data[y] * lep1TrigEffLeg2Data[x];
-                        trigEffData -= lep1TrigEffLeg1Data[x] * lep1TrigEffLeg1Data[y];
-
-                        trigEffMC  = lep1TrigEffLeg1MC[x] * lep1TrigEffLeg2MC[y];
-                        trigEffMC += lep1TrigEffLeg1MC[y] * lep1TrigEffLeg2MC[x];
-                        trigEffMC -= lep1TrigEffLeg1MC[x] * lep1TrigEffLeg1MC[y];
-                        if (trigEffMC == 0)
-                            trigEffMC = 1;
-
-                        triggerWeight = trigEffData / trigEffMC;
-                    }
-                }
 
 
                 // ID efficiency
@@ -1414,6 +1323,8 @@ int GetXbin(const TH2 *hist, const double xval)
 
     if (xval >= hist->GetXaxis()->GetBinLowEdge(nbins))
         bin = nbins;
+    else if (xval < hist->GetXaxis()->GetBinLowEdge(1))
+        bin = 1;
     else
     {
         for (int i = 1; i < nbins; i++)
@@ -1438,6 +1349,8 @@ int GetYbin(const TH2 *hist, const double yval)
 
     if (yval >= hist->GetYaxis()->GetBinLowEdge(nbins))
         bin = nbins;
+    else if (yval < hist->GetYaxis()->GetBinLowEdge(1))
+        bin = 1;
     else
     {
         for (int i = 1; i < nbins; i++)

@@ -14,6 +14,7 @@ void prepareFile(const TString path, const TString selection)
 {
     //--- PARSING ---//
 
+
     // Selection
     Bool_t sel2l = kFALSE, sel4l = kFALSE;
     Bool_t muPair1, muPair2;    // TRUE for muon, FALSE for electron
@@ -44,7 +45,7 @@ void prepareFile(const TString path, const TString selection)
 
 
     // Output name (in future pass outSuff as arg?)
-    int year = 2016;    TString yearStr;    yearStr.Form("%i", year);
+    int year = 2017;    TString yearStr;    yearStr.Form("%i", year);
     TString output = selection + "_" + yearStr + ".root";
 
 
@@ -57,57 +58,37 @@ void prepareFile(const TString path, const TString selection)
     Lep     = (muPair1 == muPair2) ? Lep12 : "Lepton";
     lep     = (muPair1 == muPair2) ? lep12 : "lepton";
 
+    Float_t lumi = muPair1 ? 36.735 : 41.529;
+
 
     // Sample indices       // Suffixes                         // Cross sections 
-    const unsigned N = 18;  TString suffix[N];                  Float_t xs[N];
-    unsigned RD = 0;        suffix[RD] = lep12 + "_2016";       Float_t lumi = 35.9;
-    unsigned DI = 1;        suffix[DI] = "dy_m-10to50";         xs[DI] = 18610.;
-    unsigned YI = 2;        suffix[YI] = "dy_m-50";             xs[YI] = 5765.4;
-    unsigned D1 = 3;        suffix[D1] = "z1jets_m-10to50";     xs[D1] = 730.3;     // 855.5;
-    unsigned Y1 = 4;        suffix[Y1] = "z1jets_m-50";         xs[Y1] = 1012.0;    // 1198.88;
-    unsigned D2 = 5;        suffix[D2] = "z2jets_m-10to50";     xs[D2] = 387.4;     // 466.1;
-    unsigned Y2 = 6;        suffix[Y2] = "z2jets_m-50";         xs[Y2] = 334.7;     // 390.58;
-    unsigned D3 = 7;        suffix[D3] = "z3jets_m-10to50";     xs[D3] = 95.02;     // 114.46;
-    unsigned Y3 = 8;        suffix[Y3] = "z3jets_m-50";         xs[Y3] = 102.3;     // 113.28;
-    unsigned D4 = 9;        suffix[D4] = "z4jets_m-10to50";     xs[D4] = 36.71;     // 36.4;
-    unsigned Y4 = 10;       suffix[Y4] = "z4jets_m-50";         xs[Y4] = 54.52;     // 60.18;
-    unsigned GH = 11;       suffix[GH] = "ggH_zz_4l";           xs[GH] = 0.01218;
-    unsigned QH = 12;       suffix[QH] = "H_zz_4l";             xs[QH] = 0.001044;
-    unsigned TT = 13;       suffix[TT] = "ttbar";               xs[TT] = 831.76;
-    unsigned TZ = 14;       suffix[TZ] = "ttz_2l2nu";           xs[TZ] = 0.2529;
-    unsigned WW = 15;       suffix[WW] = "ww_2l2nu";            xs[WW] = 12.178;
-    unsigned WZ = 16;       suffix[WZ] = "wz_3lnu";             xs[WZ] = 4.42965;
-    unsigned ZZ = 17;       suffix[ZZ] = "zz_4l";               xs[ZZ] = 1.212;
+    const unsigned N = 10;  TString suffix[N];                  Float_t xs[N];
+    unsigned RD = 0;        suffix[RD] = lep12 + "_" + yearStr;
+    unsigned DY = 1;        suffix[DY] = "zjets_m-50";          xs[DY] = 5765.4;
+    unsigned GH = 2;        suffix[GH] = "ggH_zz_4l";           xs[GH] = 0.01212;
+    unsigned VH = 3;        suffix[VH] = "vbfH_zz_4l";          xs[VH] = 0.001034;
+    unsigned TT = 4;        suffix[TT] = "ttbar";               xs[TT] = 831.76;
+    unsigned WW = 5;        suffix[WW] = "ww_2l2nu";            xs[WW] = 12.178;
+    unsigned W2 = 6;        suffix[W2] = "wz_2l2q";             xs[W2] = 5.595;
+    unsigned W3 = 7;        suffix[W3] = "wz_3lnu";             xs[W3] = 4.42965;
+    unsigned Z2 = 8;        suffix[Z2] = "zz_2l2q";             xs[Z2] = 3.22;
+    unsigned Z4 = 9;        suffix[Z4] = "zz_4l";               xs[Z4] = 1.212;
+    // https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
+    // https://twiki.cern.ch/twiki/bin/view/CMS/HiggsZZ4l2016#Samples_Cross_sections
 
-/*    
-    // Create colormap (Matlab "lines")
-    unsigned lBlack = 0, lBlue = 1, lOrange = 2, lYellow = 3, lPurple = 4, lGreen = 5, lLtBlue = 6,
-             lRed = 7;
-    const unsigned L = 8;   Int_t colIdx[L];
-    for (unsigned i = 0; i < L; i++)
-        colIdx[i] = 1179 + (Int_t) i;
-*/
 
     // Colors                   // Data tag             // Signal tag
     Int_t col[N];               Bool_t data[N],         signal[N];
     col[RD] = kBlack;           data[RD] = kTRUE;       signal[RD] = kFALSE;
-    col[DI] = lYellow;          data[DI] = kFALSE;      signal[DI] = sel2l ? kTRUE : kFALSE;
-    col[YI] = lYellow;          data[YI] = kFALSE;      signal[YI] = sel2l ? kTRUE : kFALSE;
-    col[D1] = lYellow;          data[D1] = kFALSE;      signal[D1] = sel2l ? kTRUE : kFALSE;
-    col[Y1] = lYellow;          data[Y1] = kFALSE;      signal[Y1] = sel2l ? kTRUE : kFALSE;
-    col[D2] = lYellow;          data[D2] = kFALSE;      signal[D2] = sel2l ? kTRUE : kFALSE;
-    col[Y2] = lYellow;          data[Y2] = kFALSE;      signal[Y2] = sel2l ? kTRUE : kFALSE;
-    col[D3] = lYellow;          data[D3] = kFALSE;      signal[D3] = sel2l ? kTRUE : kFALSE;
-    col[Y3] = lYellow;          data[Y3] = kFALSE;      signal[Y3] = sel2l ? kTRUE : kFALSE;
-    col[D4] = lYellow;          data[D4] = kFALSE;      signal[D4] = sel2l ? kTRUE : kFALSE;
-    col[Y4] = lYellow;          data[Y4] = kFALSE;      signal[Y4] = sel2l ? kTRUE : kFALSE;
+    col[DY] = lYellow;          data[DY] = kFALSE;      signal[DY] = sel2l ? kTRUE : kFALSE;
     col[GH] = lPurple;          data[GH] = kFALSE;      signal[GH] = kFALSE;
-    col[QH] = lPurple;          data[QH] = kFALSE;      signal[QH] = kFALSE;
+    col[VH] = lPurple;          data[VH] = kFALSE;      signal[VH] = kFALSE;
     col[TT] = lGreen;           data[TT] = kFALSE;      signal[TT] = kFALSE;
-    col[TZ] = lGreen;           data[TZ] = kFALSE;      signal[TZ] = kFALSE;
     col[WW] = lOrange;          data[WW] = kFALSE;      signal[WW] = kFALSE;
-    col[WZ] = lOrange;          data[WZ] = kFALSE;      signal[WZ] = kFALSE;
-    col[ZZ] = lLightBlue;       data[ZZ] = kFALSE;      signal[ZZ] = sel4l ? kTRUE : kFALSE;
+    col[W2] = lOrange;          data[W2] = kFALSE;      signal[W2] = kFALSE;
+    col[W3] = lOrange;          data[W3] = kFALSE;      signal[W3] = kFALSE;
+    col[Z2] = lOrange;          data[Z2] = kFALSE;      signal[Z2] = kFALSE;
+    col[Z4] = lLightBlue;       data[Z4] = kFALSE;      signal[Z4] = sel4l ? kTRUE : kFALSE;
 
 
     // Convert to TParameters
@@ -131,63 +112,62 @@ void prepareFile(const TString path, const TString selection)
         val.push_back(make_tuple("nPV",     "nPV",          51,     -0.5,   50.5));
         val.push_back(make_tuple("met",     "met",          100,    0,      100));
 
-        val.push_back(make_tuple("z1m",     "z1p4.M()",     100,    80,     100));
-        val.push_back(make_tuple("z1pt",    "z1p4.Pt()",    100,    0,      200));
+        val.push_back(make_tuple("z1m",     "z1p4.M()",     40,    80,     100));
+        val.push_back(make_tuple("z1pt",    "z1p4.Pt()",    40,    0,      80));
 
-        val.push_back(make_tuple("l1pt",    "l1p4.Pt()",    100,    0,      200));
-        val.push_back(make_tuple("l1eta",   "l1p4.Eta()",   100,    -2.5,   2.5));
+        val.push_back(make_tuple("l1pt",    "l1p4.Pt()",    40,    20,     100));
+        val.push_back(make_tuple("l1eta",   "l1p4.Eta()",   40,    -2.5,   2.5));
         val.push_back(make_tuple("l1iso",   "l1iso",        100,    0,      0.35));
         val.push_back(make_tuple("l1pdg",   "l1pdg",        31,     -15.5,  15.5));
 
-        val.push_back(make_tuple("l2pt",    "l2p4.Pt()",    100,    0,      200));
-        val.push_back(make_tuple("l2eta",   "l2p4.Eta()",   100,    -2.5,   2.5));
+        val.push_back(make_tuple("l2pt",    "l2p4.Pt()",    40,     0,      80));
+        val.push_back(make_tuple("l2eta",   "l2p4.Eta()",   40,    -2.5,   2.5));
         val.push_back(make_tuple("l2iso",   "l2iso",        100,    0,      0.35));
         val.push_back(make_tuple("l2pdg",   "l2pdg",        31,     -15.5,  15.5));
     }
     else if (sel4l)
     {
-//      int bins = (muPair1 && muPair2) ?  
         val.push_back(make_tuple("nPV",     "nPV",          25,     0,      50));
         val.push_back(make_tuple("met",     "met",          20,     0,      100));
 
         val.push_back(make_tuple("zzm",     "zzp4.M()",     20,     80,     100));
-        val.push_back(make_tuple("zzpt",    "zzp4.Pt()",    20,     0,      200));
+        val.push_back(make_tuple("zzpt",    "zzp4.Pt()",    20,     0,      80));
 
-        val.push_back(make_tuple("z1m",     "z1p4.M()",     20,     0,      100));
-        val.push_back(make_tuple("z1pt",    "z1p4.Pt()",    20,     0,      200));
+        val.push_back(make_tuple("z1m",     "z1p4.M()",     20,     10,      90));
+        val.push_back(make_tuple("z1pt",    "z1p4.Pt()",    20,     0,      80));
 
-        val.push_back(make_tuple("z2m",     "z2p4.M()",     20,     0,      50));
-        val.push_back(make_tuple("z2pt",    "z2p4.Pt()",    20,     0,      100));
+        val.push_back(make_tuple("z2m",     "z2p4.M()",     20,     0,      40));
+        val.push_back(make_tuple("z2pt",    "z2p4.Pt()",    20,     0,      80));
 
-        val.push_back(make_tuple("l1pt",    "l1p4.Pt()",    20,     0,      200));
+        val.push_back(make_tuple("l1pt",    "l1p4.Pt()",    20,     20,      100));
         val.push_back(make_tuple("l1eta",   "l1p4.Eta()",   25,     -2.5,   2.5));
-        val.push_back(make_tuple("l1iso",   "l1iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l1iso",   "l1iso",        35,     0.001,      0.35));
         val.push_back(make_tuple("l1pdg",   "l1pdg",        31,     -15.5,  15.5));
 
-        val.push_back(make_tuple("l2pt",    "l2p4.Pt()",    20,     0,      100));
+        val.push_back(make_tuple("l2pt",    "l2p4.Pt()",    20,     10,      90));
         val.push_back(make_tuple("l2eta",   "l2p4.Eta()",   25,     -2.5,   2.5));
-        val.push_back(make_tuple("l2iso",   "l2iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l2iso",   "l2iso",        35,     0.001,      0.35));
         val.push_back(make_tuple("l2pdg",   "l2pdg",        31,     -15.5,  15.5));
 
-        val.push_back(make_tuple("l3pt",    "l3p4.Pt()",    20,     0,      50));
+        val.push_back(make_tuple("l3pt",    "l3p4.Pt()",    20,     5,      45));
         val.push_back(make_tuple("l3eta",   "l3p4.Eta()",   25,     -2.5,   2.5));
-        val.push_back(make_tuple("l3iso",   "l3iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l3iso",   "l3iso",        35,     0.001,      0.35));
         val.push_back(make_tuple("l3pdg",   "l3pdg",        31,     -15.5,  15.5));
 
-        val.push_back(make_tuple("l4pt",    "l4p4.Pt()",    20,     0,      50));
+        val.push_back(make_tuple("l4pt",    "l4p4.Pt()",    20,     5,      25));
         val.push_back(make_tuple("l4eta",   "l4p4.Eta()",   25,     -2.5,   2.5));
-        val.push_back(make_tuple("l4iso",   "l4iso",        35,     0,      0.35));
+        val.push_back(make_tuple("l4iso",   "l4iso",        35,     0.001,      0.35));
         val.push_back(make_tuple("l4pdg",   "l4pdg",        31,     -15.5,  15.5));
 
 
         // Differential distributions
         // FIXME to include overflow?
-        val.push_back(make_tuple("l1pt_d",  "l1p4.Pt()",    8,      20,     100));
-        val.push_back(make_tuple("z2m_d",   "z2p4.M()",     8,      0,      40));
-        val.push_back(make_tuple("m3l_d",   "tlp4.M()",     8,      0,      80));
-        val.push_back(make_tuple("angle_d", "angle",        8,      0,      3.2));
-        val.push_back(make_tuple("cos_d",   "cos(angle)",   8,      -1,     1));
-        val.push_back(make_tuple("cos2_d",  "cos(angle)*cos(angle)", 10, 0, 1));
+//      val.push_back(make_tuple("l1pt_d",  "l1p4.Pt()",    10,      20,     70));
+//      val.push_back(make_tuple("z2m_d",   "z2p4.M()",     8,      0,      40));
+//      val.push_back(make_tuple("m3l_d",   "tlp4.M()",     8,      0,      80));
+//      val.push_back(make_tuple("angle_d", "angle",        8,      0,      3.2));
+//      val.push_back(make_tuple("cos_d",   "cos(angle)",   8,      -1,     1));
+//      val.push_back(make_tuple("cos2_d",  "cos(angle)*cos(angle)", 10, 0, 1));
     }
 
 

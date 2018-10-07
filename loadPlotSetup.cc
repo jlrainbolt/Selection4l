@@ -100,16 +100,17 @@ const TString   _rad    = "\\mbox{rad}";
 const TString   _unit   = "\\mbox{unit}";
 const TString   _units  = "\\mbox{units}";
 
-TString _EventsPer(const TString x, const TString unit) {return "\\mbox{Events / }" + x + unit;}
-TString _EventsPer(const TString unit)                  {return _EventsPer("", unit);}
 /*
+TString _EventsPer(const TString x, const TString unit)
+    {return "\\mbox{Events / }" + x + "\\mbox{ }" + unit;}
+TString _EventsPer(const TString unit)                  {return _EventsPer("", unit);}
 TString _EventsPer(const unsigned n, const TString unit) {
     return _EventsPer(TString::Format("%u", n), unit);
 }
-*/
 TString _EventsPer(const float n, const TString unit) {
     return _EventsPer(TString::Format("%g", n), unit);
 }
+*/
 
 const TString   _met    = "p_{\\mbox{T}}^{\\mbox{miss}}";
 const TString   _iso    = "\\mbox{RelPFIso}";

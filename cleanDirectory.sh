@@ -1,5 +1,3 @@
 #! /bin/sh
 
-rm *.root *.dag.* run_* run.log
-
-cp ../hzz_* .
+rm *.root *.cp *.dag.* run_* run.log
