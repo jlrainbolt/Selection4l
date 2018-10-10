@@ -1,100 +1,96 @@
-# FILENAME  submitJobs_mumu.dag
-#   SUBDAG of   submitSelection_mumu.dag
+# FILENAME  submitJobs.dag
+#   SUBDAG of   submitSelection.dag
 #   JOBS        submitRun.sub
 #   SCRIPTS     runHadd.sh
 #
-# SUBMITS   mumu selection jobs for DoubleMuon dataset and all MC samples
-#           and combines output files for each run
-#
-# HARDCODED selection ("mumu"), sample names ($suffix), sample sizes ($nFiles)
+# SUBMITS   selection jobs for DoubleMuon dataset and all MC samples
+#           and combines output files for each sample
 #
 
 
   JOB             muon_2017       submitRun.sub 
 
-  VARS            muon_2017       selection="mumu"
   VARS            muon_2017       suffix="muon_2017"
   VARS            muon_2017       nFiles="17"
 
-  SCRIPT  POST    muon_2017       runHadd.sh mumu $JOB
+  SCRIPT  POST    muon_2017       haddDraw.sh $JOB
+
+
+  JOB             electron_2017   submitRun.sub 
+
+  VARS            electron_2017   suffix="electron_2017"
+  VARS            electron_2017   nFiles="17"
+
+  SCRIPT  POST    electron_2017   haddDraw.sh $JOB
 
 
   JOB             zjets_m-50      submitRun.sub
 
-  VARS            zjets_m-50      selection="mumu"
   VARS            zjets_m-50      suffix="zjets_m-50"
   VARS            zjets_m-50      nFiles="5"
 
-  SCRIPT  POST    zjets_m-50      runHadd.sh mumu $JOB
+  SCRIPT  POST    zjets_m-50      haddDraw.sh $JOB
 
 
   JOB             ttbar		      submitRun.sub
 
-  VARS            ttbar		      selection="mumu"
   VARS            ttbar		      suffix="ttbar"
   VARS            ttbar		      nFiles="3"
 
-  SCRIPT  POST    ttbar		      runHadd.sh mumu $JOB
+  SCRIPT  POST    ttbar		      haddDraw.sh $JOB
 
 
   JOB             ww_2l2nu	      submitRun.sub
 
-  VARS            ww_2l2nu	      selection="mumu"
   VARS            ww_2l2nu	      suffix="ww_2l2nu"
   VARS            ww_2l2nu	      nFiles="1"
 
-  SCRIPT  POST    ww_2l2nu	      runHadd.sh mumu $JOB
+  SCRIPT  POST    ww_2l2nu	      haddDraw.sh $JOB
 
 
   JOB             wz_2l2q	      submitRun.sub
 
-  VARS            wz_2l2q	      selection="mumu"
   VARS            wz_2l2q	      suffix="wz_2l2q"
   VARS            wz_2l2q	      nFiles="4"
 
-  SCRIPT  POST    wz_2l2q	      runHadd.sh mumu $JOB
+  SCRIPT  POST    wz_2l2q	      haddDraw.sh $JOB
 
 
   JOB             wz_3lnu	      submitRun.sub
 
-  VARS            wz_3lnu	      selection="mumu"
   VARS            wz_3lnu	      suffix="wz_3lnu"
   VARS            wz_3lnu	      nFiles="2"
 
-  SCRIPT  POST    wz_3lnu	      runHadd.sh mumu $JOB
+  SCRIPT  POST    wz_3lnu	      haddDraw.sh $JOB
 
 
   JOB             zz_2l2q	      submitRun.sub
 
-  VARS            zz_2l2q	      selection="mumu"
   VARS            zz_2l2q	      suffix="zz_2l2q"
   VARS            zz_2l2q	      nFiles="4"
 
-  SCRIPT  POST    zz_2l2q	      runHadd.sh mumu $JOB
+  SCRIPT  POST    zz_2l2q	      haddDraw.sh $JOB
 
 
   JOB             zz_4l		      submitRun.sub
 
-  VARS            zz_4l		      selection="mumu"
   VARS            zz_4l		      suffix="zz_4l"
   VARS            zz_4l		      nFiles="2"
 
-  SCRIPT  POST    zz_4l		      runHadd.sh mumu $JOB
+  SCRIPT  POST    zz_4l		      haddDraw.sh $JOB
 
 
   JOB             ggH_zz_4l	      submitRun.sub
 
-  VARS            ggH_zz_4l	      selection="mumu"
   VARS            ggH_zz_4l	      suffix="ggH_zz_4l"
   VARS            ggH_zz_4l	      nFiles="1"
 
-  SCRIPT  POST    ggH_zz_4l	      runHadd.sh mumu $JOB
+  SCRIPT  POST    ggH_zz_4l	      haddDraw.sh $JOB
 
 
   JOB             vbfH_zz_4l	  submitRun.sub
 
-  VARS            vbfH_zz_4l	  selection="mumu"
   VARS            vbfH_zz_4l	  suffix="vbfH_zz_4l"
   VARS            vbfH_zz_4l	  nFiles="1"
 
-  SCRIPT  POST    vbfH_zz_4l	  runHadd.sh mumu $JOB
+  SCRIPT  POST    vbfH_zz_4l	  haddDraw.sh $JOB

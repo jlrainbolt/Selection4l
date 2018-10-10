@@ -1,8 +1,7 @@
 #! /bin/sh
 
-selection="$1"
-suffix="$2"
-id="$3"
+suffix="$1"
+id="$2"
 
 
 # Prep stuff for batch mode
@@ -20,7 +19,7 @@ fi
 
 
 # Run macro
-root.exe -q -b "handleSelection.cc(\"$selection\", \"$suffix\", \"$id\")"
+root.exe -q -b "handleSelection.cc(\"$suffix\", \"$id\", \"\")"
 
 
 # Copy output to scratch dir if needed

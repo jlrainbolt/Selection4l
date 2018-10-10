@@ -1,20 +1,5 @@
 # FILENAME  submitSelection
 
 
-#SUBDAG  EXTERNAL    mumu    submitJobs_mumu.dag
-#SCRIPT  POST        mumu    runStacker.sh $JOB
-
-#SUBDAG  EXTERNAL    ee      submitJobs_ee.dag
-#SCRIPT  POST        ee      runStacker.sh $JOB
-
-#SUBDAG  EXTERNAL    4m      submitJobs_4m.dag
-#SCRIPT  POST        4m      runStacker.sh $JOB
-
-#SUBDAG  EXTERNAL    4e      submitJobs_4e.dag
-#SCRIPT  POST        4e      runStacker.sh $JOB
-
-#SUBDAG  EXTERNAL    2m2e    submitJobs_2m2e.dag
-#SCRIPT  POST        2m2e    runStacker.sh $JOB
-
- SUBDAG  EXTERNAL    2e2m    submitJobs_2e2m.dag
- SCRIPT  POST        2e2m    runStacker.sh $JOB
+SUBDAG  EXTERNAL    jobs    submitJobs.dag
+SCRIPT  POST        jobs    haddStack.sh

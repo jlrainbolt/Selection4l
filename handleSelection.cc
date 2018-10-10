@@ -21,16 +21,26 @@ using namespace std;
 
 //--- HELPERS ---//
 
-bool SortDecPt(const tuple<TLorentzVector, Short_t, Float_t> &i_,
-                const tuple<TLorentzVector, Short_t, Float_t> &j_);
+bool            SortDecPt(  const tuple<TLorentzVector, Short_t, Float_t> &i_,
+                            const tuple<TLorentzVector, Short_t, Float_t> &j_);
+
+bool            SortDecP(   const tuple<TLorentzVector, Short_t, Float_t> &i_,
+                            const tuple<TLorentzVector, Short_t, Float_t> &j_);
+
+TLorentzVector  GetBoosted( const TLorentzVector &p4_,  const TVector3 &beta);
+
+TLorentzVector  GetP4Sum(   const vector<tuple<TLorentzVector, Short_t, Float_t>> &leps);
+
+
+/*
 double GetBinContentPtEta(const TH2 *hist, const TLorentzVector &p4);
 int GetXbin(const TH2 *hist, const double xval);
 int GetYbin(const TH2 *hist, const double yval);
+*/
 
 
 
-
-void handleSelection(const TString selection, const TString suffix, const TString id)
+void handleSelection(const TString suffix, const TString id, const TString systematics)
 {
 
 
@@ -54,37 +64,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
 
-    //--- PARSING ---//
-
-    // Selection
-    Bool_t sel2l = kFALSE, sel4l = kFALSE;
-    Bool_t muPair1, muPair2;    // TRUE for muon, FALSE for electron
-    unsigned binIdx = 0;
-    if (selection == "mumu" || selection == "2mu" || selection == "2m")
-    {
-        sel2l = kTRUE;      muPair1 = kTRUE;    muPair2 = muPair1;      binIdx = 3;
-    }
-    else if (selection == "ee" || selection == "2e")
-    {
-        sel2l = kTRUE;      muPair1 = kFALSE;   muPair2 = muPair1;      binIdx = 4;
-    }
-    else if (selection == "4mu" || selection == "4m")
-    {
-        sel4l = kTRUE;      muPair1 = kTRUE;    muPair2 = kTRUE;        binIdx = 6;
-    }
-    else if (selection == "2mu2e" || selection == "2m2e")
-    {
-        sel4l = kTRUE;      muPair1 = kTRUE;    muPair2 = kFALSE;       binIdx = 7;
-    }
-    else if (selection == "2e2mu" || selection == "2e2m")
-    {
-        sel4l = kTRUE;      muPair1 = kFALSE;   muPair2 = kTRUE;        binIdx = 8;
-    }
-    else if (selection == "4e")
-    {
-        sel4l = kTRUE;      muPair1 = kFALSE;   muPair2 = kFALSE;       binIdx = 9;
-    }
-
+    //--- SELECTION ---//
 
     // Dataset
     int year = 2017;
@@ -107,9 +87,21 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     //--- OUTPUT ---//
 
     // File
-    TString output  = selection + "_" + suffix + "_" + id + ".root";
+    TString output  = "trees_" + suffix + "_" + id + ".root";
     TFile *outFile  = new TFile(output, "RECREATE");
-    TTree *tree     = new TTree("tree_" + suffix, suffix);
+
+
+    // Selection
+    const unsigned N = 6;
+    unsigned                MM = 0, EE = 1, M4 = 2, ME = 3, EM = 4, E4 = 5; // Indices
+    TString selection[N] = {"mumu", "ee",   "4m",   "2m2e", "2e2m", "4e"};
+    unsigned binIdx[N]   = {3,      4,      6,      7,      8,      9};
+
+
+    // Trees
+    TTree *tree[N];
+    for (unsigned i = 0; i < N; i++)
+        tree[i] = new TTree(selection[i] + "_" + suffix, suffix);
 
 
     // Initialize branch variables
@@ -120,38 +112,70 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
     Short_t         z1pdg, z2pdg, l1pdg, l2pdg, l3pdg, l4pdg;
     Float_t         l1iso, l2iso, l3iso, l4iso;
 
-    TLorentzVector  z1l1p4, z1l2p4, z2l1p4, z2l2p4, tlp4;
     Short_t         z1l1pdg, z1l2pdg, z2l1pdg, z2l2pdg;
-    Float_t         z1l1iso, z1l2iso, z2l1iso, z2l2iso, angle;
+    Float_t         z1l1iso, z1l2iso, z2l1iso, z2l2iso;
+
+    TLorentzVector  b_z1p4, b_z2p4, b_ttp4;
+    TLorentzVector  b_l1p4, b_l2p4, b_l3p4, b_l4p4;
+    Short_t         b_l1pdg, b_l2pdg, b_l3pdg, b_l4pdg;
+
+    Float_t         b_theta, b_phi, b_z1alpha, b_z2alpha;
+    Float_t         bb_z1theta, bb_z2theta;
 
 
     // Branches
-    tree->Branch("evtNum", &evtNum);
-    tree->Branch("nPV", &nPV);      tree->Branch("met", &met);      tree->Branch("weight", &weight);
-
-    if (sel4l) {tree->Branch("zzp4", &zzp4);}
-    tree->Branch("z1p4", &z1p4);    if (sel4l) {tree->Branch("z2p4", &z2p4);}
-
-    tree->Branch("l1p4", &l1p4);    tree->Branch("l1pdg", &l1pdg);  tree->Branch("l1iso", &l1iso);
-    tree->Branch("l2p4", &l2p4);    tree->Branch("l2pdg", &l2pdg);  tree->Branch("l2iso", &l2iso);
-    if (sel4l)
+    for (unsigned i = 0; i < N; i++)
     {
-        tree->Branch("l3p4", &l3p4);  tree->Branch("l3pdg", &l3pdg);  tree->Branch("l3iso", &l3iso);
-        tree->Branch("l4p4", &l4p4);  tree->Branch("l4pdg", &l4pdg);  tree->Branch("l4iso", &l4iso);
+        // Event info
+        tree[i]->Branch("evtNum",   &evtNum);       tree[i]->Branch("weight",   &weight);
+        tree[i]->Branch("nPV",      &nPV);          tree[i]->Branch("met",      &met);
 
-        tree->Branch("z1l1p4", &z1l1p4);   // tree->Branch("z1l1pdg", &z1l1pdg);  tree->Branch*"z1l1iso
-        tree->Branch("z1l2p4", &z1l2p4);
-        tree->Branch("z2l1p4", &z2l1p4);   // tree->Branch("z2l2p4", &z2l2p4);
-        tree->Branch("z2l2p4", &z2l2p4);
-        tree->Branch("tlp4", &tlp4);
-        tree->Branch("angle", &angle);
+
+        // Pair/group momenta
+        if (i > EE)
+            tree[i]->Branch("zzp4",     &zzp4);
+
+        tree[i]->Branch("z1p4",     &z1p4);
+
+        if (i > EE)
+            tree[i]->Branch("z2p4",     &z2p4);
+
+
+        // Lepton momenta, id, iso
+        tree[i]->Branch("l1p4",     &l1p4);         
+        tree[i]->Branch("l1pdg",    &l1pdg);        tree[i]->Branch("l1iso",     &l1iso);
+
+        tree[i]->Branch("l2p4",     &l2p4);
+        tree[i]->Branch("l2pdg",    &l2pdg);        tree[i]->Branch("l2iso",     &l2iso);
+
+        if (i > EE)
+        {
+        tree[i]->Branch("l3p4",     &l3p4);         
+        tree[i]->Branch("l3pdg",    &l3pdg);        tree[i]->Branch("l3iso",     &l3iso);
+
+        tree[i]->Branch("l4p4",     &l4p4);
+        tree[i]->Branch("l4pdg",    &l4pdg);        tree[i]->Branch("l4iso",     &l4iso);
+
+
+            // Boosted quantities for differential distributions
+            tree[i]->Branch("b_z1p4",   &b_z1p4);       tree[i]->Branch("b_z2p4",   &b_z2p4);
+            tree[i]->Branch("b_ttp4",   &b_ttp4);
+            tree[i]->Branch("b_l1p4",   &b_l1p4);       tree[i]->Branch("b_l1pdg",  &b_l1pdg);
+            tree[i]->Branch("b_l2p4",   &b_l2p4);       tree[i]->Branch("b_l2pdg",  &b_l2pdg);
+            tree[i]->Branch("b_l3p4",   &b_l3p4);       tree[i]->Branch("b_l3pdg",  &b_l3pdg);
+            tree[i]->Branch("b_l4p4",   &b_l4p4);       tree[i]->Branch("b_l4pdg",  &b_l4pdg);
+
+            tree[i]->Branch("b_theta",  &b_theta);      tree[i]->Branch("b_phi",    &b_phi);
+            tree[i]->Branch("b_z1alpha", &b_z1alpha);   tree[i]->Branch("b_z2alpha", &b_z2alpha);
+            tree[i]->Branch("bb_z1theta", &bb_z1theta); tree[i]->Branch("bb_z2theta", &bb_z2theta);
+        }
     }
 
 
 
 
     //////////////////////
-    //    OPEN TFILE    //
+    //    INPUT FILE    //
     //////////////////////
 
 
@@ -170,350 +194,541 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
     //--- HISTOGRAMS ---//
     
-    TH1D *hTotalEvents, *hAcceptedEvents;
+    TH1D *hTotalEvents, *hPhaseSpaceEvents, *hFiducialEvents, *hSelectedEvents;
+
     file->GetObject("TotalEvents_" + suffix, hTotalEvents);
-    hTotalEvents->SetDirectory(outFile);        hTotalEvents->Sumw2(kTRUE);
-    file->GetObject("PhaseSpaceEvents_" + suffix, hAcceptedEvents);
+    hTotalEvents->SetDirectory(outFile);
+    hTotalEvents->Sumw2(kTRUE);
 
-    if (hAcceptedEvents)    // trying to access an empty hist will produce a seg fault...
-    {
-        hAcceptedEvents->SetDirectory(outFile);
-        hAcceptedEvents->SetName("AcceptedEvents_" + suffix);
-        hAcceptedEvents->SetTitle("AcceptedEvents");
+    file->GetObject("PhaseSpaceEvents_" + suffix, hPhaseSpaceEvents);
+    if (!hPhaseSpaceEvents) 
+        hPhaseSpaceEvents = new TH1D("PhaseSpaceEvents_" + suffix, "PhaseSpaceEvents", 10, 0.5, 10.5);
+    hPhaseSpaceEvents->SetDirectory(outFile);
+    hPhaseSpaceEvents->Sumw2(kTRUE);
 
+    file->GetObject("FiducialEvents_" + suffix, hFiducialEvents);
+    if (!hFiducialEvents) 
+        hFiducialEvents = new TH1D("FiducialEvents_" + suffix, "FiducialEvents", 10, 0.5, 10.5);
+    hFiducialEvents->SetDirectory(outFile);
+    hFiducialEvents->Sumw2(kTRUE);
 
-        // Fill hAcceptedEvents with correct info
-        Double_t bin1 = hAcceptedEvents->GetBinContent(1); 
-        Double_t bin2 = hAcceptedEvents->GetBinContent(binIdx); 
-
-        hAcceptedEvents->Reset();
-        hAcceptedEvents->SetBinContent(1, bin1);
-        hAcceptedEvents->SetBinContent(2, bin2);
-    }
-    else                    // ... so we have to create one of our own
-        hAcceptedEvents = new TH1D("AcceptedEvents_" + suffix, "AcceptedEvents", 10, 0.5, 10.5);
+    hSelectedEvents = new TH1D("SelectedEvents_" + suffix, "SelectedEvents", 10, 0.5, 10.5);
+    hSelectedEvents->SetDirectory(outFile);
+    hSelectedEvents->Sumw2(kTRUE);
 
 
 
 
     /////////////////////////
-    //    SINGLE FLAVOR    //
+    //    LOAD BRANCHES    //
     /////////////////////////
 
 
-    if (muPair1 == muPair2)
+    // Event
+    TTreeReaderValue<UInt_t>            evtNum_(reader,             "evtNumber.eventNumber");
+    TTreeReaderValue<UShort_t>          nPV_(reader,                "nPV");
+    TTreeReaderValue<Float_t>           met_(reader,                "met");
+
+    TTreeReaderValue<Bool_t>            muonTrig_(reader,           "evtMuonTriggered");
+    TTreeReaderValue<Bool_t>            elecTrig_(reader,           "evtElectronTriggered");
+    TTreeReaderValue<UShort_t>          nMuons_(reader,             "nMuons");
+    TTreeReaderValue<UShort_t>          nElecs_(reader,             "nElectrons");
+    TTreeReaderValue<UShort_t>          nHZZMuons_(reader,          "nHZZMuons");
+    TTreeReaderValue<UShort_t>          nHZZElecs_(reader,          "nHZZElectrons");
+//  TTreeReaderValue<UShort_t>          nPartons_(reader,           "nPartons");
+
+    TTreeReaderValue<Float_t>           genWeight_(reader,          "genWeight");
+    TTreeReaderValue<Float_t>           PUWeight_(reader,           "PUWeight");
+
+
+    // Muons
+    TTreeReaderArray<TLorentzVector>    muonP4_(reader,             "muonP4");
+    TTreeReaderValue<vector<Short_t>>   muonQ_(reader,              "muonQ");
+    TTreeReaderValue<vector<Float_t>>   muonIso_(reader,            "muonCombIso");
+    TTreeReaderValue<vector<Bool_t>>    muonFiredLeg1_(reader,      "muonFiredLeg1");
+    TTreeReaderValue<vector<Bool_t>>    muonFiredLeg2_(reader,      "muonFiredLeg2");
+    TTreeReaderValue<vector<Bool_t>>    muonIsHZZ_(reader,          "muonIsHZZ");
+    TTreeReaderValue<vector<Bool_t>>    muonIsGhost_(reader,        "muonIsGhost");
+
+    TTreeReaderValue<vector<Float_t>>   muonEnergySF_(reader,       "muonEnergySF");
+    TTreeReaderValue<vector<Float_t>>   muonIDSF_(reader,           "muonHZZIDSF");
+//  TTreeReaderValue<vector<Float_t>>   muonEffL1Data_(reader,      "muonTrigEffLeg1Data");
+//  TTreeReaderValue<vector<Float_t>>   muonEffL1MC_(reader,        "muonTrigEffLeg1MC");
+//  TTreeReaderValue<vector<Float_t>>   muonEffL2Data_(reader,      "muonTrigEffLeg2Data");
+//  TTreeReaderValue<vector<Float_t>>   muonEffL2MC_(reader,        "muonTrigEffLeg2MC");
+
+
+    // Electrons
+    TTreeReaderArray<TLorentzVector>    elecP4_(reader,             "electronP4");
+    TTreeReaderValue<vector<Short_t>>   elecQ_(reader,              "electronQ");
+    TTreeReaderValue<vector<Float_t>>   elecIso_(reader,            "electronCombIso");
+    TTreeReaderValue<vector<Bool_t>>    elecFiredLeg1_(reader,      "electronFiredLeg1");
+    TTreeReaderValue<vector<Bool_t>>    elecFiredLeg2_(reader,      "electronFiredLeg2");
+    TTreeReaderValue<vector<Bool_t>>    elecIsHZZ_(reader,          "electronIsHZZ");
+    TTreeReaderValue<vector<Bool_t>>    elecPassMVA_(reader,        "electronPassNoIsoMVA");
+    TTreeReaderValue<vector<Bool_t>>    elecIsGhost_(reader,        "electronIsGhost");
+
+    TTreeReaderValue<vector<Float_t>>   elecEnergySF_(reader,       "electronEnergySF");
+    TTreeReaderValue<vector<Float_t>>   elecIDSF_(reader,           "electronHZZIDSF");
+//  TTreeReaderValue<vector<Float_t>>   elecEffL1Data_(reader,      "elecTrigEffLeg1Data");
+//  TTreeReaderValue<vector<Float_t>>   elecEffL1MC_(reader,        "elecTrigEffLeg1MC");
+//  TTreeReaderValue<vector<Float_t>>   elecEffL2Data_(reader,      "elecTrigEffLeg2Data");
+//  TTreeReaderValue<vector<Float_t>>   elecEffL2MC_(reader,        "elecTrigEffLeg2MC");
+
+
+
+
+    //////////////////////
+    //    EVENT LOOP    //
+    //////////////////////
+
+
+    unsigned event = 0;
+    while (reader.Next() && event < 100)
     {
-
-
-        //--- BRANCHES ---//
-
-        TString Lep = muPair1 ? "Muon" : "Electron",   lep = muPair1 ? "muon" : "electron";
-        Short_t pdg = muPair1 ? 13 : 11;
-        Float_t LEP_MASS = muPair1 ? MU_MASS : ELE_MASS;
-        Float_t PT1_MIN  = muPair1 ? MU_PT1_MIN : ELE_PT1_MIN;
-        Float_t PT2_MIN  = muPair1 ? MU_PT2_MIN : ELE_PT2_MIN;
-        Float_t PT_MIN   = muPair1 ? MU_PT_MIN : ELE_PT_MIN;
-        TString StringMVA = muPair1 ? "IsLoose" : "PassNoIsoMVA";
-
-
-        // Event
-        TTreeReaderValue<UInt_t>    evtNum_(reader, "evtNumber.eventNumber");
-        TTreeReaderValue<UShort_t>  nPV_(reader, "nPV");
-        TTreeReaderValue<Float_t>   met_(reader, "met");
-
-        TTreeReaderValue<Bool_t>    passMuonTrig_(reader, "evtMuonTriggered");
-        TTreeReaderValue<Bool_t>    passElecTrig_(reader, "evtElectronTriggered");
-        TTreeReaderValue<UShort_t>  nLeps_(reader, "n"+Lep+"s");
-        TTreeReaderValue<UShort_t>  nHZZLeps_(reader, "nHZZ"+Lep+"s");
-        TTreeReaderValue<UShort_t>  nHZZAll_(reader, "nHZZLeptons");
-        TTreeReaderValue<UShort_t>  nPartons_(reader, "nPartons");
-
-        TTreeReaderValue<Float_t>   genWeight_(reader, "genWeight");
-        TTreeReaderValue<Float_t>   PUWeight_(reader, "PUWeight");
-
-
-        // Leptons
-        TTreeReaderArray<TLorentzVector>    lepP4_(reader, lep+"P4");
-        TTreeReaderValue<vector<Short_t>>   lepQ_(reader, lep+"Q");
-        TTreeReaderValue<vector<Bool_t>>    lepFiredLeg1_(reader, lep+"FiredLeg1");
-        TTreeReaderValue<vector<Bool_t>>    lepFiredLeg2_(reader, lep+"FiredLeg2");
-        TTreeReaderValue<vector<Bool_t>>    lepIsHZZ_(reader, lep+"IsHZZ");
-        TTreeReaderValue<vector<Bool_t>>    lepPassMVA_(reader, lep+StringMVA);
-
-        TTreeReaderValue<vector<Float_t>>   lepEnergySF_(reader, lep+"EnergySF");
-        TTreeReaderValue<vector<Float_t>>   lepIDSF_(reader, lep+"HZZIDSF");
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1Data_(reader, lep+"TrigEffLeg1Data");
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg1MC_(reader, lep+"TrigEffLeg1MC");
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2Data_(reader, lep+"TrigEffLeg2Data");
-        TTreeReaderValue<vector<Float_t>>   lepTrigEffLeg2MC_(reader, lep+"TrigEffLeg2MC");
-
-        TTreeReaderValue<vector<Float_t>>   lepIso_(reader, lep+"CombIso");
+//      event++;
 
 
 
-        //--- HISTOGRAMS ---//
-/*
-        // Fix for bad ID SF
-        TFile *file_id = TFile::Open("hzz_"+lep+"_id_sf.root");
-        TH2 *h_id;//, *h_unc;
-        file_id->GetObject("FINAL", h_id);
-        h_id->SetDirectory(0);
-        file_id->Close();
-        
+        //--- INITIALIZE ---//
 
-        // Lepton ID smear
-        // FIXME
-        if (systOn && smearID)
+        Bool_t                  muonTrig    = *muonTrig_,           elecTrig    = *elecTrig_;
+        UShort_t                nMuons      = *nMuons_,             nElecs      = *nElecs_;
+        UShort_t                nHZZMuons   = *nHZZMuons_,          nHZZElecs   = *nHZZElecs_;
+        Float_t                 genWeight   = *genWeight_,          PUWeight    = *PUWeight_;
+
+        vector<TLorentzVector>  muonP4,                             elecP4;
+        vector<Short_t>         muonQ,                              elecQ;
+        vector<Float_t>         muonIso,                            elecIso;
+        vector<Bool_t>          muonIsHZZ,                          elecIsHZZ,      elecPassMVA;
+        vector<Bool_t>          muonIsGhost,                        elecIsGhost;
+        vector<Bool_t>          muonFiredLeg1,  muonFiredLeg2,      elecFiredLeg1,  elecFiredLeg2;
+
+        vector<Float_t>         muonEnergySF,                       elecEnergySF;
+        vector<Float_t>         muonIDSF,                           elecIDSF;
+//      vector<Float_t>         muonEffL1Data,  muonEffL2Data,      elecEffL1Data,  elecEffL2Data;
+//      vector<Float_t>         muonEffL1MC,    muonEffL2MC,        elecEffL1MC,    elecEffL2MC;
+
+
+
+        //--- PRESELECTION ---//
+
+        // Make sure data events aren't triggered twice
+        // (should really be done at BLT level...FIXME)
+        if (isData && suffix.Contains("muon"))
+            elecTrig = kFALSE;
+        if (isData && suffix.Contains("electron"))
+            muonTrig = kFALSE;
+
+        if (!muonTrig && !elecTrig)
+            continue;
+
+        if (nHZZMuons < 2 && nHZZElecs < 2)
+            continue;
+
+
+
+        //--- FILL CONTAINERS ---//
+
+        // Muons
+        for (const TLorentzVector& muonP4__: muonP4_)
+            muonP4.push_back(muonP4__);
+
+        for (unsigned i = 0; i < nMuons; i++)
         {
-            TFile *file_unc = TFile::Open("hzz_"+lep+"_id_smear.root");
-            file_unc->GetObject("SMEAR", h_unc);
-            h_unc->SetDirectory(0);
-            file_unc->Close();
+            muonQ.push_back(            (*muonQ_)[i]);
+            muonIso.push_back(          (*muonIso_)[i]);
+            muonFiredLeg1.push_back(    (*muonFiredLeg1_)[i]);
+            muonFiredLeg2.push_back(    (*muonFiredLeg2_)[i]);
+            muonIsHZZ.push_back(        (*muonIsHZZ_)[i]);
+            muonIsGhost.push_back(      (*muonIsGhost_)[i]);
+
+            muonEnergySF.push_back(     (*muonEnergySF_)[i]);
+            muonIDSF.push_back(         (*muonIDSF_)[i]);
+//          muonEffL1Data.push_back(    (*muonEffL1Data_)[i]);
+//          muonEffL1MC.push_back(      (*muonEffL1MC_)[i]);
+//          muonEffL2Data.push_back(    (*muonEffL2Data_)[i]);
+//          muonEffL2MC.push_back(      (*muonEffL2MC_)[i]);
+        }
+
+
+        // Electrons
+        for (const TLorentzVector& elecP4__: elecP4_)
+            elecP4.push_back(elecP4__);
+
+        for (unsigned i = 0; i < nElecs; i++)
+        {
+            elecQ.push_back(            (*elecQ_)[i]);
+            elecIso.push_back(          (*elecIso_)[i]);
+            elecFiredLeg1.push_back(    (*elecFiredLeg1_)[i]);
+            elecFiredLeg2.push_back(    (*elecFiredLeg2_)[i]);
+            elecIsHZZ.push_back(        (*elecIsHZZ_)[i]);
+            elecPassMVA.push_back(      (*elecPassMVA_)[i]);
+            elecIsGhost.push_back(      (*elecIsGhost_)[i]);
+
+            elecEnergySF.push_back(     (*elecEnergySF_)[i]);
+            elecIDSF.push_back(         (*elecIDSF_)[i]);
+//          elecEffL1Data.push_back(    (*elecEffL1Data_)[i]);
+//          elecEffL1MC.push_back(      (*elecEffL1MC_)[i]);
+//          elecEffL2Data.push_back(    (*elecEffL2Data_)[i]);
+//          elecEffL2MC.push_back(      (*elecEffL2MC_)[i]);
+        }
+
+
+
+        //--- SYSTEMATICS ---//
+
+        // FIXME
+/*
+        for (unsigned i = 0; i < nMuons; i++)
+        {
+            if (systOn)
+            {
+                if (smearPtMC && !isData)
+                    lepEnergySF[i] += PT_UNC * lepEnergySF[i];
+                else if (smearPtData && isData)
+                    lepEnergySF[i] += PT_UNC * lepEnergySF[i];
+            }
         }
 */
 
 
+        //--- CORRECTIONS ---//
 
-        //////////////////////
-        //    EVENT LOOP    //
-        //////////////////////
-
-
-        unsigned event = 0;
-        while (reader.Next() && event < 100)
+        // Muons
+        for (unsigned i = 0; i < nMuons; i++)
         {
-//          event++;
+            // Apply energy correction
+            float muonPt = muonP4[i].Pt() * muonEnergySF[i];
+            muonP4[i].SetPtEtaPhiM(muonPt, muonP4[i].Eta(), muonP4[i].Phi(), MU_MASS);
 
 
-            //--- TRIGGER SELECTION ---//
+            // Reevaluate Pt threshold
+            if (muonP4[i].Pt() < MU_PT_MIN && muonIsHZZ[i])
+            {
+                muonIsHZZ[i] = kFALSE;
+                nHZZMuons--;
+            }
 
-            Bool_t   passTrigger;
-            if (muPair1)
-                passTrigger = *passMuonTrig_ && !*passElecTrig_;
+
+            // Remove "ghost" muons
+            // (based on Pt...FIXME)
+            if (muonIsGhost[i] && muonIsHZZ[i])
+            {
+                muonIsHZZ[i] = kFALSE;
+                nHZZMuons--;
+            }
+        }
+
+
+        // Electrons
+        for (unsigned i = 0; i < nElecs; i++)
+        {
+            // Apply energy correction
+            elecP4[i] *= elecEnergySF[i];
+
+
+            // Reevaluate Pt threshold
+            if (elecP4[i].Pt() < ELE_PT_MIN && elecIsHZZ[i])
+            {
+                elecIsHZZ[i] = kFALSE;
+                nHZZElecs--;
+            }
+
+
+            // Remove electrons which do not pass MVA
+            if (!elecPassMVA[i] && elecIsHZZ[i])
+            {
+                elecIsHZZ[i] = kFALSE;
+                nHZZElecs--;
+            }
+
+
+            // Remove "ghost" electrons (cross cleaning)
+            if (elecIsGhost[i] && elecIsHZZ[i])
+            {
+                elecIsHZZ[i] = kFALSE;
+                nHZZElecs--;
+            }
+        }
+
+
+
+        //--- CATEGORIZE ---//
+/*
+        // Gather HZZ leptons
+        vector<unsigned> muonIdx, elecIdx;
+
+        for (unsigned i = 0; i < nMuons; i++)
+        {
+            if (muonIsHZZ[i])
+                muonIdx.push_back(i);
+        }
+
+        for (unsigned i = 0; i < nElecs; i++)
+        {
+            if (elecIsHZZ[i])
+                elecIdx.push_back(i);
+        }
+
+        if ((muonIdx.size() != nHZZMuons) || (elecIdx.size() != nHZZElecs))
+        {
+            cout << "Wrong number of HZZ leptons :(" << endl;
+            continue;
+        }
+*/
+
+        // Assign category
+        unsigned C;
+        Bool_t sel2l = kFALSE, sel4l = kFALSE;
+        Bool_t muLeads, muTrails;    // TRUE for muon, FALSE for electron
+
+        // Prioritize electron-triggered events
+        if (elecTrig)
+        {
+            muLeads = kFALSE;
+
+            if      (nHZZElecs == 2 && nHZZMuons == 0)
+            {
+                C           = EE;
+                sel2l       = kTRUE;
+                sel4l       = kFALSE;
+                muTrails    = kFALSE;   // to be safe?
+            }
+            else if (nHZZElecs == 2 && nHZZMuons == 2)
+            {
+                C           = EM;
+                sel2l       = kFALSE;
+                sel4l       = kTRUE;
+                muTrails    = kTRUE;
+            }
+            else if (nHZZElecs == 4 && nHZZMuons == 0)
+            {
+                C           = E4;
+                sel2l       = kFALSE;
+                sel4l       = kTRUE;
+                muTrails    = kFALSE;
+            }
             else
-                passTrigger = *passElecTrig_;
+                continue;
+        }
+        else if (muonTrig)
+        {
+            muLeads = kTRUE;
+
+            if      (nHZZMuons == 2 && nHZZElecs == 0)
+            {
+                C           = MM;
+                sel2l       = kTRUE;
+                sel4l       = kFALSE;
+                muTrails    = kTRUE;    // to be safe?
+            }
+            else if (nHZZMuons == 2 && nHZZElecs == 2)
+            {
+                C           = ME;
+                sel2l       = kFALSE;
+                sel4l       = kTRUE;
+                muTrails    = kFALSE;
+            }
+            else if (nHZZMuons == 4 && nHZZElecs == 0)
+            {
+                C           = M4;
+                sel2l       = kFALSE;
+                sel4l       = kTRUE;
+                muTrails    = kTRUE;
+            }
+            else
+                continue;
+        }
+        else
+            continue;
+
+
+        // Choose cuts based on selection category
+        Short_t                 lPDG            = muLeads   ? 13            : 11;                   
+        Short_t                 tPDG            = muTrails  ? 13            : 11;
+
+        Float_t                 PT1_MIN         = muLeads   ? MU_PT1_MIN    : ELE_PT1_MIN;
+        Float_t                 PT2_MIN         = muLeads   ? MU_PT2_MIN    : ELE_PT2_MIN;
+
+
+        // Fill NEW set of containers, wow, this code is disgusting
+
+        // Leading pair flavor
+        UShort_t                nLLeps          = muLeads   ? nMuons        : nElecs;
+        UShort_t                nHZZLLeps       = muLeads   ? nHZZMuons     : nHZZElecs;
+        vector<TLorentzVector>  lLepP4          = muLeads   ? muonP4        : elecP4;
+        vector<Short_t>         lLepQ           = muLeads   ? muonQ         : elecQ;
+        vector<Float_t>         lLepIso         = muLeads   ? muonIso       : elecIso;
+        vector<Bool_t>          lLepIsHZZ       = muLeads   ? muonIsHZZ     : elecIsHZZ;
+        vector<Bool_t>          lLepFiredLeg1   = muLeads   ? muonFiredLeg1 : elecFiredLeg1;
+        vector<Bool_t>          lLepFiredLeg2   = muLeads   ? muonFiredLeg2 : elecFiredLeg2;
+        vector<Float_t>         lLepIDSF        = muLeads   ? muonIDSF      : elecIDSF;
+//      vector<Float_t>         lLepEffL1Data   = muLeads   ? muonEffL1Data : elecEffL1Data;
+//      vector<Float_t>         lLepEffL2Data   = muLeads   ? muonEffL2Data : elecEffL2Data;
+//      vector<Float_t>         lLepEffL1MC     = muLeads   ? muonEffL1MC   : elecEffL1MC;
+//      vector<Float_t>         lLepEffL2MC     = muLeads   ? muonEffL2MC   : elecEffL2MC;
+
+        // Subleading pair flavor
+        UShort_t                nTLeps          = muTrails  ? nMuons        : nElecs;
+        UShort_t                nHZZTLeps       = muTrails  ? nHZZMuons     : nHZZElecs;
+        vector<TLorentzVector>  tLepP4          = muTrails  ? muonP4        : elecP4;
+        vector<Short_t>         tLepQ           = muTrails  ? muonQ         : elecQ;
+        vector<Float_t>         tLepIso         = muTrails  ? muonIso       : elecIso;
+        vector<Bool_t>          tLepIsHZZ       = muTrails  ? muonIsHZZ     : elecIsHZZ;
+        vector<Float_t>         tLepIDSF        = muTrails  ? muonIDSF      : elecIDSF;
+        // Don't need subleading flavor trigger info?
 
 
 
-            //--- FILL CONTAINERS ---//
 
-            UShort_t nLeps = *nLeps_,           nHZZLeps = *nHZZLeps_;
-            UShort_t nHZZAll = *nHZZAll_,       nPartons = *nPartons_;
-            Float_t  genWeight = *genWeight_,   PUWeight = *PUWeight_;
-
-            vector<TLorentzVector> lepP4;
-            vector<Short_t> lepQ;
-            vector<Bool_t> lepFiredLeg1, lepFiredLeg2, lepIsHZZ, lepPassMVA;
-            vector<Float_t> lepEnergySF, lepIDSF;
-            vector<Float_t> lepTrigEffLeg1Data, lepTrigEffLeg1MC;
-            vector<Float_t> lepTrigEffLeg2Data, lepTrigEffLeg2MC;
+        ////////////////////
+        //    DILEPTON    //
+        ////////////////////
 
 
+        if (sel2l)
+        {
 
-            //--- PRESELECTION ---//
+            //--- LEADING LEPTON ---//
 
-            if (!passTrigger)
+            // (for some reason I decided it needed to be the leading lepton?)
+            // (I hope this isn't wrong...)
+            if (!lLepIsHZZ[0])
+                continue;
+            if (lLepP4[0].Pt() < PT1_MIN)
+                continue;
+            if (!lLepFiredLeg1[0])
                 continue;
 
-            if (sel2l && (nHZZLeps < 2 || nLeps < 2))
+
+            // Pair leading lepton
+            unsigned x = 0, y = 0;
+            bool foundPair = kFALSE;
+            for (unsigned j = 1; j < nLLeps; j++)
+            {
+                if (!lLepIsHZZ[j])
+                    continue;
+                if (lLepP4[j].Pt() < PT2_MIN)
+                    continue;
+                if (!lLepFiredLeg2[j])
+                    continue;
+
+                // Charge requirement
+                if (lLepQ[x] == lLepQ[j])
+                    continue;
+
+                // Mass cut
+                Float_t mll = (lLepP4[x] + lLepP4[j]).M();
+                if (mll > M_MIN && mll < M_MAX)
+                {
+                    y = j;
+                    foundPair = kTRUE;
+                    break;
+                }
+                if (foundPair)
+                    break;
+            }
+            if (!foundPair)
                 continue;
 
-            if (sel4l && (nHZZLeps < 4 || nLeps < 4))
-                continue;
 
 
+            //--- WEIGHTING ---//
 
-            //--- LEPTONS ---//
+            float triggerWeight = 1, idWeight = 1;
 
-            for (const TLorentzVector& lepP4__: lepP4_)
-                lepP4.push_back(lepP4__);
-            for (unsigned i = 0; i < nLeps; i++)
+            if (!isData)
             {
-                lepQ.push_back((*lepQ_)[i]);
-                lepFiredLeg1.push_back((*lepFiredLeg1_)[i]);
-                lepFiredLeg2.push_back((*lepFiredLeg2_)[i]);
-                lepIsHZZ.push_back((*lepIsHZZ_)[i]);
-                lepPassMVA.push_back((*lepPassMVA_)[i]);
+                /*
+                // Trigger efficiency
+                //                  if ((lLepFiredLeg1[x] || lLepFiredLeg2[x]) && (lLepFiredLeg1[y] || lLepFiredLeg2[y]))
+                if (kFALSE)
+                {
+                float trigEffData, trigEffMC;
 
-                lepEnergySF.push_back((*lepEnergySF_)[i]);
-                lepIDSF.push_back((*lepIDSF_)[i]);
-                lepTrigEffLeg1Data.push_back((*lepTrigEffLeg1Data_)[i]);
-                lepTrigEffLeg1MC.push_back((*lepTrigEffLeg1MC_)[i]);
-                lepTrigEffLeg2Data.push_back((*lepTrigEffLeg2Data_)[i]);
-                lepTrigEffLeg2MC.push_back((*lepTrigEffLeg2MC_)[i]);
+                trigEffData  = lLepEffLeg1Data[x] * lLepEffLeg2Data[y];
+                trigEffData += lLepEffLeg1Data[y] * lLepEffLeg2Data[x];
+                trigEffData -= lLepEffLeg1Data[x] * lLepEffLeg1Data[y];
+
+                trigEffMC  = lLepEffLeg1MC[x] * lLepEffLeg2MC[y];
+                trigEffMC += lLepEffLeg1MC[y] * lLepEffLeg2MC[x];
+                trigEffMC -= lLepEffLeg1MC[x] * lLepEffLeg1MC[y];
+                if (trigEffMC == 0)
+                trigEffMC = 1;
+
+                triggerWeight = trigEffData / trigEffMC;
+                }
+                */
+                // ID efficiency
+                idWeight = lLepIDSF[x] * lLepIDSF[y];
             }
+            weight = genWeight * PUWeight * triggerWeight * idWeight;
 
 
 
-            //--- CORRECTIONS ---//
+            //--- HISTOGRAMS ---//
 
-            for (unsigned i = 0; i < nLeps; i++)
+            hSelectedEvents->Fill(1, weight);
+            hSelectedEvents->Fill(binIdx[C], weight);
+
+            hTotalEvents->Fill(6);
+            hTotalEvents->Fill(7, weight);
+
+
+
+            //--- CONTAINERS ---//
+
+            evtNum  = *evtNum_;
+            nPV     = *nPV_;                            met = *met_;
+            l1p4    = lLepP4[x];                        l2p4    = lLepP4[y];
+            l1pdg   = lLepQ[x] * lPDG;                  l2pdg   = lLepQ[y] * lPDG;
+            l1iso   = lLepIso[x] / l1p4.Pt();           l2iso   = lLepIso[y] / l2p4.Pt();
+            z1p4    = l1p4 + l2p4;
+
+            tree[C]->Fill();
+        }
+
+
+
+
+        ////////////////////
+        //    4-LEPTON    //
+        ////////////////////
+
+
+        else if (sel4l)
+        {
+            // Containers
+            vector<tuple<TLorentzVector, Short_t, Float_t>> allLeps, z1leps, z2leps;
+
+
+
+
+            /////////////////////////
+            //    SINGLE FLAVOR    //
+            /////////////////////////
+
+
+            if (muLeads == muTrails)
             {
-                // Energy correction
-                if (systOn)
-                {
-                    if (smearPtMC && !isData)
-                        lepEnergySF[i] += PT_UNC * lepEnergySF[i];
-                    else if (smearPtData && isData)
-                        lepEnergySF[i] += PT_UNC * lepEnergySF[i];
-                }
-                lepP4[i].SetPtEtaPhiM(lepP4[i].Pt() * lepEnergySF[i], lepP4[i].Eta(),
-                                        lepP4[i].Phi(), LEP_MASS);
-
-
-                // Remove leptons with Pt below threshold
-                if (lepIsHZZ[i] && lepP4[i].Pt() < PT_MIN)
-                {
-                    lepIsHZZ[i] = kFALSE;       nHZZLeps--;
-                }
-
-
-                // Remove electrons which do not pass MVA
-                if (!muPair1)
-                {
-                    if (lepIsHZZ[i] && !lepPassMVA[i])
-                    {
-                        lepIsHZZ[i] = kFALSE;       nHZZLeps--;
-                    }
-                }
-
-
-                // Remove "ghost" leptons based on Pt
-                if (lepIsGhost[i] && !lepPassMVA[i])
-                {
-                    lepIsGhost[i] = kFALSE;       nHZZLeps--;
-                }
-            }
-//          event++;
-
-
-
-            //--- SELECTION ---//
-
-
-            ////////////////////
-            //    DILEPTON    //
-            ////////////////////
-
-
-            if (sel2l)
-            {
-                if (nHZZLeps != 2)
-                    continue;
-
-                // Make sure leading lepton is good
-                if (!lepIsHZZ[0] || lepP4[0].Pt() < PT1_MIN || !lepFiredLeg1[0])
-                    continue;
-
-
-                // Pair leading lepton
-                unsigned x = 0, y = 0;
-                bool foundPair = kFALSE;
-                for (unsigned j = 1; j < nLeps; j++)
-                {
-                    if (!lepIsHZZ[j] || lepP4[j].Pt() < PT2_MIN)
-                        continue;
-                    if (lepQ[x] == lepQ[j])
-                        continue;
-                    if (!lepFiredLeg2[j])
-                        continue;
-
-                    Float_t mll = (lepP4[x] + lepP4[j]).M();
-                    if (mll > M_MIN && mll < M_MAX)
-                    {
-                        y = j;  foundPair = kTRUE;  break;
-                    }
-                    if (foundPair)
-                        break;
-                }
-                if (!foundPair)
-                    continue;
-
-
-
-                //--- WEIGHTING ---//
-
-                float triggerWeight = 1, idWeight = 1;
-
-                if (!isData)
-                {
-                    // Trigger efficiency
-//                  if ((lepFiredLeg1[x] || lepFiredLeg2[x]) && (lepFiredLeg1[y] || lepFiredLeg2[y]))
-                    if (kFALSE)
-                    {
-                        float trigEffData, trigEffMC;
-
-                        trigEffData  = lepTrigEffLeg1Data[x] * lepTrigEffLeg2Data[y];
-                        trigEffData += lepTrigEffLeg1Data[y] * lepTrigEffLeg2Data[x];
-                        trigEffData -= lepTrigEffLeg1Data[x] * lepTrigEffLeg1Data[y];
-
-                        trigEffMC  = lepTrigEffLeg1MC[x] * lepTrigEffLeg2MC[y];
-                        trigEffMC += lepTrigEffLeg1MC[y] * lepTrigEffLeg2MC[x];
-                        trigEffMC -= lepTrigEffLeg1MC[x] * lepTrigEffLeg1MC[y];
-                        if (trigEffMC == 0)
-                            trigEffMC = 1;
-
-                        triggerWeight = trigEffData / trigEffMC;
-                    }
-
-                    // ID efficiency
-                    idWeight = lepIDSF[x] * lepIDSF[y];
-                }
-                float eventWeight = genWeight * PUWeight * triggerWeight * idWeight;
-
-
-
-                //--- HISTOGRAMS ---//
-
-                hAcceptedEvents->Fill(3, eventWeight);
-
-                hTotalEvents->Fill(6);
-                hTotalEvents->Fill(7, eventWeight);
-
-
-
-                //--- CONTAINERS ---//
-
-                evtNum = *evtNum_;                          nPV = *nPV_;        
-                met = *met_;                                weight = eventWeight;
-                l1p4 = lepP4[x];    l2p4 = lepP4[y];        z1p4 = l1p4 + l2p4;
-                l1pdg = lepQ[x] * pdg;                      l2pdg = lepQ[y] * pdg;
-                l1iso = (*lepIso_)[x] / l1p4.Pt();          l2iso = (*lepIso_)[y] / l2p4.Pt();
-            
-                tree->Fill();
-            }
-
-
-
-
-            ////////////////////
-            //    4-LEPTON    //
-            ////////////////////
-
-
-            else if (sel4l)
-            {
-                if (nHZZLeps < 4)   // should be !=?  but what about ghost suppression...guess I would have to do that earlier
-                    continue;
-
-
 
                 //--- Z SELECTION ---//
 
                 vector<pair<unsigned, unsigned>> zCand;
-                for (unsigned j = 1; j < nLeps; j++)
+                for (unsigned j = 1; j < nLLeps; j++)
                 {
-                    if (!lepIsHZZ[j])
+                    if (!lLepIsHZZ[j])
                         continue;
 
                     for (unsigned i = 0; i < j; i++)
                     {
-                        if (!lepIsHZZ[i])
+                        if (!lLepIsHZZ[i])
                             continue;
-                        if (lepQ[i] == lepQ[j])
+                        if (lLepQ[i] == lLepQ[j])
                             continue;
 
-                        Float_t mll = (lepP4[i] + lepP4[j]).M();
+                        Float_t mll = (lLepP4[i] + lLepP4[j]).M();
                         if (mll > MZ_MIN && mll < MZ_MAX)
                             zCand.push_back(make_pair(i, j));
                     }
@@ -535,34 +750,38 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 
                         // Make sure pairs do not overlap
-                        if (Zi.first == Zj.first || Zi.first == Zj.second
-                                || Zi.second == Zj.first || Zi.second == Zj.second)
+                        if (
+                                Zi.first == Zj.first    || Zi.first == Zj.second
+                                ||  Zi.second == Zj.first   || Zi.second == Zj.second
+                           )
                             continue;
 
 
                         // Choose Z1 closest to nominal Z mass
-                        Float_t mll_i = (lepP4[Zi.first] + lepP4[Zi.second]).M();
-                        Float_t mll_j = (lepP4[Zj.first] + lepP4[Zj.second]).M();
+                        Float_t mll_i = (lLepP4[Zi.first] + lLepP4[Zi.second]).M();
+                        Float_t mll_j = (lLepP4[Zj.first] + lLepP4[Zj.second]).M();
                         pair<unsigned, unsigned> Z1, Z2;
 
                         if (fabs(mll_i - Z_MASS) < fabs(mll_j - Z_MASS))
                         {
-                            Z1 = Zi;        Z2 = Zj;
+                            Z1 = Zi;
+                            Z2 = Zj;
                         }
                         else
                         {
-                            Z1 = Zj;        Z2 = Zi;
+                            Z1 = Zj;
+                            Z2 = Zi;
                         }
 
 
                         // Pair Pt, Q for easier manipulation
                         pair<TLorentzVector, TLorentzVector> Z1_p4s, Z2_p4s;
-                        Z1_p4s = make_pair(lepP4[Z1.first], lepP4[Z1.second]);
-                        Z2_p4s = make_pair(lepP4[Z2.first], lepP4[Z2.second]);
+                        Z1_p4s = make_pair(lLepP4[Z1.first], lLepP4[Z1.second]);
+                        Z2_p4s = make_pair(lLepP4[Z2.first], lLepP4[Z2.second]);
 
                         pair<Short_t, Short_t> Z1_qs, Z2_qs;
-                        Z1_qs = make_pair(lepQ[Z1.first], lepQ[Z1.second]);
-                        Z2_qs = make_pair(lepQ[Z2.first], lepQ[Z2.second]);
+                        Z1_qs = make_pair(lLepQ[Z1.first], lLepQ[Z1.second]);
+                        Z2_qs = make_pair(lLepQ[Z2.first], lLepQ[Z2.second]);
 
                         TLorentzVector ZZ_p4, Z1_p4, Z2_p4;
                         Z1_p4 = Z1_p4s.first + Z1_p4s.second;
@@ -591,16 +810,18 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                         }
 
                         Float_t mll_x, mll_y, mll_a, mll_b;
-                        mll_x = (lepP4[Zx.first] + lepP4[Zx.second]).M();
-                        mll_y = (lepP4[Zy.first] + lepP4[Zy.second]).M();
+                        mll_x = (lLepP4[Zx.first] + lLepP4[Zx.second]).M();
+                        mll_y = (lLepP4[Zy.first] + lLepP4[Zy.second]).M();
 
                         if (fabs(mll_x - Z_MASS) < fabs(mll_y - Z_MASS))
                         {
-                            Za = Zx;        Zb = Zy;        mll_a = mll_x;  mll_b = mll_y;
+                            Za      = Zx;               Zb      = Zy;
+                            mll_a   = mll_x;            mll_b   = mll_y;
                         }
                         else
                         {
-                            Za = Zy;        Zb = Zx;        mll_a = mll_y;  mll_b = mll_x;
+                            Za      = Zy;               Zb      = Zx;
+                            mll_a   = mll_y;            mll_b   = mll_x;
                         }
 
                         if (fabs(mll_a - Z_MASS) < fabs(Z1_p4.M() - Z_MASS) && mll_b < MZ_MIN)
@@ -615,12 +836,31 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
                         for (unsigned k = 0; k < z.size(); k++)
                         {
-                            selLepP4.push_back(lepP4[z[k]]);
-                            selLepQ.push_back(lepQ[z[k]]);
+                            selLepP4.push_back(lLepP4[z[k]]);
+                            selLepQ.push_back(lLepQ[z[k]]);
                         }
 
                         if (selLepP4[0].Pt() < PT1_MIN || selLepP4[1].Pt() < PT2_MIN)
                             continue;
+
+
+                        // Trigger requirement
+                        // (double check?)
+
+                        bool firedLeg1 = kFALSE,    firedLeg2 = kFALSE;
+
+                        for (unsigned k = 0; k < z.size(); k++)
+                        {
+                            if (lLepFiredLeg1[z[k]])
+                                firedLeg1 = kTRUE;
+                            if (lLepFiredLeg2[z[k]])
+                                firedLeg2 = kTRUE;
+                        }
+                        if (!firedLeg1 || !firedLeg2)
+                        {
+                            cout << "Failed trigger requirement" << endl;
+                            continue;
+                        }
 
 
                         // Ghost removal
@@ -675,6 +915,7 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
                 //--- BEST ZZ ---//
 
+                // FIXME i don't think this actually does anything
                 unsigned zz = 0;
                 Float_t massDiff = 1000.;
                 for (unsigned m = 0; m < zzCand.size(); m++)
@@ -682,7 +923,8 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                     Float_t massDiff_ = fabs(zzCand_mZ1[m] - Z_MASS); //= fabs(zzCand_m4l[m] - Z_MASS);
                     if (massDiff_ < massDiff)
                     {
-                        massDiff = massDiff_;       zz = m;
+                        massDiff = massDiff_;
+                        zz = m;
                     }
                 }
 
@@ -691,14 +933,19 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 pair<unsigned, unsigned> Z1 = ZZ.first, Z2 = ZZ.second;
                 unsigned x = Z1.first, y = Z1.second, xx = Z2.first, yy = Z2.second;
 
+                z1leps.push_back(make_tuple(lLepP4[x],  lLepQ[x]*lPDG,  lLepIso[x]/lLepP4[x].Pt()));
+                z1leps.push_back(make_tuple(lLepP4[y],  lLepQ[y]*lPDG,  lLepIso[y]/lLepP4[y].Pt()));
+
+                z2leps.push_back(make_tuple(lLepP4[xx], lLepQ[xx]*lPDG, lLepIso[xx]/lLepP4[xx].Pt()));
+                z2leps.push_back(make_tuple(lLepP4[yy], lLepQ[yy]*lPDG, lLepIso[yy]/lLepP4[yy].Pt()));
+
 
                 // Sort lepton PDG ID and iso by Pt
-                vector<tuple<TLorentzVector, Short_t, Float_t>> lepTuple;
-                lepTuple.push_back(make_tuple(lepP4[x], lepQ[x]*pdg, (*lepIso_)[x]/lepP4[x].Pt()));
-                lepTuple.push_back(make_tuple(lepP4[y], lepQ[y]*pdg, (*lepIso_)[y]/lepP4[y].Pt()));
-                lepTuple.push_back(make_tuple(lepP4[xx], lepQ[xx]*pdg, (*lepIso_)[xx]/lepP4[xx].Pt()));
-                lepTuple.push_back(make_tuple(lepP4[yy], lepQ[yy]*pdg, (*lepIso_)[yy]/lepP4[yy].Pt()));
-                sort(lepTuple.begin(), lepTuple.end(), SortDecPt);
+                allLeps.push_back(make_tuple(lLepP4[x],  lLepQ[x]*lPDG,  lLepIso[x]/lLepP4[x].Pt()));
+                allLeps.push_back(make_tuple(lLepP4[y],  lLepQ[y]*lPDG,  lLepIso[y]/lLepP4[y].Pt()));
+                allLeps.push_back(make_tuple(lLepP4[xx], lLepQ[xx]*lPDG, lLepIso[xx]/lLepP4[xx].Pt()));
+                allLeps.push_back(make_tuple(lLepP4[yy], lLepQ[yy]*lPDG, lLepIso[yy]/lLepP4[yy].Pt()));
+                sort(allLeps.begin(), allLeps.end(), SortDecPt);
 
 
 
@@ -710,567 +957,351 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
                 {
                     // Trigger efficiency
                     // Uses only leading leptons, FIXME
-//                  if ((lepFiredLeg1[x] || lepFiredLeg2[x]) && (lepFiredLeg1[y] || lepFiredLeg2[y]))
+/*
+//                  if ((lLepFiredLeg1[x] || lLepFiredLeg2[x]) && (lLepFiredLeg1[y] || lLepFiredLeg2[y]))
                     if (kFALSE)
                     {
-                        float trigEffData, trigEffMC;
+                    float trigEffData, trigEffMC;
 
-                        trigEffData  = lepTrigEffLeg1Data[x] * lepTrigEffLeg2Data[y];
-                        trigEffData += lepTrigEffLeg1Data[y] * lepTrigEffLeg2Data[x];
-                        trigEffData -= lepTrigEffLeg1Data[x] * lepTrigEffLeg1Data[y];
+                    trigEffData  = lLepEffLeg1Data[x] * lLepEffLeg2Data[y];
+                    trigEffData += lLepEffLeg1Data[y] * lLepEffLeg2Data[x];
+                    trigEffData -= lLepEffLeg1Data[x] * lLepEffLeg1Data[y];
 
-                        trigEffMC  = lepTrigEffLeg1MC[x] * lepTrigEffLeg2MC[y];
-                        trigEffMC += lepTrigEffLeg1MC[y] * lepTrigEffLeg2MC[x];
-                        trigEffMC -= lepTrigEffLeg1MC[x] * lepTrigEffLeg1MC[y];
-                        if (trigEffMC == 0)
-                            trigEffMC = 1;
+                    trigEffMC  = lLepEffLeg1MC[x] * lLepEffLeg2MC[y];
+                    trigEffMC += lLepEffLeg1MC[y] * lLepEffLeg2MC[x];
+                    trigEffMC -= lLepEffLeg1MC[x] * lLepEffLeg1MC[y];
+                    if (trigEffMC == 0)
+                    trigEffMC = 1;
 
-                        triggerWeight = trigEffData / trigEffMC;
+                    triggerWeight = trigEffData / trigEffMC;
                     }
+*/
+
+                    // ID efficiency
+                    idWeight *= lLepIDSF[x] * lLepIDSF[y] * lLepIDSF[xx] * lLepIDSF[yy];
+                }
+                weight = genWeight * PUWeight * triggerWeight * idWeight;
+            }
+
+
+
+
+            ////////////////////////
+            //    MIXED FLAVOR    //
+            ////////////////////////
+
+
+            else if (muLeads != muTrails)
+            {
+
+
+                //--- Z SELECTION ---//
+
+                vector<pair<unsigned, unsigned>> z1Cand, z2Cand;
+
+                // Z1 candidates
+                for (unsigned j = 1; j < nLLeps; j++)
+                {
+                    if (!lLepIsHZZ[j])
+                        continue;
+                    if (!lLepFiredLeg2[j])
+                        continue;
+
+                    for (unsigned i = 0; i < j; i++)
+                    {
+                        if (!lLepIsHZZ[i])
+                            continue;
+                        if (!lLepFiredLeg1[i])
+                            continue;
+                        if (lLepQ[i] == lLepQ[j])
+                            continue;
+
+                        Float_t mll = (lLepP4[i] + lLepP4[j]).M();
+                        if (mll > MZ1_MIN && mll < MZ_MAX)
+                            z1Cand.push_back(make_pair(i, j));
+                    }
+                }
+                if (z1Cand.size() < 1)
+                    continue;
+
+
+                // Z2 candidates
+                for (unsigned j = 1; j < nTLeps; j++)
+                {
+                    if (!tLepIsHZZ[j])
+                        continue;
+
+                    for (unsigned i = 0; i < j; i++)
+                    {
+                        if (!tLepIsHZZ[i])
+                            continue;
+                        if (tLepQ[i] == tLepQ[j])
+                            continue;
+
+                        Float_t mll = (tLepP4[i] + tLepP4[j]).M();
+                        if (mll > MZ_MIN && mll < MZ_MAX)
+                            z2Cand.push_back(make_pair(i, j));
+                    }
+                }
+                if (z2Cand.size() < 1)
+                    continue;
+
+
+
+                //--- ZZ SELECTION ---//
+
+                vector<pair<pair<unsigned, unsigned>, pair<unsigned, unsigned>>> zzCand;
+                vector<Float_t> zzCand_m4l, zzCand_mZ1;
+                for (unsigned i = 0; i < z1Cand.size(); i++)
+                {
+                    for (unsigned j = 0; j < z2Cand.size(); j++)
+                    {
+                        // Pair Pt, Q for easier manipulation
+                        pair<unsigned, unsigned> Z1 = z1Cand[i], Z2 = z2Cand[j];
+
+                        pair<TLorentzVector, TLorentzVector> Z1_p4s, Z2_p4s;
+                        Z1_p4s = make_pair(lLepP4[Z1.first], lLepP4[Z1.second]);
+                        Z2_p4s = make_pair(tLepP4[Z2.first], tLepP4[Z2.second]);
+
+                        pair<Short_t, Short_t> Z1_qs, Z2_qs;
+                        Z1_qs = make_pair(lLepQ[Z1.first], lLepQ[Z1.second]);
+                        Z2_qs = make_pair(tLepQ[Z2.first], tLepQ[Z2.second]);
+
+                        TLorentzVector ZZ_p4, Z1_p4, Z2_p4;
+                        Z1_p4 = Z1_p4s.first + Z1_p4s.second;
+                        Z2_p4 = Z2_p4s.first + Z2_p4s.second;
+                        ZZ_p4 = Z1_p4 + Z2_p4;
+
+
+                        // Ensure Z1 is closest to nominal Z mass
+                        if (fabs(Z1_p4.M() - Z_MASS) > fabs(Z2_p4.M() - Z_MASS))
+                            continue;
+
+
+                        // Mass requirement
+                        if (ZZ_p4.M() < M_MIN || ZZ_p4.M() > M_MAX)
+                            continue;
+
+
+                        // Pt2 requirement
+                        if (Z1_p4s.second.Pt() < PT2_MIN && Z2_p4s.first.Pt() < PT2_MIN)
+                            continue;
+
+
+                        // Ghost removal
+                        vector<TLorentzVector> selLepP4 = {Z1_p4s.first, Z1_p4s.second,
+                            Z2_p4s.first, Z2_p4s.second};
+                        Bool_t foundGhost = kFALSE;
+                        for (unsigned y = 1; y < selLepP4.size(); y++)
+                        {
+                            for (unsigned x = 0; x < y; x++)
+                            {
+                                if (selLepP4[x].DeltaR(selLepP4[y]) < DR_MIN)
+                                {
+                                    foundGhost = kTRUE;     break;
+                                }
+                            }
+                            if (foundGhost)
+                                break;
+                        }
+                        if (foundGhost)
+                            continue;
+
+
+                        zzCand.push_back(make_pair(Z1, Z2));
+                        zzCand_mZ1.push_back(Z1_p4.M());
+                        zzCand_m4l.push_back(ZZ_p4.M());
+                    }
+                }
+                if (zzCand.size() < 1)
+                    continue;
+
+
+
+                //--- BEST ZZ ---//
+
+                unsigned zz = 0;
+                Float_t massDiff = 1000.;
+                for (unsigned m = 0; m < zzCand.size(); m++)
+                {
+                    Float_t massDiff_ = fabs(zzCand_mZ1[m] - Z_MASS);
+                    if (massDiff_ < massDiff)
+                    {
+                        massDiff = massDiff_;       zz = m;
+                    }
+                }
+
+
+                // Assemble indices of selected pairs
+                pair<pair<unsigned, unsigned>, pair<unsigned, unsigned>> ZZ = zzCand[zz];
+                pair<unsigned, unsigned> Z1 = ZZ.first, Z2 = ZZ.second;
+                unsigned x = Z1.first, y = Z1.second, xx = Z2.first, yy = Z2.second;
+
+                z1leps.push_back(make_tuple(lLepP4[x],  lLepQ[x]*lPDG,  lLepIso[x]/lLepP4[x].Pt()));
+                z1leps.push_back(make_tuple(lLepP4[y],  lLepQ[y]*lPDG,  lLepIso[y]/lLepP4[y].Pt()));
+
+                z2leps.push_back(make_tuple(tLepP4[xx], tLepQ[xx]*lPDG, tLepIso[xx]/tLepP4[xx].Pt()));
+                z2leps.push_back(make_tuple(tLepP4[yy], tLepQ[yy]*lPDG, tLepIso[yy]/tLepP4[yy].Pt()));
+
+
+                // Sort lepton PDG ID and iso by Pt
+                allLeps.push_back(make_tuple(lLepP4[x], lLepQ[x]*lPDG, lLepIso[x]/lLepP4[x].Pt()));
+                allLeps.push_back(make_tuple(lLepP4[y], lLepQ[y]*lPDG, lLepIso[y]/lLepP4[y].Pt()));
+                allLeps.push_back(make_tuple(tLepP4[xx], tLepQ[xx]*tPDG, tLepIso[xx]/tLepP4[xx].Pt()));
+                allLeps.push_back(make_tuple(tLepP4[yy], tLepQ[yy]*tPDG, tLepIso[yy]/tLepP4[yy].Pt()));
+                sort(allLeps.begin(), allLeps.end(), SortDecPt);
+
+
+
+                //--- WEIGHTING ---//
+
+                float triggerWeight = 1, idWeight = 1;
+
+                if (!isData)
+                {
+                    // Trigger efficiency
+                    // Uses only leading leptons, FIXME
+                    // (oops, looks like there isn't even anything to fix)
 
 
                     // ID efficiency
-                    idWeight *= lepIDSF[x] * lepIDSF[y] * lepIDSF[xx] * lepIDSF[yy];
+                    idWeight *= lLepIDSF[x] * lLepIDSF[y] * tLepIDSF[xx] * tLepIDSF[yy];
                 }
-                float eventWeight = genWeight * PUWeight * triggerWeight * idWeight;
-
-
-
-                //--- HISTOGRAMS ---//
-
-                hAcceptedEvents->Fill(3, eventWeight);
-                hTotalEvents->Fill(6);
-                hTotalEvents->Fill(7, eventWeight);
-
-
-                //--- CONTAINERS ---//
-
-                evtNum = *evtNum_;                          nPV = *nPV_;        
-                met = *met_;                                weight = eventWeight;
-                z1p4 = lepP4[x] + lepP4[y];                 z2p4 = lepP4[xx] + lepP4[yy]; 
-                zzp4 = z1p4 + z2p4;
-                tie(l1p4, l1pdg, l1iso) = lepTuple[0];      tie(l2p4, l2pdg, l2iso) = lepTuple[1];
-                tie(l3p4, l3pdg, l3iso) = lepTuple[2];      tie(l4p4, l4pdg, l4iso) = lepTuple[3];
-
-                z1l1p4 = lepP4[x];  z1l2p4 = lepP4[y];      z2l1p4 = lepP4[xx]; z2l2p4 = lepP4[yy];
-                tlp4 = l2p4 + l3p4 + l4p4;
-                angle = z1l2p4.Angle(z2p4.Vect());
-
-                tree->Fill();
-            } 
-        }
-    }
-
-
-
-
-    ///////////////////////
-    //    TWO FLAVORS    //
-    ///////////////////////
-
-
-    else
-    {
-
-
-        //--- BRANCHES ---//
-
-        TString Lep1 = muPair1 ? "Muon" : "Electron",   Lep2 = muPair2 ? "Muon" : "Electron";
-        TString lep1 = muPair1 ? "muon" : "electron",   lep2 = muPair2 ? "muon" : "electron";
-        Short_t pdg1 = muPair1 ? 13 : 11,               pdg2 = muPair2 ? 13 : 11;
-        Float_t LEP1_MASS = muPair1 ? MU_MASS : ELE_MASS;
-        Float_t LEP2_MASS = muPair2 ? MU_MASS : ELE_MASS;
-        Float_t LEP1_PT_MIN = muPair1 ? MU_PT_MIN : ELE_PT_MIN;
-        Float_t LEP2_PT_MIN = muPair2 ? MU_PT_MIN : ELE_PT_MIN;
-        Float_t PT1_MIN  = muPair1 ? MU_PT1_MIN : ELE_PT1_MIN;
-        Float_t PT2_MIN  = muPair1 ? MU_PT2_MIN : ELE_PT2_MIN;
-        TString StringMVA1 = muPair1 ? "IsLoose" : "PassNoIsoMVA";
-        TString StringMVA2 = muPair2 ? "IsLoose" : "PassNoIsoMVA";
-
-
-        // Event
-        TTreeReaderValue<UInt_t>    evtNum_(reader, "evtNumber.eventNumber");
-        TTreeReaderValue<UShort_t>  nPV_(reader, "nPV");
-        TTreeReaderValue<Float_t>   met_(reader, "met");
-
-        TTreeReaderValue<Bool_t>    passMuonTrig_(reader, "evtMuonTriggered");
-        TTreeReaderValue<Bool_t>    passElecTrig_(reader, "evtElectronTriggered");
-        TTreeReaderValue<UShort_t>  nLep1s_(reader, "n"+Lep1+"s");
-        TTreeReaderValue<UShort_t>  nLep2s_(reader, "n"+Lep2+"s");
-        TTreeReaderValue<UShort_t>  nHZZLep1s_(reader, "nHZZ"+Lep1+"s");
-        TTreeReaderValue<UShort_t>  nHZZLep2s_(reader, "nHZZ"+Lep2+"s");
-        TTreeReaderValue<UShort_t>  nHZZAll_(reader, "nHZZLeptons");
-        TTreeReaderValue<UShort_t>  nPartons_(reader, "nPartons");
-
-        TTreeReaderValue<Float_t>   genWeight_(reader, "genWeight");
-        TTreeReaderValue<Float_t>   PUWeight_(reader, "PUWeight");
-
-
-        // Leading flavor leptons
-        TTreeReaderArray<TLorentzVector>    lep1P4_(reader, lep1+"P4");
-        TTreeReaderValue<vector<Short_t>>   lep1Q_(reader, lep1+"Q");
-        TTreeReaderValue<vector<Bool_t>>    lep1FiredLeg1_(reader, lep1+"FiredLeg1");
-        TTreeReaderValue<vector<Bool_t>>    lep1FiredLeg2_(reader, lep1+"FiredLeg2");
-        TTreeReaderValue<vector<Bool_t>>    lep1IsHZZ_(reader, lep1+"IsHZZ");
-        TTreeReaderValue<vector<Bool_t>>    lep1PassMVA_(reader, lep1+StringMVA1);
-
-        TTreeReaderValue<vector<Float_t>>   lep1EnergySF_(reader, lep1+"EnergySF");
-        TTreeReaderValue<vector<Float_t>>   lep1IDSF_(reader, lep1+"HZZIDSF");
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg1Data_(reader, lep1+"TrigEffLeg1Data");
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg1MC_(reader, lep1+"TrigEffLeg1MC");
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg2Data_(reader, lep1+"TrigEffLeg2Data");
-        TTreeReaderValue<vector<Float_t>>   lep1TrigEffLeg2MC_(reader, lep1+"TrigEffLeg2MC");
-
-        TTreeReaderValue<vector<Float_t>>   lep1Iso_(reader, lep1+"CombIso");
-
-
-        // Subleading flavor leptons
-        TTreeReaderArray<TLorentzVector>    lep2P4_(reader, lep2+"P4");
-        TTreeReaderValue<vector<Short_t>>   lep2Q_(reader, lep2+"Q");
-        TTreeReaderValue<vector<Bool_t>>    lep2FiredLeg1_(reader, lep2+"FiredLeg1");
-        TTreeReaderValue<vector<Bool_t>>    lep2FiredLeg2_(reader, lep2+"FiredLeg2");
-        TTreeReaderValue<vector<Bool_t>>    lep2IsHZZ_(reader, lep2+"IsHZZ");
-        TTreeReaderValue<vector<Bool_t>>    lep2PassMVA_(reader, lep2+StringMVA2);
-
-        TTreeReaderValue<vector<Float_t>>   lep2EnergySF_(reader, lep2+"EnergySF");
-        TTreeReaderValue<vector<Float_t>>   lep2IDSF_(reader, lep2+"HZZIDSF");
-
-        TTreeReaderValue<vector<Float_t>>   lep2Iso_(reader, lep2+"CombIso");
-
-
-/*
-        //--- HISTOGRAMS ---//
-
-        // Fix for single-lepton trigger files
-        TFile *file_id1 = TFile::Open("hzz_"+lep1+"_id_sf.root");
-        TH2 *h_id1, *h_unc1;
-        file_id1->GetObject(th2lep1Name, h_id1);
-        h_id1->SetDirectory(0);
-        file_id1->Close();
-
-        TFile *file_id2 = TFile::Open("hzz_"+lep2+"_id_sf.root");
-        TH2 *h_id2, *h_unc2;
-        file_id2->GetObject(th2lep2Name, h_id2);
-        h_id2->SetDirectory(0);
-        file_id2->Close();
-        
-
-        // Lepton ID smear
-        // FIXME
-        if (systOn && smearID)
-        {
-            TFile *file_unc1 = TFile::Open("hzz_"+lep1+"_id_smear.root");
-            file_unc1->GetObject("SMEAR", h_unc1);
-            h_unc1->SetDirectory(0);
-            file_unc1->Close();
-
-            TFile *file_unc2 = TFile::Open("hzz_"+lep2+"_id_smear.root");
-            file_unc2->GetObject("SMEAR", h_unc2);
-            h_unc2->SetDirectory(0);
-            file_unc2->Close();
-        }
-*/
-
-
-
-        //////////////////////
-        //    EVENT LOOP    //
-        //////////////////////
-
-
-        unsigned event = 0;
-        while (reader.Next() && event < 100)
-        {
-            //  event++;
-
-            Bool_t   passTrigger;
-            if (!isData)
-            {
-                if (muPair1)
-                    passTrigger = *passMuonTrig_ && !*passElecTrig_;
-                else
-                    passTrigger = *passElecTrig_;
+                weight = genWeight * PUWeight * triggerWeight * idWeight;
             }
             else
-                passTrigger = kTRUE;
-
-            UShort_t nLep1s = *nLep1s_,         nHZZLep1s = *nHZZLep1s_;
-            UShort_t nLep2s = *nLep2s_,         nHZZLep2s = *nHZZLep2s_;
-            UShort_t nHZZAll = *nHZZAll_,       nPartons = *nPartons_;
-            Float_t  genWeight = *genWeight_,   PUWeight = *PUWeight_;
-
-            vector<TLorentzVector> lep1P4, lep2P4;
-            vector<Short_t> lep1Q, lep2Q;
-            vector<Bool_t> lep1FiredLeg1, lep1FiredLeg2, lep1IsHZZ, lep1PassMVA;
-            vector<Bool_t> lep2FiredLeg1, lep2FiredLeg2, lep2IsHZZ, lep2PassMVA;
-            vector<Float_t> lep1EnergySF, lep1IDSF, lep2EnergySF, lep2IDSF;
-            vector<Float_t> lep1TrigEffLeg1Data, lep1TrigEffLeg1MC;
-            vector<Float_t> lep1TrigEffLeg2Data, lep1TrigEffLeg2MC;
-            vector<Float_t> lep1Iso, lep2Iso;
-
-
-
-            //--- PRESELECTION ---//
-
-            if (!passTrigger)
-                continue;
-
-
-            if (nHZZLep1s < 2 || nHZZLep2s < 2)
-                continue;
-
-
-
-            //--- LEPTONS ---//
-
-            // Leading flavor
-            for (const TLorentzVector& lep1P4__: lep1P4_)
-                lep1P4.push_back(lep1P4__);
-            for (unsigned i = 0; i < nLep1s; i++)
-            {
-                lep1Q.push_back((*lep1Q_)[i]);
-                lep1FiredLeg1.push_back((*lep1FiredLeg1_)[i]);
-                lep1FiredLeg2.push_back((*lep1FiredLeg2_)[i]);
-                lep1IsHZZ.push_back((*lep1IsHZZ_)[i]);
-                lep1PassMVA.push_back((*lep1PassMVA_)[i]);
-
-                lep1EnergySF.push_back((*lep1EnergySF_)[i]);
-                lep1IDSF.push_back((*lep1IDSF_)[i]);
-                lep1TrigEffLeg1Data.push_back((*lep1TrigEffLeg1Data_)[i]);
-                lep1TrigEffLeg1MC.push_back((*lep1TrigEffLeg1MC_)[i]);
-                lep1TrigEffLeg2Data.push_back((*lep1TrigEffLeg2Data_)[i]);
-                lep1TrigEffLeg2MC.push_back((*lep1TrigEffLeg2MC_)[i]);
-
-                lep1Iso.push_back((*lep1Iso_)[i]);
-            }
-
-            // Subleading flavor
-            for (const TLorentzVector& lep2P4__: lep2P4_)
-                lep2P4.push_back(lep2P4__);
-            for (unsigned i = 0; i < nLep2s; i++)
-            {
-                lep2Q.push_back((*lep2Q_)[i]);
-                lep2FiredLeg1.push_back((*lep2FiredLeg1_)[i]);
-                lep2FiredLeg2.push_back((*lep2FiredLeg2_)[i]);
-                lep2IsHZZ.push_back((*lep2IsHZZ_)[i]);
-                lep2PassMVA.push_back((*lep2PassMVA_)[i]);
-
-                lep2EnergySF.push_back((*lep2EnergySF_)[i]);
-                lep2IDSF.push_back((*lep2IDSF_)[i]);
-
-                lep2Iso.push_back((*lep2Iso_)[i]);
-            }
-
-
-
-            //--- CORRECTIONS ---//
-
-            // Leading flavor
-            for (unsigned i = 0; i < nLep1s; i++)
-            {
-                // Energy correction
-                if (systOn)
-                {
-                    if (smearPtMC && !isData)
-                        lep1EnergySF[i] += PT_UNC * lep1EnergySF[i];
-                    else if (smearPtData && isData)
-                        lep1EnergySF[i] += PT_UNC * lep1EnergySF[i];
-                }
-                lep1P4[i].SetPtEtaPhiM(lep1P4[i].Pt() * lep1EnergySF[i], lep1P4[i].Eta(),
-                                        lep1P4[i].Phi(), LEP1_MASS);
-
-
-                // Remove leptons with Pt below threshold
-                if (lep1IsHZZ[i] && lep1P4[i].Pt() < LEP1_PT_MIN)
-                {
-                    lep1IsHZZ[i] = kFALSE;      nHZZLep1s--;
-                }
-
-
-                // Remove electrons which do not pass MVA
-                if (!muPair1)
-                {
-                    if (lep1IsHZZ[i] && !lep1PassMVA[i])
-                    {
-                        lep1IsHZZ[i] = kFALSE;      nHZZLep1s--;
-                    }
-                }
-
-/*
-                // ID scale factor
-                if (systOn)
-                {
-                    if (smearID && !isData)
-                        lep1IDSF[i] += GetBinContentPtEta(h_unc1, lep1P4[i]);
-                }
-*/
-            }
-
-            // Subleading flavor
-            for (unsigned i = 0; i < nLep2s; i++)
-            {
-                // Energy correction
-                if (systOn)
-                {
-                    if (smearPtMC && !isData)
-                        lep2EnergySF[i] += PT_UNC * lep2EnergySF[i];
-                    else if (smearPtData && isData)
-                        lep2EnergySF[i] += PT_UNC * lep2EnergySF[i];
-                }
-                lep2P4[i].SetPtEtaPhiM(lep2P4[i].Pt() * lep2EnergySF[i], lep2P4[i].Eta(),
-                                        lep2P4[i].Phi(), LEP2_MASS);
-
-
-                // Remove leptons with Pt below threshold
-                if (lep2IsHZZ[i] && lep2P4[i].Pt() < LEP2_PT_MIN)
-                {
-                    lep2IsHZZ[i] = kFALSE;      nHZZLep2s--;
-                }
-
-
-                // Remove electrons which do not pass MVA
-                if (!muPair2)
-                {
-                    if (lep2IsHZZ[i] && !lep2PassMVA[i])
-                    {
-                        lep2IsHZZ[i] = kFALSE;      nHZZLep2s--;
-                    }
-                }
-
-/*
-                // ID scale factor
-                if (systOn)
-                {
-                    if (smearID && !isData)
-                        lep2IDSF[i] += GetBinContentPtEta(h_unc2, lep2P4[i]);
-                }
-*/
-            }
-            // should be !=?  but what about ghost suppression...guess I would have to do that earlier
-            if (nHZZLep1s < 2 || nHZZLep2s < 2)
                 continue;
 
 
 
 
             /////////////////////
-            //    SELECTION    //
+            //    FILL TREE    //
             /////////////////////
 
 
-            //--- Z SELECTION ---//
-
-            vector<pair<unsigned, unsigned>> z1Cand, z2Cand;
-
-            // Z1 candidates
-            for (unsigned j = 1; j < nLep1s; j++)
-            {
-                if (!lep1IsHZZ[j])
-                    continue;
-
-                for (unsigned i = 0; i < j; i++)
-                {
-                    if (!lep1IsHZZ[i])
-                        continue;
-                    if (lep1Q[i] == lep1Q[j])
-                        continue;
-
-                    Float_t mll = (lep1P4[i] + lep1P4[j]).M();
-                    if (mll > MZ1_MIN && mll < MZ_MAX)
-                        z1Cand.push_back(make_pair(i, j));
-                }
-            }
-            if (z1Cand.size() < 1)
+            if (allLeps.size() != 4)
                 continue;
-
-
-            // Z2 candidates
-            for (unsigned j = 1; j < nLep2s; j++)
-            {
-                if (!lep2IsHZZ[j])
-                    continue;
-
-                for (unsigned i = 0; i < j; i++)
-                {
-                    if (!lep2IsHZZ[i])
-                        continue;
-                    if (lep2Q[i] == lep2Q[j])
-                        continue;
-
-                    Float_t mll = (lep2P4[i] + lep2P4[j]).M();
-                    if (mll > MZ_MIN && mll < MZ_MAX)
-                        z2Cand.push_back(make_pair(i, j));
-                }
-            }
-            if (z2Cand.size() < 1)
-                continue;
-
-
-
-            //--- ZZ SELECTION ---//
-
-            vector<pair<pair<unsigned, unsigned>, pair<unsigned, unsigned>>> zzCand;
-            vector<Float_t> zzCand_m4l, zzCand_mZ1;
-            for (unsigned i = 0; i < z1Cand.size(); i++)
-            {
-                for (unsigned j = 0; j < z2Cand.size(); j++)
-                {
-                    // Pair Pt, Q for easier manipulation
-                    pair<unsigned, unsigned> Z1 = z1Cand[i], Z2 = z2Cand[j];
-
-                    pair<TLorentzVector, TLorentzVector> Z1_p4s, Z2_p4s;
-                    Z1_p4s = make_pair(lep1P4[Z1.first], lep1P4[Z1.second]);
-                    Z2_p4s = make_pair(lep2P4[Z2.first], lep2P4[Z2.second]);
-
-                    pair<Short_t, Short_t> Z1_qs, Z2_qs;
-                    Z1_qs = make_pair(lep1Q[Z1.first], lep1Q[Z1.second]);
-                    Z2_qs = make_pair(lep2Q[Z2.first], lep2Q[Z2.second]);
-
-                    TLorentzVector ZZ_p4, Z1_p4, Z2_p4;
-                    Z1_p4 = Z1_p4s.first + Z1_p4s.second;
-                    Z2_p4 = Z2_p4s.first + Z2_p4s.second;
-                    ZZ_p4 = Z1_p4 + Z2_p4;
-
-
-                    // Ensure Z1 is closest to nominal Z mass
-                    if (fabs(Z1_p4.M() - Z_MASS) > fabs(Z2_p4.M() - Z_MASS))
-                        continue;
-
-
-                    // Mass requirement
-                    if (ZZ_p4.M() < M_MIN || ZZ_p4.M() > M_MAX)
-                        continue;
-
-
-                    // Pt2 requirement
-                    if (Z1_p4s.second.Pt() < PT2_MIN && Z2_p4s.first.Pt() < PT2_MIN)
-                        continue;
-
-
-                    // Ghost removal
-                    vector<TLorentzVector> selLepP4 = {Z1_p4s.first, Z1_p4s.second,
-                        Z2_p4s.first, Z2_p4s.second};
-                    Bool_t foundGhost = kFALSE;
-                    for (unsigned y = 1; y < selLepP4.size(); y++)
-                    {
-                        for (unsigned x = 0; x < y; x++)
-                        {
-                            if (selLepP4[x].DeltaR(selLepP4[y]) < DR_MIN)
-                            {
-                                foundGhost = kTRUE;     break;
-                            }
-                        }
-                        if (foundGhost)
-                            break;
-                    }
-                    if (foundGhost)
-                    {
-                        continue;
-
-/*
-                    // QCD suppression
-                    vector<Short_t> selLepQ = {Z1_qs.first, Z1_qs.second,
-                        Z2_qs.first, Z2_qs.second};
-                    Bool_t foundQCD = kFALSE;
-                    for (unsigned y = 1; y < selLepP4.size(); y++)
-                    {
-                        for (unsigned x = 0; x < y; x++)
-                        {
-                            if (selLepQ[x] == selLepQ[y])
-                                continue;
-
-                            if ((selLepP4[x] + selLepP4[y]).M() < MLL_MIN)
-                            {
-                                foundQCD = kTRUE;   break;
-                            }
-                        }
-                        if (foundQCD)
-                            break;
-                    }
-                    if (foundQCD)
-                        continue;
-*/
-
-                    zzCand.push_back(make_pair(Z1, Z2));
-                    zzCand_mZ1.push_back(Z1_p4.M());
-                    zzCand_m4l.push_back(ZZ_p4.M());
-                }
-            }
-            if (zzCand.size() < 1)
-                continue;
-
-
-
-            //--- BEST ZZ ---//
-
-            unsigned zz = 0;
-            Float_t massDiff = 1000.;
-            for (unsigned m = 0; m < zzCand.size(); m++)
-            {
-                Float_t massDiff_ = fabs(zzCand_mZ1[m] - Z_MASS);
-                if (massDiff_ < massDiff)
-                {
-                    massDiff = massDiff_;       zz = m;
-                }
-            }
-
-
-            // Assemble indices of selected pairs
-            pair<pair<unsigned, unsigned>, pair<unsigned, unsigned>> ZZ = zzCand[zz];
-            pair<unsigned, unsigned> Z1 = ZZ.first, Z2 = ZZ.second;
-            unsigned x = Z1.first, y = Z1.second, xx = Z2.first, yy = Z2.second;
-
-
-            // Sort lepton PDG ID and iso by Pt
-            vector<tuple<TLorentzVector, Short_t, Float_t>> lepTuple;
-            lepTuple.push_back(make_tuple(lep1P4[x], lep1Q[x]*pdg1, lep1Iso[x]/lep1P4[x].Pt()));
-            lepTuple.push_back(make_tuple(lep1P4[y], lep1Q[y]*pdg1, lep1Iso[y]/lep1P4[y].Pt()));
-            lepTuple.push_back(make_tuple(lep2P4[xx], lep2Q[xx]*pdg2, lep2Iso[xx]/lep2P4[xx].Pt()));
-            lepTuple.push_back(make_tuple(lep2P4[yy], lep2Q[yy]*pdg2, lep2Iso[yy]/lep2P4[yy].Pt()));
-            sort(lepTuple.begin(), lepTuple.end(), SortDecPt);
-
-
-
-            //--- WEIGHTING ---//
-
-            float triggerWeight = 1, idWeight = 1;
-
-            if (!isData)
-            {
-                // Trigger efficiency
-                // Uses only leading leptons, FIXME
-
-
-                // ID efficiency
-                idWeight *= lep1IDSF[x] * lep1IDSF[y] * lep2IDSF[xx] * lep2IDSF[yy];
-            }
-            float eventWeight = genWeight * PUWeight * triggerWeight * idWeight;
 
 
 
             //--- HISTOGRAMS ---//
 
-            hAcceptedEvents->Fill(3, eventWeight);
+            hSelectedEvents->Fill(1, weight);
+            hSelectedEvents->Fill(binIdx[C], weight);
+
             hTotalEvents->Fill(6);
-            hTotalEvents->Fill(7, eventWeight);
+            hTotalEvents->Fill(7, weight);
+
 
 
             //--- CONTAINERS ---//
 
-            evtNum = *evtNum_;                          nPV = *nPV_;        
-            met = *met_;                                weight = eventWeight;
-            z1p4 = lep1P4[x] + lep1P4[y];               z2p4 = lep2P4[xx] + lep2P4[yy]; 
-            zzp4 = z1p4 + z2p4;
-            tie(l1p4, l1pdg, l1iso) = lepTuple[0];      tie(l2p4, l2pdg, l2iso) = lepTuple[1];
-            tie(l3p4, l3pdg, l3iso) = lepTuple[2];      tie(l4p4, l4pdg, l4iso) = lepTuple[3];
 
-            z1l1p4 = lep1P4[x]; z1l2p4 = lep1P4[y];     z2l1p4 = lep2P4[xx];    z2l2p4 = lep2P4[yy];
-            tlp4 = l2p4 + l3p4 + l4p4;
-            angle = z1l2p4.Angle(z2p4.Vect());
+            evtNum  = *evtNum_;
+            nPV     = *nPV_;                            met = *met_;
+            z1p4    = GetP4Sum(z1leps);                 z2p4 = GetP4Sum(z2leps); 
+            zzp4    = z1p4 + z2p4;
+            tie(l1p4, l1pdg, l1iso) = allLeps[0];       tie(l2p4, l2pdg, l2iso) = allLeps[1];
+            tie(l3p4, l3pdg, l3iso) = allLeps[2];       tie(l4p4, l4pdg, l4iso) = allLeps[3];
 
-            tree->Fill();
-        }
-    }
+
+
+            //--- BOOST ---//
+
+            // Sort leptons by magnitude of momentum (P) in Z COM frame
+
+            TVector3 zzb3 = zzp4.BoostVector();
+            Float_t iso;    // this is really just a dummy variable
+
+            vector<tuple<TLorentzVector, Short_t, Float_t>> b_allLeps, b_z1leps, b_z2leps;
+            for (unsigned i = 0; i < allLeps.size(); i++)
+            {
+                TLorentzVector p4;
+                Short_t pdg;
+                tie(p4, pdg, iso) = allLeps[i];
+                p4 = GetBoosted(p4, zzb3);
+                b_allLeps.push_back(make_tuple(p4, pdg, iso));
+            }
+            sort(b_allLeps.begin(), b_allLeps.end(), SortDecP);
+
+            for (unsigned i = 0; i < z1leps.size(); i++)
+            {
+                TLorentzVector p4;
+                Short_t pdg;
+                tie(p4, pdg, iso) = z1leps[i];
+                p4 = GetBoosted(p4, zzb3);
+                b_z1leps.push_back(make_tuple(p4, pdg, iso));
+            }
+            sort(b_z1leps.begin(), b_z1leps.end(), SortDecP);
+
+            for (unsigned i = 0; i < z2leps.size(); i++)
+            {
+                TLorentzVector p4;
+                Short_t pdg;
+                tie(p4, pdg, iso) = z2leps[i];
+                p4 = GetBoosted(p4, zzb3);
+                b_z2leps.push_back(make_tuple(p4, pdg, iso));
+            }
+            sort(b_z2leps.begin(), b_z2leps.end(), SortDecP);
+
+            tie(b_l1p4, b_l1pdg, iso) = b_allLeps[0];       tie(b_l2p4, b_l2pdg, iso) = b_allLeps[1];
+            tie(b_l3p4, b_l3pdg, iso) = b_allLeps[2];       tie(b_l4p4, b_l4pdg, iso) = b_allLeps[3];
+
+            TLorentzVector b_z1l1p4 = get<0>(b_z1leps[0]),  b_z1l2p4 = get<0>(b_z1leps[1]);
+            TLorentzVector b_z2l1p4 = get<0>(b_z2leps[0]),  b_z2l2p4 = get<0>(b_z2leps[1]);
+
+
+            // Pairs
+            b_z1p4  = GetBoosted(z1p4, zzb3);               b_z2p4  = GetBoosted(z2p4, zzb3);
+
+            // "Trailing trio"
+            b_ttp4  = b_l2p4 + b_l3p4 + b_l4p4;
+
+
+            // ANGLES
+            // "phi":   angle between pairs
+            TLorentzVector  z1lpp4  = get<1>(z1leps[0]) > 0 ? get<0>(z1leps[0]) : get<0>(z1leps[1]);
+            TLorentzVector  z1lmp4  = get<1>(z1leps[0]) < 0 ? get<0>(z1leps[0]) : get<0>(z1leps[1]);
+            TLorentzVector  z2lpp4  = get<1>(z2leps[0]) > 0 ? get<0>(z2leps[0]) : get<0>(z2leps[1]);
+            TLorentzVector  z2lmp4  = get<1>(z2leps[0]) < 0 ? get<0>(z2leps[0]) : get<0>(z2leps[1]);
+            TLorentzVector  b_z1lpp4 = GetBoosted(z1lpp4, zzb3);
+            TLorentzVector  b_z1lmp4 = GetBoosted(z1lmp4, zzb3);
+            TLorentzVector  b_z2lpp4 = GetBoosted(z2lpp4, zzb3);
+            TLorentzVector  b_z2lmp4 = GetBoosted(z2lmp4, zzb3);
+
+            // (normal to z1,z2 decay plane)
+            TVector3        b_z1n   = b_z1lpp4.Vect().Cross(b_z1lmp4.Vect());
+            TVector3        b_z2n   = b_z2lpp4.Vect().Cross(b_z2lmp4.Vect());
+            b_phi   = b_z1n.Angle(b_z2n);
+
+            // "theta": angle between trailing pair 1 lepton and low-mass pair
+            b_theta = b_z1l2p4.Angle(b_z2p4.Vect());
+
+            // "alpha": angle between paired leptons
+            b_z1alpha = b_z1l1p4.Angle(b_z1l2p4.Vect());
+            b_z2alpha = b_z2l1p4.Angle(b_z2l2p4.Vect());
+
+
+
+            // OTHERS
+            TVector3        z1b3    = z1p4.BoostVector(),       z2b3    = z2p4.BoostVector();
+
+            TLorentzVector  bb_z1p4 = GetBoosted(z1p4, z2b3),   bb_z2p4 = GetBoosted(z2p4, z1b3);
+            TLorentzVector  bb_z1lpp4 = GetBoosted(z1lpp4, z1b3);
+            TLorentzVector  bb_z2lpp4 = GetBoosted(z2lpp4, z2b3);
+
+            bb_z1theta  = bb_z1lpp4.Angle(bb_z2p4.Vect());
+            bb_z2theta  = bb_z2lpp4.Angle(bb_z1p4.Vect());
+
+
+            tree[C]->Fill();
+
+        }   // END 4l selection
+
+//      event++;
+
+    }   // END event loop
 
 
 
@@ -1278,9 +1309,14 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
     // Write to file
     outFile->cd();
-    tree->Write();
+
+    for (unsigned i = 0; i < N; i++)
+        tree[i]->Write();
     hTotalEvents->Write();
-    hAcceptedEvents->Write();
+    hSelectedEvents->Write();
+    hFiducialEvents->Write();
+    hPhaseSpaceEvents->Write();
+
     outFile->Purge();
     outFile->Close();
     file->Close();
@@ -1289,24 +1325,52 @@ void handleSelection(const TString selection, const TString suffix, const TStrin
 
 //  delete outFile;
 //  delete tree;
-//  delete hAcceptedEvents;
+//  delete hSelectedEvents;
 }
 
 
 
 
-//////////////////////
-// HELPER FUNCTIONS //
-//////////////////////
+////////////////////////////
+//    HELPER FUNCTIONS    //
+////////////////////////////
 
 
-bool SortDecPt(const tuple<TLorentzVector, Short_t, Float_t> &i_,
+bool SortDecPt( const tuple<TLorentzVector, Short_t, Float_t> &i_,
                 const tuple<TLorentzVector, Short_t, Float_t> &j_)
 {
     TLorentzVector i = get<0>(i_), j = get<0>(j_);
     return (i.Pt() > j.Pt());
 }
 
+
+bool SortDecP(  const tuple<TLorentzVector, Short_t, Float_t> &i_,
+                const tuple<TLorentzVector, Short_t, Float_t> &j_)
+{
+    TLorentzVector i = get<0>(i_), j = get<0>(j_);
+    return (i.P() > j.P());
+}
+
+
+TLorentzVector GetBoosted(const TLorentzVector &p4_, const TVector3 &beta)
+{
+    TLorentzVector p4(p4_);
+    p4.Boost(-beta);
+    return p4;
+}
+
+
+TLorentzVector GetP4Sum(const vector<tuple<TLorentzVector, Short_t, Float_t>> &leps)
+{
+    TLorentzVector p4sum;
+    for (unsigned i = 0; i < leps.size(); i++)
+        p4sum += get<0>(leps[i]);
+    return p4sum;
+}
+
+
+
+/*
 double GetBinContentPtEta(const TH2 *hist, const TLorentzVector &p4)
 {
     int xbin = GetXbin(hist, p4.Eta());
@@ -1366,3 +1430,4 @@ int GetYbin(const TH2 *hist, const double yval)
 
     return bin;
 }
+*/
