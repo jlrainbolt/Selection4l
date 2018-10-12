@@ -2,8 +2,8 @@
 
 suffix="$1"
 
-./runHadd.sh trees $suffix
+./runHadd.sh trees "$suffix"
 
 root.exe -q -b "drawHists.cc(\"$suffix\")"
 
-./haddChannels.sh $suffix
+./haddChannels.sh "$suffix"

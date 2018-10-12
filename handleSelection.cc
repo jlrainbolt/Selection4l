@@ -49,6 +49,15 @@ void handleSelection(const TString suffix, const TString id, const TString syste
     ///////////////////////
 
 
+    //--- MC EVENTS ---//
+
+    bool writeMC = kFALSE;
+
+    if (suffix.Contains("zz_4l"))
+        writeMC = kTRUE;
+
+
+
     //--- SYSTEMATICS ---//
 
     bool systOn = kFALSE, smearID = kFALSE, smearPtMC = kFALSE, smearPtData = kFALSE;
@@ -112,15 +121,18 @@ void handleSelection(const TString suffix, const TString id, const TString syste
     Short_t         z1pdg, z2pdg, l1pdg, l2pdg, l3pdg, l4pdg;
     Float_t         l1iso, l2iso, l3iso, l4iso;
 
-    Short_t         z1l1pdg, z1l2pdg, z2l1pdg, z2l2pdg;
-    Float_t         z1l1iso, z1l2iso, z2l1iso, z2l2iso;
-
     TLorentzVector  b_z1p4, b_z2p4, b_ttp4;
     TLorentzVector  b_l1p4, b_l2p4, b_l3p4, b_l4p4;
     Short_t         b_l1pdg, b_l2pdg, b_l3pdg, b_l4pdg;
 
     Float_t         b_theta, b_phi, b_z1alpha, b_z2alpha;
     Float_t         bb_z1theta, bb_z2theta;
+
+    Float_t         genWeight;
+    UShort_t        nGenMuons, nGenElecs;
+    TClonesArray    *genMuonP4 = new TClonesArray("TLorentzVector"),    &genMuon = *genMuonP4;
+    TClonesArray    *genElecP4 = new TClonesArray("TLorentzVector"),    &genElec = *genElecP4;
+    vector<Short_t> genMuonQ, genElecQ;
 
 
     // Branches
@@ -168,7 +180,21 @@ void handleSelection(const TString suffix, const TString id, const TString syste
             tree[i]->Branch("b_theta",  &b_theta);      tree[i]->Branch("b_phi",    &b_phi);
             tree[i]->Branch("b_z1alpha", &b_z1alpha);   tree[i]->Branch("b_z2alpha", &b_z2alpha);
             tree[i]->Branch("bb_z1theta", &bb_z1theta); tree[i]->Branch("bb_z2theta", &bb_z2theta);
+
+            if (writeMC)
+            {
+                tree[i]->Branch("genWeight",        &genWeight);
+
+                tree[i]->Branch("nGenMuons",        &nGenMuons);
+                tree[i]->Branch("genMuonP4",        &genMuonP4,     32000,  1);
+                tree[i]->Branch("genMuonQ",         &genMuonQ);
+
+                tree[i]->Branch("nGenElectrons",    &nGenElecs);
+                tree[i]->Branch("genElectronP4",    &genElecP4,     32000,  1);
+                tree[i]->Branch("genElectronQ",     &genElecQ);
+            }
         }
+
     }
 
 
@@ -276,6 +302,16 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 //  TTreeReaderValue<vector<Float_t>>   elecEffL2MC_(reader,        "elecTrigEffLeg2MC");
 
 
+    // Gen particles
+    TTreeReaderValue<UShort_t>          nGenMuons_(reader,          "nGenMuons");
+    TTreeReaderArray<TLorentzVector>    genMuonP4_(reader,          "genMuonP4");
+    TTreeReaderValue<vector<Short_t>>   genMuonQ_(reader,           "genMuonQ");
+
+    TTreeReaderValue<UShort_t>          nGenElecs_(reader,          "nGenElectrons");
+    TTreeReaderArray<TLorentzVector>    genElecP4_(reader,          "genElectronP4");
+    TTreeReaderValue<vector<Short_t>>   genElecQ_(reader,           "genElectronQ");
+
+
 
 
     //////////////////////
@@ -295,7 +331,8 @@ void handleSelection(const TString suffix, const TString id, const TString syste
         Bool_t                  muonTrig    = *muonTrig_,           elecTrig    = *elecTrig_;
         UShort_t                nMuons      = *nMuons_,             nElecs      = *nElecs_;
         UShort_t                nHZZMuons   = *nHZZMuons_,          nHZZElecs   = *nHZZElecs_;
-        Float_t                 genWeight   = *genWeight_,          PUWeight    = *PUWeight_;
+        Float_t                 PUWeight    = *PUWeight_;
+                                genWeight   = *genWeight_; 
 
         vector<TLorentzVector>  muonP4,                             elecP4;
         vector<Short_t>         muonQ,                              elecQ;
@@ -308,6 +345,10 @@ void handleSelection(const TString suffix, const TString id, const TString syste
         vector<Float_t>         muonIDSF,                           elecIDSF;
 //      vector<Float_t>         muonEffL1Data,  muonEffL2Data,      elecEffL1Data,  elecEffL2Data;
 //      vector<Float_t>         muonEffL1MC,    muonEffL2MC,        elecEffL1MC,    elecEffL2MC;
+
+                                genMuon.Delete();                   genElec.Delete();
+                                genMuonQ.clear();                   genElecQ.clear();
+                                nGenMuons   = *nGenMuons_;          nGenElecs   = *nGenElecs_;
 
 
 
@@ -1183,6 +1224,8 @@ void handleSelection(const TString suffix, const TString id, const TString syste
             if (allLeps.size() != 4)
                 continue;
 
+//          event++;
+
 
 
             //--- HISTOGRAMS ---//
@@ -1259,7 +1302,8 @@ void handleSelection(const TString suffix, const TString id, const TString syste
             b_ttp4  = b_l2p4 + b_l3p4 + b_l4p4;
 
 
-            // ANGLES
+            //--- ANGLES ---//
+
             // "phi":   angle between pairs
             TLorentzVector  z1lpp4  = get<1>(z1leps[0]) > 0 ? get<0>(z1leps[0]) : get<0>(z1leps[1]);
             TLorentzVector  z1lmp4  = get<1>(z1leps[0]) < 0 ? get<0>(z1leps[0]) : get<0>(z1leps[1]);
@@ -1293,6 +1337,30 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 
             bb_z1theta  = bb_z1lpp4.Angle(bb_z2p4.Vect());
             bb_z2theta  = bb_z2lpp4.Angle(bb_z1p4.Vect());
+
+
+
+            //--- GEN EVENTS ---// 
+
+            if (writeMC)
+            {
+                unsigned i_m = 0, i_e = 0;
+                for (const TLorentzVector& genMuonP4__: genMuonP4_)
+                {
+                    new(genMuon[i_m]) TLorentzVector(genMuonP4__);
+                    genMuonQ.push_back((*genMuonQ_)[i_m]);
+                    i_m++;
+                }
+
+                for (const TLorentzVector& genElecP4__: genElecP4_)
+                {
+                    new(genElec[i_e]) TLorentzVector(genElecP4__);
+                    genElecQ.push_back((*genElecQ_)[i_e]);
+                    i_e++;
+                }
+            }
+
+
 
 
             tree[C]->Fill();

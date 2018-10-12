@@ -38,51 +38,54 @@ void drawHists(const TString suffix)
     else
     {
         isData = kFALSE;
-        if (suffix == "zjets_m-50")
+        if (suffix.Contains("zjets_m-50"))
         {
             xsec = 5765.4;
             color = lYellow;
         }
-        else if (suffix == "ggH_zz_4l")
+        else if (suffix.Contains("ggH_zz_4l"))
         {
             xsec = 0.01212;
             color = lPurple;
         }
-        else if (suffix == "vbfH_zz_4l")
+        else if (suffix.Contains("vbfH_zz_4l"))
         {
             xsec = 0.001034;
             color = lPurple;
         }
-        else if (suffix == "ttbar")
+        else if (suffix.Contains("ttbar"))
         {
             xsec = 831.76;
             color = lGreen;
         }
-        else if (suffix == "ww_2l2nu")
+        else if (suffix.Contains("ww_2l2nu"))
         {
             xsec = 12.178;
             color = lOrange;
         }
-        else if (suffix == "wz_2l2q")
+        else if (suffix.Contains("wz_2l2q"))
         {
             xsec = 5.595;
             color = lOrange;
         }
-        else if (suffix == "wz_3lnu")
+        else if (suffix.Contains("wz_3lnu"))
         {
             xsec = 4.42965;
             color = lOrange;
         }
-        else if (suffix == "zz_2l2q")
+        else if (suffix.Contains("zz_2l2q"))
         {
             xsec = 3.22;
             color = lOrange;
         }
-        else if (suffix == "zz_4l")
+        else if (suffix.Contains("zz_4l"))
         {
             xsec = 1.212;
             color = lLightBlue;
         }
+
+        if (suffix.Contains("gen"))
+            color = 9;
     }
 
 
