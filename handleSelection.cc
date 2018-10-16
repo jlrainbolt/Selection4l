@@ -27,6 +27,11 @@ bool            SortDecPt(  const tuple<TLorentzVector, Short_t, Float_t> &i_,
 bool            SortDecP(   const tuple<TLorentzVector, Short_t, Float_t> &i_,
                             const tuple<TLorentzVector, Short_t, Float_t> &j_);
 
+vector<tuple<TLorentzVector, Short_t, Float_t>> SortGenLeps(
+                vector<tuple<TLorentzVector, Short_t, Float_t>> _genLeps,
+                vector<tuple<TLorentzVector, Short_t, Float_t>> recoLeps,
+                const TString &comp);
+
 TLorentzVector  GetBoosted( const TLorentzVector &p4_,  const TVector3 &beta);
 
 TLorentzVector  GetP4Sum(   const vector<tuple<TLorentzVector, Short_t, Float_t>> &leps);
@@ -51,10 +56,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 
     //--- MC EVENTS ---//
 
-    bool writeMC = kFALSE;
-
-    if (suffix.Contains("zz_4l"))
-        writeMC = kTRUE;
+    bool matchMC = kFALSE;
 
 
 
@@ -96,7 +98,8 @@ void handleSelection(const TString suffix, const TString id, const TString syste
     //--- OUTPUT ---//
 
     // File
-    TString output  = "trees_" + suffix + "_" + id + ".root";
+    TString prefix  = matchMC ? "trees_match" : "trees";
+    TString output  = prefix + "_" + suffix + "_" + id + ".root";
     TFile *outFile  = new TFile(output, "RECREATE");
 
 
@@ -117,6 +120,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
     UInt_t          evtNum;
     UShort_t        nPV;
     Float_t         met, weight;
+
     TLorentzVector  z1p4, z2p4, zzp4, l1p4, l2p4, l3p4, l4p4;
     Short_t         z1pdg, z2pdg, l1pdg, l2pdg, l3pdg, l4pdg;
     Float_t         l1iso, l2iso, l3iso, l4iso;
@@ -128,12 +132,24 @@ void handleSelection(const TString suffix, const TString id, const TString syste
     Float_t         b_theta, b_phi, b_z1alpha, b_z2alpha;
     Float_t         bb_z1theta, bb_z2theta;
 
+
+    TLorentzVector  gen_z1p4, gen_z2p4, gen_zzp4, gen_l1p4, gen_l2p4, gen_l3p4, gen_l4p4;
+    Short_t         gen_z1pdg, gen_z2pdg, gen_l1pdg, gen_l2pdg, gen_l3pdg, gen_l4pdg;
+    Float_t         gen_l1dr, gen_l2dr, gen_l3dr, gen_l4dr;
+
+    TLorentzVector  gen_b_z1p4, gen_b_z2p4, gen_b_ttp4;
+    TLorentzVector  gen_b_l1p4, gen_b_l2p4, gen_b_l3p4, gen_b_l4p4;
+    Short_t         gen_b_l1pdg, gen_b_l2pdg, gen_b_l3pdg, gen_b_l4pdg;
+
+    Float_t         gen_b_theta, gen_b_phi, gen_b_z1alpha, gen_b_z2alpha;
+    Float_t         gen_bb_z1theta, gen_bb_z2theta;
+/*
     Float_t         genWeight;
     UShort_t        nGenMuons, nGenElecs;
     TClonesArray    *genMuonP4 = new TClonesArray("TLorentzVector"),    &genMuon = *genMuonP4;
     TClonesArray    *genElecP4 = new TClonesArray("TLorentzVector"),    &genElec = *genElecP4;
     vector<Short_t> genMuonQ, genElecQ;
-
+*/
 
     // Branches
     for (unsigned i = 0; i < N; i++)
@@ -162,11 +178,11 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 
         if (i > EE)
         {
-        tree[i]->Branch("l3p4",     &l3p4);         
-        tree[i]->Branch("l3pdg",    &l3pdg);        tree[i]->Branch("l3iso",     &l3iso);
+            tree[i]->Branch("l3p4",     &l3p4);         
+            tree[i]->Branch("l3pdg",    &l3pdg);        tree[i]->Branch("l3iso",     &l3iso);
 
-        tree[i]->Branch("l4p4",     &l4p4);
-        tree[i]->Branch("l4pdg",    &l4pdg);        tree[i]->Branch("l4iso",     &l4iso);
+            tree[i]->Branch("l4p4",     &l4p4);
+            tree[i]->Branch("l4pdg",    &l4pdg);        tree[i]->Branch("l4iso",     &l4iso);
 
 
             // Boosted quantities for differential distributions
@@ -180,21 +196,52 @@ void handleSelection(const TString suffix, const TString id, const TString syste
             tree[i]->Branch("b_theta",  &b_theta);      tree[i]->Branch("b_phi",    &b_phi);
             tree[i]->Branch("b_z1alpha", &b_z1alpha);   tree[i]->Branch("b_z2alpha", &b_z2alpha);
             tree[i]->Branch("bb_z1theta", &bb_z1theta); tree[i]->Branch("bb_z2theta", &bb_z2theta);
-
-            if (writeMC)
-            {
-                tree[i]->Branch("genWeight",        &genWeight);
-
-                tree[i]->Branch("nGenMuons",        &nGenMuons);
-                tree[i]->Branch("genMuonP4",        &genMuonP4,     32000,  1);
-                tree[i]->Branch("genMuonQ",         &genMuonQ);
-
-                tree[i]->Branch("nGenElectrons",    &nGenElecs);
-                tree[i]->Branch("genElectronP4",    &genElecP4,     32000,  1);
-                tree[i]->Branch("genElectronQ",     &genElecQ);
-            }
         }
 
+
+        //--- GEN MATCHING ---//
+
+        if (matchMC)
+        {
+            // Pair/group momenta
+            if (i > EE)
+                tree[i]->Branch("gen_zzp4",     &gen_zzp4);
+
+            tree[i]->Branch("gen_z1p4",     &gen_z1p4);
+
+            if (i > EE)
+                tree[i]->Branch("gen_z2p4",     &gen_z2p4);
+
+
+            // Lepton momenta, id, iso
+            tree[i]->Branch("gen_l1p4",     &gen_l1p4);         
+            tree[i]->Branch("gen_l1pdg",    &gen_l1pdg);        tree[i]->Branch("gen_l1dr",     &gen_l1dr);
+
+            tree[i]->Branch("gen_l2p4",     &gen_l2p4);
+            tree[i]->Branch("gen_l2pdg",    &gen_l2pdg);        tree[i]->Branch("gen_l2dr",     &gen_l2dr);
+
+            if (i > EE)
+            {
+                tree[i]->Branch("gen_l3p4",     &gen_l3p4);         
+                tree[i]->Branch("gen_l3pdg",    &gen_l3pdg);        tree[i]->Branch("gen_l3dr",     &gen_l3dr);
+
+                tree[i]->Branch("gen_l4p4",     &gen_l4p4);
+                tree[i]->Branch("gen_l4pdg",    &gen_l4pdg);        tree[i]->Branch("gen_l4dr",     &gen_l4dr);
+
+
+                // Boosted quantities for differential distributions
+                tree[i]->Branch("gen_b_z1p4",   &gen_b_z1p4);       tree[i]->Branch("gen_b_z2p4",   &gen_b_z2p4);
+                tree[i]->Branch("gen_b_ttp4",   &gen_b_ttp4);
+                tree[i]->Branch("gen_b_l1p4",   &gen_b_l1p4);       tree[i]->Branch("gen_b_l1pdg",  &gen_b_l1pdg);
+                tree[i]->Branch("gen_b_l2p4",   &gen_b_l2p4);       tree[i]->Branch("gen_b_l2pdg",  &gen_b_l2pdg);
+                tree[i]->Branch("gen_b_l3p4",   &gen_b_l3p4);       tree[i]->Branch("gen_b_l3pdg",  &gen_b_l3pdg);
+                tree[i]->Branch("gen_b_l4p4",   &gen_b_l4p4);       tree[i]->Branch("gen_b_l4pdg",  &gen_b_l4pdg);
+
+                tree[i]->Branch("gen_b_theta",  &gen_b_theta);      tree[i]->Branch("gen_b_phi",    &gen_b_phi);
+                tree[i]->Branch("gen_b_z1alpha", &gen_b_z1alpha);   tree[i]->Branch("gen_b_z2alpha", &gen_b_z2alpha);
+                tree[i]->Branch("gen_bb_z1theta", &gen_bb_z1theta); tree[i]->Branch("gen_bb_z2theta", &gen_bb_z2theta);
+            }
+        }
     }
 
 
@@ -320,7 +367,8 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 
 
     unsigned event = 0;
-    while (reader.Next() && event < 100)
+//  while (reader.Next() && event < 100)
+    while (reader.Next())
     {
 //      event++;
 
@@ -332,7 +380,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
         UShort_t                nMuons      = *nMuons_,             nElecs      = *nElecs_;
         UShort_t                nHZZMuons   = *nHZZMuons_,          nHZZElecs   = *nHZZElecs_;
         Float_t                 PUWeight    = *PUWeight_;
-                                genWeight   = *genWeight_; 
+        Float_t                 genWeight   = *genWeight_; 
 
         vector<TLorentzVector>  muonP4,                             elecP4;
         vector<Short_t>         muonQ,                              elecQ;
@@ -346,9 +394,9 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 //      vector<Float_t>         muonEffL1Data,  muonEffL2Data,      elecEffL1Data,  elecEffL2Data;
 //      vector<Float_t>         muonEffL1MC,    muonEffL2MC,        elecEffL1MC,    elecEffL2MC;
 
-                                genMuon.Delete();                   genElec.Delete();
-                                genMuonQ.clear();                   genElecQ.clear();
-                                nGenMuons   = *nGenMuons_;          nGenElecs   = *nGenElecs_;
+        vector<TLorentzVector>  genMuonP4,                          genElecP4;
+        vector<Short_t>         genMuonQ,                           genElecQ;
+        UShort_t                nGenMuons   = *nGenMuons_,          nGenElecs   = *nGenElecs_;
 
 
 
@@ -721,7 +769,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
             //--- CONTAINERS ---//
 
             evtNum  = *evtNum_;
-            nPV     = *nPV_;                            met = *met_;
+            nPV     = *nPV_;                            met     = *met_;
             l1p4    = lLepP4[x];                        l2p4    = lLepP4[y];
             l1pdg   = lLepQ[x] * lPDG;                  l2pdg   = lLepQ[y] * lPDG;
             l1iso   = lLepIso[x] / l1p4.Pt();           l2iso   = lLepIso[y] / l2p4.Pt();
@@ -1225,6 +1273,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
                 continue;
 
 //          event++;
+//          cout << event << endl;
 
 
 
@@ -1302,6 +1351,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
             b_ttp4  = b_l2p4 + b_l3p4 + b_l4p4;
 
 
+
             //--- ANGLES ---//
 
             // "phi":   angle between pairs
@@ -1340,24 +1390,172 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 
 
 
-            //--- GEN EVENTS ---// 
 
-            if (writeMC)
+            ////////////////////  
+            //    GEN INFO    // 
+            ////////////////////  
+
+
+            if (matchMC)
             {
-                unsigned i_m = 0, i_e = 0;
+                //--- FILL CONTAINERS ---//
+
                 for (const TLorentzVector& genMuonP4__: genMuonP4_)
-                {
-                    new(genMuon[i_m]) TLorentzVector(genMuonP4__);
-                    genMuonQ.push_back((*genMuonQ_)[i_m]);
-                    i_m++;
-                }
+                    genMuonP4.push_back(genMuonP4__);
+                for (unsigned i = 0; i < nGenMuons; i++)
+                    genMuonQ.push_back(         -1*(*genMuonQ_)[i]);
 
                 for (const TLorentzVector& genElecP4__: genElecP4_)
+                    genElecP4.push_back(genElecP4__);
+                for (unsigned i = 0; i < nGenElecs; i++)
+                    genElecQ.push_back(         -1*(*genElecQ_)[i]);
+
+
+                // Declare stuff...gross
+                vector<tuple<TLorentzVector, Short_t, Float_t>> gen_muons, gen_elecs;
+                vector<tuple<TLorentzVector, Short_t, Float_t>> gen_allLeps, gen_z1leps, gen_z2leps;
+
+                for (unsigned i = 0; i < nGenMuons; i++)
+                    gen_muons.push_back(make_tuple( genMuonP4[i],   genMuonQ[i]*13,     0));
+                for (unsigned i = 0; i < nGenElecs; i++)
+                    gen_elecs.push_back(make_tuple( genElecP4[i],   genElecQ[i]*11,     0));
+
+                gen_allLeps = gen_muons;
+                gen_allLeps.insert(gen_allLeps.end(), gen_elecs.begin(), gen_elecs.end());
+
+
+
+                //--- CATEGORIZE ---//
+
+                if      (nGenMuons == 4 && nGenElecs == 0)
                 {
-                    new(genElec[i_e]) TLorentzVector(genElecP4__);
-                    genElecQ.push_back((*genElecQ_)[i_e]);
-                    i_e++;
+                    gen_z1leps = SortGenLeps(gen_muons, z1leps, "Pt");
+                    gen_z2leps = SortGenLeps(gen_muons, z2leps, "Pt");
                 }
+                else if (nGenMuons == 2 && nGenElecs == 2)
+                {
+                    if (muLeads)
+                    {
+                        gen_z1leps = SortGenLeps(gen_muons, z1leps, "Pt");
+                        gen_z2leps = SortGenLeps(gen_elecs, z2leps, "Pt");
+                    }
+                    else
+                    {
+                        gen_z1leps = SortGenLeps(gen_elecs, z1leps, "Pt");
+                        gen_z2leps = SortGenLeps(gen_muons, z2leps, "Pt");
+                    }
+                }
+                else if (nGenMuons == 0 && nGenElecs == 4)
+                {
+                    gen_z1leps = SortGenLeps(gen_elecs, z1leps, "Pt");
+                    gen_z2leps = SortGenLeps(gen_elecs, z2leps, "Pt");
+                }
+                else
+                    continue;
+
+                gen_allLeps = SortGenLeps(gen_allLeps, allLeps, "Pt");
+
+
+                gen_z1p4    = GetP4Sum(gen_z1leps);         gen_z2p4 = GetP4Sum(gen_z2leps);
+                gen_zzp4    = gen_z1p4 + gen_z2p4;
+                tie(gen_l1p4, gen_l1pdg, gen_l1dr) = gen_allLeps[0];
+                tie(gen_l2p4, gen_l2pdg, gen_l2dr) = gen_allLeps[1];
+                tie(gen_l3p4, gen_l3pdg, gen_l3dr) = gen_allLeps[2];
+                tie(gen_l4p4, gen_l4pdg, gen_l4dr) = gen_allLeps[3];
+
+
+
+                //--- BOOST ---//
+
+                TVector3 gen_zzb3 = gen_zzp4.BoostVector();
+                Float_t dr;    // this is really just a dummy variable
+
+                vector<tuple<TLorentzVector, Short_t, Float_t>> gen_b_allLeps, gen_b_z1leps, gen_b_z2leps;
+                for (unsigned i = 0; i < gen_allLeps.size(); i++)
+                {
+                    TLorentzVector p4;
+                    Short_t pdg;
+                    tie(p4, pdg, dr) = gen_allLeps[i];
+                    p4 = GetBoosted(p4, gen_zzb3);
+                    gen_b_allLeps.push_back(make_tuple(p4, pdg, dr));
+                }
+                gen_b_allLeps = SortGenLeps(gen_b_allLeps, b_allLeps, "P");
+
+                for (unsigned i = 0; i < gen_z1leps.size(); i++)
+                {
+                    TLorentzVector p4;
+                    Short_t pdg;
+                    tie(p4, pdg, dr) = gen_z1leps[i];
+                    p4 = GetBoosted(p4, gen_zzb3);
+                    gen_b_z1leps.push_back(make_tuple(p4, pdg, dr));
+                }
+                gen_b_z1leps = SortGenLeps(gen_b_z1leps, b_z1leps, "P");
+
+                for (unsigned i = 0; i < gen_z2leps.size(); i++)
+                {
+                    TLorentzVector p4;
+                    Short_t pdg;
+                    tie(p4, pdg, dr) = gen_z2leps[i];
+                    p4 = GetBoosted(p4, gen_zzb3);
+                    gen_b_z2leps.push_back(make_tuple(p4, pdg, dr));
+                }
+                gen_b_z2leps = SortGenLeps(gen_b_z2leps, b_z2leps, "P");
+
+                tie(gen_b_l1p4, gen_b_l1pdg, dr) = gen_b_allLeps[0];
+                tie(gen_b_l2p4, gen_b_l2pdg, dr) = gen_b_allLeps[1];
+                tie(gen_b_l3p4, gen_b_l3pdg, dr) = gen_b_allLeps[2];
+                tie(gen_b_l4p4, gen_b_l4pdg, dr) = gen_b_allLeps[3];
+
+                TLorentzVector gen_b_z1l1p4 = get<0>(gen_b_z1leps[0]),  gen_b_z1l2p4 = get<0>(gen_b_z1leps[1]);
+                TLorentzVector gen_b_z2l1p4 = get<0>(gen_b_z2leps[0]),  gen_b_z2l2p4 = get<0>(gen_b_z2leps[1]);
+
+
+                // Pairs
+                gen_b_z1p4  = GetBoosted(gen_z1p4, gen_zzb3);
+                gen_b_z2p4  = GetBoosted(gen_z2p4, gen_zzb3);
+
+                // "Trailing trio"
+                gen_b_ttp4  = gen_b_l2p4 + gen_b_l3p4 + gen_b_l4p4;
+
+
+                //--- ANGLES ---//
+
+                // "phi":   angle between pairs
+                // FIXME?
+                TLorentzVector  gen_z1lpp4  = get<1>(gen_z1leps[0]) > 0 ? get<0>(gen_z1leps[0]) : get<0>(gen_z1leps[1]);
+                TLorentzVector  gen_z1lmp4  = get<1>(gen_z1leps[0]) < 0 ? get<0>(gen_z1leps[0]) : get<0>(gen_z1leps[1]);
+                TLorentzVector  gen_z2lpp4  = get<1>(gen_z2leps[0]) > 0 ? get<0>(gen_z2leps[0]) : get<0>(gen_z2leps[1]);
+                TLorentzVector  gen_z2lmp4  = get<1>(gen_z2leps[0]) < 0 ? get<0>(gen_z2leps[0]) : get<0>(gen_z2leps[1]);
+                TLorentzVector  gen_b_z1lpp4 = GetBoosted(gen_z1lpp4, gen_zzb3);
+                TLorentzVector  gen_b_z1lmp4 = GetBoosted(gen_z1lmp4, gen_zzb3);
+                TLorentzVector  gen_b_z2lpp4 = GetBoosted(gen_z2lpp4, gen_zzb3);
+                TLorentzVector  gen_b_z2lmp4 = GetBoosted(gen_z2lmp4, gen_zzb3);
+
+                // (normal to z1,z2 decay plane)
+                TVector3        gen_b_z1n   = gen_b_z1lpp4.Vect().Cross(gen_b_z1lmp4.Vect());
+                TVector3        gen_b_z2n   = gen_b_z2lpp4.Vect().Cross(gen_b_z2lmp4.Vect());
+                gen_b_phi   = gen_b_z1n.Angle(gen_b_z2n);
+
+                // "theta": angle between trailing pair 1 lepton and low-mass pair
+                gen_b_theta = gen_b_z1l2p4.Angle(gen_b_z2p4.Vect());
+
+                // "alpha": angle between paired leptons
+                gen_b_z1alpha = gen_b_z1l1p4.Angle(gen_b_z1l2p4.Vect());
+                gen_b_z2alpha = gen_b_z2l1p4.Angle(gen_b_z2l2p4.Vect());
+
+
+
+                // OTHERS
+                TVector3        gen_z1b3    = gen_z1p4.BoostVector(),       gen_z2b3    = gen_z2p4.BoostVector();
+
+                TLorentzVector  gen_bb_z1p4 = GetBoosted(gen_z1p4, gen_z2b3);
+                TLorentzVector  gen_bb_z2p4 = GetBoosted(gen_z2p4, gen_z1b3);
+                TLorentzVector  gen_bb_z1lpp4 = GetBoosted(gen_z1lpp4, gen_z1b3);
+                TLorentzVector  gen_bb_z2lpp4 = GetBoosted(gen_z2lpp4, gen_z2b3);
+
+                gen_bb_z1theta  = gen_bb_z1lpp4.Angle(gen_bb_z2p4.Vect());
+                gen_bb_z2theta  = gen_bb_z2lpp4.Angle(gen_bb_z1p4.Vect());
+
             }
 
 
@@ -1417,6 +1615,58 @@ bool SortDecP(  const tuple<TLorentzVector, Short_t, Float_t> &i_,
 {
     TLorentzVector i = get<0>(i_), j = get<0>(j_);
     return (i.P() > j.P());
+}
+
+
+vector<tuple<TLorentzVector, Short_t, Float_t>> SortGenLeps(
+                vector<tuple<TLorentzVector, Short_t, Float_t>> _genLeps,
+                vector<tuple<TLorentzVector, Short_t, Float_t>> recoLeps,
+                const TString &comp)
+{
+//  vector<tuple<TLorentzVector, Short_t, Float_t>> genLeps = _genLeps;
+
+    vector<tuple<TLorentzVector, Short_t, Float_t>> genLeps;
+
+    // Make sure there are enough gen leptons
+    if (recoLeps.size() > _genLeps.size())
+        return genLeps;
+
+
+    // Make sure both input vectors are sorted
+    if      (comp == "Pt")
+    {
+        sort(recoLeps.begin(), recoLeps.end(), SortDecPt);
+        sort(_genLeps.begin(), _genLeps.end(), SortDecPt);
+    }
+    else if (comp == "P")
+    {
+        sort(recoLeps.begin(), recoLeps.end(), SortDecP);
+        sort(_genLeps.begin(), _genLeps.end(), SortDecP);
+    }
+
+
+    // Loop over each reco lepton
+    for (unsigned i = 0; i < recoLeps.size(); i++)
+    {
+        TLorentzVector recoP4 = get<0>(recoLeps[i]);
+
+        // Find DeltaR between reco lep and each gen lep
+        vector<Float_t> deltaR;
+        for (unsigned j = 0; j < _genLeps.size(); j++)
+        {
+            TLorentzVector genP4 = get<0>(_genLeps[j]);
+            deltaR.push_back(recoP4.DeltaR(genP4));
+        }
+
+        // Find index of minimum DeltaR
+        unsigned m = min_element(deltaR.begin(), deltaR.end()) - deltaR.begin();
+        genLeps.push_back(make_tuple(get<0>(_genLeps[m]), get<1>(_genLeps[m]), deltaR[m]));
+
+        // Remove gen lepton from input list
+        _genLeps.erase(_genLeps.begin() + m);
+    }
+
+    return genLeps;
 }
 
 

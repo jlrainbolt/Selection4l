@@ -38,16 +38,19 @@ TLorentzVector GetP4Sum(const pair<pair<TLorentzVector, Short_t>, pair<TLorentzV
 
 int GetMassPairs(     vector<pair<TLorentzVector, Short_t>> leps_list,
     pair<pair<TLorentzVector, Short_t>, pair<TLorentzVector, Short_t>>  *large_pair,
-    pair<pair<TLorentzVector, Short_t>, pair<TLorentzVector, Short_t>>  *small_pair );
+    pair<pair<TLorentzVector, Short_t>, pair<TLorentzVector, Short_t>>  *small_pair,
+    const TLorentzVector &reco_z1p4);
 
 
 
 
-void genSelection(const TString suffix)
+void genComparison(const TString suffix)
 {
-    // This version writes out a tree that is "identical" to the reco downstream tree.
-    // It can run over post-downstream AND post-BLT analyzer trees.
-    // It does *not* match gen- and reco-level objects.
+    // This version writes out not only the gen quantities (see genSelection),
+    // but also copies over the reco quantities from the input tree and matches objects.
+    // Hence, it may only run over post-downstream MC trees.
+
+
 
 
     ///////////////////////
@@ -58,20 +61,20 @@ void genSelection(const TString suffix)
     //--- OUTPUT ---//
 
     // File
-    TString output  = "trees_gen_" + suffix + ".root";
+    TString output  = "trees_comp_" + suffix + ".root";
     TFile *outFile  = new TFile(output, "RECREATE");
 
 
     // Selection
-    const unsigned N = 6;
-    unsigned                MM = 0, EE = 1, M4 = 2, ME = 3, EM = 4, E4 = 5; // Indices
-    TString selection[N] = {"mumu", "ee",   "4m",   "2m2e", "2e2m", "4e"};
+    const unsigned N = 4;
+    unsigned                M4 = 0, ME = 1, EM = 2, E4 = 3;     // Indices
+    TString selection[N] = {"4m",   "2m2e", "2e2m", "4e"};
 
 
     // Trees
     TTree *tree[N];
     for (unsigned i = 0; i < N; i++)
-        tree[i] = new TTree(selection[i] + "_gen_" + suffix, suffix);
+        tree[i] = new TTree(selection[i] + "_comp_" + suffix, suffix);
 
 
     // Initialize branch variables
@@ -89,37 +92,74 @@ void genSelection(const TString suffix)
     Float_t         bb_z1theta, bb_z2theta;
 
 
+    TLorentzVector  rec_z1p4, rec_z2p4, rec_zzp4, rec_l1p4, rec_l2p4, rec_l3p4, rec_l4p4;
+    Short_t         rec_z1pdg, rec_z2pdg, rec_l1pdg, rec_l2pdg, rec_l3pdg, rec_l4pdg;
+
+    TLorentzVector  rec_b_z1p4, rec_b_z2p4, rec_b_ttp4;
+    TLorentzVector  rec_b_l1p4, rec_b_l2p4, rec_b_l3p4, rec_b_l4p4;
+    Short_t         rec_b_l1pdg, rec_b_l2pdg, rec_b_l3pdg, rec_b_l4pdg;
+
+    Float_t         rec_b_theta, rec_b_phi, rec_b_z1alpha, rec_b_z2alpha;
+    Float_t         rec_bb_z1theta, rec_bb_z2theta;
+
+
+
     // Branches
     for (unsigned i = 0; i < N; i++)
     {
         // Event info
-        tree[i]->Branch("evtNum",   &evtNum);       tree[i]->Branch("weight",   &weight);
+        tree[i]->Branch("evtNum",   &evtNum);
+        tree[i]->Branch("weight",   &weight);
 
 
         // Pair/group momenta
-        tree[i]->Branch("zzp4",     &zzp4);
-        tree[i]->Branch("z1p4",     &z1p4);         tree[i]->Branch("z2p4",     &z2p4);
+        tree[i]->Branch("gen_zzp4",     &zzp4);         tree[i]->Branch("rec_zzp4",     &rec_zzp4);
+        tree[i]->Branch("gen_z1p4",     &z1p4);         tree[i]->Branch("rec_z1p4",     &rec_z1p4);
+        tree[i]->Branch("gen_z2p4",     &z2p4);         tree[i]->Branch("rec_z2p4",     &rec_z2p4);
 
 
         // Lepton momenta, id, iso
-        tree[i]->Branch("l1p4",     &l1p4);         tree[i]->Branch("l1pdg",    &l1pdg);
-        tree[i]->Branch("l2p4",     &l2p4);         tree[i]->Branch("l2pdg",    &l2pdg);
-        tree[i]->Branch("l3p4",     &l3p4);         tree[i]->Branch("l3pdg",    &l3pdg);
-        tree[i]->Branch("l4p4",     &l4p4);         tree[i]->Branch("l4pdg",    &l4pdg);
+        tree[i]->Branch("gen_l1p4",     &l1p4);         tree[i]->Branch("rec_l1p4",     &rec_l1p4);
+        tree[i]->Branch("gen_l1pdg",    &l1pdg);        tree[i]->Branch("rec_l1pdg",    &rec_l1pdg);
+
+        tree[i]->Branch("gen_l2p4",     &l2p4);         tree[i]->Branch("rec_l2p4",     &rec_l2p4);
+        tree[i]->Branch("gen_l2pdg",    &l2pdg);        tree[i]->Branch("rec_l2pdg",    &rec_l2pdg);
+
+        tree[i]->Branch("gen_l3p4",     &l3p4);         tree[i]->Branch("rec_l3p4",     &rec_l3p4);
+        tree[i]->Branch("gen_l3pdg",    &l3pdg);        tree[i]->Branch("rec_l3pdg",    &rec_l3pdg);
+
+        tree[i]->Branch("gen_l4p4",     &l4p4);         tree[i]->Branch("rec_l4p4",     &rec_l4p4);
+        tree[i]->Branch("gen_l4pdg",    &l4pdg);        tree[i]->Branch("rec_l4pdg",    &rec_l4pdg);
+
 
 
         // Boosted quantities for differential distributions
-        tree[i]->Branch("b_z1p4",   &b_z1p4);       tree[i]->Branch("b_z2p4",   &b_z2p4);
-        tree[i]->Branch("b_ttp4",   &b_ttp4);
+        tree[i]->Branch("gen_b_z1p4",   &b_z1p4);       tree[i]->Branch("rec_b_z1p4",   &rec_b_z1p4);
+        tree[i]->Branch("gen_b_z2p4",   &b_z2p4);       tree[i]->Branch("rec_b_z2p4",   &rec_b_z2p4);
+        tree[i]->Branch("gen_b_ttp4",   &b_ttp4);       tree[i]->Branch("rec_b_ttp4",   &rec_b_ttp4);
 
-        tree[i]->Branch("b_l1p4",   &b_l1p4);       tree[i]->Branch("b_l1pdg",  &b_l1pdg);
-        tree[i]->Branch("b_l2p4",   &b_l2p4);       tree[i]->Branch("b_l2pdg",  &b_l2pdg);
-        tree[i]->Branch("b_l3p4",   &b_l3p4);       tree[i]->Branch("b_l3pdg",  &b_l3pdg);
-        tree[i]->Branch("b_l4p4",   &b_l4p4);       tree[i]->Branch("b_l4pdg",  &b_l4pdg);
 
-        tree[i]->Branch("b_theta",  &b_theta);      tree[i]->Branch("b_phi",    &b_phi);
-        tree[i]->Branch("b_z1alpha", &b_z1alpha);   tree[i]->Branch("b_z2alpha", &b_z2alpha);
-        tree[i]->Branch("bb_z1theta", &bb_z1theta); tree[i]->Branch("bb_z2theta", &bb_z2theta);
+        tree[i]->Branch("gen_b_l1p4",   &b_l1p4);       tree[i]->Branch("rec_b_l1p4",   &rec_b_l1p4);
+        tree[i]->Branch("gen_b_l1pdg",  &b_l1pdg);      tree[i]->Branch("rec_b_l1pdg",  &rec_b_l1pdg);
+
+        tree[i]->Branch("gen_b_l2p4",   &b_l2p4);       tree[i]->Branch("rec_b_l2p4",   &rec_b_l2p4);
+        tree[i]->Branch("gen_b_l2pdg",  &b_l2pdg);      tree[i]->Branch("rec_b_l2pdg",  &rec_b_l2pdg);
+
+        tree[i]->Branch("gen_b_l3p4",   &b_l3p4);       tree[i]->Branch("rec_b_l3p4",   &rec_b_l3p4);
+        tree[i]->Branch("gen_b_l3pdg",  &b_l3pdg);      tree[i]->Branch("rec_b_l3pdg",  &rec_b_l3pdg);
+
+        tree[i]->Branch("gen_b_l4p4",   &b_l4p4);       tree[i]->Branch("rec_b_l4p4",   &rec_b_l4p4);
+        tree[i]->Branch("gen_b_l4pdg",  &b_l4pdg);      tree[i]->Branch("rec_b_l4pdg",  &rec_b_l4pdg);
+
+
+        tree[i]->Branch("gen_b_theta",  &b_theta);      tree[i]->Branch("rec_b_theta",  &rec_b_theta);
+        tree[i]->Branch("gen_b_phi",    &b_phi);        tree[i]->Branch("rec_b_phi",    &rec_b_phi);
+
+        tree[i]->Branch("gen_b_z1alpha", &b_z1alpha);   tree[i]->Branch("rec_b_z1alpha", &rec_b_z1alpha);
+        tree[i]->Branch("gen_b_z2alpha", &b_z2alpha);   tree[i]->Branch("rec_b_z2alpha", &rec_b_z2alpha);
+
+        tree[i]->Branch("gen_bb_z1theta", &bb_z1theta); tree[i]->Branch("rec_bb_z1theta", &rec_bb_z1theta);
+        tree[i]->Branch("gen_bb_z2theta", &bb_z1theta); tree[i]->Branch("rec_bb_z2theta", &rec_bb_z2theta);
     }
 
 
@@ -141,28 +181,46 @@ void genSelection(const TString suffix)
 
 
 
-    /////////////////////
-    //    SELECTION    //
-    /////////////////////
+    ////////////////////
+    //    ANALYSIS    //
+    ////////////////////
 
     for (unsigned i = 0; i < N; i++)
     {
         TTreeReader reader(selection[i] + "_" + suffix, file);
 
-        // Event
-        TTreeReaderValue<UInt_t>            evtNum_(reader,             "evtNum");
-        TTreeReaderValue<Float_t>           weight_(reader,             "weight");          //"genWeight");
-
-        TTreeReaderValue<UShort_t>          nMuons_(reader,             "nGenMuons");
-        TTreeReaderValue<UShort_t>          nElecs_(reader,             "nGenElectrons");
+        // Event info
+        TTreeReaderValue<UInt_t>            evtNum_(reader, "evtNum");
+        TTreeReaderValue<Float_t>           weight_(reader, "weight");          //"genWeight");
 
 
-        // Leptons
-        TTreeReaderArray<TLorentzVector>    muonP4_(reader,             "genMuonP4");
-        TTreeReaderValue<vector<Short_t>>   muonQ_(reader,              "genMuonQ");
+        // Gen info
+        TTreeReaderValue<UShort_t>          nMuons_(reader, "nGenMuons"),   nElecs_(reader, "nGenElectrons");
+        TTreeReaderArray<TLorentzVector>    muonP4_(reader, "genMuonP4"),   elecP4_(reader, "genElectronP4");
+        TTreeReaderValue<vector<Short_t>>   muonQ_(reader,  "genMuonQ"),    elecQ_(reader,  "genElectronQ");
 
-        TTreeReaderArray<TLorentzVector>    elecP4_(reader,             "genElectronP4");
-        TTreeReaderValue<vector<Short_t>>   elecQ_(reader,              "genElectronQ");
+
+        // Reco info
+        TTreeReaderValue<TLorentzVector>    zzp4_(reader,   "zzp4");
+        TTreeReaderValue<TLorentzVector>    z1p4_(reader,   "z1p4"),        z2p4_(reader,   "z2p4");
+
+        TTreeReaderValue<TLorentzVector>    l1p4_(reader,   "l1p4"),        l2p4_(reader,   "l2p4");
+        TTreeReaderValue<TLorentzVector>    l3p4_(reader,   "l3p4"),        l4p4_(reader,   "l4p4");
+        TTreeReaderValue<Short_t>           l1pdg_(reader,  "l1pdg"),       l2pdg_(reader,  "l2pdg");
+        TTreeReaderValue<Short_t>           l3pdg_(reader,  "l3pdg"),       l4pdg_(reader,  "l4pdg");
+
+        TTreeReaderValue<TLorentzVector>    b_z1p4_(reader, "b_z1p4"),      b_z2p4_(reader, "b_z2p4");
+        TTreeReaderValue<TLorentzVector>    b_ttp4_(reader, "b_ttp4");
+
+        TTreeReaderValue<TLorentzVector>    b_l1p4_(reader, "b_l1p4"),      b_l2p4_(reader, "b_l2p4");
+        TTreeReaderValue<TLorentzVector>    b_l3p4_(reader, "b_l3p4"),      b_l4p4_(reader, "b_l4p4");
+        TTreeReaderValue<Short_t>           b_l1pdg_(reader,"b_l1pdg"),     b_l2pdg_(reader,"b_l2pdg");
+        TTreeReaderValue<Short_t>           b_l3pdg_(reader,"b_l3pdg"),     b_l4pdg_(reader,"b_l4pdg");
+
+
+        TTreeReaderValue<Float_t>   b_theta_(reader,    "b_theta"),         b_phi_(reader,      "b_phi");
+        TTreeReaderValue<Float_t>   b_z1alpha_(reader,  "b_z1alpha"),       b_z2alpha_(reader,  "b_z2alpha");
+        TTreeReaderValue<Float_t>   bb_z1theta_(reader, "bb_z1theta"),      bb_z2theta_(reader, "bb_z2theta");
 
 
 
@@ -173,16 +231,44 @@ void genSelection(const TString suffix)
 
 
         unsigned event = 0;
-        while (reader.Next() && event < 100)
+        while (reader.Next() && event < 10)
         {
-//          event++;
+            event++;
+
+
+
+            //--- RECO ---//
+
+            rec_zzp4        = *zzp4_;
+            rec_z1p4        = *z1p4_;                   rec_z2p4        = *z2p4_;
+
+            rec_l1p4        = *l1p4_;                   rec_l2p4        = *l2p4_;
+            rec_l3p4        = *l3p4_;                   rec_l4p4        = *l4p4_;
+
+            rec_l1pdg       = *l1pdg_;                  rec_l2pdg       = *l2pdg_;
+            rec_l3pdg       = *l3pdg_;                  rec_l4pdg       = *l4pdg_;
+
+
+            rec_b_z1p4      = *b_z1p4_;                 rec_b_z2p4      = *b_z2p4_;
+            rec_b_ttp4      = *b_ttp4_;
+
+            rec_b_l1p4      = *b_l1p4_;                 rec_b_l2p4      = *b_l2p4_;
+            rec_b_l3p4      = *b_l3p4_;                 rec_b_l4p4      = *b_l4p4_;
+
+            rec_b_l1pdg     = *b_l1pdg_;                rec_b_l2pdg     = *b_l2pdg_;
+            rec_b_l3pdg     = *b_l3pdg_;                rec_b_l4pdg     = *b_l4pdg_;
+
+            rec_b_theta     = *b_theta_;                rec_b_phi       = *b_phi_;
+            rec_b_z1alpha   = *b_z1alpha_;              rec_b_z2alpha   = *b_z2alpha_;
+            rec_bb_z1theta  = *bb_z1theta_;             rec_bb_z2theta  = *bb_z2theta_;
 
 
 
             //--- INITIALIZE ---//
 
-            weight  = *weight_;
-            UShort_t    nMuons  = *nMuons_,         nElecs  = *nElecs_;
+            weight          = *weight_;
+
+            UShort_t        nMuons  = *nMuons_,         nElecs  = *nElecs_;
 
             vector<pair<TLorentzVector, Short_t>> muons, elecs;
 
@@ -219,7 +305,7 @@ void genSelection(const TString suffix)
             {
                 z1pdg   = 13;           z2pdg   = 13;
                 allLeps = muons;
-                GetMassPairs(allLeps, &z1pair, &z2pair);
+                GetMassPairs(allLeps, &z1pair, &z2pair, rec_z1p4);
             }
             else if (nElecs == 2 && nMuons == 2)
             {
@@ -246,7 +332,7 @@ void genSelection(const TString suffix)
             {
                 z1pdg   = 11;           z2pdg   = 11;
                 allLeps = elecs;
-                GetMassPairs(allLeps, &z1pair, &z2pair);
+                GetMassPairs(allLeps, &z1pair, &z2pair, rec_z1p4);
             }
             else
                 continue;
@@ -356,7 +442,14 @@ void genSelection(const TString suffix)
             bb_z1theta  = bb_z1lpp4.Angle(bb_z2p4.Vect());
             bb_z2theta  = bb_z2lpp4.Angle(bb_z1p4.Vect());
 
+//          cout << l1pdg - rec_l1pdg << ", " << l2pdg - rec_l2pdg << ", " << endl;
+//          cout << l3pdg - rec_l3pdg << ", " << l4pdg - rec_l4pdg << endl;
 
+//          cout << l1p4.DeltaR(rec_l1p4) << ", " << l2p4.DeltaR(rec_l2p4) << ", ";
+//          cout << l3p4.DeltaR(rec_l3p4) << ", " << l4p4.DeltaR(rec_l4p4) << endl;
+//          cout << zzp4.DeltaR(rec_zzp4) << ", ";
+//          cout << z1p4.DeltaR(rec_z1p4) << ", " << z2p4.DeltaR(rec_z2p4) << endl;
+//          cout << endl;
 
 
             tree[i]->Fill();
@@ -373,19 +466,15 @@ void genSelection(const TString suffix)
 
     file->GetObject("TotalEvents_" + suffix, hTotalEvents);
     hTotalEvents->SetDirectory(outFile);
-    hTotalEvents->SetName("TotalEvents_gen_" + suffix);
 
     file->GetObject("PhaseSpaceEvents_" + suffix, hPhaseSpaceEvents);
     hPhaseSpaceEvents->SetDirectory(outFile);
-    hPhaseSpaceEvents->SetName("PhaseSpaceEvents_gen_" + suffix);
 
     file->GetObject("FiducialEvents_" + suffix, hFiducialEvents);
     hFiducialEvents->SetDirectory(outFile);
-    hFiducialEvents->SetName("FiducialEvents_gen_" + suffix);
 
     file->GetObject("SelectedEvents_" + suffix, hSelectedEvents);
     hSelectedEvents->SetDirectory(outFile);
-    hSelectedEvents->SetName("SelectedEvents_gen_" + suffix);
 
 
 
@@ -487,7 +576,8 @@ TLorentzVector GetP4Sum(const pair<pair<TLorentzVector, Short_t>, pair<TLorentzV
 
 int GetMassPairs(vector<pair<TLorentzVector, Short_t>> leps_list,
     pair<pair<TLorentzVector, Short_t>, pair<TLorentzVector, Short_t>> *_large_pair,
-    pair<pair<TLorentzVector, Short_t>, pair<TLorentzVector, Short_t>> *_small_pair)
+    pair<pair<TLorentzVector, Short_t>, pair<TLorentzVector, Short_t>> *_small_pair,
+    const TLorentzVector &reco_z1pair)
 {
 
 
@@ -531,6 +621,7 @@ int GetMassPairs(vector<pair<TLorentzVector, Short_t>> leps_list,
 
 
     // Find difference between masses of pairs and assign them
+    // Also find DeltaR between pair & reco pair
     TLorentzVector  pair1p4     = GetP4Sum(pair1),      pair2p4     = GetP4Sum(pair2); 
     Float_t         mass_diff_1 = pair1p4.M() - pair2p4.M();
 
