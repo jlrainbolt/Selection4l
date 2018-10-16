@@ -85,65 +85,65 @@ void compHists(const TString suffix)
 
     //                          name            member                              bins    xmin    xmax
     // Kinematic quantities
-    val4l.push_back(make_tuple( "zzm",          "gen_zzp4.M()-rec_zzp4.M()",        20,     80,     100));
-    val4l.push_back(make_tuple( "zzpt",         "gen_zzp4.Pt()-rec_zzp4.Pt()",      20,     0,      80));
+    val4l.push_back(make_tuple( "zzm",          "gen_zzp4.M()-zzp4.M()",        20,     80,     100));
+    val4l.push_back(make_tuple( "zzpt",         "gen_zzp4.Pt()-zzp4.Pt()",      20,     0,      80));
 
-    val4l.push_back(make_tuple( "z1m",          "gen_z1p4.M()-rec_z1p4.M()",        20,     10,     90));
-    val4l.push_back(make_tuple( "z1pt",         "gen_z1p4.Pt()-rec_z1p4.Pt()",      20,     0,      80));
+    val4l.push_back(make_tuple( "z1m",          "gen_z1p4.M()-z1p4.M()",        20,     10,     90));
+    val4l.push_back(make_tuple( "z1pt",         "gen_z1p4.Pt()-z1p4.Pt()",      20,     0,      80));
 
-    val4l.push_back(make_tuple( "z2m",          "gen_z2p4.M()-rec_z2p4.M()",        20,     0,      40));
-    val4l.push_back(make_tuple( "z2pt",         "gen_z2p4.Pt()-rec_z2p4.Pt()",      20,     0,      80));
+    val4l.push_back(make_tuple( "z2m",          "gen_z2p4.M()-z2p4.M()",        20,     0,      40));
+    val4l.push_back(make_tuple( "z2pt",         "gen_z2p4.Pt()-z2p4.Pt()",      20,     0,      80));
 
-    val4l.push_back(make_tuple( "l1pt",         "gen_l1p4.Pt()-rec_l1p4.Pt()",      20,     20,     100));
-    val4l.push_back(make_tuple( "l1eta",        "gen_l1p4.Eta()-rec_l1p4.Eta()",    25,     -2.5,   2.5));
-    val4l.push_back(make_tuple( "l1pdg",        "gen_l1pdg-rec_l1pdg",              31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "l1pt",         "gen_l1p4.Pt()-l1p4.Pt()",      20,     20,     100));
+    val4l.push_back(make_tuple( "l1eta",        "gen_l1p4.Eta()-l1p4.Eta()",    25,     -2.5,   2.5));
+    val4l.push_back(make_tuple( "l1pdg",        "gen_l1pdg-l1pdg",              31,     -15.5,  15.5));
 
-    val4l.push_back(make_tuple( "l2pt",         "gen_l2p4.Pt()-rec_l2p4.Pt()",      20,     10,     90));
-    val4l.push_back(make_tuple( "l2eta",        "gen_l2p4.Eta()-rec_l2p4.Eta()",    25,     -2.5,   2.5));
-    val4l.push_back(make_tuple( "l2pdg",        "gen_l2pdg-rec_l2pdg",              31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "l2pt",         "gen_l2p4.Pt()-l2p4.Pt()",      20,     10,     90));
+    val4l.push_back(make_tuple( "l2eta",        "gen_l2p4.Eta()-l2p4.Eta()",    25,     -2.5,   2.5));
+    val4l.push_back(make_tuple( "l2pdg",        "gen_l2pdg-l2pdg",              31,     -15.5,  15.5));
 
-    val4l.push_back(make_tuple( "l3pt",         "gen_l3p4.Pt()-rec_l3p4.Pt()",      20,     5,      45));
-    val4l.push_back(make_tuple( "l3eta",        "gen_l3p4.Eta()-rec_l3p4.Eta()",    25,     -2.5,   2.5));
-    val4l.push_back(make_tuple( "l3pdg",        "gen_l3pdg-rec_l3pdg",              31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "l3pt",         "gen_l3p4.Pt()-l3p4.Pt()",      20,     5,      45));
+    val4l.push_back(make_tuple( "l3eta",        "gen_l3p4.Eta()-l3p4.Eta()",    25,     -2.5,   2.5));
+    val4l.push_back(make_tuple( "l3pdg",        "gen_l3pdg-l3pdg",              31,     -15.5,  15.5));
 
-    val4l.push_back(make_tuple( "l4pt",         "gen_l4p4.Pt()-rec_l4p4.Pt()",      20,     5,      25));
-    val4l.push_back(make_tuple( "l4eta",        "gen_l4p4.Eta()-rec_l4p4.Eta()",    25,     -2.5,   2.5));
-    val4l.push_back(make_tuple( "l4pdg",        "gen_l4pdg-rec_l4pdg",              31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "l4pt",         "gen_l4p4.Pt()-l4p4.Pt()",      20,     5,      25));
+    val4l.push_back(make_tuple( "l4eta",        "gen_l4p4.Eta()-l4p4.Eta()",    25,     -2.5,   2.5));
+    val4l.push_back(make_tuple( "l4pdg",        "gen_l4pdg-l4pdg",              31,     -15.5,  15.5));
 
 
     // Differential distributions
-//  val4l.push_back(make_tuple( "b_z1p",        "gen_b_z1p4.P()-rec_b_z1p4.P()",    15,     0,      45));
-//  val4l.push_back(make_tuple( "b_z2p",        "gen_b_z2p4.P()-rec_b_z2p4.P()",    15,     0,      45));
-    val4l.push_back(make_tuple( "b_ttm",        "gen_b_ttp4.M()-rec_b_ttp4.M()",    15,     5,      65));
+//  val4l.push_back(make_tuple( "b_z1p",        "gen_b_z1p4.P()-b_z1p4.P()",    15,     0,      45));
+//  val4l.push_back(make_tuple( "b_z2p",        "gen_b_z2p4.P()-b_z2p4.P()",    15,     0,      45));
+    val4l.push_back(make_tuple( "b_ttm",        "gen_b_ttp4.M()-b_ttp4.M()",    15,     5,      65));
 
-    val4l.push_back(make_tuple( "b_l1p",        "gen_b_l1p4.P()-rec_b_l1p4.P()",    15,     20,     65));
-    val4l.push_back(make_tuple( "b_l1pdg",      "gen_b_l1pdg-rec_b_l1pdg",          31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "b_l1p",        "gen_b_l1p4.P()-b_l1p4.P()",    15,     20,     65));
+    val4l.push_back(make_tuple( "b_l1pdg",      "gen_b_l1pdg-b_l1pdg",          31,     -15.5,  15.5));
 
-    val4l.push_back(make_tuple( "b_l2p",        "gen_b_l2p4.P()-rec_b_l2p4.P()",    15,     15,     45));
-    val4l.push_back(make_tuple( "b_l2pdg",      "gen_b_l2pdg-rec_b_l2pdg",          31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "b_l2p",        "gen_b_l2p4.P()-b_l2p4.P()",    15,     15,     45));
+    val4l.push_back(make_tuple( "b_l2pdg",      "gen_b_l2pdg-b_l2pdg",          31,     -15.5,  15.5));
 
-    val4l.push_back(make_tuple( "b_l3p",        "gen_b_l3p4.P()-rec_b_l3p4.P()",    15,     0,      30));
-    val4l.push_back(make_tuple( "b_l3pdg",      "gen_b_l3pdg-rec_b_l3pdg",          31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "b_l3p",        "gen_b_l3p4.P()-b_l3p4.P()",    15,     0,      30));
+    val4l.push_back(make_tuple( "b_l3pdg",      "gen_b_l3pdg-b_l3pdg",          31,     -15.5,  15.5));
 
-    val4l.push_back(make_tuple( "b_l4p",        "gen_b_l4p4.P()-rec_b_l4p4.P()",    15,     0,      30));
-    val4l.push_back(make_tuple( "b_l4pdg",      "gen_b_l4pdg-rec_b_l4pdg",          31,     -15.5,  15.5));
+    val4l.push_back(make_tuple( "b_l4p",        "gen_b_l4p4.P()-b_l4p4.P()",    15,     0,      30));
+    val4l.push_back(make_tuple( "b_l4pdg",      "gen_b_l4pdg-b_l4pdg",          31,     -15.5,  15.5));
 
-    val4l.push_back(make_tuple( "b_theta",      "gen_b_theta-rec_b_theta",          16,     0,      3.2));
-    val4l.push_back(make_tuple( "b_phi",        "gen_b_phi-rec_b_phi",              16,     0,      3.2));
-    val4l.push_back(make_tuple( "b_sin_phi",    "sin(gen_b_phi)-sin(rec_b_phi)",    20,     0,      1));
+    val4l.push_back(make_tuple( "b_theta",      "gen_b_theta-b_theta",          16,     0,      3.2));
+    val4l.push_back(make_tuple( "b_phi",        "gen_b_phi-b_phi",              16,     0,      3.2));
+    val4l.push_back(make_tuple( "b_sin_phi",    "sin(gen_b_phi)-sin(b_phi)",    20,     0,      1));
 
-    val4l.push_back(make_tuple( "b_z1alpha",    "gen_b_z1alpha-rec_b_z1alpha",      16,     0,      3.2));
-    val4l.push_back(make_tuple( "b_z2alpha",    "gen_b_z2alpha-rec_b_z2alpha",      16,     0,      3.2));
+    val4l.push_back(make_tuple( "b_z1alpha",    "gen_b_z1alpha-b_z1alpha",      16,     0,      3.2));
+    val4l.push_back(make_tuple( "b_z2alpha",    "gen_b_z2alpha-b_z2alpha",      16,     0,      3.2));
 
-    val4l.push_back(make_tuple( "bb_z1theta",   "gen_bb_z1theta-rec_bb_z1theta",    16,     0,      3.2));
-    val4l.push_back(make_tuple( "bb_z2theta",   "gen_bb_z2theta-rec_bb_z2theta",    16,     0,      3.2));
+    val4l.push_back(make_tuple( "bb_z1theta",   "gen_bb_z1theta-bb_z1theta",    16,     0,      3.2));
+    val4l.push_back(make_tuple( "bb_z2theta",   "gen_bb_z2theta-bb_z2theta",    16,     0,      3.2));
 
 
 
     //--- DRAW, WRITE ---//
 
-    TFile *inFile = TFile::Open("trees_comp_" + suffix + ".root");
-    TFile *outFile = new TFile("hists_comp_" + suffix + ".root", "RECREATE");
+    TFile *inFile = TFile::Open("trees_match_" + suffix + ".root");
+    TFile *outFile = new TFile("hists_match_" + suffix + ".root", "RECREATE");
 
 
     // Copy over other histograms
@@ -180,7 +180,7 @@ void compHists(const TString suffix)
         outFile->cd(selection[i]);
 
         TTree *tree;
-        inFile->GetObject(selection[i] + "_comp_" + suffix, tree);
+        inFile->GetObject(selection[i] + "_" + suffix, tree);
 
 
 
@@ -235,5 +235,5 @@ void compHists(const TString suffix)
     outFile->Close();
     inFile->Close();
     
-    cout << "Created file hists_comp_" + suffix + ".root" << endl;
+    cout << "Created file hists_match_" + suffix + ".root" << endl;
 }

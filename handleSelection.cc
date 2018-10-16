@@ -56,7 +56,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 
     //--- MC EVENTS ---//
 
-    bool matchMC = kFALSE;
+    bool matchMC = kTRUE;
 
 
 
@@ -90,7 +90,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
     Float_t MU_PT2_MIN = 10,    ELE_PT2_MIN = 15;
     Float_t MU_PT_MIN = 5,      ELE_PT_MIN = 7;
     Float_t MLL_MIN = 4,        MZ1_MIN = 12,   MZ_MIN = 4,     MZ_MAX = 120;
-    Float_t DR_MIN = 0.02;
+    Float_t DR_MIN = 0.02,      DR_MAX = 0.15;
     Float_t Z_MASS = 91.2,      MU_MASS = 0.105658369,  ELE_MASS = 0.000511;
 
 
@@ -367,8 +367,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
 
 
     unsigned event = 0;
-//  while (reader.Next() && event < 100)
-    while (reader.Next())
+    while (reader.Next() && event < 100)
     {
 //      event++;
 
@@ -947,7 +946,7 @@ void handleSelection(const TString suffix, const TString id, const TString syste
                         }
                         if (!firedLeg1 || !firedLeg2)
                         {
-                            cout << "Failed trigger requirement" << endl;
+//                          cout << "Failed trigger requirement" << endl;
                             continue;
                         }
 
@@ -1456,13 +1455,24 @@ void handleSelection(const TString suffix, const TString id, const TString syste
                 gen_allLeps = SortGenLeps(gen_allLeps, allLeps, "Pt");
 
 
+                // REJECT event if any lepton is not matched within deltaR tolerance
+                bool badMatch = kFALSE;
+                for (unsigned i = 0; i < gen_allLeps.size(); i++)
+                {
+                    if (get<2>(gen_allLeps[i]) > DR_MAX)
+                        badMatch = kTRUE;
+                }
+                if (badMatch)
+                    continue;
+
+
                 gen_z1p4    = GetP4Sum(gen_z1leps);         gen_z2p4 = GetP4Sum(gen_z2leps);
                 gen_zzp4    = gen_z1p4 + gen_z2p4;
                 tie(gen_l1p4, gen_l1pdg, gen_l1dr) = gen_allLeps[0];
                 tie(gen_l2p4, gen_l2pdg, gen_l2dr) = gen_allLeps[1];
                 tie(gen_l3p4, gen_l3pdg, gen_l3dr) = gen_allLeps[2];
                 tie(gen_l4p4, gen_l4pdg, gen_l4dr) = gen_allLeps[3];
-
+//              gen_zzp4    = gen_l1p4 + gen_l2p4 + gen_l3p4 + gen_l4p4;
 
 
                 //--- BOOST ---//
