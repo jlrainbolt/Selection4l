@@ -1,7 +1,7 @@
 ##################################
 # test
 ##################################
-executable  = runHandler.sh
+executable  = execSelection.sh
 universe    = vanilla
 
 
@@ -12,7 +12,7 @@ log         = run.log
 
 should_transfer_files   = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files    = handleSelection.cc
+transfer_input_files    = ../macros/handleSelection.cc
 
 
 arguments   = "$(suffix) $INT(Process)"

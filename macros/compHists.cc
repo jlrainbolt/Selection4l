@@ -213,6 +213,7 @@ void compHists(const TString suffix)
                                 get<2>(val[j]), get<3>(val[j]), get<4>(val[j]));
 
 
+            hist->Sumw2(kTRUE);
             hist->SetLineColor(color);
             hist->Scale(scale);
             hist->SetFillColor(color);

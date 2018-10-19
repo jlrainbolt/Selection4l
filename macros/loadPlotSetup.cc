@@ -12,13 +12,11 @@
 
 
 ///////////////////////
-//                   //
 //    DECLARATION    //
-//                   //
 ///////////////////////
 
 
-//--- FACELIFT FUNCTIONS ---//
+////  FACELIFT FUNCTIONS
 
 void Facelift(TCanvas*);
 void Facelift(TH1*);
@@ -27,7 +25,7 @@ void Facelift(TLegend*);    // MUST CALL AFTER DRAWING
 
 
 
-//--- PLOT DIMENSIONS ---//
+////  PLOT DIMENSIONS
 
 const UInt_t    lCanvasSize = 800;                  // Canvas width/height
 const Float_t   lCanvasMargin = 0.12;               // Give us more room for titles
@@ -40,7 +38,7 @@ const Float_t   lLegendMargin = 0.04;               // Margin for legend from up
 
 
 
-//--- COLORMAP INTERFACE ---//
+////  COLORMAP INTERFACE
 
 TColor *lines[7];
 
@@ -61,7 +59,7 @@ float GetAlpha(const float, const float);
 
 
 
-//--- LaTeX COMMANDS ---//
+////  LaTeX COMMANDS
 
 const TString   _l      = "\\ell";
 const TString   _mu     = "\\mu";
@@ -132,9 +130,7 @@ const TString   _sp     = "\\,";
 
 
 /////////////////////////
-//                     //
 //    MAIN FUNCTION    //
-//                     //
 /////////////////////////
 
 
@@ -142,7 +138,7 @@ void loadPlotSetup()
 {
 
 
-    //--- CREATE COLORS ---//
+    ////  CREATE COLORS
 
     int ColorIndex[7] = {lBlue, lOrange, lYellow, lPurple, lGreen, lLightBlue, lRed};
     tuple<float, float, float> Lines[7] = { std::make_tuple(0, 0.4470, 0.7410),
@@ -164,7 +160,7 @@ void loadPlotSetup()
 
 
 
-    //--- FORCE TMathText ---//
+    ////  FORCE TMathText
 
 
 
@@ -177,14 +173,12 @@ void loadPlotSetup()
 
 
 //////////////////////////
-//                      //
 //    PLOT FACELIFTS    //
-//                      //
 //////////////////////////
 
 
 
-//--- TCanvas ---//
+////  TCanvas
 
 void Facelift(TCanvas *canvas)
 {
@@ -194,7 +188,7 @@ void Facelift(TCanvas *canvas)
 
 
 
-//--- TH1 ---//
+////  TH1
 
 void Facelift(TH1 *hist)
 {
@@ -215,7 +209,7 @@ void Facelift(TH1 *hist)
 
 
 
-//--- THStack ---//
+////  THStack
 
 void Facelift(THStack *stack)
 {
@@ -239,7 +233,7 @@ void Facelift(THStack *stack)
 
 
 
-//--- TLegend ---//
+////  TLegend
 
 void Facelift(TLegend *legend)
 {
@@ -268,9 +262,7 @@ void Facelift(TLegend *legend)
 
 
 ///////////////////////
-//                   //
 //    COLOR UTILS    //
-//                   //
 ///////////////////////
 
 
