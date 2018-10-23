@@ -1,5 +1,6 @@
 //// rootlogon()
 {
+
     // Load source files
     gInterpreter->AddIncludePath("../include");
     gROOT->SetMacroPath("../src");
@@ -21,8 +22,8 @@
     cout << "Linked macros in ../macros" << endl;
 
 
-    // Load plot utilities
-    gROOT->ProcessLine(".x loadPlotSetup.cc");
+    // Load custom colorss
+    gROOT->ProcessLine(".x loadColors.cc");
 
 
     cout << endl;

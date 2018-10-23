@@ -4,175 +4,134 @@
 
 // ROOT
 #include "TLorentzVector.h"
+#include "TVector3.h"
 
 // Custom
 #include "LeptonPair.hh"
 #include "Lepton.hh"
 
-
 using namespace std;
 
 
 
+//
+//    CONSTRUCTOR
+//
 
-/////////////////////
-//    FUNCTIONS    //
-/////////////////////
-
-
-////  CONSTRUCTORS
-
-// Constructor with lepton member initialization
-LeptonPair::LeptonPair(Lepton& lep1, Lepton& lep2)
+LeptonPair :: LeptonPair(const Lepton& lep1, const Lepton& lep2)
 {
-    this->SetMembers(lep1, lep2);
+    SetMembers(lep1, lep2);
 }
 
 
 
-////  MEMBERS
+//
+//    "GETTERS"
+//
 
-// Initialize member leptons
-bool LeptonPair::SetMembers(Lepton& lep1, Lepton& lep2)
+
+// First
+Lepton LeptonPair :: First() const
 {
-    bool isGoodMatch = kTRUE;
-
-    members = make_pair(&lep1, &lep2);
-
-
-    // Add momenta
-    p4      = lep1.p4   + lep2.p4;
-    b_p4    = lep1.b_p4 + lep2.b_p4;
-
-
-    // Set PDG ID (if it's a match)
-    if (abs(lep1.pdg) == abs(lep2.pdg))
-        pdg = abs(lep1.pdg);
+    if (leptons.first.p4.Pt() > leptons.second.p4.Pt())
+        return leptons.first;
     else
-    {
-        cout << "Flavor mismatch" << endl;
-        isGoodMatch = kFALSE;
-    }
+        return leptons.second;
+}
 
-
-    // Set mother (if it's a match)
-    if (lep1.mother == lep2.mother)
-        mother = lep1.mother;
+// Second
+Lepton LeptonPair :: Second() const
+{
+    if (leptons.first.p4.Pt() < leptons.second.p4.Pt())
+        return leptons.first;
     else
+        return leptons.second;
+}
+
+// Plus
+Lepton LeptonPair :: Plus() const
+{
+    if      (leptons.first.q > 0 && leptons.second.q < 0)
+        return leptons.first;
+
+    else if (leptons.second.q > 0 && leptons.first.q < 0)
+        return leptons.second;
+
+    else    // return an empty lepton :(
     {
-        cout << "Mother mismatch" << endl;
-        isGoodMatch = kFALSE;
+        Lepton lep;
+        return lep;
     }
+}
+
+// Minus
+Lepton LeptonPair :: Minus() const
+{
+    if      (leptons.first.q < 0 && leptons.second.q > 0)
+        return leptons.first;
+
+    else if (leptons.second.q < 0 && leptons.first.q > 0)
+        return leptons.second;
+
+    else    // return an empty lepton :(
+    {
+        Lepton lep;
+        return lep;
+    }
+}
 
 
-    // Set order pointers
-    if (lep1.p4.Pt() > lep2.p4.Pt())
-    {
-        firstPt     = members.first;
-        secondPt    = members.second;
-    }
-    else
-    {
-        firstPt     = members.second;
-        secondPt    = members.first;
-    }
-
-    if (lep1.b_p4.P() > lep2.b_p4.P())
-    {
-        firstP      = members.first;
-        secondP     = members.second;
-    }
-    else
-    {
-        firstP      = members.second;
-        secondP     = members.first;
-    }
-
-    if      (lep1.q > lep2.q)
-    {
-        plus        = members.first;
-        minus       = members.second;
-    }
-    else if (lep1.q < lep2.q)
-    {
-        plus        = members.second;
-        minus       = members.first;
-    }
-    else
-    {
-        cout << "Charge mismatch" << endl;
-        isGoodMatch = kFALSE;
-    }
-
-
-    return isGoodMatch;
+// GetMembers
+vector<Lepton> LeptonPair :: GetMembers() const
+{
+    vector<Lepton> vect = {leptons.first, leptons.second};
+    return vect;   
 }
 
 
 
-/////////////////////
-//    UTILITIES    //
-/////////////////////
+//
+//  "SETTERS"
+//
 
-
-////  PAIRING
-
-// Sort input vector of four leptons into two std pairs, returned as pointers
-// Selection is determined by matching mother Z index
-bool    MakePairsFromMother(vector<Lepton> &leps, LeptonPair *z1, LeptonPair*z2)
+//  SetMembers
+void LeptonPair :: SetMembers(const Lepton& lep1, const Lepton& lep2)
 {
-
-    // Get unique mother Z indices
-    vector<unsigned> mothers;
-
-    for (unsigned i = 0; i < leps.size(); i++)
-    {
-        if (find(mothers.begin(), mothers.end(), leps[i].mother) == mothers.end())
-            mothers.push_back(leps[i].mother);
-    }
-
-    if (mothers.size() != 2)
-    {
-        cout << "Wrong number of mothers" << endl;
-        return kFALSE;
-    }
+    leptons = make_pair(lep1, lep2);
 
 
-    // Sort leptons by mother
-    vector<Lepton> pair1leps, pair2leps;
-
-    for (unsigned i = 0; i < leps.size(); i++)
-    {
-        if      (leps[i].mother == mothers[0])
-            pair1leps.push_back(leps[i]);
-
-        else if (leps[i].mother == mothers[1])
-            pair2leps.push_back(leps[i]);
-    }
-
-    if (pair1leps.size() != 2 || pair2leps.size() != 2)
-    {
-        cout << "Wrong number of daughters" << endl;
-        return kFALSE;
-    }
+    // Momentum
+    p4 = leptons.first.p4 + leptons.second.p4;
 
 
-    // Sort pairs by mass
-    LeptonPair  pair1(pair1leps[0], pair1leps[1]);
-    LeptonPair  pair2(pair2leps[0], pair2leps[1]);
-
-    if (pair1.p4.M() > pair2.p4.M())
-    {
-        *z1 = pair1;
-        *z2 = pair2;
-    }
+    // PDG ID (if it's a match)
+    if (abs(leptons.first.pdg) == abs(leptons.second.pdg))
+        pdg = abs(leptons.first.pdg);
     else
-    {
-        *z1 = pair2;
-        *z2 = pair1;
-    }
+        pdg = 0;
 
 
-    return kTRUE;
+    // Mother (if it's a match)
+    if (leptons.first.mother == leptons.second.mother)
+        mother = leptons.first.mother;
+    else
+        mother = 0;
 }
 
+
+
+//  SetMothers
+void LeptonPair :: SetMothers(unsigned mom)
+{
+    mother                  = mom;
+    leptons.first.mother    = mom;
+    leptons.second.mother   = mom;
+
+    return;
+}
+
+
+
+//
+//  "FRIENDS"
+//

@@ -8,54 +8,58 @@
 // ROOT
 #include "TLorentzVector.h"
 
-
 using namespace std;
 
 
 
-
-//////////////////
-//    STRUCT    //
-//////////////////
-
+//
+//  STRUCT
+//
 
 struct Lepton
 {
+    // Basics
+    TLorentzVector      p4;         // Lab frame 4-momentum
+    int                 q;          // Charge
+    int                 pdg;        // PDG ID (signed)
+    unsigned            mother;     // Mother Z index
 
-    ////  DATA MEMBERS
+    // Reco quantities
+    TLorentzVector      o_p4;       // 4-momentum before scale factor ("original")
+    float               iso;        // Relative isolation
+    float               id_sf;      // ID scale factor
+//  pair<bool, bool>    fired;      // Fired trigger leg1/leg2
 
-    TLorentzVector  p4;         // Lab frame 4-momentum
-    TLorentzVector  b_p4;       // Z CM frame 4-momentum
-    int             q;          // Charge
-    int             pdg;        // PDG ID (signed)
-    unsigned        mother;     // Mother Z index
+/*
+    // Boosted quantities
+    TLorentzVector      b_p4;       // boosted 4-momentum
+    TVector3            b_p3;       // 3-momentum corresponding to b_p4
+
+    // Calculated boosted p4 (and p3) using p4 and given boost vector
+    bool                SetBoostedP4(   const TVector3&);
+*/
 };
 
 
 
+//
+//  "FRIENDS"
+//
 
-/////////////////////
-//    UTILITIES    //
-/////////////////////
+// Sort std container by Pt (in lab frame)
+bool    DecreasingPt(   const Lepton&,  const Lepton&);
 
-
-////  SORTING
-
-// Sort conditions for STD container of leptons
-bool    DecreasingLabPt(        const Lepton&,  const Lepton&);
-bool    DecreasingBoostedP(     const Lepton&,  const Lepton&);
+// Sort std container by P in Z rest ("boosted") frame
+//bool    DecreasingBoostedP( const Lepton&,  const Lepton&);
 
 
 
-////  VECTOR SUMS
-
-// Get TLorentzVector sum of leptons in lab frame
-TLorentzVector  LabP4Sum(       const vector<Lepton>&);
-
-// Get TLorentzVector sum of leptons in boosted frame
-TLorentzVector  BoostedP4Sum(   const vector<Lepton>&);
-
-
+// Get sum of p4 of all leptons in vector
+TLorentzVector  TotalP4(const vector<Lepton>&);
+/*
+// Get sum of b_p4 of all leptons in vector
+TLorentzVector  TotalBoostedP4( const vector<Lepton>&);
+*/
 
 
 #endif  // LEPTON_HH

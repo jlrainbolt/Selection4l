@@ -19,8 +19,8 @@ using namespace std;
 
 void overlayHists(const TString suffix)
 {
-    bool drawNorm = kFALSE;
-    bool drawLog  = kTRUE;
+    bool drawNorm = kTRUE;
+    bool drawLog  = kFALSE;
 
 
     // Selection
@@ -153,7 +153,7 @@ void overlayHists(const TString suffix)
 
         for (unsigned j = 0; j < hname.size(); j++)
         {
-            canvas[i].push_back(new TCanvas(hname[j], "", lCanvasSize, lCanvasSize));
+            canvas[i].push_back(new TCanvas(hname[j] + "_" + selection[i], "", lCanvasSize, lCanvasSize));
 
             Facelift(canvas[i][j]);
             canvas[i][j]->cd();

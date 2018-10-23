@@ -1,5 +1,0 @@
-# FILENAME  submitSelection
-
-
-SUBDAG  EXTERNAL    jobs    submitJobs.dag
-SCRIPT  POST        jobs    haddStack.sh

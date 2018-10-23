@@ -1,3 +1,6 @@
 #! /bin/sh
 
-rm *.root *.cp *.dag.* run_* run.log
+rm *.dag.*
+
+rm output/*.root
+rm output/reports/*

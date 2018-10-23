@@ -51,11 +51,11 @@ void drawGenHists(const TString suffix)
 
     val4l.push_back(make_tuple( "z1m",          "z1p4.M()",         0,          100));
     val4l.push_back(make_tuple( "z1pt",         "z1p4.Pt()",        0,          100));
-    val4l.push_back(make_tuple( "z1pdg",        "z1pdg",            8.5,        15.5));
+//  val4l.push_back(make_tuple( "z1pdg",        "z1pdg",            8.5,        15.5));
 
     val4l.push_back(make_tuple( "z2m",          "z2p4.M()",         0,          50));
     val4l.push_back(make_tuple( "z2pt",         "z2p4.Pt()",        0,          60));
-    val4l.push_back(make_tuple( "z2pdg",        "z2pdg",            8.5,        15.5));
+//  val4l.push_back(make_tuple( "z2pdg",        "z2pdg",            8.5,        15.5));
 
     val4l.push_back(make_tuple( "l1pt",         "l1p4.Pt()",        0,          100));
     val4l.push_back(make_tuple( "l1eta",        "l1p4.Eta()",       -6,         6));
@@ -144,7 +144,7 @@ void drawGenHists(const TString suffix)
                 if (h == GS)
                     quantity = "gen_" + quantity;
                 if (h == FR)
-                    weight = weight + "*isFid";
+                    weight = weight + "*isFiducial";
 
                 TString varexp;
                 varexp.Form(quantity + ">>" + hname + "(%i,%g,%g)", bins, xmin, xmax);

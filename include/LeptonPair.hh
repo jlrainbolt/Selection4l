@@ -1,70 +1,57 @@
 #ifndef LEPTONPAIR_HH
 #define LEPTONPAIR_HH
 
-
 // STL
 #include <utility>
 
 // ROOT
 #include "TLorentzVector.h"
+#include "TVector3.h"
 
 // Custom
 #include "Lepton.hh"
-
 
 using namespace std;
 
 
 
-
-//////////////////
-//    STRUCT    //
-//////////////////
-
+//
+//    STRUCT
+//
 
 struct LeptonPair
 {
-    ////  FUNCTIONS
+    // Public data members
+    TLorentzVector  p4;                                 // Sum of lab frame 4-momenta
+    int             pdg;                                // PDG ID (absolute value)
+    unsigned        mother;                             // Mother Z index
+
 
     // Constructors
-    LeptonPair( Lepton&,  Lepton&);                 // Constructor with leptons
-    LeptonPair(){};
-
-    // Members
-    bool            SetMembers( Lepton&,  Lepton&); // Set leptons
+    LeptonPair(const Lepton&, const Lepton&);           // Constructor calling SetMembers
+    LeptonPair(){};                                     // Default constructor
 
 
-
-    ////  DATA MEMBERS
-
-    TLorentzVector  p4;                         // Sum of lab frame 4-momenta
-    TLorentzVector  b_p4;                       // Sum of Z CM frame 4-momenta
-
-    int             pdg;                        // PDG ID (absolute value)
-    unsigned        mother;                     // Mother Z index
-
-    Lepton          *firstPt,   *secondPt;      // Pointers to leptons ordered by Pt
-    Lepton          *firstP,    *secondP;       // Pointers to leptons ordered by P
-    Lepton          *plus,      *minus;         // Pointers to leptons ordered by q
+    // "Getters"
+    Lepton          First() const,      Second() const; // Return first, second Pt lepton
+    Lepton          Plus() const,       Minus() const;  // Return positive, negative lepton
+    vector<Lepton>  GetMembers() const;                 // Return vector of leptons (in pair order)
 
 
-    private:
-        pair<Lepton*, Lepton*>  members;        // STD pair of pointers to member leptons
+    // "Setters"
+    void    SetMembers(const Lepton&, const Lepton&);   // COPY leptons to self; call Initialize()
+    void    SetMothers(unsigned);                       // Set mother of self and member leptons
+
+
+    // Protected attributes
+    private:        pair<Lepton, Lepton> leptons;       // STD pair of member leptons
 };
 
 
 
-
-/////////////////////
-//    UTILITIES    //
-/////////////////////
-
-
-////  PAIRING
-
-// Make pairs using mother indices
-bool    MakePairsFromMother(vector<Lepton>&,    LeptonPair*,    LeptonPair*);
-
+//
+//    "FRIENDS"
+//
 
 
 

@@ -1,5 +1,5 @@
-#ifndef UTILITIES_HH
-#define UTILITIES_HH
+#ifndef ANAUTILS_HH
+#define ANAUTILS_HH
 
 
 // STL
@@ -12,16 +12,13 @@
 // Custom
 #include "Lepton.hh"
 
-
 using namespace std;
 
 
 
-
-////////////////////
-//    BOOSTING    //
-////////////////////
-
+//
+//  BOOSTING
+//
 
 // Get TLorentzVector boosted into TVector3 frame
 TLorentzVector  BoostP4(        const TLorentzVector&,  const TVector3&);
@@ -31,5 +28,12 @@ TVector3        BoostP3(        const TLorentzVector&,  const TVector3&);
 
 
 
+//
+//  SYSTEMATICS
+//
+/*
+// Get TH2 bin from particle Pt, Eta
+double GetBinContentPtEta(const TH2 *hist, const TLorentzVector &p4);
+*/
 
-#endif  // UTILITIES_HH
+#endif  // ANAUTILS_HH
