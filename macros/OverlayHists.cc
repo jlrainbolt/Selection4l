@@ -17,7 +17,7 @@ using namespace std;
 
 
 
-void overlayHists(const TString suffix)
+void OverlayHists(const TString suffix)
 {
     bool drawNorm = kTRUE;
     bool drawLog  = kFALSE;
@@ -25,8 +25,8 @@ void overlayHists(const TString suffix)
 
     // Selection
     const unsigned N = 5;
-    unsigned                M4 = 0, ME = 1, EM = 2, E4 = 3, L4 = 4;
-    TString selection[N] = {"4m",   "2m2e", "2e2m", "4e",   "4l"};
+    unsigned                L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;
+    TString selection[N] = {"4l",   "4m",   "2m2e", "2e2m", "4e"};
 
 
     // Levels

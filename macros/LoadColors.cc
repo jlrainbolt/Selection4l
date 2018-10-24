@@ -7,7 +7,7 @@
 
 
 
-void loadColors()
+void LoadColors()
 {
     int ColorIndex[7] = {lBlue, lOrange, lYellow, lPurple, lGreen, lLightBlue, lRed};
     tuple<float, float, float> Lines[7] = { std::make_tuple(0, 0.4470, 0.7410),

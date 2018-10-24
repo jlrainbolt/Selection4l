@@ -7,6 +7,7 @@
 
 // ROOT
 #include "TLorentzVector.h"
+#include "TVector3.h"
 
 using namespace std;
 
@@ -30,14 +31,12 @@ struct Lepton
     float               id_sf;      // ID scale factor
 //  pair<bool, bool>    fired;      // Fired trigger leg1/leg2
 
-/*
     // Boosted quantities
     TLorentzVector      b_p4;       // boosted 4-momentum
-    TVector3            b_p3;       // 3-momentum corresponding to b_p4
+    TVector3            b_v3;       // 3-momentum corresponding to b_p4
 
     // Calculated boosted p4 (and p3) using p4 and given boost vector
-    bool                SetBoostedP4(   const TVector3&);
-*/
+    void SetBoostedP4(const TVector3&);
 };
 
 
@@ -47,10 +46,10 @@ struct Lepton
 //
 
 // Sort std container by Pt (in lab frame)
-bool    DecreasingPt(   const Lepton&,  const Lepton&);
+bool DecreasingPt(const Lepton&, const Lepton&);
 
 // Sort std container by P in Z rest ("boosted") frame
-//bool    DecreasingBoostedP( const Lepton&,  const Lepton&);
+bool DecreasingBoostedP(const Lepton&, const Lepton&);
 
 
 

@@ -4,6 +4,7 @@
 
 // ROOT
 #include "TLorentzVector.h"
+#include "TVector3.h"
 
 // Custom
 #include "Lepton.hh"
@@ -17,19 +18,15 @@ using namespace std;
 //
 //  MEMBERS
 //
-/*
-// SetBoostedP4
-bool Lepton :: SetBoostedP4(const TVector3 &beta)
-{
-    // b_p4 is in rest frame of "system" where beta = system.BoostVector()
-    // (which is why a minus sign is needed)
-    b_p4 = p4;
-    b_p4.Boost(-beta);
-    b_p3 = b_p4.Vect();
 
-    return kTRUE;
+// SetBoostedP4
+void Lepton :: SetBoostedP4(const TVector3 &beta)
+{
+    b_p4 = p4;          // in rest frame of "system" where beta = system.BoostVector()
+    b_p4.Boost(-beta);  // so a minus sign is needed here
+    b_v3 = b_p4.Vect();
 } 
-*/
+
 
 
 //
@@ -41,13 +38,13 @@ bool DecreasingPt(const Lepton &i, const Lepton &j)
 {   
     return (i.p4.Pt() > j.p4.Pt());
 }
-/*
+
 // DecreasingBoostedPt
 bool DecreasingBoostedP(const Lepton &i, const Lepton &j)
 {   
     return (i.b_p4.P() > j.b_p4.P());
 }
-*/
+
 
 // TotalP4
 TLorentzVector TotalP4(const vector<Lepton> &leps)

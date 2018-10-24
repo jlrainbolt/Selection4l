@@ -1,5 +1,7 @@
 //// rootlogon()
 {
+    TH1::SetDefaultSumw2();
+
 
     // Load source files
     gInterpreter->AddIncludePath("../include");
@@ -23,7 +25,7 @@
 
 
     // Load custom colorss
-    gROOT->ProcessLine(".x loadColors.cc");
+    gROOT->ProcessLine(".x LoadColors.cc");
 
 
     cout << endl;

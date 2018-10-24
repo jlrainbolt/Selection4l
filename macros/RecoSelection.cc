@@ -120,6 +120,8 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     vector<Short_t>     *finalStateMuonQ        = 0,        *finalStateElectronQ        = 0;
     vector<UShort_t>    *finalStateMuonZIndex   = 0,        *finalStateElectronZIndex   = 0;
 
+    TLorentzVector      o_l1p4,     o_l2p4,     o_l3p4,     o_l4p4;
+
 
     for (unsigned i = 0; i < N; i++)
     {
@@ -148,8 +150,6 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
         if (isSignal && i >= L4)
         {
-            tree[i]->Branch("genWeight",                &genWeight);
-
             tree[i]->Branch("nFinalStateMuons",         &nFinalStateMuons);
             tree[i]->Branch("nFinalStateElectrons",     &nFinalStateElectrons);
             tree[i]->Branch("nFinalStateLeptons",       &nFinalStateLeptons);
@@ -170,6 +170,9 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             tree[i]->Branch("finalStateElectronP4",     &finalStateElectronP4,      32000,      1);
             tree[i]->Branch("finalStateElectronQ",      &finalStateElectronQ);
             tree[i]->Branch("finalStateElectronZIndex", &finalStateElectronZIndex);
+
+            tree[i]->Branch("uncorr_l1p4",  &o_l1p4);   tree[i]->Branch("uncorr_l2p4",  &o_l2p4);
+            tree[i]->Branch("uncorr_l3p4",  &o_l3p4);   tree[i]->Branch("uncorr_l4p4",  &o_l4p4);
         }
     }
 
@@ -184,7 +187,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/" + inDir + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
-    cout << "Opened " << inPath << endl;
+    cout << endl << endl << "Opened " << inPath << endl;
 
 
 
@@ -917,8 +920,11 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
         // Get gen particle info
         if (isFourLepton && isSignal)
         {
-            hardProcMuonP4->Clear();            hardProcElectronP4->Clear();
-            finalStateMuonP4->Clear();          finalStateElectronP4->Clear();
+            o_l1p4  = leps[0].o_p4;         o_l2p4  = leps[1].o_p4;
+            o_l3p4  = leps[2].o_p4;         o_l4p4  = leps[3].o_p4;
+
+            hardProcMuonP4->Clear();        hardProcElectronP4->Clear();
+            finalStateMuonP4->Clear();      finalStateElectronP4->Clear();
 
             inTree->GetEntry(currentEntry);
 
@@ -965,7 +971,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             cout << endl;
 
         cout << selection[i] << ":\t";
-        cout << (int) hSelectedEvents->GetBinContent(chanIdx[i]) << endl;
+        cout << tree[i]->GetEntries() << endl;
     }
     cout << endl << endl;
 

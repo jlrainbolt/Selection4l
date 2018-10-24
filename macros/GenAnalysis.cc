@@ -13,6 +13,7 @@
 #include "TTreeReaderValue.h"
 #include "TTreeReaderArray.h"
 #include "TLorentzVector.h"
+#include "TVector3.h"
 
 // Custom
 #include "Lepton.hh"
@@ -26,25 +27,29 @@ using namespace std;
 
 
 /*
-**  GenSelection
+**  GenAnalysis
 **
 **
 **  All "selected" events are within the phase space region.  Events which also fall into the
-**  fiducial region are flagged (isFiducial) based on cuts from header file (CutsXXXX.hh).
+**  fiducial region are flagged (isFiducial) based on cuts from header file (CutsXXXX.hh).  The
+**  input argument determines whether all or only fiducial events are written out.
 **
-**  Reads from post-BLT analyzer (PhaseSpaceAnalyzer) ntuples and writes out a gen-level file that
-**  is "identical" to the RecoSelection output file.  Only information that is relevant for 
-**  gen-level events is included (e.g. no isolation).
+**  Reads from post-BLT analyzer (PhaseSpaceAnalyzer) ntuples and write out gen-level files that
+**  are identical to the BoostedAnalysis output format ("boosted_").
 **
-**  Currently only implemented for signal (zz_4l) events...
+**  Currently only implemented for signal (zz_4l) events...and only uses hard leptons.
 */
 
-void GenSelection(const TString suffix)
+void GenAnalysis(const bool fidOnly)
 {
 
     //
     //    OPTIONS
     //
+
+    // fidOnly = kTRUE  => only events which fall into the fiducial region are written out
+    //         = kFALSE => all input (phase space region) events are written out
+
 
     bool debug = kFALSE;
     int selectEvents = 1000;
@@ -67,13 +72,14 @@ void GenSelection(const TString suffix)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "selected",   genType = "hard";
-    TString outName = prefix + "_" + genType + "_" + suffix + ".root";
+    TString prefix  = "boosted";
+    TString suffix  = fidOnly ? "fiducial" : "phase_space"; 
+    TString outName = prefix + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
     TTree *tree[N];
     for (unsigned i = 0; i < N; i++)
-        tree[i] = new TTree(selection[i] + "_" + genType + "_" + suffix, genType + "_" + suffix);
+        tree[i] = new TTree(selection[i] + "_" + suffix, suffix);
 
 
 
@@ -87,27 +93,28 @@ void GenSelection(const TString suffix)
     UInt_t              channel;
     Bool_t              isFiducial;
 
-    // Pairs
+    // Lab frame objects
     TLorentzVector      z1p4,       z2p4,       zzp4;
     Short_t             z1pdg,      z2pdg;
 
-    // Leptons
     TLorentzVector      l1p4,       l2p4,       l3p4,       l4p4;
     Short_t             l1pdg,      l2pdg,      l3pdg,      l4pdg;
     UShort_t            l1z,        l2z,        l3z,        l4z;
 
-/*
-    TLorentzVector  b_ttp4;
-    TLorentzVector  b_z1p4,     b_z2p4;
 
-    TLorentzVector  b_l1p4,     b_l2p4,     b_l3p4,     b_l4p4;
-    Short_t         b_l1pdg,    b_l2pdg,    b_l3pdg,    b_l4pdg;
-    UShort_t        b_l1z,   b_l2z,   b_l3z,   b_l4z;
+    // Z rest frame objects
+    TLorentzVector      b_z1p4,     b_z2p4,     b_ttp4;
 
-    Float_t         b_theta,    b_phi;
-    Float_t         b_z1alpha,  b_z2alpha;
-    Float_t         bb_z1theta, bb_z2theta;
-*/
+    TVector3            b_l1v3,     b_l2v3,     b_l3v3,     b_l4v3;
+    Short_t             b_l1pdg,    b_l2pdg,    b_l3pdg,    b_l4pdg;
+    UShort_t            b_l1z,      b_l2z,      b_l3z,      b_l4z;
+
+    // Observables
+    Float_t             psi,                    sin_phi;
+    Float_t             theta_z1,               theta_z2;
+    Float_t             angle_z1leps,           angle_z2leps;
+    Float_t             angle_z1l2_z2;
+
 
     for (unsigned i = 0; i < N; i++)
     {
@@ -116,10 +123,27 @@ void GenSelection(const TString suffix)
         tree[i]->Branch("weight",   &weight);               tree[i]->Branch("channel",  &channel);
         tree[i]->Branch("isFiducial", &isFiducial);
 
+        tree[i]->Branch("psi", &psi);                       tree[i]->Branch("sin_phi",  &sin_phi);
+        tree[i]->Branch("theta_z1", &theta_z1);             tree[i]->Branch("theta_z2", &theta_z2);
+        tree[i]->Branch("angle_z1leps", &angle_z1leps);
+        tree[i]->Branch("angle_z2leps", &angle_z2leps);
+        tree[i]->Branch("angle_z1l2_z2",  &angle_z1l2_z2);
+
+        tree[i]->Branch("b_z1p4",   &b_z1p4);               tree[i]->Branch("b_z2p4",   &b_z2p4);
+        tree[i]->Branch("b_ttp4",   &b_ttp4);
+
+        tree[i]->Branch("b_l1v3",   &b_l1v3);               tree[i]->Branch("b_l1pdg",  &b_l1pdg);
+        tree[i]->Branch("b_l1z",    &b_l1z);
+        tree[i]->Branch("b_l2v3",   &b_l2v3);               tree[i]->Branch("b_l2pdg",  &b_l2pdg);
+        tree[i]->Branch("b_l2z",    &b_l2z);
+        tree[i]->Branch("b_l3v3",   &b_l3v3);               tree[i]->Branch("b_l3pdg",  &b_l3pdg);
+        tree[i]->Branch("b_l3z",    &b_l3z);
+        tree[i]->Branch("b_l4v3",   &b_l4v3);               tree[i]->Branch("b_l4pdg",  &b_l4pdg);
+        tree[i]->Branch("b_l4z",    &b_l4z);
+
         tree[i]->Branch("zzp4",     &zzp4);
         tree[i]->Branch("z1p4",     &z1p4);                 tree[i]->Branch("z1pdg",    &z1pdg);
         tree[i]->Branch("z2p4",     &z2p4);                 tree[i]->Branch("z2pdg",    &z2pdg);
-
         tree[i]->Branch("l1p4",     &l1p4);                 tree[i]->Branch("l1pdg",    &l1pdg);
         tree[i]->Branch("l1z",      &l1z);
         tree[i]->Branch("l2p4",     &l2p4);                 tree[i]->Branch("l2pdg",    &l2pdg);
@@ -128,36 +152,16 @@ void GenSelection(const TString suffix)
         tree[i]->Branch("l3z",      &l3z);
         tree[i]->Branch("l4p4",     &l4p4);                 tree[i]->Branch("l4pdg",    &l4pdg);
         tree[i]->Branch("l4z",      &l4z);
-
-/*
-        // Boosted quantities for differential distributions
-        tree[i]->Branch("b_z1p4",   &b_z1p4);           tree[i]->Branch("b_z2p4",   &b_z2p4);
-        tree[i]->Branch("b_ttp4",   &b_ttp4);
-
-        tree[i]->Branch("b_l1p4",   &b_l1p4);           tree[i]->Branch("b_l1pdg",  &b_l1pdg);
-        tree[i]->Branch("b_l1z", &b_l1z);
-        tree[i]->Branch("b_l2p4",   &b_l2p4);           tree[i]->Branch("b_l2pdg",  &b_l2pdg);
-        tree[i]->Branch("b_l2z", &b_l2z);
-        tree[i]->Branch("b_l3p4",   &b_l3p4);           tree[i]->Branch("b_l3pdg",  &b_l3pdg);
-        tree[i]->Branch("b_l3z", &b_l3z);
-        tree[i]->Branch("b_l4p4",   &b_l4p4);           tree[i]->Branch("b_l4pdg",  &b_l4pdg);
-        tree[i]->Branch("b_l4z", &b_l4z);
-
-        // Observables
-        tree[i]->Branch("b_theta",  &b_theta);          tree[i]->Branch("b_phi",    &b_phi);
-        tree[i]->Branch("b_z1alpha", &b_z1alpha);       tree[i]->Branch("b_z2alpha", &b_z2alpha);
-        tree[i]->Branch("bb_z1theta", &bb_z1theta);     tree[i]->Branch("bb_z2theta", &bb_z2theta);
-*/
     }
 
 
 
     //
-    //    INPUT FILE
+    //  INPUT FILE
     //
 
-    TString inDir   = "gen_" + suffix;
-    TString inName  = genType + "_" + suffix + ".root";
+    TString inDir   = "gen_zz_4l";
+    TString inName  = "genHardProc_zz_4l.root";
     TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/" + inDir + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
@@ -169,7 +173,7 @@ void GenSelection(const TString suffix)
     //  INPUT BRANCHES
     //
 
-    TTreeReader reader("tree_" + suffix, inFile);
+    TTreeReader reader("tree_zz_4l", inFile);
 
     TTreeReaderValue    <Int_t>                 runNum_     (reader,    "runNumber");
     TTreeReaderValue    <Int_t>                 evtNum_     (reader,    "evtNumber.eventNumber");
@@ -194,20 +198,19 @@ void GenSelection(const TString suffix)
     //  HISTOGRAMS
     //
 
-    TH1D *hTotalEvents, *hPhaseSpaceEvents, *hFiducialEvents;
+    TH1D *hPhaseSpaceEvents, *hFiducialEvents;
 
-    inFile->GetObject("TotalEvents_" + suffix, hTotalEvents);
-    hTotalEvents->SetDirectory(outFile);
-    hTotalEvents->SetName("TotalEvents_" + prefix + "_" + suffix);
-    hTotalEvents->Sumw2();
-
-    inFile->GetObject("PhaseSpaceEvents_" + suffix, hPhaseSpaceEvents);
+    inFile->GetObject("PhaseSpaceEvents_zz_4l", hPhaseSpaceEvents);
     hPhaseSpaceEvents->SetDirectory(outFile);
-    hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + prefix + "_" + suffix);
+    hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + suffix);
     hPhaseSpaceEvents->Sumw2();
+    // forgot to write bin 1 in BLT analyzer :(
+    hPhaseSpaceEvents->SetBinContent(chanIdx[L4], hPhaseSpaceEvents->GetBinContent(chanIdx[M4])
+                                                + hPhaseSpaceEvents->GetBinContent(chanIdx[ME])
+                                                + hPhaseSpaceEvents->GetBinContent(chanIdx[EM])
+                                                + hPhaseSpaceEvents->GetBinContent(chanIdx[E4]));
 
-    hFiducialEvents = new TH1D("FiducialEvents_" + prefix + "_" + suffix, 
-                                    "FiducialEvents", 10, 0.5, 10.5);
+    hFiducialEvents = new TH1D("FiducialEvents_" + suffix, "FiducialEvents", 10, 0.5, 10.5);
     hFiducialEvents->SetDirectory(outFile);
     hFiducialEvents->Sumw2();
 
@@ -226,7 +229,7 @@ void GenSelection(const TString suffix)
     int nEvents = reader.GetEntries(kTRUE);
 
     cout << endl;
-    cout << "Running over " << nEvents << " total events" << endl;
+    cout << "Running over " << nEvents << " total phase space events" << endl;
     if (debug)  cout << "Will select " << selectEvents << " events" << endl;
     cout << endl;
 
@@ -267,8 +270,7 @@ void GenSelection(const TString suffix)
 
         // Quantities copied directly to output tree
         runNum  = *runNum_;         evtNum  = *evtNum_;         lumiSec     = *lumiSec_;
-        weight  = *genWeight_;      channel = *channel_;
-        zzp4    = *lepsP4_;
+        weight  = *genWeight_;      channel = *channel_;        zzp4    = *lepsP4_;
 
         // Quantities used in analysis, but not written out
         UShort_t        nMuons  = *nMuons_,         nElecs  = *nElecs_;
@@ -280,6 +282,7 @@ void GenSelection(const TString suffix)
         //
 
         vector<Lepton> muons, elecs;
+        TVector3 zz_boost = zzp4.BoostVector();
 
         // Muons
         for (unsigned i = 0; i < nMuons; i++)
@@ -287,10 +290,11 @@ void GenSelection(const TString suffix)
             Lepton      muon;
 
             muon.p4     = muonP4_.At(i);
-//          muon.b_p4   = BoostP4(muonP4, z_boost);
             muon.q      = (*muonQ_)[i];
             muon.pdg    = -13 * muon.q;
             muon.mother = (*muonZ_)[i];
+
+            muon.SetBoostedP4(zz_boost);
 
             muons.push_back(muon);
         }
@@ -303,10 +307,11 @@ void GenSelection(const TString suffix)
             Lepton      elec;
 
             elec.p4     = elecP4_.At(i);
-//          elec.b_p4   = BoostP4(elecP4, z_boost);
             elec.q      = (*elecQ_)[i];
             elec.pdg    = -11 * elec.q;
             elec.mother = (*elecZ_)[i];
+
+            elec.SetBoostedP4(zz_boost);
 
             elecs.push_back(elec);
         }
@@ -348,13 +353,13 @@ void GenSelection(const TString suffix)
             z1.SetMembers(muons[0], muons[1]);
             z2.SetMembers(elecs[0], elecs[1]);
         }
-        else if (channel == 8)  // 2e2m
+        else if (channel == 8)                      // 2e2m
         {
             C = EM;
             z1.SetMembers(elecs[0], elecs[1]);
             z2.SetMembers(muons[0], muons[1]);
         }
-        else if (channel == 9)  // 4e
+        else if (channel == 9)                      // 4e
         {
             C = E4;
             MakePairsFromMother(elecs, &z1, &z2);
@@ -371,11 +376,7 @@ void GenSelection(const TString suffix)
         vector<Lepton> leps = z1.GetMembers(), z2_leps = z2.GetMembers();
         leps.insert(leps.end(), z2_leps.begin(), z2_leps.end());
         sort(leps.begin(), leps.end(), DecreasingPt);
-/*
-        // Sort by P in Z CM frame
-        vector<Lepton> b_leps = leps;
-        sort(b_leps.begin(), b_leps.end(), DecreasingBoostedP);
-*/
+
         if (print)
         {
             cout << "Lab Pt:\t";
@@ -420,65 +421,54 @@ void GenSelection(const TString suffix)
             hFiducialEvents->Fill(chanIdx[C], weight);
             hFiducialEvents->Fill(chanIdx[L4], weight);
 
+        if (fidOnly && !isFiducial)
+            continue;
 
 
-/*
-        ///////////////////////
-        //    OBSERVABLES    //
-        ///////////////////////
 
 
-        ////  Z FRAME
-
-        // Get positive and negative lepton P3s
-        TVector3    z1plus_p3   = z1.plus->b_p4.Vect();
-        TVector3    z1minus_p3  = z1.minus->b_p4.Vect();
-
-        TVector3    z2plus_p3   = z2.plus->b_p4.Vect();
-        TVector3    z2minus_p3  = z2.minus->b_p4.Vect();
 
 
-        // "alpha": angle between paired leptons
-        b_z1alpha   = z1plus_p3.Angle(z1minus_p3);
-        b_z2alpha   = z2plus_p3.Angle(z2minus_p3);
+        ////
+        ////
+        ////    OBSERVABLES
+        ////
+        ////
 
 
-        // Find normals to z1, z2 decay planes
-        TVector3    z1norm  = z1plus_p3.Cross(z1minus_p3);
-        TVector3    z2norm  = z2plus_p3.Cross(z2minus_p3);
+        TVector3    z1_plus = z1.Plus().b_v3,           z1_minus = z1.Minus().b_v3;
+        TVector3    z2_plus = z2.Plus().b_v3,           z2_minus = z2.Minus().b_v3;
 
+        // Normals to z1, z2 decay planes
+        TVector3    N_z1 = z1_plus.Cross(z1_minus),     N_z2 = z2_plus.Cross(z2_minus);
+        TVector3    n_z1 = N_z1.Unit(),                 n_z2 = N_z2.Unit();
 
-        // "phi": angle between decay planes
-        b_phi   = z1norm.Angle(z2norm);
+        // Sclar triple product
+        psi = z2_plus.Dot(N_z1);
 
+        // Angle between decay planes
+        TVector3    n_cross_n = n_z1.Cross(n_z2);
+        sin_phi = n_cross_n.Dot(z1.b_v3.Unit());
+
+        // Angles between paired leptons
+        angle_z1leps = z1_plus.Angle(z1_minus);         angle_z2leps = z2_plus.Angle(z2_minus);
 
         // "theta": angle between trailing pair 1 lepton and low-mass pair
-        TVector3    z1low_p3    = z1.secondP->b_p4.Vect();
-
-        b_theta = z2.b_p4.Angle(z1low_p3);
-
+        TVector3    z1_low = z1.BSecond().b_v3;
+        angle_z1l2_z2 = z2.b_p4.Angle(z1_low);
 
 
-        ////  OTHER FRAMES
+        // Boosted lepton-pair angles
 
-        // Get boost vectors for each pair
         TVector3    z1_boost = z1.p4.BoostVector(),     z2_boost = z2.p4.BoostVector();
+        LeptonPair  b1_z1 = z1,     b1_z2 = z2,         b2_z1 = z1,     b2_z2 = z2;
 
+        b1_z1.SetBoostedP4(z1_boost);                   b1_z2.SetBoostedP4(z1_boost);
+        b2_z1.SetBoostedP4(z2_boost);                   b2_z2.SetBoostedP4(z2_boost);
 
-        // Boost positive lepton of each pair into its pair's CM frame
-        TVector3    b1_z1plus_p3    = BoostP3(z1.plus->p4,  z1_boost);
-        TVector3    b2_z2plus_p3    = BoostP3(z2.plus->p4,  z2_boost);
-
-
-        // Boost each pair into the other pair's CM frame
-        TVector3    b1_z2_p3    = BoostP3(z2.p4, z1_boost);
-        TVector3    b2_z1_p3    = BoostP3(z1.p4, z2_boost);
-
-
-        // "theta_Zx": angle between positive pair x lepton and pair y in pair x CM frame
-        bb_z1theta  = b1_z1plus_p3.Angle(b1_z2_p3);
-        bb_z2theta  = b2_z2plus_p3.Angle(b2_z1_p3);
-*/
+        // "theta_zX": angle between positive pair X lepton and Y pair in X pair CM frame
+        theta_z1  = b1_z2.b_v3.Angle(b1_z1.Plus().b_v3);
+        theta_z2  = b2_z1.b_v3.Angle(b2_z2.Plus().b_v3);
 
 
 
@@ -486,26 +476,26 @@ void GenSelection(const TString suffix)
         //  FILL TREE
         //
 
+        // Sort all leptons by P in Z CM frame
+        vector<Lepton> b_leps = leps;
+        sort(b_leps.begin(), b_leps.end(), DecreasingBoostedP);
+
         z1p4    = z1.p4;                z1pdg   = z1.pdg;
         z2p4    = z2.p4;                z2pdg   = z2.pdg;
 
-        l1p4    = leps[0].p4;           l1pdg   = leps[0].pdg;          l1z     = leps[0].mother;
-        l2p4    = leps[1].p4;           l2pdg   = leps[1].pdg;          l2z     = leps[1].mother;
-        l3p4    = leps[2].p4;           l3pdg   = leps[2].pdg;          l3z     = leps[2].mother;
-        l4p4    = leps[3].p4;           l4pdg   = leps[3].pdg;          l4z     = leps[3].mother;
+        l1p4    = leps[0].p4;           l1pdg   = leps[0].pdg;          l1z = leps[0].mother;
+        l2p4    = leps[1].p4;           l2pdg   = leps[1].pdg;          l2z = leps[1].mother;
+        l3p4    = leps[2].p4;           l3pdg   = leps[2].pdg;          l3z = leps[2].mother;
+        l4p4    = leps[3].p4;           l4pdg   = leps[3].pdg;          l4z = leps[3].mother;
 
-/*
-        b_z1p4  = z1.b_p4;                  b_z2p4  = z2.b_p4;
 
         b_ttp4  = b_leps[1].b_p4 + b_leps[2].b_p4 + b_leps[3].b_p4;
+        b_z1p4  = z1.b_p4;              b_z2p4  = z2.b_p4;
 
-
-        b_l1p4  = b_leps[0].b_p4;           b_l1pdg = b_leps[0].pdg;
-        b_l2p4  = b_leps[1].b_p4;           b_l2pdg = b_leps[1].pdg;
-        b_l3p4  = b_leps[2].b_p4;           b_l3pdg = b_leps[2].pdg;
-        b_l4p4  = b_leps[3].b_p4;           b_l4pdg = b_leps[3].pdg;
-*/
-
+        b_l1v3  = b_leps[0].b_v3;       b_l1pdg = b_leps[0].pdg;        b_l1z = b_leps[0].mother;
+        b_l2v3  = b_leps[1].b_v3;       b_l2pdg = b_leps[1].pdg;        b_l2z = b_leps[1].mother;
+        b_l3v3  = b_leps[2].b_v3;       b_l3pdg = b_leps[2].pdg;        b_l3z = b_leps[2].mother;
+        b_l4v3  = b_leps[3].b_v3;       b_l4pdg = b_leps[3].pdg;        b_l4z = b_leps[3].mother;
 
 
         tree[C]->Fill();
@@ -521,13 +511,39 @@ void GenSelection(const TString suffix)
     //  PRINT RESULTS
     //
 
+    int nFiducial = tree[L4]->GetEntries("isFiducial");
+
     cout << endl << endl;
     cout << "Done!" << endl;
-    cout << "Ran over " << reader.GetCurrentEntry() << " unweighted events:" << endl << endl;
+    cout << "Found " << nFiducial << "/" << reader.GetCurrentEntry() << " fiducial events" << endl;
+
+    if (!fidOnly)
+    {
+        cout << endl << endl;
+        cout << "Yields for phase space region:" << endl;
+        for (unsigned i = 0; i < N; i++)
+        {
+            if (i == L4)
+                cout << endl;
+            else
+                cout << "\t\t";
+
+            cout << selection[i] << ":\t";
+            cout << tree[i]->GetEntries() << endl;
+        }
+    }
+
+    cout << endl << endl;
+    cout << "Yields for fiducial region:" << endl;
     for (unsigned i = 0; i < N; i++)
     {
+        if (i == L4)
+            cout << endl;
+        else
+            cout << "\t\t";
+
         cout << selection[i] << ":\t";
-        cout << (int) hSelectedEvents->GetBinContent(chanIdx[i]) << endl;
+        cout << tree[i]->GetEntries("isFiducial") << endl;
     }
     cout << endl << endl;
 
@@ -542,7 +558,6 @@ void GenSelection(const TString suffix)
     for (unsigned i = 0; i < N; i++)
         tree[i]->Write();
 
-    hTotalEvents->Write();
     hPhaseSpaceEvents->Write();
     hFiducialEvents->Write();
 

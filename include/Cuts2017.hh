@@ -1,3 +1,8 @@
+#ifndef CUTS2017_HH
+#define CUTS2017_HH
+
+
+// ROOT
 #include "TString.h"
 
 
@@ -8,6 +13,7 @@
 
 const TString   YEAR_STR = "2017";
 const TString   EOS_PATH = "root://cmseos.fnal.gov//store/user/jrainbol";
+const TString   HOME_PATH = "/uscms/home/jrainbol/nobackup";
 
 
 
@@ -54,3 +60,16 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 //
 
 const float     MATCH_DR_MAX = 0.15;
+
+
+
+//
+//  SAMPLES
+//
+
+const float     MUON_TRIG_LUMI = 36.735,                        ELEC_TRIG_LUMI = 41.529;
+const float     NGEN_ZZ_4L = 6967853 * (1 - 2 * 0.005244),      XSEC_ZZ_4L = 1.212;
+
+
+
+#endif // CUTS2017_HH

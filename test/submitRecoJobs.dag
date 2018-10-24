@@ -52,10 +52,10 @@
   SCRIPT  POST    zz_2l2q	      ../scripts/mergeOutput.sh selected $JOB
 
 
-# JOB             zz_4l		      submitReco.sub
-# VARS            zz_4l		      suffix="zz_4l"
-# VARS            zz_4l		      nFiles="2"
-# SCRIPT  POST    zz_4l		      ../scripts/mergeOutput.sh selected $JOB
+  JOB             zz_4l		      submitReco.sub
+  VARS            zz_4l		      suffix="zz_4l"
+  VARS            zz_4l		      nFiles="2"
+  SCRIPT  POST    zz_4l		      ../scripts/mergeOutput.sh selected $JOB
 
 
   JOB             ggH_zz_4l	      submitReco.sub

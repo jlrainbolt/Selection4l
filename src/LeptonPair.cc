@@ -81,6 +81,26 @@ Lepton LeptonPair :: Minus() const
 }
 
 
+// BFirst
+Lepton LeptonPair :: BFirst() const
+{
+    if (leptons.first.b_p4.P() > leptons.second.b_p4.P())
+        return leptons.first;
+    else
+        return leptons.second;
+}
+
+// Second
+Lepton LeptonPair :: BSecond() const
+{
+    if (leptons.first.b_p4.P() < leptons.second.b_p4.P())
+        return leptons.first;
+    else
+        return leptons.second;
+}
+
+
+
 // GetMembers
 vector<Lepton> LeptonPair :: GetMembers() const
 {
@@ -100,8 +120,10 @@ void LeptonPair :: SetMembers(const Lepton& lep1, const Lepton& lep2)
     leptons = make_pair(lep1, lep2);
 
 
-    // Momentum
+    // Momentum & boost
     p4 = leptons.first.p4 + leptons.second.p4;
+    b_p4 = leptons.first.b_p4 + leptons.second.b_p4;
+    b_v3 = b_p4.Vect();
 
 
     // PDG ID (if it's a match)
@@ -119,7 +141,6 @@ void LeptonPair :: SetMembers(const Lepton& lep1, const Lepton& lep2)
 }
 
 
-
 //  SetMothers
 void LeptonPair :: SetMothers(unsigned mom)
 {
@@ -131,7 +152,11 @@ void LeptonPair :: SetMothers(unsigned mom)
 }
 
 
-
-//
-//  "FRIENDS"
-//
+// SetBoostedP4
+void LeptonPair :: SetBoostedP4(const TVector3& beta)
+{
+    leptons.first.SetBoostedP4(beta);
+    leptons.second.SetBoostedP4(beta);
+    b_p4 = leptons.first.b_p4 + leptons.second.b_p4;
+    b_v3 = b_p4.Vect();
+}
