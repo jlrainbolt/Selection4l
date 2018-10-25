@@ -60,6 +60,7 @@ Lepton LeptonPair :: Plus() const
     else    // return an empty lepton :(
     {
         Lepton lep;
+        lep.q = 0;
         return lep;
     }
 }
@@ -76,6 +77,7 @@ Lepton LeptonPair :: Minus() const
     else    // return an empty lepton :(
     {
         Lepton lep;
+        lep.q = 0;
         return lep;
     }
 }
@@ -125,6 +127,10 @@ void LeptonPair :: SetMembers(const Lepton& lep1, const Lepton& lep2)
     b_p4 = leptons.first.b_p4 + leptons.second.b_p4;
     b_v3 = b_p4.Vect();
 
+    m_p4 = leptons.first.m_p4 + leptons.second.m_p4;
+    m_b_p4 = leptons.first.m_b_p4 + leptons.second.m_b_p4;
+    m_b_v3 = m_b_p4.Vect();
+
 
     // PDG ID (if it's a match)
     if (abs(leptons.first.pdg) == abs(leptons.second.pdg))
@@ -159,4 +165,18 @@ void LeptonPair :: SetBoostedP4(const TVector3& beta)
     leptons.second.SetBoostedP4(beta);
     b_p4 = leptons.first.b_p4 + leptons.second.b_p4;
     b_v3 = b_p4.Vect();
+}
+void LeptonPair :: SetBoostedP4(const TVector3& beta, const TVector3& m_beta)
+{
+    SetBoostedP4(beta);
+
+    // Make intermediate leptons to propagate matched boost
+    Lepton first_, second_;
+    first_.p4   = leptons.first.m_p4;       first_.SetBoostedP4(m_beta);
+    second_.p4  = leptons.second.m_p4;      second_.SetBoostedP4(m_beta);
+    leptons.first.SetMatch(first_);         leptons.second.SetMatch(second_);
+
+    // Recalculate matched boost for pair
+    m_b_p4 = leptons.first.m_b_p4 + leptons.second.m_b_p4;
+    m_b_v3 = m_b_p4.Vect();
 }

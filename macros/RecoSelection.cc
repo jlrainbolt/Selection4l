@@ -61,7 +61,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     //
 
     const bool isData   = suffix.Contains(YEAR_STR);
-    const bool isSignal = suffix.Contains("zz_4l");
+    const bool isSignal = suffix.EqualTo("zz_4l");
 
     const unsigned N = 8;   // Channel indices
     unsigned                   LL = 0, MM = 1, EE = 2, L4 = 3, M4 = 4, ME = 5, EM = 6, E4 = 7;
@@ -114,11 +114,13 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     TClonesArray        *hardProcElectronP4     =   new TClonesArray("TLorentzVector");
     vector<Short_t>     *hardProcMuonQ          = 0,        *hardProcElectronQ          = 0;
     vector<UShort_t>    *hardProcMuonZIndex     = 0,        *hardProcElectronZIndex     = 0;
+    TLorentzVector      *hardProcLeptonsP4      = 0;
 
     TClonesArray        *finalStateMuonP4       =   new TClonesArray("TLorentzVector");
     TClonesArray        *finalStateElectronP4   =   new TClonesArray("TLorentzVector");
     vector<Short_t>     *finalStateMuonQ        = 0,        *finalStateElectronQ        = 0;
     vector<UShort_t>    *finalStateMuonZIndex   = 0,        *finalStateElectronZIndex   = 0;
+    TLorentzVector      *finalStateLeptonsP4    = 0;
 
     TLorentzVector      o_l1p4,     o_l2p4,     o_l3p4,     o_l4p4;
 
@@ -150,6 +152,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
         if (isSignal && i >= L4)
         {
+            tree[i]->Branch("genWeight",                &genWeight);
             tree[i]->Branch("nFinalStateMuons",         &nFinalStateMuons);
             tree[i]->Branch("nFinalStateElectrons",     &nFinalStateElectrons);
             tree[i]->Branch("nFinalStateLeptons",       &nFinalStateLeptons);
@@ -163,6 +166,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             tree[i]->Branch("hardProcElectronP4",       &hardProcElectronP4,        32000,      1);
             tree[i]->Branch("hardProcElectronQ",        &hardProcElectronQ);
             tree[i]->Branch("hardProcElectronZIndex",   &hardProcElectronZIndex);
+            tree[i]->Branch("hardProcLeptonsP4",        &hardProcLeptonsP4);
 
             tree[i]->Branch("finalStateMuonP4",         &finalStateMuonP4,          32000,      1);
             tree[i]->Branch("finalStateMuonQ",          &finalStateMuonQ);
@@ -170,6 +174,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             tree[i]->Branch("finalStateElectronP4",     &finalStateElectronP4,      32000,      1);
             tree[i]->Branch("finalStateElectronQ",      &finalStateElectronQ);
             tree[i]->Branch("finalStateElectronZIndex", &finalStateElectronZIndex);
+            tree[i]->Branch("finalStateLeptonsP4",      &finalStateLeptonsP4);
 
             tree[i]->Branch("uncorr_l1p4",  &o_l1p4);   tree[i]->Branch("uncorr_l2p4",  &o_l2p4);
             tree[i]->Branch("uncorr_l3p4",  &o_l3p4);   tree[i]->Branch("uncorr_l4p4",  &o_l4p4);
@@ -253,7 +258,6 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     if (isSignal)
     {
         inFile->GetObject("tree_" + suffix, inTree);
-        gROOT->ProcessLine("#include <vector>");
 
         inTree->SetBranchAddress(   "nFinalStateMuons",             &nFinalStateMuons);
         inTree->SetBranchAddress(   "nFinalStateElectrons",         &nFinalStateElectrons);
@@ -270,6 +274,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
         inTree->SetBranchAddress(   "hardProcElectronP4",           &hardProcElectronP4);
         inTree->SetBranchAddress(   "hardProcElectronQ",            &hardProcElectronQ);
         inTree->SetBranchAddress(   "hardProcElectronZIndex",       &hardProcElectronZIndex);
+        inTree->SetBranchAddress(   "hardProcLeptonsP4",            &hardProcLeptonsP4);
 
         inTree->GetBranch(          "finalStateMuonP4")             ->SetAutoDelete(kFALSE);
         inTree->SetBranchAddress(   "finalStateMuonP4",             &finalStateMuonP4);
@@ -279,6 +284,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
         inTree->SetBranchAddress(   "finalStateElectronP4",         &finalStateElectronP4);
         inTree->SetBranchAddress(   "finalStateElectronQ",          &finalStateElectronQ);
         inTree->SetBranchAddress(   "finalStateElectronZIndex",     &finalStateElectronZIndex);
+        inTree->SetBranchAddress(   "finalStateLeptonsP4",          &finalStateLeptonsP4);
 
         cout << "Loaded gen branches" << endl;
     }
@@ -541,7 +547,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
         TLorentzVector tmp_p4 = TotalP4(tmp_leps);
 
-        if (tmp_p4.M() < M_MIN || tmp_p4.M() > M_MAX)   // total mass below/above Z window
+        if ((tmp_p4.M() < M_MIN) || (tmp_p4.M() > M_MAX))   // total mass below/above Z window
             continue;
 
         if (print)
@@ -709,15 +715,16 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
         //  SET CUTS
         //
 
-        const bool  muonPairLeads   = (C == MM || C == ME || C == M4);  // false => elecPairLeads
+        // false => elecPairLeads
+        const bool  muonPairLeads   = ((C == MM) || (C == ME) || (C == M4));
 
         const float LEP_PT1_MIN     = muonPairLeads ? MUON_PT1_MIN  : ELEC_PT1_MIN;
         const float LEP_PT2_MIN     = muonPairLeads ? MUON_PT2_MIN  : ELEC_PT2_MIN;
 
 
-        const bool  isDilepton      = (C == MM || C == EE);
-        const bool  isFourLepton    = (C == M4 || C == ME || C == EM || C == E4);
-        const bool  isMixedFlavor   = (C == ME || C == EM);
+        const bool  isDilepton      = ((C == MM) || (C == EE));
+        const bool  isFourLepton    = ((C == M4) || (C == ME) || (C == EM) || (C == E4));
+        const bool  isMixedFlavor   = ((C == ME) || (C == EM));
 
 
 
@@ -737,7 +744,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             //  CHARGE REQUIREMENT
             //
 
-            if (z1.Plus().q != 1 || z1.Minus().q != -1)     // lepton charges are not +1 and -1
+            if ((z1.Plus().q != 1) || (z1.Minus().q != -1))     // lepton charges are not +1 and -1
                 continue;
 
             if (print)
@@ -794,12 +801,10 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             //  CHARGE REQUIREMENT
             //
 
-            // (Extraneous for same-flavor case)
-
-            if (z1.Plus().q != 1 || z1.Minus().q != -1)     // lepton charges are not +1 and -1 
+            if ((z1.Plus().q != 1) || (z1.Minus().q != -1))     // lepton charges are not +1 and -1 
                 continue;
 
-            if (z2.Plus().q != 1 || z2.Minus().q != -1)     // (both extraneous for same-flavor)
+            if ((z2.Plus().q != 1) || (z2.Minus().q != -1))     // (both extraneous for same-flavor)
                 continue;
 
             if (print)
@@ -814,7 +819,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             if (z1.p4.M() < z2.p4.M())                          // mixed-flavor pairs are swapped
                 continue;
 
-            if (z1.p4.M() < Z1_M_MIN || z1.p4.M() > Z_M_MAX)    // z1 failed pair mass requirements
+            if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
                 continue;                                       // (z2's mass is bound by z1)
 
             z1.SetMothers(1);       z2.SetMothers(2);           // bookkeeping
@@ -923,8 +928,8 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             o_l1p4  = leps[0].o_p4;         o_l2p4  = leps[1].o_p4;
             o_l3p4  = leps[2].o_p4;         o_l4p4  = leps[3].o_p4;
 
-            hardProcMuonP4->Clear();        hardProcElectronP4->Clear();
-            finalStateMuonP4->Clear();      finalStateElectronP4->Clear();
+            hardProcMuonP4->Delete();       finalStateMuonP4->Delete();
+            hardProcElectronP4->Delete();   finalStateElectronP4->Delete();
 
             inTree->GetEntry(currentEntry);
 
@@ -955,12 +960,10 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     //  PRINT RESULTS
     //
 
-    int nSelected = hSelectedEvents->GetBinContent(chanIdx[LL]) 
-                    + hSelectedEvents->GetBinContent(chanIdx[L4]);
+    int nSelected = tree[LL]->GetEntries() + tree[L4]->GetEntries(); 
 
     cout << endl << endl;
     cout << "Done!" << endl;
-    cout << "Selected " << nSelected << "/" << reader.GetCurrentEntry() << " events" << endl;
     cout << endl << endl;
     cout << "Yields (unweighted):" << endl << endl;
     for (unsigned i = 0; i < N; i++)

@@ -2,5 +2,5 @@
 
 rm *.dag.*
 
-rm output/*.root
+rm output/*
 rm output/reports/*

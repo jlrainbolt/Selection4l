@@ -58,7 +58,7 @@ bool MakePairsFromMother(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair*
         else if (leps[i].mother == mothers[1])
             pair2leps.push_back(leps[i]);
     }
-    if (pair1leps.size() != 2 || pair2leps.size() != 2)
+    if ((pair1leps.size() != 2) || (pair2leps.size() != 2))
     {
         cout << "Wrong number of daughters" << endl;
         return kFALSE;
@@ -118,7 +118,7 @@ bool MakePairsMaxDiff(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair*z2)
         }
     }
     LeptonPair c1_zA(lepA1, lepA2);
-    if (c1_zA.Plus().q != 1 || c1_zA.Minus().q != -1)
+    if ((c1_zA.Plus().q != 1) || (c1_zA.Minus().q != -1))
         return kFALSE;
 
     // Pair remaining leptons
@@ -131,18 +131,18 @@ bool MakePairsMaxDiff(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair*z2)
     else if (j == 3)
         c1_zB.SetMembers(leps[1], leps[2]);
 
-    if (c1_zB.Plus().q != 1 || c1_zB.Minus().q != -1)
+    if ((c1_zB.Plus().q != 1) || (c1_zB.Minus().q != -1))
         return kFALSE;
 
 
     // Configuration 2: swap negatively-charged leptons
 
     LeptonPair c2_zA(c1_zA.Plus(), c1_zB.Minus());
-    if (c2_zA.Plus().q != 1 || c2_zA.Minus().q != -1)
+    if ((c2_zA.Plus().q != 1) || (c2_zA.Minus().q != -1))
         return kFALSE;
 
     LeptonPair c2_zB(c1_zB.Plus(), c1_zA.Minus());
-    if (c2_zB.Plus().q != 1 || c2_zB.Minus().q != -1)
+    if ((c2_zB.Plus().q != 1) || (c2_zB.Minus().q != -1))
         return kFALSE;
 
 

@@ -53,7 +53,7 @@ void GenAnalysis(const bool fidOnly)
 
     bool debug = kFALSE;
     int selectEvents = 1000;
-    int  printEvery = 30000;
+    int printEvery = 30000;
 
 
 
@@ -273,7 +273,7 @@ void GenAnalysis(const bool fidOnly)
         weight  = *genWeight_;      channel = *channel_;        zzp4    = *lepsP4_;
 
         // Quantities used in analysis, but not written out
-        UShort_t        nMuons  = *nMuons_,         nElecs  = *nElecs_;
+        unsigned    nMuons  = *nMuons_,         nElecs  = *nElecs_;
 
 
 

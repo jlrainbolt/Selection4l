@@ -35,8 +35,18 @@ struct Lepton
     TLorentzVector      b_p4;       // boosted 4-momentum
     TVector3            b_v3;       // 3-momentum corresponding to b_p4
 
-    // Calculated boosted p4 (and p3) using p4 and given boost vector
+    // Matched quantities
+    TLorentzVector      m_p4;       // 4-momentum of matched gen lepton
+    float               dr;         // DeltaR between p4 and m_p4
+    TLorentzVector      m_b_p4;     // boosted m_p4
+    TVector3            m_b_v3;     // 3-momentum corresponding to m_b_p4
+
+
+    // Calculate boosted p4 (and p3) using p4 and given boost vector
     void SetBoostedP4(const TVector3&);
+
+    // Calculate dr, m_b_p4, and m_b_v3 given matched lepton
+    void SetMatch(const Lepton&);
 };
 
 

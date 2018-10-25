@@ -21,12 +21,19 @@ using namespace std;
 
 struct LeptonPair
 {
-    // Public data members
+    // Basics
     TLorentzVector  p4;                                 // Sum of lepton p4
-    TLorentzVector  b_p4;                               // Sum of lepton b_p4
-    TVector3        b_v3;                               // 3-momentum corresponding to b_p4
     int             pdg;                                // PDG ID (absolute value)
     unsigned        mother;                             // Mother Z index of member leptons
+
+    // Boosted quantities
+    TLorentzVector  b_p4;                               // Sum of lepton b_p4
+    TVector3        b_v3;                               // 3-momentum corresponding to b_p4
+
+    // Matches quantities
+    TLorentzVector  m_p4;                               // Sum of lepton m_p4
+    TLorentzVector  m_b_p4;                             // Sum of lepton m_b_p4
+    TVector3        m_b_v3;                             // 3-momentum corresponding to m_b_p4
 
 
     // Constructors
@@ -44,7 +51,8 @@ struct LeptonPair
     // "Setters"
     void SetMembers(const Lepton&, const Lepton&);      // Copy leptons to self; call Initialize()
     void SetMothers(unsigned);                          // Set mother of self and member leptons
-    void SetBoostedP4(const TVector3&);                 // Bet b_p4, b_v3 of self and members
+    void SetBoostedP4(const TVector3&);                 // Set b_p4, b_v3 of self and members
+    void SetBoostedP4(const TVector3&, const TVector3&);// Also sets matched boost
 
 
     // Protected attributes

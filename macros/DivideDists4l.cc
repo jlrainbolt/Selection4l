@@ -17,13 +17,13 @@ using namespace std;
 
 
 /*
-**  DivideDists
+**  DivideDists4l
 **
-**  Creates acceptance/efficiency ratio histograms for distributions in "unscaled_"
+**  Creates acceptance/efficiency ratio histograms for distributions in "unscaled_4l" files
 **  and maybe also overlays them on canvases if I feel up to it someday
 */
 
-void DivideDists()
+void DivideDists4l()
 {
 
     //
@@ -67,7 +67,7 @@ void DivideDists()
     cout << endl << endl;
     for (unsigned j = 0; j < M; j++)
     {
-        TString inName  = "unscaled_" + suffix[j] + ".root";
+        TString inName  = "unscaled4l_" + suffix[j] + ".root";
         TString inPath  = inName; //HOME_PATH + "/Boosted/" + YEAR_STR + "/" + inName;
         inFile[j] = new TFile(inPath);
 
@@ -149,7 +149,7 @@ void DivideDists()
                 TH1* ratio = (TH1*) hist[numerator[p]][i][h]->Clone();
                 ratio->Divide(hist[denominator[p]][i][h]);
 
-                ratio->SetName(hname[h]);
+                ratio->SetName(hname[h] + "_" + selection[i]);
                 ratio->Write();
             }
         }

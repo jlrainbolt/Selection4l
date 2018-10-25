@@ -18,12 +18,12 @@ using namespace std;
 
 
 /*
-**  DrawDists
+**  DrawResolution
 **
-**  Draws UNSCALED distributions for a "boosted_" sample
+**  Draws resolution of distributions for a "matched_" sample
 */ 
 
-void DrawDists(const TString suffix)
+void DrawResolution(const bool scale = kTRUE, const bool rebin = kFALSE)
 {
 
     //
@@ -31,6 +31,7 @@ void DrawDists(const TString suffix)
     //
 
 //  gErrorIgnoreLevel = kError;
+    const int nRebin = 5;
 
 
 
@@ -49,13 +50,11 @@ void DrawDists(const TString suffix)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "unscaled";
-    TString outName = prefix + "_" + suffix + ".root";
+    TString prefix  = "resolution";
+    TString suffix1 = scale ? "scaled" : "unscaled";
+    TString suffix2 = rebin ? "" : "autobin";
+    TString outName = prefix + "_" + suffix1 + "_" + suffix2 + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
-
-    TTree *tree[N];
-    for (unsigned i = 0; i < N; i++)
-        tree[i] = new TTree(selection[i] + "_" + suffix, suffix);
 
 
 
@@ -66,39 +65,27 @@ void DrawDists(const TString suffix)
     vector<tuple<TString, TString, Int_t, Double_t, Double_t>> v;
 
     //                      name            quantity            bins    xmin        xmax
-    v.push_back(make_tuple( "channel",      "channel",          4,      5.5,        9.5));
-
     // Lab frame kinematics
     v.push_back(make_tuple( "zzm",          "zzp4.M()",         100,    80,         100));
     v.push_back(make_tuple( "zzpt",         "zzp4.Pt()",        100,    0,          100));
 
     v.push_back(make_tuple( "z1m",          "z1p4.M()",         100,    0,          100));
     v.push_back(make_tuple( "z1pt",         "z1p4.Pt()",        100,    0,          120));
-    v.push_back(make_tuple( "z1pdg",        "z1pdg",            3,      10.5,       13.5));
 
     v.push_back(make_tuple( "z2m",          "z2p4.M()",         105,    0,          35));
     v.push_back(make_tuple( "z2pt",         "z2p4.Pt()",        100,    0,          75));
-    v.push_back(make_tuple( "z2pdg",        "z2pdg",            3,      10.5,       13.5));
 
     v.push_back(make_tuple( "l1pt",         "l1p4.Pt()",        100,    0,          100));
     v.push_back(make_tuple( "l1eta",        "l1p4.Eta()",       100,    -2.5,       2.5));
-    v.push_back(make_tuple( "l1pdg",        "l1pdg",            27,     -13.5,      13.5));
-    v.push_back(make_tuple( "l1z",          "l1z",              2,      0.5,        2.5));
 
     v.push_back(make_tuple( "l2pt",         "l2p4.Pt()",        120,    0,          60));
     v.push_back(make_tuple( "l2eta",        "l2p4.Eta()",       100,    -2.5,       2.5));
-    v.push_back(make_tuple( "l2pdg",        "l2pdg",            27,     -13.5,      13.5));
-    v.push_back(make_tuple( "l2z",          "l2z",              2,      0.5,        2.5));
 
     v.push_back(make_tuple( "l3pt",         "l3p4.Pt()",        105,    0,          35));
     v.push_back(make_tuple( "l3eta",        "l3p4.Eta()",       100,    -2.5,       2.5));
-    v.push_back(make_tuple( "l3pdg",        "l3pdg",            27,     -13.5,      13.5));
-    v.push_back(make_tuple( "l3z",          "l3z",              2,      0.5,        2.5));
 
     v.push_back(make_tuple( "l4pt",         "l4p4.Pt()",        100,    0,          25));
     v.push_back(make_tuple( "l4eta",        "l4p4.Eta()",       100,    -2.5,       2.5));
-    v.push_back(make_tuple( "l4pdg",        "l4pdg",            27,     -13.5,      13.5));
-    v.push_back(make_tuple( "l4z",          "l4z",              2,      0.5,        2.5));
 
 
     // Z rest frame kinematics
@@ -106,20 +93,12 @@ void DrawDists(const TString suffix)
     v.push_back(make_tuple( "b_ttm",        "b_ttp4.M()",       100,    0,          65));
 
     v.push_back(make_tuple( "b_l1p",        "b_l1v3.Mag()",     100,    25,         50));
-    v.push_back(make_tuple( "b_l1pdg",      "b_l1pdg",          27,     -13.5,      13.5));
-    v.push_back(make_tuple( "b_l1z",        "b_l1z",            2,      0.5,        2.5));
 
     v.push_back(make_tuple( "b_l2p",        "b_l2v3.Mag()",     100,    15,         50));
-    v.push_back(make_tuple( "b_l2pdg",      "b_l2pdg",          27,     -13.5,      13.5));
-    v.push_back(make_tuple( "b_l2z",        "b_l2z",            2,      0.5,        2.5));
 
     v.push_back(make_tuple( "b_l3p",        "b_l3v3.Mag()",     100,    0,          30));
-    v.push_back(make_tuple( "b_l3pdg",      "b_l3pdg",          27,     -13.5,      13.5));
-    v.push_back(make_tuple( "b_l3z",        "b_l3z",            2,      0.5,        2.5));
 
     v.push_back(make_tuple( "b_l4p",        "b_l4v3.Mag()",     100,    0,          20));
-    v.push_back(make_tuple( "b_l4pdg",      "b_l4pdg",          27,     -13.5,      13.5));
-    v.push_back(make_tuple( "b_l4z",        "b_l4z",            2,      0.5,        2.5));
 
 
     // Observables
@@ -137,7 +116,8 @@ void DrawDists(const TString suffix)
     //  INPUT FILE
     //
 
-    TString inName  = "boosted_" + suffix + ".root";
+    TString suffix  = "zz_4l";
+    TString inName  = "matched_" + suffix + ".root";
     TString inPath  = HOME_PATH + "/Boosted/" + YEAR_STR + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
@@ -154,8 +134,9 @@ void DrawDists(const TString suffix)
     ////
     ////
 
+//  outFile->mkdir(selection[L4]);  // put 4l directory at the top
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 1; i < N; i++)
     {
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
@@ -164,6 +145,15 @@ void DrawDists(const TString suffix)
         inFile->GetObject(selection[i] + "_" + suffix, tree);
 
         cout << selection[i] << " tree has " << tree->GetEntries() << " events." << flush;
+
+        // Overall scale factor
+        float LUMI; 
+        if      (i == M4 || i == ME)
+            LUMI = MUON_TRIG_LUMI;
+        else if (i == E4 || i == EM)
+            LUMI = ELEC_TRIG_LUMI;
+
+        float sf = LUMI * 1000 * XSEC_ZZ_4L / NGEN_ZZ_4L;
 
 
 
@@ -181,9 +171,13 @@ void DrawDists(const TString suffix)
             float   xmin,   xmax;
             TString weight = "weight";
             tie(hname, quantity, bins, xmin, xmax) = v[j];
+            
+            // Add subtraction to quantity
+            quantity = "gen_" + quantity + " - " + quantity;
 
             TString varexp;
-            varexp.Form(quantity + ">>" + hname + "(%i,%g,%g)", bins, xmin, xmax);
+//          varexp.Form(quantity + ">>" + hname + "(%i,%g,%g)", bins, xmin, xmax);
+            varexp.Form(quantity + ">>" + hname);
 
 
             // Draw and retrieve tree
@@ -193,18 +187,26 @@ void DrawDists(const TString suffix)
             gDirectory->GetObject(hname, hist);
 
             if (hist)
-                hist->SetName(hname + "_" + suffix);
+                hist->SetName(hname + "_" + selection[i]);
             else    // the tree was empty and we need to make a dummy histogram
                 hist = new TH1F(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
+
+
+            // Scaling, etc.
+            if (scale)
+                hist->Scale(sf);
+
+            if (rebin)
+                hist->Rebin(nRebin);
 
 
 //          hist->Sumw2(kTRUE);
             hist->Write();
         }
-
         cout << "done!" << endl;
-
     }
+
+
 
     outFile->Close();
     inFile->Close();

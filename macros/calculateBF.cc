@@ -1,34 +1,86 @@
+// STL
+#include <iostream>
+
+// ROOT
 #include "TString.h"
 #include "TFile.h"
-#include "TDirectory.h"
 #include "TH1.h"
 
+// Cuts
+#include "Cuts2017.h"
 
 using namespace std;
 
 
-void GetQuantities(const TString rootFile,
-                   Double_t *nEvents, Double_t *nUnc, Double_t *nSpc, Double_t *nSel);
+/*
+**  CalculateBF
+**
+**  Calculates Z -> 4l branching fractions using yields from SelectedEvents histograms
+*/
 
-
-void calculateBF(const TString filePath, const TString fileSuffix)
+void CalculateBF()
 {
     // Constants
     Double_t Zto2l = 0.03366, f_nr = 0.96;
 
+    //
+    //  SAMPLE INFO
+    //
 
-    // Storage for quantities                                       // Not actually used
-    const unsigned N = 6;           TString prefix[N];              Double_t frac[N];
-    unsigned MM = 0;                prefix[MM] = "mumu";            frac[MM] = 0.5;
-    unsigned EE = 1;                prefix[EE] = "ee";              frac[EE] = 0.5;
-    unsigned M4 = 2;                prefix[M4] = "4m";              frac[M4] = 0.2655;
-    unsigned ME = 3;                prefix[ME] = "2m2e";            frac[ME] = 0.4690 * 0.5;
-    unsigned EM = 4;                prefix[EM] = "2e2m";            frac[EM] = 0.4690 * 0.5;
-    unsigned E4 = 5;                prefix[E4] = "4e";              frac[E4] = 0.2655;
+    // or whatever the heck this is
 
-    Double_t nEvents[N], nUnc[N], nSpc[N], nSel[N];
+    const unsigned N = 8;   // Channel indices
+    unsigned                LL = 0, MM = 1, EE = 2, L4 = 3, M4 = 4, ME = 5, EM = 6, E4 = 7;
+    TString selection[N] = {"ll",   "mumu", "ee",   "4l",   "4m",   "2m2e", "2e2m", "4e"};
+    unsigned chanIdx[N] = { 2,      3,      4,      5,      6,      7,      8,      9};
+
+    // Containers
+    double nObserved =  {   0,      0,      0,      0,      0,      0,      0,      0};
+    double nExpected =  {   0,      0,      0,      0,      0,      0,      0,      0};
+//  Double_t nSignal = {    0,      0,      0,      0,      0,      0,      0,      0};
+//  Double_t nBackground = {0,      0,      0,      0,      0,      0,      0,      0};
 
 
+
+    //
+    //  GET HISTOGRAMS
+    //
+
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/";
+    TString prefix = "selected";
+
+
+
+
+
+    //
+    //  DATA
+    //
+
+    // Muon file
+    TString muName = inPath + prefix + "_" + MU_SUFF + ".root";
+    TFile  *muFile = TFile::Open(muName);
+    cout << "Opened " << muName << endl;
+
+    vector<TString> hname;  // Get histogram names
+
+    TDirectory *keyDir = muFile->GetDirectory("/" + selection[M4], kTRUE, "GetDirectory");
+    TKey *histKey;
+    TIter next(keyDir->GetListOfKeys());
+    while ((histKey = (TKey*) next()))
+    {
+        TString hname_ = histKey->GetName();
+        hname_.Resize(hname_.Length() - (1 + MU_SUFF.Length()));     // truncate before suffix
+        hname.push_back(hname_);
+    }
+
+
+    // Electron file
+    TString elName = prefix + "_" + EL_SUFF + ".root";
+    TFile *elFile = TFile::Open(elName);
+    cout << "Opened " << elName << endl;
+
+/*
 
 
     // Table of yields
@@ -205,4 +257,6 @@ void GetQuantities(const TString rootFile,
 
 
     file->Close();
+*/
 }
+

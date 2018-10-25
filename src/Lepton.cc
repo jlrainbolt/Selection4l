@@ -25,7 +25,17 @@ void Lepton :: SetBoostedP4(const TVector3 &beta)
     b_p4 = p4;          // in rest frame of "system" where beta = system.BoostVector()
     b_p4.Boost(-beta);  // so a minus sign is needed here
     b_v3 = b_p4.Vect();
-} 
+}
+
+// SetMatch
+void Lepton :: SetMatch(const Lepton &match)
+{
+    m_p4 = match.p4;
+    dr = p4.DeltaR(m_p4);
+
+    m_b_p4 = match.b_p4;
+    m_b_v3 = m_b_p4.Vect();
+}
 
 
 

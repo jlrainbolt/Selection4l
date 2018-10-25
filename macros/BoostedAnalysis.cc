@@ -66,8 +66,8 @@ void BoostedAnalysis(const TString suffix)
 
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
-    Float_t             weight;
-    UInt_t              channel;
+    Float_t             weight,     met;
+    UInt_t              channel,    nPV;
 
 
     // Lab frame objects
@@ -96,8 +96,9 @@ void BoostedAnalysis(const TString suffix)
     for (unsigned i = 0; i < N; i++)
     {
         tree[i]->Branch("runNum",   &runNum);               tree[i]->Branch("evtNum",   &evtNum);
-        tree[i]->Branch("lumiSec",  &lumiSec);
-        tree[i]->Branch("weight",   &weight);               tree[i]->Branch("channel",  &channel);
+        tree[i]->Branch("lumiSec",  &lumiSec);              tree[i]->Branch("nPV",      &nPV);
+        tree[i]->Branch("met",      &met);                  tree[i]->Branch("weight",   &weight);
+        tree[i]->Branch("channel",  &channel);
 
         tree[i]->Branch("psi", &psi);                       tree[i]->Branch("sin_phi",  &sin_phi);
         tree[i]->Branch("theta_z1", &theta_z1);             tree[i]->Branch("theta_z2", &theta_z2);
@@ -133,7 +134,7 @@ void BoostedAnalysis(const TString suffix)
 
 
     //
-    //    INPUT FILE
+    //  INPUT FILE
     //
 
     TString inName  = "selected_" + suffix + ".root";
@@ -171,6 +172,8 @@ void BoostedAnalysis(const TString suffix)
         TTreeReaderValue    <Int_t>                 runNum_     (reader,    "runNum");
         TTreeReaderValue    <Int_t>                 evtNum_     (reader,    "evtNum");
         TTreeReaderValue    <Int_t>                 lumiSec_    (reader,    "lumiSec");
+        TTreeReaderValue    <UShort_t>              nPV_        (reader,    "nPV");
+        TTreeReaderValue    <Float_t>               met_        (reader,    "met");
         TTreeReaderValue    <Float_t>               weight_     (reader,    "weight");
         TTreeReaderValue    <UInt_t>                channel_    (reader,    "channel");
         TTreeReaderValue    <TLorentzVector>        zzp4_       (reader,    "zzp4");
@@ -217,7 +220,8 @@ void BoostedAnalysis(const TString suffix)
 
             // Quantities copied directly to output tree
             runNum  = *runNum_;         evtNum  = *evtNum_;         lumiSec = *lumiSec_;
-            weight  = *weight_;         channel = *channel_;
+            weight  = *weight_;         nPV     = *nPV_;            met     = *met_;
+            channel = *channel_;
             zzp4    = *zzp4_;
             z1p4    = *z1p4_;           z1pdg   = *z1pdg_;
             z2p4    = *z2p4_;           z2pdg   = *z2pdg_;
