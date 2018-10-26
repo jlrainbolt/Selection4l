@@ -86,7 +86,7 @@ const float     NGEN_WZ_2L2Q    = 27582164  * (1 - 2 * 0.2006),         XSEC_WZ_
 const float     NGEN_WZ_3LNU    = 10881896  * (1 - 2 * 0.1879),         XSEC_WZ_3LNU = 4.42965;
 const float     NGEN_ZZ_2L2Q    = 27840918  * (1 - 2 * 0.1804),         XSEC_ZZ_2L2Q = 3.22;
 
-const unsigned  N_MC = 9;
+const unsigned  N_MC = 9,       ZZ = 0,     DY = 1;
 const TString   MC_SUFF[N_MC] = {   "zz_4l",        "zjets_m-50",   "ggH_zz_4l",    "vbfH_zz_4l",
                                     "ttbar",        "ww_2l2nu",     "wz_2l2q",      "wz_3lnu",
                                     "zz_2l2q"};

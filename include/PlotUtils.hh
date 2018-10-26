@@ -5,6 +5,7 @@
 // ROOT
 #include "TColor.h"
 #include "TCanvas.h"
+#include "TAxis.h"
 #include "TH1.h"
 #include "THStack.h"
 #include "TLegend.h"
@@ -123,6 +124,7 @@ TString _EventsPer(const float n, const TString unit) {
 
 // Facelift
 void Facelift(TCanvas*);
+void Facelift(TAxis*);
 void Facelift(TH1*);
 void Facelift(THStack*);    // Must call after drawing
 void Facelift(TLegend*);    // Must call after drawing

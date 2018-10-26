@@ -7,10 +7,12 @@
 #include "TString.h"
 #include "TFile.h"
 #include "TColor.h"
+#include "TPad.h"
 #include "TCanvas.h"
 #include "TH1.h"
 #include "THStack.h"
 #include "TLegend.h"
+#include "TRatioPlot.h"
 #include "TMathText.h"
 
 // Cuts
@@ -32,7 +34,7 @@ void StackDists4l()
     //  OPTIONS
     //
 
-    //  gErrorIgnoreLevel = kError;
+//  gErrorIgnoreLevel = kError;
     const int nRebin = 5;
 
 
@@ -57,21 +59,8 @@ void StackDists4l()
 
     // Muon file
     TString muName = prefix + "_" + MU_SUFF + ".root";
-    TFile  *muFile = TFile::Open(muName);
+    TFile *muFile = TFile::Open(muName);
     cout << "Opened " << muName << endl;
-
-    vector<TString> hname;  // Get histogram names
-
-    TDirectory *keyDir = muFile->GetDirectory("/" + selection[M4], kTRUE, "GetDirectory");
-    TKey *histKey;
-    TIter next(keyDir->GetListOfKeys());
-    while ((histKey = (TKey*) next()))
-    {   
-        TString hname_ = histKey->GetName(); 
-        hname_.Resize(hname_.Length() - (1 + MU_SUFF.Length()));     // truncate before suffix
-        hname.push_back(hname_);
-    }
-
 
     // Electron file
     TString elName = prefix + "_" + EL_SUFF + ".root";
@@ -79,15 +68,26 @@ void StackDists4l()
     cout << "Opened " << elName << endl;
 
 
+    // Get histogram names
+    vector<TString> hname;
+    TDirectory *keyDir = muFile->GetDirectory("/" + selection[M4], kTRUE, "GetDirectory");
+    TKey *histKey;
+    TIter next(keyDir->GetListOfKeys());
+    while ((histKey = (TKey*) next()))
+    {   
+        TString hname_ = histKey->GetName(); 
+        hname_.Resize(hname_.Length() - (1 + MU_SUFF.Length()));    // truncate before suffix
+        hname.push_back(hname_);
+    }
+
     // Now get the histograms
-
     const unsigned H = hname.size();
-    TH1* data[N][H];        // data histograms
+    TH1* data[N][H];
 
-    for (unsigned h = 0; h < H; h++)    // histogram loop
+    for (unsigned h = 0; h < H; h++)    // distribution loop
     {
         TH1 *hist;
-        for (unsigned i = 1; i < N; i++)    // directory (selection) loop
+        for (unsigned i = 1; i < N; i++)    // channel loop
         {
             if      (i == M4 || i == ME)
                 muFile->GetObject(selection[i] + "/" + hname[h] + "_" + MU_SUFF, hist);
@@ -114,7 +114,7 @@ void StackDists4l()
     //  MONTE CARLO
     //
 
-    TH1* mc[N][H][N_MC];
+    TH1 *mc[N][H][N_MC];
     for (unsigned j = 0; j < N_MC; j++) // sample loop
     {   
         TString inName = prefix + "_" + MC_SUFF[j] + ".root";
@@ -122,10 +122,10 @@ void StackDists4l()
 
         cout << "Opened " << inName << endl;
 
-        for (unsigned h = 0; h < H; h++)    // histogram loop
+        for (unsigned h = 0; h < H; h++)    // distribution loop
         {
             TH1 *hist;
-            for (unsigned i = 1; i < N; i++)    // directory (selection) loop
+            for (unsigned i = 1; i < N; i++)    // channel loop
             {
                 inFile->GetObject(selection[i] + "/" + hname[h] + "_" + MC_SUFF[j], hist);
                 hist->SetDirectory(0);
@@ -157,10 +157,10 @@ void StackDists4l()
     //
 
     cout << endl << "Combining..." << flush;
-    for (unsigned h = 0; h < H; h++)
+    for (unsigned h = 0; h < H; h++)    // distribution loop
     {
         // Data
-        TH1* data_ = (TH1*) data[1][h]->Clone();
+        TH1 *data_ = (TH1*) data[1][h]->Clone();
 
         for (unsigned i = 2; i < N; i++)
             data_->Add(data[i][h]);
@@ -171,7 +171,7 @@ void StackDists4l()
         // Monte Carlo
         for (unsigned j = 0; j < N_MC; j++)
         {
-            TH1* mc_ = (TH1*) mc[1][h][j]->Clone();
+            TH1 *mc_ = (TH1*) mc[1][h][j]->Clone();
 
             for (unsigned i = 2; i < N; i++)
                 mc_->Add(mc[i][h][j]);
@@ -183,14 +183,34 @@ void StackDists4l()
 
 
     //
+    //  ADD SAMPLES
+    //
+
+    TH1 *total[N][H];
+    for (unsigned i = 0; i < N; i++)    // channel loop
+    {
+        for (unsigned h = 0; h < H; h++)    // distribution loop
+        {
+            TH1 *total_ = (TH1*) mc[i][h][0]->Clone();
+
+            for (unsigned j = 1; j < N_MC; j++)     // sample loop
+                total_->Add(mc[i][h][j]);
+
+            total[i][h] = total_;
+        }
+    }
+
+
+
+    //
     //  MAKE STACKS
     //
 
-    THStack* stack[N][H];   // stacks of MC histograms
+    THStack *stack[N][H];
 
-    for (unsigned i = 0; i < N; i++)    // directory (selection) loop
+    for (unsigned i = 0; i < N; i++)    // channel loop
     {
-        for (unsigned h = 0; h < H; h++)
+        for (unsigned h = 0; h < H; h++)    // distribution loop
         {
             data[i][h]->SetTitle("");
             data[i][h]->SetStats(0);
@@ -204,7 +224,7 @@ void StackDists4l()
             // Create and fill stack object
             stack[i][h] = new THStack(hname[h] + "_" + selection[i], "");
 
-            for (unsigned j = 0; j < N_MC; j++) // MC sample loop
+            for (unsigned j = 0; j < N_MC; j++) // sample loop
             {
                 mc[i][h][j]->SetTitle("");
                 mc[i][h][j]->SetStats(0);
@@ -225,7 +245,7 @@ void StackDists4l()
     float LeftPosition = 0.5,       LeftMargin = 2. * lCanvasMargin - lLegendMargin;
     float RightPosition = 1,        RightMargin = -lLegendMargin;
     float TopPosition = 1,          TopMargin = -lLegendMargin;
-    float BottomPosition = TopPosition - 0.065 * 6.;
+    float BottomPosition = TopPosition - 0.085 * 6;//0.065 * 6.;
     float BottomMargin = 2. * lCanvasMargin - lLegendMargin;
     TLegend *legend = new TLegend(LeftPosition + LeftMargin, BottomPosition - TopMargin,
                                     TopPosition + TopMargin, TopPosition + TopMargin);
@@ -266,7 +286,9 @@ void StackDists4l()
     //  DRAW CANVASES
     //
 
-    TCanvas* canvas[N][H];
+    TCanvas *canvas[N][H];
+    TRatioPlot *ratio[N][H];
+
     for (unsigned i = 0; i < N; i++)
     {
         outFile->mkdir(selection[i]);
@@ -278,6 +300,14 @@ void StackDists4l()
 
             Facelift(canvas[i][h]);
             canvas[i][h]->cd();
+
+            ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
+//          ratio[i][h]->SetGraphDrawOpt("Z");
+            ratio[i][h]->Draw();
+
+            TPad *upper = ratio[i][h]->GetUpperPad(), *lower = ratio[i][h]->GetLowerPad();
+            upper->cd();
+
             data[i][h]->Draw("E");
 
             // Stacks must be drawn in order for their axes to exist
@@ -285,11 +315,11 @@ void StackDists4l()
             {
                 data[i][h]->Draw("E");
                 Facelift(data[i][h]);
-                gPad->Modified();
+                upper->Modified();
 
                 stack[i][h]->Draw("HIST SAME");
                 Facelift(stack[i][h]);
-                gPad->Modified();
+                upper->Modified();
 
                 data[i][h]->Draw("E SAME");
             }
@@ -297,15 +327,20 @@ void StackDists4l()
             { 
                 stack[i][h]->Draw("HIST");
                 Facelift(stack[i][h]);
-                gPad->Modified();
+                upper->Modified();
 
                 data[i][h]->Draw("E SAME");
                 Facelift(data[i][h]);
-                gPad->Modified();
+                upper->Modified();
             }
 
-            gPad->RedrawAxis();
+            upper->RedrawAxis();
 
+            Facelift(ratio[i][h]->GetLowerRefXaxis());
+            Facelift(ratio[i][h]->GetLowerRefYaxis());
+            lower->Modified();
+
+//          canvas[i][h]->cd();
             legend->Draw();
             gPad->Modified();
 

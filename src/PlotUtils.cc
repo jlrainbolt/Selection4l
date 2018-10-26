@@ -19,6 +19,10 @@ using namespace std;
 //  FACELIFT
 //
 
+
+// FIXME reduce to TAxis function
+
+
 // TCanvas
 void Facelift(TCanvas *canvas)
 {
@@ -42,6 +46,15 @@ void Facelift(TH1 *hist)
     hist->GetYaxis()->SetTitleFont(lHelveticaMediumR);
     hist->GetYaxis()->SetTitleSize(lLarge);
     hist->GetYaxis()->SetTitleOffset(lTitleOffsetY);
+}
+
+// TAxis
+void Facelift(TAxis *axis)
+{
+    axis->SetLabelFont(lHelveticaMediumR);
+    axis->SetLabelSize(lSmall);
+    axis->SetTitleFont(lHelveticaMediumR);
+    axis->SetTitleSize(lLarge);
 }
 
 // THStack
