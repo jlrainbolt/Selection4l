@@ -23,6 +23,8 @@ void CalculateBF()
     // Constants
     Double_t Zto2l = 0.03366, f_nr = 0.96;
 
+
+
     //
     //  SAMPLE INFO
     //
@@ -45,10 +47,9 @@ void CalculateBF()
 
 
 
-
     ////
     ////
-    ////    GET HISTOGRAMS
+    ////    FILL HISTOGRAMS
     ////
     ////
 
@@ -392,11 +393,6 @@ void CalculateBF()
 
 
     double branchingFraction[N], bfFracUnc[N], bfUnc[N];
-/*
-    branchingFraction[L4] = 2. * Zto2l * nObsMinusBg[L4] / nObsMinusBg[LL];
-    bfFracUnc[L4] = sqrt(fracUnc[L4] * fracUnc[L4] + fracUnc[LL] * fracUnc[LL]);
-    bfUnc[L4] = bfFracUnc[L4] * branchingFraction[L4];
-*/
     for (unsigned i = M4; i <= ME; i++)
     {
         branchingFraction[i] = Zto2l * nObsMinusBg[i] / nObsMinusBg[MM];
@@ -430,3 +426,9 @@ void CalculateBF()
         cout << bfFracUnc[i] << endl;
     }
 }
+
+/*
+    branchingFraction[L4] = 2. * Zto2l * nObsMinusBg[L4] / nObsMinusBg[LL];
+    bfFracUnc[L4] = sqrt(fracUnc[L4] * fracUnc[L4] + fracUnc[LL] * fracUnc[LL]);
+    bfUnc[L4] = bfFracUnc[L4] * branchingFraction[L4];
+*/

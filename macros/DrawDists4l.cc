@@ -123,6 +123,7 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
         // Observables      
         make_tuple(     "psi",              "psi",              20,     -5000,      5000),
         make_tuple(     "sin_phi",          "sin_phi",          20,     -1,         1),
+        make_tuple(     "sin_phi_2",        "sin_phi",          2,      -1,         1),
         make_tuple(     "theta_z1",         "theta_z1",         10,     0,          TMath::Pi()),
         make_tuple(     "theta_z2",         "theta_z2",         10,     0,          TMath::Pi()),
         make_tuple(     "angle_z1leps",     "angle_z1leps",     12,     0,          TMath::Pi()),

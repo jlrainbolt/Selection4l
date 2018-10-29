@@ -184,7 +184,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
 
     //
-    //    INPUT FILE
+    //  INPUT FILE
     //
 
     TString inDir   = suffix;
