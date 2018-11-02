@@ -18,7 +18,7 @@ using namespace std;
 **  Calculates triple product asymmetry observable using sin(phi) from unweighted4l histograms
 */
 
-void CalculateAsymmetry()
+void CalculateAsymmetry(bool useDY = kFALSE)
 {
     // Constants
     Double_t Zto2l = 0.03366, f_nr = 0.96;
@@ -38,14 +38,8 @@ void CalculateAsymmetry()
 
 
     TH1 *hObserved[N], *hExpected[N], *hBackground[N], *hObsMinusBg[N];
-/*
-    // Containers
-    double nObserved[N] = { 0,      0,      0,      0,      0};
-    double nExpected[N] = { 0,      0,      0,      0,      0};
-    double nSignal[N] = {   0,      0,      0,      0,      0};
-    double nBackground[N]= {0,      0,      0,      0,      0};
-    double nObsMinusBg[N]= {0,      0,      0,      0,      0};
-*/
+
+
 
 
 
@@ -232,7 +226,7 @@ void CalculateAsymmetry()
 
 
 
-
+/*
 
     ////
     ////
@@ -266,8 +260,20 @@ void CalculateAsymmetry()
         for (unsigned j = 1; j < N_MC; j++)
             hExpected[i]->Add(mcHist[i][j]);
 
-        hBackground[i] = (TH1*) mcHist[i][1]->Clone("sin_phi_2_bkg");
-        for (unsigned j = 2; j < N_MC; j++)
+        // Choose whether DY is counted among "background" MC samples 
+        unsigned idx1, idx2;
+        if (useDY)
+        {
+            idx1 = 1;
+            idx2 = 2;
+        }
+        else
+        {
+            idx1 = 2;
+            idx2 = 3;
+        }
+        hBackground[i] = (TH1*) mcHist[i][idx1]->Clone("sin_phi_2_bkg");
+        for (unsigned j = idx2; j < N_MC; j++)
             hBackground[i]->Add(mcHist[i][j]);
 
         // Observed minus background
@@ -301,7 +307,7 @@ void CalculateAsymmetry()
             cout << setw(8) << hObsMinusBg[i]->GetBinContent(b) << endl;
         }
     }
-
+*/
 
 
 
@@ -324,10 +330,8 @@ void CalculateAsymmetry()
         float sum = pos + neg,      diff = pos - neg;
         asymmetry[i] = diff / sum;
 
-        float unc_SD = sqrt(posUnc * posUnc + negUnc * negUnc);
-        fracUnc[i] = unc_SD * (sum - diff) / (sum * diff);
-        unc[i] = fracUnc[i] * asymmetry[i];
-        fracUnc[i] = fabs(fracUnc[i]);
+        unc[i] = sqrt(4*pos*neg / pow(sum, 3));
+        fracUnc[i] = unc[i] / asymmetry[i];
     }
 
     cout << endl << endl;

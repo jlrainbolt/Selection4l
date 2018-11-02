@@ -301,48 +301,29 @@ void StackDists2l()
             Facelift(canvas[i][h]);
             canvas[i][h]->cd();
 
+            data[i][h]->SetMinimum(0);
+            total[i][h]->SetMinimum(0);
+
             ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
-//          ratio[i][h]->SetGraphDrawOpt("Z");
+//          ratio[i][h]->SetGraphDrawOpt("B");
+            ratio[i][h]->SetH1DrawOpt("E");
+            ratio[i][h]->SetH2DrawOpt("E");
             ratio[i][h]->Draw();
 
             TPad *upper = ratio[i][h]->GetUpperPad(), *lower = ratio[i][h]->GetLowerPad();
             upper->cd();
 
-            data[i][h]->Draw("E");
-
-            // Stacks must be drawn in order for their axes to exist
-            if (data[i][h]->GetMaximum() > stack[i][h]->GetMaximum())
-            {
-                data[i][h]->Draw("E");
-                Facelift(data[i][h]);
-                upper->Modified();
-
-                stack[i][h]->Draw("HIST SAME");
-                Facelift(stack[i][h]);
-                upper->Modified();
-
-                data[i][h]->Draw("E SAME");
-            }
-            else
-            { 
-                stack[i][h]->Draw("HIST");
-                Facelift(stack[i][h]);
-                upper->Modified();
-
-                data[i][h]->Draw("E SAME");
-                Facelift(data[i][h]);
-                upper->Modified();
-            }
-
-            upper->RedrawAxis();
+            stack[i][h]->Draw("HIST SAME");
+            Facelift(stack[i][h]);
+            data[i][h]->Draw("E SAME");
+//          upper->RedrawAxis();
+            upper->Modified();
 
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
             lower->Modified();
 
-//          canvas[i][h]->cd();
             legend->Draw();
-            gPad->Modified();
 
             canvas[i][h]->Write();
         }

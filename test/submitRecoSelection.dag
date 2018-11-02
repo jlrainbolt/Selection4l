@@ -1,7 +1,7 @@
 ##
-##  Pack source files before submitting jobs in submitRecoJobs.dag
+##  Pack source files before submitting jobs in submitRecoJobs2017.dag
 ##
 
-SUBDAG  EXTERNAL    jobs    submitRecoJobs2017.dag
-SCRIPT  PRE         jobs    ../scripts/packDirectory.sh
-#SCRIPT  POST        jobs    haddStack.sh
+    SUBDAG  EXTERNAL    jobs    submitRecoJobs2017.dag
+    SCRIPT  PRE         jobs    ../scripts/packDirectory.sh
+#   SCRIPT  POST        jobs    haddStack.sh

@@ -18,7 +18,7 @@ using namespace std;
 **  Calculates Z -> 4l branching fractions using yields from SelectedEvents histograms
 */
 
-void CalculateBF()
+void CalculateBF(bool useDY = kFALSE)
 {
     // Constants
     Double_t Zto2l = 0.03366, f_nr = 0.96;
@@ -28,8 +28,6 @@ void CalculateBF()
     //
     //  SAMPLE INFO
     //
-
-    // or whatever the heck this is
 
     const unsigned N = 8;   // Channel indices
     unsigned                LL = 0, MM = 1, EE = 2, L4 = 3, M4 = 4, ME = 5, EM = 6, E4 = 7;
@@ -204,9 +202,13 @@ void CalculateBF()
     for (unsigned j = 1; j < N_MC; j++)
         mcTotal->Add(mcHist[j]);
 
-    TH1 *sigBackground = (TH1*) mcHist[DY]->Clone("BackgroundEvents");
+    TH1 *sigBackground = (TH1*) mcHist[2]->Clone("BackgroundEvents");
+    if (useDY)  // otherwise, omit DY background from signal calculation
+        sigBackground->Add(mcHist[DY]);
+
     TH1 *dyBackground = (TH1*) mcHist[ZZ]->Clone("DYBackgroundEvents");
-    for (unsigned j = 2; j < N_MC; j++)
+    dyBackground->Add(mcHist[2]);
+    for (unsigned j = 3; j < N_MC; j++)
     {
         sigBackground->Add(mcHist[j]);
         dyBackground->Add(mcHist[j]);
@@ -395,13 +397,13 @@ void CalculateBF()
     double branchingFraction[N], bfFracUnc[N], bfUnc[N];
     for (unsigned i = M4; i <= ME; i++)
     {
-        branchingFraction[i] = Zto2l * nObsMinusBg[i] / nObsMinusBg[MM];
+        branchingFraction[i] = Zto2l * f_nr * nObsMinusBg[i] / nObsMinusBg[MM];
         bfFracUnc[i] = sqrt(fracUnc[i] * fracUnc[i] + fracUnc[MM] * fracUnc[MM]);
         bfUnc[i] = bfFracUnc[i] * branchingFraction[i];
     }
     for (unsigned i = EM; i <= E4; i++)
     {
-        branchingFraction[i] = Zto2l * nObsMinusBg[i] / nObsMinusBg[EE];
+        branchingFraction[i] = Zto2l * f_nr * nObsMinusBg[i] / nObsMinusBg[EE];
         bfFracUnc[i] = sqrt(fracUnc[i] * fracUnc[i] + fracUnc[EE] * fracUnc[EE]);
         bfUnc[i] = bfFracUnc[i] * branchingFraction[i];
     }

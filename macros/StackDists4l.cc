@@ -27,14 +27,14 @@ using namespace std;
  **  Scales and stacks all "unscaled4l_" distributions
  */
 
-void StackDists4l()
+void StackDists4l(bool scaleAccEff = kFALSE)
 {
 
     //
     //  OPTIONS
     //
 
-//  gErrorIgnoreLevel = kError;
+    // scaleAccEff;     whether distributions should be divided by acc * eff
     const int nRebin = 5;
 
 
@@ -79,9 +79,43 @@ void StackDists4l()
         hname_.Resize(hname_.Length() - (1 + MU_SUFF.Length()));    // truncate before suffix
         hname.push_back(hname_);
     }
-
-    // Now get the histograms
     const unsigned H = hname.size();
+
+
+
+    //
+    //  ACCEPTANCE * EFFICIENCY
+    //
+    //  (IF APPLICABLE)
+    //
+
+    TH1 *ae[N][H];
+
+    if (scaleAccEff)
+    {
+        TString aeName = "acc_x_eff.root";
+        TFile *aeFile = TFile::Open(aeName);
+
+        cout << "Opened " << aeName << endl;
+
+        for (unsigned h = 0; h < H; h++)    // distribution loop
+        {
+            TH1 *hist;
+            for (unsigned i = 1; i < N; i++)
+            {   
+                aeFile->GetObject(selection[i] + "/" + hname[h] + "_" + selection[i], hist);
+
+                hist->SetDirectory(0);
+                hist->Sumw2();
+
+                ae[i][h] = hist;
+            }
+        }
+        aeFile->Close();
+    }
+
+
+    // Now get the data histograms
     TH1* data[N][H];
 
     for (unsigned h = 0; h < H; h++)    // distribution loop
@@ -89,19 +123,18 @@ void StackDists4l()
         TH1 *hist;
         for (unsigned i = 1; i < N; i++)    // channel loop
         {
-            if      (i == M4 || i == ME)
+            if      ((i == M4) || (i == ME))
                 muFile->GetObject(selection[i] + "/" + hname[h] + "_" + MU_SUFF, hist);
-            else if (i == E4 || i == EM)
+            else if ((i == E4) || (i == EM))
                 elFile->GetObject(selection[i] + "/" + hname[h] + "_" + EL_SUFF, hist);
 
             hist->SetDirectory(0);
 
+            if (scaleAccEff)
+                hist->Divide(ae[i][h]);
+
             data[i][h] = hist;
         }
-
-        // Placeholder for 4l histogram
-        data[L4][h] = (TH1*) hist->Clone();
-        data[L4][h]->Reset();
     }
     muFile->Close();
     elFile->Close();
@@ -129,22 +162,21 @@ void StackDists4l()
             {
                 inFile->GetObject(selection[i] + "/" + hname[h] + "_" + MC_SUFF[j], hist);
                 hist->SetDirectory(0);
+                hist->Sumw2();
 
                 float LUMI;
-                if      (i == M4 || i == ME)
+                if      ((i == M4) || (i == ME))
                     LUMI = MUON_TRIG_LUMI;
-                else if (i == E4 || i == EM)
+                else if ((i == E4) || (i == EM))
                     LUMI = ELEC_TRIG_LUMI;
                 float sf = LUMI * 1000 * XSEC[j] / NGEN[j];
 
                 hist->Scale(sf);
+                if (scaleAccEff)
+                    hist->Divide(ae[i][h]);
 
                 mc[i][h][j] = hist;
             }
-
-            // Placeholder for 4l histogram
-            mc[L4][h][j] = (TH1*) hist->Clone();
-            mc[L4][h][j]->Reset();
         }
         inFile->Close();
     }
@@ -160,23 +192,21 @@ void StackDists4l()
     for (unsigned h = 0; h < H; h++)    // distribution loop
     {
         // Data
-        TH1 *data_ = (TH1*) data[1][h]->Clone();
+        data[L4][h] = (TH1*) data[1][h]->Clone();
+        data[L4][h]->Sumw2();
 
         for (unsigned i = 2; i < N; i++)
-            data_->Add(data[i][h]);
-
-        data[L4][h] = data_;
+            data[L4][h]->Add(data[i][h]);
 
 
         // Monte Carlo
         for (unsigned j = 0; j < N_MC; j++)
         {
-            TH1 *mc_ = (TH1*) mc[1][h][j]->Clone();
+            mc[L4][h][j] = (TH1*) mc[1][h][j]->Clone();
+            mc[L4][h][j]->Sumw2();
 
             for (unsigned i = 2; i < N; i++)
-                mc_->Add(mc[i][h][j]);
-
-            mc[L4][h][j] = mc_;
+                mc[L4][h][j]->Add(mc[i][h][j]);
         }
     }
 
@@ -191,12 +221,13 @@ void StackDists4l()
     {
         for (unsigned h = 0; h < H; h++)    // distribution loop
         {
-            TH1 *total_ = (TH1*) mc[i][h][0]->Clone();
+            total[i][h] = (TH1*) mc[i][h][0]->Clone();
+            total[i][h]->Sumw2();
+            total[i][h]->SetLineColor(0);
 
             for (unsigned j = 1; j < N_MC; j++)     // sample loop
-                total_->Add(mc[i][h][j]);
+                total[i][h]->Add(mc[i][h][j]);
 
-            total[i][h] = total_;
         }
     }
 
@@ -277,7 +308,8 @@ void StackDists4l()
     //  OUTPUT FILE
     //
 
-    TString outName = "stacks4l_raw_2017.root";
+    TString typeName = scaleAccEff ? "axe" : "raw";
+    TString outName = "stacks4l_" + typeName + "_2017.root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -301,48 +333,29 @@ void StackDists4l()
             Facelift(canvas[i][h]);
             canvas[i][h]->cd();
 
+            data[i][h]->SetMinimum(0);
+            total[i][h]->SetMinimum(0);
+
             ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
-//          ratio[i][h]->SetGraphDrawOpt("Z");
+//          ratio[i][h]->SetGraphDrawOpt("B");
+            ratio[i][h]->SetH1DrawOpt("E");
+            ratio[i][h]->SetH2DrawOpt("E");
             ratio[i][h]->Draw();
 
             TPad *upper = ratio[i][h]->GetUpperPad(), *lower = ratio[i][h]->GetLowerPad();
             upper->cd();
-
-            data[i][h]->Draw("E");
-
-            // Stacks must be drawn in order for their axes to exist
-            if (data[i][h]->GetMaximum() > stack[i][h]->GetMaximum())
-            {
-                data[i][h]->Draw("E");
-                Facelift(data[i][h]);
-                upper->Modified();
-
-                stack[i][h]->Draw("HIST SAME");
-                Facelift(stack[i][h]);
-                upper->Modified();
-
-                data[i][h]->Draw("E SAME");
-            }
-            else
-            { 
-                stack[i][h]->Draw("HIST");
-                Facelift(stack[i][h]);
-                upper->Modified();
-
-                data[i][h]->Draw("E SAME");
-                Facelift(data[i][h]);
-                upper->Modified();
-            }
-
-            upper->RedrawAxis();
-
+  
+            stack[i][h]->Draw("HIST SAME");
+            Facelift(stack[i][h]);
+            data[i][h]->Draw("E SAME");
+//          upper->RedrawAxis();
+            upper->Modified();
+  
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
             lower->Modified();
 
-//          canvas[i][h]->cd();
             legend->Draw();
-            gPad->Modified();
 
             canvas[i][h]->Write();
         }

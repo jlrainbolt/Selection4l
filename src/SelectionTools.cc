@@ -29,7 +29,7 @@ using namespace std;
 //  FROM MOTHER
 //
 
-bool MakePairsFromMother(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair*z2)
+bool MakePairsFromMother(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2)
 {
 
     // Get unique mother Z indices
@@ -94,7 +94,7 @@ bool MakePairsFromMother(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair*
 //  MAXIMUM MASS DIFFERENCE
 //
 
-bool MakePairsMaxDiff(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair*z2)
+bool MakePairsMaxDiff(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2)
 {
     if (leps.size() != 4)
         return kFALSE;

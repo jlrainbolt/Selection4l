@@ -30,7 +30,7 @@ using namespace std;
 **  RecoSelection
 **
 **
-**  This is "the" selection script.  Selects 11 and 4l events based on cuts from CutsXXXX.hh.
+**  This is "the" selection script.  Selects ll and 4l events based on cuts from CutsXXXX.hh.
 **  It is reasonably self contained, but some algorithms are imported from SelectionTools.hh.
 **
 **  Reads from post-BLT analyzer (MultileptonAnalyzer) ntuples.  Output is split into ll (mumu, ee)
@@ -369,7 +369,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
         // Quantities used in analysis, but not written out
         bool        muonTrig    = *muonTrig_,           elecTrig    = *elecTrig_;
-        short       nMuons      = *nMuons_,             nElecs      = *nElecs_;
+        unsigned    nMuons      = *nMuons_,             nElecs      = *nElecs_;
         unsigned    nHZZMuons   = *nHZZMuons_,          nHZZElecs   = *nHZZElecs_;
         float       puWeight    = *puWeight_;
 
@@ -813,23 +813,6 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
 
             //
-            //  Z1, Z2 MASS REQUIREMENTS
-            //
-
-            if (z1.p4.M() < z2.p4.M())                          // mixed-flavor pairs are swapped
-                continue;
-
-            if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
-                continue;                                       // (z2's mass is bound by z1)
-
-            z1.SetMothers(1);       z2.SetMothers(2);           // bookkeeping
-
-            if (print)
-                cout << "Passed z1, z2 mass requirements" << endl;
-
-
-
-            //
             //  PT REQUIREMENTS
             //
 
@@ -857,6 +840,24 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
             if (print)
                 cout << "Passed Pt requirement" << endl;
+
+
+
+            //
+            //  Z1, Z2 MASS REQUIREMENTS
+            //
+
+            if (z1.p4.M() < z2.p4.M())                          // mixed-flavor pairs are swapped
+                continue;
+//              swap(z1, z2);
+
+            if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
+                continue;                                       // (z2's mass is bound by z1)
+
+            z1.SetMothers(1);       z2.SetMothers(2);           // bookkeeping
+
+            if (print)
+                cout << "Passed z1, z2 mass requirements" << endl;
 
 
 
