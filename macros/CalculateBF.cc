@@ -121,23 +121,43 @@ void CalculateBF(bool useDY = kFALSE)
     inPath = EOS_PATH + "/BLT/" + YEAR_STR + "/";
     prefix = "genHardProc";
 
-    TH1 *psHist[2];
-    for (unsigned j = ZZ; j <= DY; j++)    // loop over only signal & Drell-Yan
-    {
-        TString inName = inPath + "gen_" + MC_SUFF[j] + "/" + prefix + "_" + MC_SUFF[j] + ".root";
-        TFile *inFile = TFile::Open(inName);
+    // Make phase space histogram by hand
+    TH1D *psHist = new TH1D("PhaseSpace", "PhaseSpace", 10, 0.5, 10.5);
 
-        cout << "Opened " << inName << endl;
+    // Start with Drell-Yan
+    TString dyName = inPath + "gen_" + MC_SUFF[DY] + "/" + prefix + "_" + MC_SUFF[DY] + ".root";
+    TFile *dyFile = TFile::Open(dyName);
 
-        TH1 *hist_;
-        inFile->GetObject("PhaseSpaceEvents_" + MC_SUFF[j], hist_);
-        hist_->SetDirectory(0);
-        hist_->Sumw2();
+    cout << "Opened " << dyName << endl;
 
-        psHist[j] = hist_;
+    TH1 *dyHist;
+    dyFile->GetObject("PhaseSpaceEvents_" + MC_SUFF[DY], dyHist);
 
-        inFile->Close();
-    }
+    psHist->SetBinContent(chanIdx[MM], dyHist->GetBinContent(chanIdx[MM]));
+    psHist->SetBinContent(chanIdx[EE], dyHist->GetBinContent(chanIdx[EE]));
+
+    dyFile->Close();
+
+
+    // Now with ZZ sample
+    TString zzName = inPath + "gen_" + MC_SUFF[ZZ] + "/" + prefix + "_" + MC_SUFF[ZZ] + ".root";
+    TFile *zzFile = TFile::Open(zzName);
+
+    cout << "Opened " << zzName << endl;
+
+    TH1 *zzHist;
+    zzFile->GetObject("PhaseSpaceEvents_" + MC_SUFF[ZZ], zzHist);
+
+    psHist->SetBinContent(chanIdx[M4], zzHist->GetBinContent(chanIdx[M4]));
+    psHist->SetBinContent(chanIdx[E4], zzHist->GetBinContent(chanIdx[E4]));
+
+    // Combine 2m2e channels
+    float mixedPS = zzHist->GetBinContent(chanIdx[ME]);
+    mixedPS += zzHist->GetBinContent(chanIdx[EM]);
+    psHist->SetBinContent(chanIdx[ME], mixedPS);
+    psHist->SetBinContent(chanIdx[EM], mixedPS);
+
+    zzFile->Close();
 
 
 
@@ -155,15 +175,19 @@ void CalculateBF(bool useDY = kFALSE)
     //  ACCEPTANCE * EFFICIENCY
     //
 
-    TH1 *aeHist[2];
-    for (unsigned j = ZZ; j <= DY; j++)    // loop over only signal & Drell-Yan
-    {
-        // Divide selected by phase space yields
-        aeHist[j] = (TH1*) mcHist[j]->Clone("AcceptanceXEfficiency");
-        aeHist[j]->Divide(psHist[j]);
-    }
-    TH1 *totalAE = (TH1*) aeHist[ZZ]->Clone();
-    totalAE->Add(aeHist[DY]);
+    // Make selected events histogram by hand
+    TH1D *totalAE = new TH1D("AccXEff", "AccXEff", 10, 0.5, 10.5);
+
+    totalAE->SetBinContent(chanIdx[MM], mcHist[DY]->GetBinContent(chanIdx[MM]));
+    totalAE->SetBinContent(chanIdx[EE], mcHist[DY]->GetBinContent(chanIdx[EE]));
+    totalAE->SetBinContent(chanIdx[M4], mcHist[ZZ]->GetBinContent(chanIdx[M4]));
+    totalAE->SetBinContent(chanIdx[E4], mcHist[ZZ]->GetBinContent(chanIdx[E4]));
+    float mixedSel = mcHist[ZZ]->GetBinContent(chanIdx[ME]);
+    mixedSel += mcHist[ZZ]->GetBinContent(chanIdx[EM]);
+    totalAE->SetBinContent(chanIdx[ME], mixedSel);
+    totalAE->SetBinContent(chanIdx[EM], mixedSel);
+
+    totalAE->Divide(psHist);
 
 
 
@@ -171,16 +195,16 @@ void CalculateBF(bool useDY = kFALSE)
     //  SCALING
     //
 
-    // Make a histogram of the appropriate lumi for each channel...
+    // Make a histogram of the appropriate lumi for each channel
     TH1D *lumiHist = new TH1D("Lumi", "Lumi", 10, 0.5, 10.5);
 
     lumiHist->SetBinContent(chanIdx[MM], MUON_TRIG_LUMI);
     lumiHist->SetBinContent(chanIdx[M4], MUON_TRIG_LUMI);
     lumiHist->SetBinContent(chanIdx[ME], MUON_TRIG_LUMI);
 
-    lumiHist->SetBinContent(chanIdx[EE], ELEC_TRIG_LUMI);
-    lumiHist->SetBinContent(chanIdx[EM], ELEC_TRIG_LUMI);
-    lumiHist->SetBinContent(chanIdx[E4], ELEC_TRIG_LUMI);
+    lumiHist->SetBinContent(chanIdx[EE], ELEC_TRIG_LUMI * ELEC_TRIG_SF);
+    lumiHist->SetBinContent(chanIdx[EM], ELEC_TRIG_LUMI * ELEC_TRIG_SF);
+    lumiHist->SetBinContent(chanIdx[E4], ELEC_TRIG_LUMI * ELEC_TRIG_SF);
 
     
     // Scale by appropriate lumi, etc.
@@ -287,6 +311,100 @@ void CalculateBF(bool useDY = kFALSE)
 
     ////
     ////
+    ////    LUMI CORRECTION
+    ////
+    ////
+
+    TH1D *lumiCorr = new TH1D("LumiCorr", "LumiCorr", 10, 0.5, 10.5);
+
+    lumiCorr->SetBinContent(chanIdx[MM], ELEC_TRIG_LUMI / MUON_TRIG_LUMI);
+    lumiCorr->SetBinContent(chanIdx[M4], ELEC_TRIG_LUMI / MUON_TRIG_LUMI);
+    lumiCorr->SetBinContent(chanIdx[ME], ELEC_TRIG_LUMI / MUON_TRIG_LUMI);
+
+    lumiCorr->SetBinContent(chanIdx[EE], 1);
+    lumiCorr->SetBinContent(chanIdx[EM], 1);
+    lumiCorr->SetBinContent(chanIdx[E4], 1);
+
+    
+    // Apply
+
+    for (unsigned j = 0; j < N_MC; j++)
+        mcHist[j]->Multiply(lumiCorr);
+
+    mcTotal->Multiply(lumiCorr);
+    dataHist->Multiply(lumiCorr);
+    obsMinusBg->Multiply(lumiCorr);
+
+
+
+    //
+    //  PRINT
+    //
+
+    nObserved[LL] = 0;  nExpected[LL] = 0;  nSignal[LL] = 0;    nBackground[LL] = 0;
+    nObsMinusBg[LL] = 0;
+    nObserved[L4] = 0;  nExpected[L4] = 0;  nSignal[L4] = 0;    nBackground[L4] = 0;
+    nObsMinusBg[L4] = 0;
+
+    for (unsigned i = MM; i < N; i++)
+    {
+        if      (i < L4)
+        {
+            nObserved[i] = dataHist->GetBinContent(chanIdx[i]);
+            nObserved[LL] += nObserved[i];
+
+            nExpected[i] = mcTotal->GetBinContent(chanIdx[i]);
+            nExpected[LL] += nExpected[i];
+
+            nSignal[i] = mcHist[DY]->GetBinContent(chanIdx[i]);
+            nSignal[LL] += nSignal[i];
+
+            nBackground[i] = dyBackground->GetBinContent(chanIdx[i]);
+            nBackground[LL] += nBackground[i];
+
+            nObsMinusBg[i] = obsMinusBg->GetBinContent(chanIdx[i]);
+            nObsMinusBg[LL] += nObsMinusBg[i];
+        }
+        else if (i > L4)
+        {
+            nObserved[i] = dataHist->GetBinContent(chanIdx[i]);
+            nObserved[L4] += nObserved[i];
+
+            nExpected[i] = mcTotal->GetBinContent(chanIdx[i]);
+            nExpected[L4] += nExpected[i];
+
+            nSignal[i] = mcHist[ZZ]->GetBinContent(chanIdx[i]);
+            nSignal[L4] += nSignal[i];
+
+            nBackground[i] = sigBackground->GetBinContent(chanIdx[i]);
+            nBackground[L4] += nBackground[i];
+
+            nObsMinusBg[i] = obsMinusBg->GetBinContent(chanIdx[i]);
+            nObsMinusBg[L4] += nObsMinusBg[i];
+        }
+    }
+
+    cout << endl << endl;
+    cout << "CORRECTED FOR LUMI" << endl;
+    cout << "\t\t" << "Observed" << "\t" << "Expected" << "\t" << "Signal  " << "\t";
+    cout << "Background" << "\t" << "Obs - Bkg" << endl;
+    for (unsigned i = 0; i < N; i++)
+    {
+        cout << selection[i] << "\t\t" << setw(8) << nObserved[i] << "\t";
+        cout << setw(8) << nExpected[i] << "\t" << setw(8) << nSignal[i] << "\t";
+        cout << setw(8) << nBackground[i] << "\t" << setw(8) << nObsMinusBg[i] << endl;
+
+        if (i == EE)
+            cout << endl;
+    }
+
+
+
+
+
+
+    ////
+    ////
     ////    ACCEPTANCE * EFFICIENCY
     ////
     ////
@@ -347,13 +465,21 @@ void CalculateBF(bool useDY = kFALSE)
             nObsMinusBg[L4] += nObsMinusBg[i];
         }
     }
+    nObserved[ME] += nObserved[EM];
+    nExpected[ME] += nExpected[EM];
+    nSignal[ME] += nSignal[EM];
+    nBackground[ME] += nBackground[EM];
+    nObsMinusBg[ME] += nObsMinusBg[EM];
 
     cout << endl << endl;
-    cout << "CORRECTED FOR ACC & EFF" << endl;
+    cout << "CORRECTED FOR ACC * EFF, LUMI" << endl;
     cout << "\t\t" << "Observed" << "\t" << "Expected" << "\t" << "Signal  " << "\t";
     cout << "Background" << "\t" << "Obs - Bkg" << endl;
     for (unsigned i = 0; i < N; i++)
     {
+        if (i == EM)
+            continue;
+
         cout << selection[i] << "\t\t" << setw(8) << nObserved[i] << "\t";
         cout << setw(8) << nExpected[i] << "\t" << setw(8) << nSignal[i] << "\t";
         cout << setw(8) << nBackground[i] << "\t" << setw(8) << nObsMinusBg[i] << endl;
@@ -378,9 +504,7 @@ void CalculateBF(bool useDY = kFALSE)
 
     for (unsigned i = 0; i < N; i++)
     {
-        if (i == LL)
-            continue;
-        if (i == L4)
+        if ((i == LL) || (i == L4) || (i == EM))
             continue;
 
         fracUnc[i] = obsMinusBg->GetBinError(chanIdx[i]) / obsMinusBg->GetBinContent(chanIdx[i]);
@@ -390,47 +514,35 @@ void CalculateBF(bool useDY = kFALSE)
                     / nObsMinusBg[LL];
     fracUnc[L4] = 0;
     for (unsigned i = M4; i < N; i++)
+    {
+        if (i == EM)
+            continue;
         fracUnc[L4] += obsMinusBg->GetBinError(chanIdx[i]) * obsMinusBg->GetBinError(chanIdx[i]);
+    }
     fracUnc[L4] = sqrt(fracUnc[L4]) / nObsMinusBg[L4];
 
 
     double branchingFraction[N], bfFracUnc[N], bfUnc[N];
-    for (unsigned i = M4; i <= ME; i++)
+    for (unsigned i = L4; i < N; i++)
     {
-        branchingFraction[i] = Zto2l * f_nr * nObsMinusBg[i] / nObsMinusBg[MM];
-        bfFracUnc[i] = sqrt(fracUnc[i] * fracUnc[i] + fracUnc[MM] * fracUnc[MM]);
-        bfUnc[i] = bfFracUnc[i] * branchingFraction[i];
-    }
-    for (unsigned i = EM; i <= E4; i++)
-    {
-        branchingFraction[i] = Zto2l * f_nr * nObsMinusBg[i] / nObsMinusBg[EE];
-        bfFracUnc[i] = sqrt(fracUnc[i] * fracUnc[i] + fracUnc[EE] * fracUnc[EE]);
-        bfUnc[i] = bfFracUnc[i] * branchingFraction[i];
-    }
+        if (i == EM)
+            continue;
 
-    branchingFraction[L4] = 0;
-    bfUnc[L4] = 0;
-    for (unsigned i = M4; i < N; i++)
-    {
-        branchingFraction[L4] += branchingFraction[i];
-        bfUnc[L4] += bfUnc[i] * bfUnc[i];
+        branchingFraction[i] = 2 * Zto2l * f_nr * nObsMinusBg[i] / nObsMinusBg[LL];
+        bfFracUnc[i] = sqrt(fracUnc[i] * fracUnc[i] + fracUnc[LL] * fracUnc[LL]);
+        bfUnc[i] = bfFracUnc[i] * branchingFraction[i];
     }
-    bfUnc[L4] = sqrt(bfUnc[L4]);
-    bfFracUnc[L4] = bfUnc[L4] / branchingFraction[L4];
 
     cout << endl << endl;
     cout << "BRANCHING FRACTIONS" << endl;
     cout << "\t\t" << "Value" << "\t\t\t\t\t" << "Uncertainty" << endl;
     for (unsigned i = L4; i < N; i++)
     {
+        if (i == EM)
+            continue;
+
         cout << selection[i] << "\t\t" << setw(6) << branchingFraction[i];
         cout << " +- " << "\t" << bfUnc[i] << "\t\t";
         cout << bfFracUnc[i] << endl;
     }
 }
-
-/*
-    branchingFraction[L4] = 2. * Zto2l * nObsMinusBg[L4] / nObsMinusBg[LL];
-    bfFracUnc[L4] = sqrt(fracUnc[L4] * fracUnc[L4] + fracUnc[LL] * fracUnc[LL]);
-    bfUnc[L4] = bfFracUnc[L4] * branchingFraction[L4];
-*/

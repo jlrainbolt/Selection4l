@@ -40,7 +40,8 @@ using namespace std;
 **  Someday, systematics analysis will be integrated here...
 */
 
-void RecoSelection(const TString suffix, const TString id, const TString systematics)
+void RecoSelection( const TString suffix,       const TString id,
+                    const TString systematics,  const TString idH = "0")
 {
 
 
@@ -52,7 +53,14 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     long selectEvents = 100;
     int  printEvery = 30000;
 
-    // FIXME add systematics toggles
+    // Systematics toggle
+    const bool smearMuonID = systematics.EqualTo("muonID");
+    const bool smearElecID = systematics.EqualTo("electronID");
+    const bool smearElecReco = systematics.EqualTo("electronReco");
+    const bool smearMuonPt = systematics.EqualTo("muonPt");
+    const bool smearElecPt = systematics.EqualTo("elecPt");
+
+    const bool smearOn = smearMuonID || smearElecID || smearElecReco || smearMuonPt || smearElecPt;
 
 
 
@@ -74,7 +82,7 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     //  OUTPUT FILE
     //
 
-    TString prefix  = "selected";
+    TString prefix  = smearOn ? "smeared_" + systematics + idH : "selected";
     TString outName = prefix + "_" + suffix + "_" + id + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -309,6 +317,19 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
     hSelectedEvents->SetBinContent(1,
                         hTotalEvents->GetBinContent(1) - 2 * hTotalEvents->GetBinContent(10));
 
+    // Systematics
+    TH2D *hSystematics;
+    if (smearOn)
+    {
+        TString histName = "../data/" + systematics + "_smear_" + YEAR_STR + ".root";
+        TFile *histFile = TFile::Open(histName);
+
+        cout << "Opened " << histName << endl;
+
+        histFile->GetObject("SMEAR" + idH, hSystematics);
+        hSystematics->SetDirectory(outFile);
+    }
+
 
 
 
@@ -411,8 +432,28 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
         //
 
 
-        // FIXME
         // (Get smudge factors from histograms and apply them before creating objects.  Fun!)
+        if (smearOn)
+        {
+            if      (smearMuonID)
+            {
+                for (unsigned i = 0; i < nMuons; i++)
+                {
+                    TLorentzVector p4 = muonP4_.At(i);
+                    int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
+                    (*muonIDSF_)[i] += hSystematics->GetBinContent(bin);
+                }
+            }
+            else if (smearElecID || smearElecReco) 
+            {
+                for (unsigned i = 0; i < nElecs; i++)
+                {
+                    TLorentzVector p4 = elecP4_.At(i);
+                    int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
+                    (*elecIDSF_)[i] += hSystematics->GetBinContent(bin);
+                }
+            }
+        }
 
 
 
@@ -848,8 +889,8 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
             //
 
             if (z1.p4.M() < z2.p4.M())                          // mixed-flavor pairs are swapped
-                continue;
-//              swap(z1, z2);
+                swap(z1, z2);
+//              continue;
 
             if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
                 continue;                                       // (z2's mass is bound by z1)
@@ -992,6 +1033,8 @@ void RecoSelection(const TString suffix, const TString id, const TString systema
 
     hTotalEvents->Write();
     hSelectedEvents->Write();
+    if (smearOn)
+        hSystematics->Write();
 
     outFile->Purge();
     outFile->Close();

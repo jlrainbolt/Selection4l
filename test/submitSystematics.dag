@@ -1,0 +1,7 @@
+##
+##  Pack source files before submitting jobs in submitSystJobs2017.dag
+##
+
+    SUBDAG  EXTERNAL    jobs    submitSystJobs2017.dag
+    SCRIPT  PRE         jobs    ../scripts/packDirectory.sh
+#   SCRIPT  POST        jobs    haddStack.sh

@@ -69,6 +69,7 @@ const float     MATCH_DR_MAX = 0.02;
 
 // Muon trigger lumi doesn't include 2017B
 const float     MUON_TRIG_LUMI = 36.735,                        ELEC_TRIG_LUMI = 41.529;
+const float                                                     ELEC_TRIG_SF = 0.991;
 const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "electron_" + YEAR_STR;
 
 // Event numbers from DAS, negative fractions from XSDB (FIXME?)

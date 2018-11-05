@@ -4,7 +4,7 @@ currentDir=${PWD##*/}
 
 if [ "$currentDir" = test ]
 then
-    tar -czf source.tar.gz --exclude='*.root' --exclude='.git*' ../.
+    tar -czf source.tar.gz --exclude='test/*.root' --exclude='.git*' --exclude='2017*' ../.
     echo "Created source.tar.gz"
 
     if [ ! -d "output" ]

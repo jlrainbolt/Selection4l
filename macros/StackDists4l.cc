@@ -168,7 +168,7 @@ void StackDists4l(bool scaleAccEff = kFALSE)
                 if      ((i == M4) || (i == ME))
                     LUMI = MUON_TRIG_LUMI;
                 else if ((i == E4) || (i == EM))
-                    LUMI = ELEC_TRIG_LUMI;
+                    LUMI = ELEC_TRIG_LUMI * ELEC_TRIG_SF;
                 float sf = LUMI * 1000 * XSEC[j] / NGEN[j];
 
                 hist->Scale(sf);
@@ -189,6 +189,8 @@ void StackDists4l(bool scaleAccEff = kFALSE)
     //
 
     cout << endl << "Combining..." << flush;
+
+    // 4l
     for (unsigned h = 0; h < H; h++)    // distribution loop
     {
         // Data
@@ -210,15 +212,30 @@ void StackDists4l(bool scaleAccEff = kFALSE)
         }
     }
 
+    // 2m2e
+    for (unsigned h = 0; h < H; h++)    // distribution loop
+    {
+        // Data
+        data[ME][h]->Add(data[EM][h]);
+
+        // Monte Carlo
+        for (unsigned j = 0; j < N_MC; j++)
+            mc[ME][h][j]->Add(mc[EM][h][j]);
+    }
+
 
 
     //
     //  ADD SAMPLES
     //
 
+    // 4l
     TH1 *total[N][H];
     for (unsigned i = 0; i < N; i++)    // channel loop
     {
+        if (i == EM)    // skip "2e2m" since we added those (gross)
+            continue;
+
         for (unsigned h = 0; h < H; h++)    // distribution loop
         {
             total[i][h] = (TH1*) mc[i][h][0]->Clone();
@@ -241,6 +258,9 @@ void StackDists4l(bool scaleAccEff = kFALSE)
 
     for (unsigned i = 0; i < N; i++)    // channel loop
     {
+        if (i == EM)    // skip "2e2m" since we added those (gross)
+            continue;
+
         for (unsigned h = 0; h < H; h++)    // distribution loop
         {
             data[i][h]->SetTitle("");
@@ -323,6 +343,9 @@ void StackDists4l(bool scaleAccEff = kFALSE)
 
     for (unsigned i = 0; i < N; i++)
     {
+        if (i == EM)    // skip "2e2m" since we added those (gross)
+            continue;
+
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
 

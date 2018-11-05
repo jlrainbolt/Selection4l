@@ -20,16 +20,10 @@ using namespace std;
 
 void CalculateAsymmetry(bool useDY = kFALSE)
 {
-    // Constants
-    Double_t Zto2l = 0.03366, f_nr = 0.96;
-
-
 
     //
     //  SAMPLE INFO
     //
-
-    // or whatever the heck this is
 
     const unsigned N = 5;   // Channel indices
     unsigned                L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;
@@ -125,7 +119,7 @@ void CalculateAsymmetry(bool useDY = kFALSE)
     }
 
 
-
+/*
     //
     //  ACCEPTANCE * EFFICIENCY
     //
@@ -148,7 +142,7 @@ void CalculateAsymmetry(bool useDY = kFALSE)
         aeHist[i] = hist_;
     }
     aeFile->Close();
-
+*/
 
 
 
@@ -175,6 +169,11 @@ void CalculateAsymmetry(bool useDY = kFALSE)
         for (unsigned i = 2; i < N; i++)
             mcHist[0][j]->Add(mcHist[i][j]);
     }
+
+    // 2m2e
+    hObserved[ME]->Add(hObserved[EM]);
+    for (unsigned j = 0; j < N_MC; j++)
+        mcHist[ME][j]->Add(mcHist[EM][j]);
 
     // Expected
     for (unsigned i = 0; i < N; i++)
@@ -214,6 +213,9 @@ void CalculateAsymmetry(bool useDY = kFALSE)
         cout << "Background" << "\t" << "Obs - Bkg" << endl;
         for (unsigned i = 0; i < N; i++)
         {
+            if (i == EM)
+                continue;
+
             cout << selection[i] << "\t\t";
             cout << setw(8) << hObserved[i]->GetBinContent(b) << "\t";
             cout << setw(8) << hExpected[i]->GetBinContent(b) << "\t";
@@ -324,6 +326,9 @@ void CalculateAsymmetry(bool useDY = kFALSE)
 
     for (unsigned i = 0; i < N; i++)
     {
+        if (i == EM)
+            continue;
+
         float neg = hObsMinusBg[i]->GetBinContent(1), negUnc = hObsMinusBg[i]->GetBinError(1);
         float pos = hObsMinusBg[i]->GetBinContent(2), posUnc = hObsMinusBg[i]->GetBinError(2);
 
@@ -339,6 +344,9 @@ void CalculateAsymmetry(bool useDY = kFALSE)
     cout << "\t\t" << "Value" << "\t\t\t\t\t" << "Fractional Uncertainty" << endl;
     for (unsigned i = L4; i < N; i++)
     {
+        if (i == EM)
+            continue;
+
         cout << selection[i] << "\t\t" << setw(6) << asymmetry[i];
         cout << " +- " << "\t" << unc[i] << "\t\t";
         cout << fracUnc[i] << endl;
