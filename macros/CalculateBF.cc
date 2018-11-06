@@ -1,5 +1,6 @@
 // STL
 #include <iostream>
+#include <fstream>
 
 // ROOT
 #include "TString.h"
@@ -507,17 +508,17 @@ void CalculateBF(bool useDY = kFALSE)
         if ((i == LL) || (i == L4) || (i == EM))
             continue;
 
-        fracUnc[i] = obsMinusBg->GetBinError(chanIdx[i]) / obsMinusBg->GetBinContent(chanIdx[i]);
+        fracUnc[i] = dataHist->GetBinError(chanIdx[i]) / dataHist->GetBinContent(chanIdx[i]);
     }
-    fracUnc[LL] = sqrt(obsMinusBg->GetBinError(chanIdx[MM]) * obsMinusBg->GetBinError(chanIdx[MM])
-                    + obsMinusBg->GetBinError(chanIdx[EE]) * obsMinusBg->GetBinError(chanIdx[EE]))
+    fracUnc[LL] = sqrt(dataHist->GetBinError(chanIdx[MM]) * dataHist->GetBinError(chanIdx[MM])
+                    + dataHist->GetBinError(chanIdx[EE]) * dataHist->GetBinError(chanIdx[EE]))
                     / nObsMinusBg[LL];
     fracUnc[L4] = 0;
     for (unsigned i = M4; i < N; i++)
     {
         if (i == EM)
             continue;
-        fracUnc[L4] += obsMinusBg->GetBinError(chanIdx[i]) * obsMinusBg->GetBinError(chanIdx[i]);
+        fracUnc[L4] += dataHist->GetBinError(chanIdx[i]) * dataHist->GetBinError(chanIdx[i]);
     }
     fracUnc[L4] = sqrt(fracUnc[L4]) / nObsMinusBg[L4];
 
@@ -545,4 +546,45 @@ void CalculateBF(bool useDY = kFALSE)
         cout << " +- " << "\t" << bfUnc[i] << "\t\t";
         cout << bfFracUnc[i] << endl;
     }
+
+
+
+    //
+    //  LATEX
+    //
+
+    TString selLaTeX[N] = {"", "", "", "4\\ell", "4\\mu", "2\\mu2\\el", "", "4\\el"};
+    TString texName = "2017_prelim.tex";
+
+    ofstream texFile;
+    texFile.open(texName);
+    texFile.precision(3);
+
+    texFile << "\\begin{tabular}{l l l l S}" << endl << "\\toprule" << endl;
+    texFile << "\tChannel & \\multicolumn{3}{l}{$\\BF$ ($\\times 10^{-6}$)} & ";
+    texFile << "\\multicolumn{1}{l}{Unc.~(\\%)} \\\\" << endl << "\\midrule" << endl;
+
+//  texFile << fixed;
+    for (unsigned i = L4; i < N; i++)
+    {
+        if (i == EM)
+            continue;
+
+        float val = branchingFraction[i] * 1000000;
+        float unc = bfUnc[i] * 1000000;
+        float frac = bfFracUnc[i] * 100;
+
+        texFile << "\t$" << selLaTeX[i] << "$ & ";
+        texFile << setw(2) << val << " & $\\pm$ & " << unc << " & " << frac;
+        texFile << " \\\\";
+
+        if (i == L4)
+            texFile << " \\addlinespace";
+
+        texFile << endl;
+    }
+    texFile << "\\bottomrule" << endl << "\\end{tabular}" << endl;
+
+    texFile.close();
+    cout << endl << endl << "Wrote LaTeX table to " << texName << endl;
 }

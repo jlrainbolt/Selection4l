@@ -100,6 +100,11 @@ const float     XSEC[N_MC] = {  XSEC_ZZ_4L,     XSEC_ZJETS_M50, XSEC_GGH_ZZ_4L, 
 const int       COLOR[N_MC] = { lLightBlue,     lYellow,        lPurple,        lPurple,
                                 lGreen,         lOrange,        lOrange,        lOrange,
                                 lOrange};
+const TString   MC_TEX[N_MC] = {"\\Z\\Zto",     "\\DY",         "\\text{VBF }\\Higgs\\to\\Z\\Zto",
+                                "\\text{ggF }\\Higgs\\to\\Z\\Zto",      "\\tq\\tbar",
+                                "\\W\\W\\to 2\\ell 2\\nu",      "\\W\\Z\\to 2\\ell 2\\qq",
+                                "\\W\\Z\\to 3\\ell \\nu",       "\\Z\\Z\\to 2\\ell 2\\qq"};
+
 
 
 
