@@ -23,11 +23,11 @@
 #   VARS            electronID4l    systematics="electronID"
 #   SCRIPT  POST    electronID4l	../scripts/mergeOutput.sh smeared_electronID0 zz_4l
 
-    JOB             electronID2l	submitSyst.sub
-    VARS            electronID2l	suffix="zjets_m-50"
-    VARS            electronID2l	nFiles="5"
-    VARS            electronID2l    systematics="electronID"
-    SCRIPT  POST    electronID2l	../scripts/mergeOutput.sh smeared_electronID0 zjets_m-50
+#   JOB             electronID2l	submitSyst.sub
+#   VARS            electronID2l	suffix="zjets_m-50"
+#   VARS            electronID2l	nFiles="5"
+#   VARS            electronID2l    systematics="electronID"
+#   SCRIPT  POST    electronID2l	../scripts/mergeOutput.sh smeared_electronID0 zjets_m-50
 
 
 #   JOB             electronReco4l	submitSyst.sub
@@ -36,8 +36,34 @@
 #   VARS            electronReco4l  systematics="electronReco"
 #   SCRIPT  POST    electronReco4l	../scripts/mergeOutput.sh smeared_electronReco0 zz_4l
 
+#   JOB             electronReco2l	submitSyst.sub
+#   VARS            electronReco2l	suffix="zjets_m-50"
+#   VARS            electronReco2l	nFiles="5"
+#   VARS            electronReco2l  systematics="electronReco"
+#   SCRIPT  POST    electronReco2l	../scripts/mergeOutput.sh smeared_electronReco0 zjets_m-50
+
+
+#   JOB             electronReco4l	submitSyst.sub
+#   VARS            electronReco4l	suffix="zz_4l"
+#   VARS            electronReco4l	nFiles="2"
+#   VARS            electronReco4l  systematics="muonPt"
+#   SCRIPT  POST    electronReco4l	../scripts/mergeOutput.sh smeared_muonPt0 zz_4l
+
+#   JOB             electronReco2l	submitSyst.sub
+#   VARS            electronReco2l	suffix="zjets_m-50"
+#   VARS            electronReco2l	nFiles="5"
+#   VARS            electronReco2l  systematics="muonPt"
+#   SCRIPT  POST    electronReco2l	../scripts/mergeOutput.sh smeared_muonPt0 zjets_m-50
+
+
+    JOB             electronReco4l	submitSyst.sub
+    VARS            electronReco4l	suffix="zz_4l"
+    VARS            electronReco4l	nFiles="2"
+    VARS            electronReco4l  systematics="electronPt"
+    SCRIPT  POST    electronReco4l	../scripts/mergeOutput.sh smeared_electronPt0 zz_4l
+
     JOB             electronReco2l	submitSyst.sub
     VARS            electronReco2l	suffix="zjets_m-50"
     VARS            electronReco2l	nFiles="5"
-    VARS            electronReco2l  systematics="electronReco"
-    SCRIPT  POST    electronReco2l	../scripts/mergeOutput.sh smeared_electronReco0 zjets_m-50
+    VARS            electronReco2l  systematics="electronPt"
+    SCRIPT  POST    electronReco2l	../scripts/mergeOutput.sh smeared_electronPt0 zjets_m-50

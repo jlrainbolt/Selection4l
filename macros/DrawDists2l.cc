@@ -42,6 +42,7 @@ void DrawDists2l(const TString suffix)
     unsigned                   LL = 0,  MM = 1, EE = 2;     // Indices
     TString selection[N]    = {"ll",    "mumu", "ee"};
     unsigned chanIdx[N]     = {2,       3,      4};
+    TString lepChan[N]      = {_l,      _mu,    _e};
 
 
 
@@ -59,24 +60,24 @@ void DrawDists2l(const TString suffix)
     //  HISTOGRAMS
     //
 
-    vector<tuple<TString, TString, Int_t, Double_t, Double_t>> v = {
+    vector<tuple<TString, TString, TString, Int_t, Double_t, Double_t>> v = {
 
-        //              name                quantity            bins    xmin        xmax
-        make_tuple(     "nPV",              "nPV",              60,     0,          60),
-        make_tuple(     "met",              "met",              40,     0,          100),
-
-        // Lab frame kinematics
-        make_tuple(     "z1m",              "z1p4.M()",         40,     80,         100),
-        make_tuple(     "z1pt",             "z1p4.Pt()",        40,     0,          80),
-        make_tuple(     "z1pdg",            "z1pdg",            3,      10.5,       13.5),
-                                            
-        make_tuple(     "l1pt",             "l1p4.Pt()",        40,     20,         100),
-        make_tuple(     "l1eta",            "l1p4.Eta()",       40,     -2.5,       2.5),
-        make_tuple(     "l1pdg",            "l1pdg",            27,     -13.5,      13.5),
-                                            
-        make_tuple(     "l2pt",             "l2p4.Pt()",        40,     10,         50),
-        make_tuple(     "l2eta",            "l2p4.Eta()",       40,     -2.5,       2.5),
-        make_tuple(     "l2pdg",            "l2pdg",            27,     -13.5,      13.5),
+        //          name            quantity        axis label          bins    xmin    xmax
+        make_tuple( "nPV",          "nPV",          _nPV,               60,     0,      60),
+        make_tuple( "met",          "met",          _met,               40,     0,      100),
+                                                                        
+        // Lab frame kinematics                                         
+        make_tuple( "z1m",          "z1p4.M()",     _m_(_ll),           40,     80,     100),
+        make_tuple( "z1pt",         "z1p4.Pt()",    _pT_(_ll),          40,     0,      80),
+        make_tuple( "z1pdg",        "z1pdg",        "",                 3,      10.5,   13.5),
+                                                                        
+        make_tuple( "l1pt",         "l1p4.Pt()",    _pT_(_l_(1)),       40,     20,     100),
+        make_tuple( "l1eta",        "l1p4.Eta()",   _eta_(_l_(1)),      40,     -2.5,   2.5),
+        make_tuple( "l1pdg",        "l1pdg",        "",                 27,     -13.5,  13.5),
+                                                                        
+        make_tuple( "l2pt",         "l2p4.Pt()",    _pT_(_l_(2)),       40,     10,     50),
+        make_tuple( "l2eta",        "l2p4.Eta()",   _eta_(_l_(2)),      40,     -2.5,   2.5),
+        make_tuple( "l2pdg",        "l2pdg",        "",                 27,     -13.5,  13.5)
     };
 
 
@@ -143,17 +144,19 @@ void DrawDists2l(const TString suffix)
         for (unsigned j = 0; j < v.size(); j++)
         {
             // Get parameters from tuple
-            TString hname,  quantity;
+            TString hname,  quantity,   xlabel;
             int     bins;
             float   xmin,   xmax;
             TString weight = "weight";
-            tie(hname, quantity, bins, xmin, xmax) = v[j];
+            tie(hname, quantity, xlabel, bins, xmin, xmax) = v[j];
 
 
             // Create and draw histogram
             TH1D *h = new TH1D(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
             tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
 
+            xlabel.ReplaceAll(_l, lepChan[i]);
+            h->GetXaxis()->SetTitle(xlabel);
             h->Sumw2(kTRUE);
             h->Write();
         }

@@ -58,7 +58,7 @@ void RecoSelection( const TString suffix,       const TString id,
     const bool smearElecID = systematics.EqualTo("electronID");
     const bool smearElecReco = systematics.EqualTo("electronReco");
     const bool smearMuonPt = systematics.EqualTo("muonPt");
-    const bool smearElecPt = systematics.EqualTo("elecPt");
+    const bool smearElecPt = systematics.EqualTo("electronPt");
 
     const bool smearOn = smearMuonID || smearElecID || smearElecReco || smearMuonPt || smearElecPt;
 
@@ -453,6 +453,16 @@ void RecoSelection( const TString suffix,       const TString id,
                     (*elecIDSF_)[i] += hSystematics->GetBinContent(bin);
                 }
             }
+            else if (smearMuonPt)
+            {
+                for (unsigned i = 0; i < nMuons; i++)
+                    (*muonEnergySF_)[i] *= 1 + MUON_PT_SHIFT;
+            }
+            else if (smearElecPt)
+            {
+                for (unsigned i = 0; i < nElecs; i++)
+                    (*elecEnergySF_)[i] *= 1 + ELEC_PT_SHIFT;
+            }
         }
 
 
@@ -691,7 +701,6 @@ void RecoSelection( const TString suffix,       const TString id,
         unsigned C;     // index for filling trees by channel
         LeptonPair z1, z2;
 
-
         if (elecTrig)                       // higher-priority electron trigger (reevaluate?)
         {
             if      (nHZZElecs == 2 && nHZZMuons == 0)      // ee
@@ -719,7 +728,6 @@ void RecoSelection( const TString suffix,       const TString id,
                 continue;
         }
 
-
         else if (muonTrig)                  // lower-priority muon trigger
         {
             if      (nHZZMuons == 2 && nHZZElecs == 0)      // mumu
@@ -746,6 +754,7 @@ void RecoSelection( const TString suffix,       const TString id,
             else
                 continue;
         }
+
 
         if (print)
             cout << "Passed pair requirement for " << selection[C] << endl;

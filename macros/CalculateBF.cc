@@ -512,7 +512,7 @@ void CalculateBF(bool useDY = kFALSE)
     }
     fracUnc[LL] = sqrt(dataHist->GetBinError(chanIdx[MM]) * dataHist->GetBinError(chanIdx[MM])
                     + dataHist->GetBinError(chanIdx[EE]) * dataHist->GetBinError(chanIdx[EE]))
-                    / nObsMinusBg[LL];
+                    / nObserved[LL];
     fracUnc[L4] = 0;
     for (unsigned i = M4; i < N; i++)
     {
@@ -520,7 +520,7 @@ void CalculateBF(bool useDY = kFALSE)
             continue;
         fracUnc[L4] += dataHist->GetBinError(chanIdx[i]) * dataHist->GetBinError(chanIdx[i]);
     }
-    fracUnc[L4] = sqrt(fracUnc[L4]) / nObsMinusBg[L4];
+    fracUnc[L4] = sqrt(fracUnc[L4]) / nObserved[L4];
 
 
     double branchingFraction[N], bfFracUnc[N], bfUnc[N];
@@ -529,7 +529,7 @@ void CalculateBF(bool useDY = kFALSE)
         if (i == EM)
             continue;
 
-        branchingFraction[i] = 2 * Zto2l * f_nr * nObsMinusBg[i] / nObsMinusBg[LL];
+        branchingFraction[i] = 2 * Zto2l * f_nr * nObserved[i] / nObserved[LL];
         bfFracUnc[i] = sqrt(fracUnc[i] * fracUnc[i] + fracUnc[LL] * fracUnc[LL]);
         bfUnc[i] = bfFracUnc[i] * branchingFraction[i];
     }
@@ -554,17 +554,22 @@ void CalculateBF(bool useDY = kFALSE)
     //
 
     TString selLaTeX[N] = {"", "", "", "4\\ell", "4\\mu", "2\\mu2\\el", "", "4\\el"};
+    float pred[N] = {0, 0, 0, 4.70, 1.20, 2.31, 0, 1.19};
+    float theo[N] = {0, 0, 0, 0.03, 0.01, 0.02, 0, 0.01};
+
     TString texName = "2017_prelim.tex";
 
     ofstream texFile;
     texFile.open(texName);
-    texFile.precision(3);
+    texFile.precision(2);
 
-    texFile << "\\begin{tabular}{l l l l S}" << endl << "\\toprule" << endl;
-    texFile << "\tChannel & \\multicolumn{3}{l}{$\\BF$ ($\\times 10^{-6}$)} & ";
+    texFile << "\\begin{tabular}{l lll l lll S}" << endl << "\\toprule" << endl;
+    texFile << "\t\t& \\multicolumn{7}{c}{$\\BF$ ($\\times 10^{-6}$)} \\\\" << endl;
+    texFile << "\tChannel & \\multicolumn{3}{l}{Predicted} && ";
+    texFile << "\\multicolumn{3}{l}{Measured (2017)} & ";
     texFile << "\\multicolumn{1}{l}{Unc.~(\\%)} \\\\" << endl << "\\midrule" << endl;
 
-//  texFile << fixed;
+    texFile << fixed;
     for (unsigned i = L4; i < N; i++)
     {
         if (i == EM)
@@ -575,8 +580,9 @@ void CalculateBF(bool useDY = kFALSE)
         float frac = bfFracUnc[i] * 100;
 
         texFile << "\t$" << selLaTeX[i] << "$ & ";
-        texFile << setw(2) << val << " & $\\pm$ & " << unc << " & " << frac;
-        texFile << " \\\\";
+        texFile << setw(2) << pred[i] << " & $\\pm$ & " << theo[i] << " && ";
+        texFile << setw(2) << val << " & $\\pm$ & " << setw(3) << unc << " & ";
+        texFile << setw(1) << frac << " \\\\";
 
         if (i == L4)
             texFile << " \\addlinespace";

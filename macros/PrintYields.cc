@@ -31,13 +31,6 @@ void PrintYields(bool useDY = kTRUE)
     TString selection[N] = {"ll",   "mumu", "ee",   "4l",   "4m",   "2m2e", "2e2m", "4e"};
     unsigned chanIdx[N] = { 2,      3,      4,      5,      6,      7,      8,      9};
 
-    // Containers
-    double nObserved[N] = { 0,      0,      0,      0,      0,      0,      0,      0};
-    double nExpected[N] = { 0,      0,      0,      0,      0,      0,      0,      0};
-    double nSignal[N] = {   0,      0,      0,      0,      0,      0,      0,      0};
-    double nBackground[N]={ 0,      0,      0,      0,      0,      0,      0,      0};
-    double nSample[j][N];
-
 
 
 
@@ -177,57 +170,6 @@ void PrintYields(bool useDY = kTRUE)
     obsMinusBg->Add(sigBackground, -1);
     obsMinusBg->Add(dyBackground, -1);
 
-/*
- *
- *
- *              UGH
- *
- */
-
-    for (unsigned i = MM; i < N; i++)
-    {
-        if      (i > L4)
-        {
-            if (i == EM)
-            {
-                nObserved[ME] += dataHist->GetBinContent(chanIdx[i]);
-                nExpected[ME] += mcTotal->GetBinContent(chanIdx[i]);
-                nSignal[ME] += mcHist[ZZ]->GetBinContent(chanIdx[i]);
-                nBackground[ME] += dyBackground->GetBinContent(chanIdx[i]);
-                for (unsigned j = 0; j < mcHist
-            }
-            else
-        }
-        else if (i > L4)
-        {
-            nObserved[i] = dataHist->GetBinContent(chanIdx[i]);
-            nObserved[L4] += nObserved[i];
-
-            nExpected[i] = mcTotal->GetBinContent(chanIdx[i]);
-            nExpected[L4] += nExpected[i];
-
-            nSignal[i] = mcHist[ZZ]->GetBinContent(chanIdx[i]);
-            nSignal[L4] += nSignal[i];
-
-            nBackground[i] = sigBackground->GetBinContent(chanIdx[i]);
-            nBackground[L4] += nBackground[i];
-        }
-
-        if (i < L4)
-        {
-            nObserved[i] = dataHist->GetBinContent(chanIdx[i]);
-            nObserved[LL] += nObserved[i];
-
-            nExpected[i] = mcTotal->GetBinContent(chanIdx[i]);
-            nExpected[LL] += nExpected[i];
-
-            nSignal[i] = mcHist[DY]->GetBinContent(chanIdx[i]);
-            nSignal[LL] += nSignal[i];
-
-            nBackground[i] = dyBackground->GetBinContent(chanIdx[i]);
-            nBackground[LL] += nBackground[i];
-        }
-    }
 
 
 
@@ -236,29 +178,62 @@ void PrintYields(bool useDY = kTRUE)
     //
 
     TString selLaTeX[N] = {"\\lplm", "\\mumu", "\\ee", "4\\ell", "4\\mu", "2\\mu2\\el","","4\\el"};
-    for (unsigned i = M4; i < N; i++)
+    for (unsigned i = MM; i < N; i++)
     {
+        if (i == L4)
+            continue;
         if (i == EM)
             continue;
+
+        unsigned SIG = (i < L4) ? DY : ZZ;
 
 
         int nObserved = dataHist->GetBinContent(chanIdx[i]);
         float nExpected = mcTotal->GetBinContent(chanIdx[i]);
         float uExpected = mcTotal->GetBinError(chanIdx[i]);
-        float nSignal = mcHist[ZZ]->GetBinContent(chanIdx[i]);
-        float uSignal = mcHist[ZZ]->GetBinError(chanIdx[i]);
-        float nBackground = sigBackground->GetBinContent(chanIdx[i]);
-        float uBackground = sigBackground->GetBinError(chanIdx[i]);
+        float nSignal = mcHist[SIG]->GetBinContent(chanIdx[i]);
+        float uSignal = mcHist[SIG]->GetBinError(chanIdx[i]);
+        float nBackground = (i > L4) ? sigBackground->GetBinContent(chanIdx[i])
+                                     : dyBackground->GetBinContent(chanIdx[i]);
+        float uBackground = (i > L4) ? sigBackground->GetBinError(chanIdx[i])
+                                     : dyBackground->GetBinError(chanIdx[i]);
 
-        TString texName = "2017_yields_" + selection[i] + ".tex";
+        if (i == ME)
+        {
+            nObserved += dataHist->GetBinContent(chanIdx[EM]);
+            nExpected += mcTotal->GetBinContent(chanIdx[EM]);
+            uExpected = sqrt(pow(uExpected, 2) + pow(mcTotal->GetBinError(chanIdx[EM]), 2));
+            nSignal += mcHist[ZZ]->GetBinContent(chanIdx[EM]);
+            uSignal = sqrt(pow(uSignal, 2) + pow(mcHist[ZZ]->GetBinError(chanIdx[EM]), 2));
+            nBackground += sigBackground->GetBinContent(chanIdx[EM]);
+            uBackground = sqrt(pow(uBackground,2)+pow(sigBackground->GetBinError(chanIdx[EM]),2));
+        }
+        if (i < L4)
+        {
+            nObserved = round(nObserved);
+            nExpected = round(nExpected);       uExpected = round(uExpected);
+            nSignal = round(nSignal);           uSignal = round(uSignal);
+            nBackground = round(nBackground);   uBackground = round(uBackground);
+        }
+
+        TString texName = "2017_" + selection[i] + ".tex";
 
         ofstream texFile;
         texFile.open(texName);
-        texFile.precision(2);
-        texFile << fixed;
+        if (i > L4)
+        {
+            texFile.precision(2);
+            texFile << fixed;
+            texFile << "\\begin{tabular}{l l l S[table-format=3.2] l S[table-format=2.2]}" << endl; 
+        }
+        else
+        {
+            texFile.precision(8);
+            texFile << "\\sisetup{group-minimum-digits=4}" << endl << endl;
+            texFile << "\\begin{tabular}{l l l S[table-format=8.0] l S[table-format=5.0]}" << endl; 
+        }
 
-        texFile << "\\begin{tabular}{l l l S l S}" << endl << "\\toprule" << endl;
-        texFile << "\t\\multicolumn{3}{l}{Type} & ";
+        texFile << "\\toprule" << endl << "\t\\multicolumn{3}{l}{Type} & ";
         texFile << "\\multicolumn{3}{l}{$N_{" << selLaTeX[i] << "}$ (events)} \\\\" << endl;
         texFile << "\\midrule" << endl;
         texFile << "\t\\multicolumn{3}{l}{Observed} & " << nObserved << " \\\\" << endl;
@@ -271,10 +246,18 @@ void PrintYields(bool useDY = kTRUE)
         texFile << nBackground << " & $\\pm$ & " << uBackground << " \\\\" << endl;
         texFile << "\\addlinespace" << endl;
 
-        for (unsigned j = DY; j < N_MC; j++)
+        for (unsigned j = ZZ; j < N_MC; j++)
         {
+            if (j == SIG)
+                continue;
+
             float nSample = mcHist[j]->GetBinContent(chanIdx[i]);
             float uSample = mcHist[j]->GetBinError(chanIdx[i]);
+
+            if (i < L4)
+            {
+                nSample = round(nSample);       uSample = round(uSample);
+            }
 
             texFile << "\t\t& & $" << MC_TEX[j] << "$ & ";
             texFile << nSample << " & $\\pm$ & " << uSample << " \\\\" << endl;
@@ -282,6 +265,6 @@ void PrintYields(bool useDY = kTRUE)
         texFile << "\\bottomrule" << endl << "\\end{tabular}" << endl;
 
         texFile.close();
-        cout << endl << endl << "Wrote LaTeX table to " << texName << endl;
+        cout << "Wrote LaTeX table to " << texName << endl;
     }
 }

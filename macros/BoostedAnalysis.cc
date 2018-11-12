@@ -138,7 +138,7 @@ void BoostedAnalysis(const TString suffix)
     //
 
     TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
+    TString inPath  = /*EOS_PATH + "/Selected/" + YEAR_STR + "/" +*/ "output/" +    inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;

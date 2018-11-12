@@ -134,7 +134,7 @@ void StackDists2l()
                 if      (i == MM)
                     LUMI = MUON_TRIG_LUMI;
                 else if (i == EE)
-                    LUMI = ELEC_TRIG_LUMI;
+                    LUMI = ELEC_TRIG_LUMI * ELEC_TRIG_SF;
                 float sf = LUMI * 1000 * XSEC[j] / NGEN[j];
 
                 hist->Scale(sf);
@@ -197,6 +197,8 @@ void StackDists2l()
                 total_->Add(mc[i][h][j]);
 
             total[i][h] = total_;
+            total[i][h]->Sumw2();
+            total[i][h]->SetLineColor(0);
         }
     }
 
@@ -301,26 +303,27 @@ void StackDists2l()
             Facelift(canvas[i][h]);
             canvas[i][h]->cd();
 
-            data[i][h]->SetMinimum(0);
-            total[i][h]->SetMinimum(0);
+//          data[i][h]->SetMinimum(0);
+//          total[i][h]->SetMinimum(0);
 
             ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
-//          ratio[i][h]->SetGraphDrawOpt("B");
-            ratio[i][h]->SetH1DrawOpt("E");
-            ratio[i][h]->SetH2DrawOpt("E");
+//          ratio[i][h]->SetH1DrawOpt("E");
+//          ratio[i][h]->SetH2DrawOpt("E");
+            ratio[i][h]->SetSeparationMargin(0.0);
             ratio[i][h]->Draw();
 
             TPad *upper = ratio[i][h]->GetUpperPad(), *lower = ratio[i][h]->GetLowerPad();
             upper->cd();
-
-            stack[i][h]->Draw("HIST SAME");
+  
+            stack[i][h]->Draw("HIST");
+            stack[i][h]->GetXaxis()->SetTitle(data[i][h]->GetXaxis()->GetTitle());
             Facelift(stack[i][h]);
-            data[i][h]->Draw("E SAME");
-//          upper->RedrawAxis();
-            upper->Modified();
-
+            data[i][h]->Draw("AE SAME");
+  
+//          ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.75);
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
+            lower->SetBottomMargin(3 * lCanvasMargin);
             lower->Modified();
 
             legend->Draw();

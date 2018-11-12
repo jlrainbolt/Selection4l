@@ -21,7 +21,7 @@ const Float_t   lCanvasMargin = 0.12;               // Give us more room for tit
 
 const Font_t    lHelveticaMediumR = 43;             // Font code 3 is expressed in pixels
 const Float_t   lLarge = 36, lSmall = 24;           // Font sizes
-const Float_t   lTitleOffsetY = 1.1;                // Fix for y axis offset
+const Float_t   lTitleOffsetY = 1.2;                // Fix for y axis offset
 
 const Float_t   lLegendMargin = 0.04;               // Margin for legend from upper right corner
 
@@ -78,7 +78,7 @@ const TString   _unit   = "\\mbox{unit}";
 const TString   _units  = "\\mbox{units}";
 
 const TString   _met    = "p_{\\mbox{T}}^{\\mbox{miss}}";
-const TString   _iso    = "\\mbox{RelPFIso}";
+const TString   _nPV    = "n_{\\mbox{PV}}";
 
 const TString   _g      = "\\mbox{g}";
 const TString   _q      = "\\mbox{q}";
@@ -94,16 +94,23 @@ const TString   _and    = "\\mbox{,}";
 
 const TString   _sp     = "\\,";
 
+const TString   _psi    = "\\psi";
+const TString   _phi    = "\\phi";
+const TString   _sinphi = "\\sin\\phi";
+const TString   _beta   = "\\beta\\ (" + _rad + ")";
 
+
+TString _PWZto( const TString   chan)   {return "\\Gamma_{" + _Z + _to + chan + "}";}
 TString _BFZto( const TString   chan)   {return "\\mathcal{B}(\\" + _Z + _to + chan + ")";}
-TString _pT(    const TString   x)      {return "p_{\\mbox{T} " + x + "}";}
-TString _pT(    const unsigned  n)      {return _pT(TString::Format("%u", n));}
-TString _p4(    const TString   x)      {return "\\vec{p}_{\\mbox{T} " + x + "}";}
-TString _p4(    const unsigned  n)      {return _p4(TString::Format("%u", n));}
-TString _m(     const TString   x)      {return "m_{" + x + "}";}
-TString _m(     const unsigned  n)      {return _m(TString::Format("%u", n));}
-TString _eta(   const TString   x)      {return "\\eta_{" + x + "}";}
-TString _eta(   const unsigned  n)      {return _eta(TString::Format("%u", n));}
+TString _pT_(   const TString   x)      {return "p_{\\mbox{T}}^{" + x + "}\\ (" + _GeV + ")";}
+TString _p_(    const TString   x)      {return "p_{" + x + "}\\ (" + _GeV + ")";}
+TString _l_(    const TString   x)      {return _l + "_{" + x + "}";}
+TString _l_(    const unsigned  n)      {return _l_(TString::Format("%u", n));}
+TString _m_(    const TString   x)      {return "m_{" + x + "}\\ (" + _GeV + ")";}
+TString _eta_(  const TString   x)      {return "\\eta_{" + x + "}";}
+TString _iso_(  const TString   x)      {return "\\mbox{RelPFIso}_{" + x + "}";}
+TString _theta_(const TString   x)      {return "\\theta_{" + x + "}\\ (" + _rad + ")";}
+TString _alpha_(const TString   x)      {return "\\alpha_{" + x + "}\\ (" + _rad + ")";}
 
 /*
 TString _EventsPer(const TString x, const TString unit)

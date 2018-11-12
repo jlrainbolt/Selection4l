@@ -64,6 +64,14 @@ const float     MATCH_DR_MAX = 0.02;
 
 
 //
+//  SYSTEMATICS
+//
+
+const float     MUON_PT_SHIFT = 0.002,  ELEC_PT_SHIFT = 0.005;
+
+
+
+//
 //  SAMPLES
 //
 
