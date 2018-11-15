@@ -27,6 +27,7 @@
     // Load custom colorss
     gROOT->ProcessLine(".x LoadColors.cc");
 
+//  gStyle->SetOptStat(1111);
 
     cout << endl;
 }

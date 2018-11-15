@@ -44,6 +44,7 @@ void DrawResolution(const bool scale = kFALSE)
     TString selection[N]    = {"4l",    "4m",   "2m2e", "2e2m", "4e"};
     unsigned chanIdx[N]     = {5,       6,      7,      8,      9};
     TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e};
+    int lColor[N]           = {lPurple, lBlue,  lPurple, lPurple, lRed};
 
 
 
@@ -157,6 +158,30 @@ void DrawResolution(const bool scale = kFALSE)
             h->GetXaxis()->SetTitle(xlabel);
             h->Sumw2(kTRUE);
             h->Write();
+
+            TCanvas *canvas = new TCanvas(hname + "_" + selection[i] + "_canvas", "", 100, 100);
+            canvas->cd();
+            Facelift(canvas);
+            canvas->SetCanvasSize(lCanvasSize, 0.625*lCanvasSize);
+            canvas->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+            h->SetTitle("");
+//          h->SetLineWidth(2);
+            h->SetFillColor(lColor[i]);
+            h->SetLineColor(lColor[i]);
+            Facelift(h);
+            h->SetStats(kTRUE);
+            h->Draw("HIST");
+            canvas->Update();
+            TPaveStats *stats = (TPaveStats*)h->GetListOfFunctions()->FindObject("stats");
+            stats->SetOptStat(1000111110);
+            stats->SetTextFont(lHelveticaMediumR);
+            stats->SetTextSize(lSmall);
+            stats->SetX1NDC(0.7); stats->SetY1NDC(0.5);
+
+            gPad->Modified();
+            gPad->Update();
+
+            canvas->Write();
         }
 
         cout << "done!" << endl;

@@ -212,7 +212,6 @@ void CalculateAsymmetry(bool useDY = kFALSE)
     //
 
     cout << endl << endl;
-    cout << "BEFORE CORRECTIONS" << endl;
     for (unsigned b = 1; b <= 2; b++)
     {
         if (b == 1)
@@ -281,32 +280,65 @@ void CalculateAsymmetry(bool useDY = kFALSE)
     }
 
     // Graph of results
-    float xbin[4] = {1, 3, 4, 5},   yerr[4] = {unc[L4], unc[M4], unc[ME], unc[E4]};
-    float yval[4] = {asymmetry[L4], asymmetry[M4], asymmetry[ME], asymmetry[E4]};
-    TGraphErrors *graph = new TGraphErrors(4, xbin, yval, 0, yerr);
-    graph->SetNameTitle("asymmetry", "");
-    float xedge[6] = {0.5, 1.5, 2.5, 3.5, 4.5, 5.5};
-    graph->GetXaxis()->Set(5, xedge);
-    graph->GetXaxis()->SetBinLabel(1, _4l);
-    graph->GetXaxis()->SetBinLabel(3, _4mu);
-    graph->GetXaxis()->SetBinLabel(4, _2mu2e);
-    graph->GetXaxis()->SetBinLabel(5, _4e);
-    graph->GetXaxis()->SetTicks("-");
-    graph->SetMarkerStyle(8);
-//  graph->SetLineWidth(0);
-//  graph->GetXaxis()->ChangeLabel(1, -1, -1, -1, -1, -1, _4l);
+    float yval[4] = {5, 3, 2, 1},   xerr[4] = {unc[L4], unc[M4], unc[ME], unc[E4]};
+    float xval[4] = {asymmetry[L4], asymmetry[M4], asymmetry[ME], asymmetry[E4]};
+    TGraphErrors *graph = new TGraphErrors(4, xval, yval, xerr, 0);
+
+
+    float yedge[6] = {0.5, 1.5, 2.5, 3.5, 4.5, 5.5};
+    graph->GetYaxis()->Set(5, yedge);
+    graph->GetYaxis()->SetBinLabel(5, _4l);
+    graph->GetYaxis()->SetBinLabel(3, _4mu);
+    graph->GetYaxis()->SetBinLabel(2, _2mu2e);
+    graph->GetYaxis()->SetBinLabel(1, _4e);
+//  graph->GetYaxis()->SetTicks("-");
+
+    graph->SetTitle("");
+    graph->GetXaxis()->SetTitle("A_{" + lepChan[0] + "}");
+    graph->GetXaxis()->SetTitleOffset(0.7 * lTitleOffsetY);
+    graph->SetMarkerStyle(kFullCircle);
+    graph->SetMarkerSize(2);
+    graph->SetLineWidth(2);
+
+    TCanvas *asyCanvas = new TCanvas("asymmetry", "", lCanvasSize, lCanvasSize);
+    asyCanvas->cd();
+    Facelift(asyCanvas);
+    asyCanvas->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
+    asyCanvas->SetMargin(1.3*lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+    graph->Draw("AP");
+
+    Facelift(graph->GetXaxis());
+    Facelift(graph->GetYaxis());
+    graph->GetYaxis()->SetLabelSize(lLarge);
+    graph->GetYaxis()->SetLabelOffset(0.01 * lTitleOffsetY);
+    graph->GetYaxis()->SetTickLength(0);
+    graph->GetYaxis()->SetRangeUser(yedge[0] - 0.5, yedge[5] + 0.5);
+    graph->GetXaxis()->SetLimits(graph->GetXaxis()->GetXmin(), fabs(graph->GetXaxis()->GetXmin()));
+    gPad->Modified();
+
+    TLine *line = new TLine(0, yedge[0] - 0.5, 0, yedge[5] + 0.5);
+    line->SetLineColor(kRed);
+    line->Draw();
+    graph->Draw("P");
+    gPad->RedrawAxis();
 
 
 
-    //
-    //  WITH CUT
-    //
 
-    const unsigned M = 10;
-    float asymmetry_cut[N][M], unc_cut[N][M];
+    ////
+    ////
+    ////    WITH CUT
+    ////
+    ////
+
+
+    const unsigned M = 10, X = 7;
     float phi_min[M] = {0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0};
-    TGraphErrors *asymm_func[M];
-    TCanvas *fCanvas[N];
+    float phi_max[X] = {0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1};
+
+    float min_cut[N][M], min_unc[N][M], max_cut[N][M], max_unc[N][M];
+    TGraphErrors *min_graph[N], *max_graph[N];
+    TCanvas *minCanvas[N], *maxCanvas[N];
 
     for (unsigned i = 0; i < N; i++)
     {
@@ -315,35 +347,69 @@ void CalculateAsymmetry(bool useDY = kFALSE)
 
         for (unsigned j = 0; j < M; j++)
         {
+            // Minimum cut
             float neg = hObserved[0][i]->Integral(1, 1 + j);
-            float pos = hObsMinusBg[0][i]->Integral(20 - j, 20);
-            float half = (pos + neg) / 2;
+            float pos = hObserved[0][i]->Integral(20 - j, 20);
 
-            asymmetry_cut[i][j] = (pos - neg) / (pos + neg);
-            unc_cut[i][j] = sqrt(4 * pow(half, 2) / pow(neg + pos, 3));
+            min_cut[i][j] = (pos - neg) / (pos + neg);
+            min_unc[i][j] = 1 / sqrt(neg + pos);
+
+
+            // Maximum cut
+            neg = hObserved[0][i]->Integral(7 - j, 10);
+            pos = hObserved[0][i]->Integral(11, 14 + j);
+
+            max_cut[i][j] = (pos - neg) / (pos + neg);
+            max_unc[i][j] = 1 / sqrt(neg + pos);
         }
-        asymm_func[i] = new TGraphErrors(M, phi_min, asymmetry_cut[i], 0, unc_cut[i]);
-        asymm_func[i]->SetTitle("");
-        asymm_func[i]->GetXaxis()->SetTitle("\\min\\,|\\sin\\phi|");
-        asymm_func[i]->GetYaxis()->SetTitle("A_{" + lepChan[i] + "}");
-        asymm_func[i]->GetYaxis()->SetTitleOffset(0.7 * lTitleOffsetY);
-        asymm_func[i]->SetMarkerStyle(kFullCircle);
-        asymm_func[i]->SetMarkerSize(2);
-        asymm_func[i]->SetLineWidth(2);
+        min_graph[i] = new TGraphErrors(M, phi_min, min_cut[i], 0, min_unc[i]);
+        min_graph[i]->SetTitle("");
+        min_graph[i]->GetXaxis()->SetTitle("\\min\\,|\\sin\\phi|");
+        min_graph[i]->GetYaxis()->SetTitle("A_{" + lepChan[i] + "}");
+        min_graph[i]->GetYaxis()->SetTitleOffset(0.7 * lTitleOffsetY);
+        min_graph[i]->SetMarkerStyle(kFullCircle);
+        min_graph[i]->SetMarkerSize(2);
+        min_graph[i]->SetLineWidth(2);
 
-        fCanvas[i] = new TCanvas("abs_sinphi_min_" + selection[i], "", lCanvasSize, lCanvasSize);
-        fCanvas[i]->cd();
-        Facelift(fCanvas[i]);
-//      fCanvas[i]->SetLeftMargin(1.2 * lCanvasMargin);
-        fCanvas[i]->SetCanvasSize(lCanvasSize, 0.5 * lCanvasSize);
-        fCanvas[i]->SetMargin(1.3*lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
-        asymm_func[i]->Draw("AP");
+        minCanvas[i] = new TCanvas("abs_sinphi_min_" + selection[i], "", lCanvasSize, lCanvasSize);
+        minCanvas[i]->cd();
+        Facelift(minCanvas[i]);
+//      minCanvas[i]->SetLeftMargin(1.2 * lCanvasMargin);
+        minCanvas[i]->SetCanvasSize(lCanvasSize, 0.5 * lCanvasSize);
+        minCanvas[i]->SetMargin(1.3*lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+        min_graph[i]->Draw("AP");
 
-        Facelift(asymm_func[i]->GetXaxis());
-        Facelift(asymm_func[i]->GetYaxis());
-        if (asymm_func[i]->GetYaxis()->GetXmax() < 0)
-            asymm_func[i]->GetYaxis()->SetRangeUser(asymm_func[i]->GetYaxis()->GetXmin(), 0);
-        asymm_func[i]->GetXaxis()->SetLimits(-0.1, 1);
+        Facelift(min_graph[i]->GetXaxis());
+        Facelift(min_graph[i]->GetYaxis());
+        if (min_graph[i]->GetYaxis()->GetXmax() < 0)
+            min_graph[i]->GetYaxis()->SetRangeUser(min_graph[i]->GetYaxis()->GetXmin(), 0);
+        min_graph[i]->GetXaxis()->SetLimits(-0.05, 0.95);
+        gPad->Modified();
+
+
+
+        max_graph[i] = new TGraphErrors(X, phi_max, max_cut[i], 0, max_unc[i]);
+        max_graph[i]->SetTitle("");
+        max_graph[i]->GetXaxis()->SetTitle("\\max\\,|\\sin\\phi|");
+        max_graph[i]->GetYaxis()->SetTitle("A_{" + lepChan[i] + "}");
+        max_graph[i]->GetYaxis()->SetTitleOffset(0.7 * lTitleOffsetY);
+        max_graph[i]->SetMarkerStyle(kFullCircle);
+        max_graph[i]->SetMarkerSize(2);
+        max_graph[i]->SetLineWidth(2);
+
+        maxCanvas[i] = new TCanvas("abs_sinphi_max_" + selection[i], "", lCanvasSize, lCanvasSize);
+        maxCanvas[i]->cd();
+        Facelift(maxCanvas[i]);
+//      maxCanvas[i]->SetLeftMargin(1.2 * lCanvasMargin);
+        maxCanvas[i]->SetCanvasSize(lCanvasSize, 0.5 * lCanvasSize);
+        maxCanvas[i]->SetMargin(1.3*lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+        max_graph[i]->Draw("AP");
+
+        Facelift(max_graph[i]->GetXaxis());
+        Facelift(max_graph[i]->GetYaxis());
+        if (max_graph[i]->GetYaxis()->GetXmax() < 0)
+            max_graph[i]->GetYaxis()->SetRangeUser(max_graph[i]->GetYaxis()->GetXmax(), 0);
+//      max_graph[i]->GetXaxis()->SetLimits(-0.1, 1);
         gPad->Modified();
     }
 
@@ -353,39 +419,124 @@ void CalculateAsymmetry(bool useDY = kFALSE)
     //  DIFFERENCE
     //
 
-    float var_A0[N], negObs0[N], posObs0[N];
-    float unc_deltaA[N][M];
-    TGraph *deltaA_unc[N];
+    float min_diff[N][M], min_dunc[N][M], max_diff[N][M], max_dunc[N][M];
+    TGraphErrors *min_diff_graph[N], *max_diff_graph[N];
+    TCanvas *minDiffCanvas[N], *maxDiffCanvas[N];
 
     for (unsigned i = 0; i < N; i++)
     {
         if (i == EM)
             continue;
 
-        negObs0[i] = hObserved[0][i]->Integral(7, 10);
-        posObs0[i] = hObserved[0][i]->Integral(11, 14);
+        float min_neg0 = hObserved[0][i]->Integral(1, 1);
+        float min_pos0 = hObserved[0][i]->Integral(20, 20);
+        float min_asy0 = (min_pos0 - min_neg0) / (min_pos0 + min_neg0);
+        float min_unc0 = 1 / sqrt(min_neg0 + min_neg0);
 
-        var_A0[i] = 4 * negObs0[i] * posObs0[i] / pow(negObs0[i] + posObs0[i], 3);
+        float max_neg0 = hObserved[0][i]->Integral(7, 10);
+        float max_pos0 = hObserved[0][i]->Integral(11, 14);
+        float max_asy0 = (max_pos0 - max_neg0) / (max_pos0 + max_neg0);
+        float max_unc0 = 1 / sqrt(max_neg0 + max_neg0);
 
         for (unsigned j = 0; j < M; j++)
         {
-            float negObs = hObserved[0][i]->Integral(1, 2 + j);
-            float posObs = hObserved[0][i]->Integral(19 - j, 20);
+            // Minimum cut difference
+            float neg = hObserved[0][i]->Integral(1, 1 + j);
+            float pos = hObserved[0][i]->Integral(20 - j, 20);
 
-            float term1 = var_A0[i];
-            float term2 = 4 * pow(posObs, 2) / pow(posObs + negObs, 3);
-            float term3 = 4 * posObs / pow(posObs + negObs, 2);
-            float term4 = 8 * negObs0[i] * posObs0[i] / pow(posObs0[i] + negObs0[i], 2);
-            term4 /= (posObs + negObs);
+            float asy = (pos - neg) / (pos + neg);
+            min_diff[i][j] = asy - min_asy0;
 
-            unc_deltaA[i][j] = sqrt(term1 - term2 + term3 - term4);
+            float term1 = (4 * min_neg0 * min_pos0) / pow(min_neg0 + min_pos0, 3);
+            float term2 = (4 * neg * neg) / pow(neg + pos, 3);
+            float term3 = (4 * neg) / pow(neg + pos, 2);
+            float term4 = (8 * min_neg0 * min_pos0) / (pow(min_neg0 + min_pos0, 2) * (neg + pos));
+
+            min_dunc[i][j] = sqrt(term1 - term2 + term3 - term4);
+//          cout << term1 << "\t" << term2 << "\t" << term3 << "\t" << term4 << endl;
+
+
+            // Maximum cut difference
+            neg = hObserved[0][i]->Integral(7 - j, 10);
+            pos = hObserved[0][i]->Integral(11, 14 + j);
+
+            asy = (pos - neg) / (pos + neg);
+            max_diff[i][j] = asy - max_asy0;
+
+            term1 = (4 * max_neg0 * max_pos0) / pow(max_neg0 + max_pos0, 3);
+            term2 = (4 * neg * neg) / pow(neg + pos, 3);
+            term3 = (4 * neg) / pow(neg + pos, 2);
+            term4 = (8 * max_neg0 * max_pos0) / (pow(max_neg0 + max_pos0, 2) * (neg + pos));
+
+            max_dunc[i][j] = sqrt(term1 - term2 + term3 - term4);
+//          cout << term1 << "\t" << term2 << "\t" << term3 << "\t" << term4 << endl;
         }
 
-        deltaA_unc[i] = new TGraph(M, phi_min, unc_deltaA[i]);
-        deltaA_unc[i]->SetNameTitle("unc_deltaA_" + selection[i], "unc_deltaA");
-        deltaA_unc[i]->GetXaxis()->SetTitle("max |sin phi|");
-        deltaA_unc[i]->GetYaxis()->SetTitle("unc. in A - A(x = 0.4)");
-        deltaA_unc[i]->SetMarkerStyle(8);
+        min_diff_graph[i] = new TGraphErrors(M, phi_min, min_diff[i], 0, min_dunc[i]);
+        min_diff_graph[i]->SetTitle("");
+        min_diff_graph[i]->GetXaxis()->SetTitle("\\min\\,|\\sin\\phi|");
+        min_diff_graph[i]->GetYaxis()->SetTitle("\\Delta A_{" + lepChan[i] + "}");
+        min_diff_graph[i]->GetYaxis()->SetTitleOffset(0.7 * lTitleOffsetY);
+        min_diff_graph[i]->SetMarkerStyle(kFullCircle);
+        min_diff_graph[i]->SetMarkerSize(2);
+        min_diff_graph[i]->SetLineWidth(2);
+
+        minDiffCanvas[i] = new TCanvas("diff_min_sinphi" + selection[i], "", lCanvasSize, lCanvasSize);
+        minDiffCanvas[i]->cd();
+        Facelift(minDiffCanvas[i]);
+//      minDiffCanvas[i]->SetLeftMargin(1.2 * lCanvasMargin);
+        minDiffCanvas[i]->SetCanvasSize(lCanvasSize, 0.5 * lCanvasSize);
+        minDiffCanvas[i]->SetMargin(1.3*lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+        min_diff_graph[i]->Draw("AP");
+
+        min_diff_graph[i]->GetXaxis()->SetLimits(-0.05, 0.95);
+        min_diff_graph[i]->GetYaxis()->SetRangeUser(-0.17, 0.17);
+        Facelift(min_diff_graph[i]->GetXaxis());
+        Facelift(min_diff_graph[i]->GetYaxis());
+
+
+        float xfake[2] = {-0.5, 1.5}, yfake[2] = {0, 0}, errfake[2] = {min_unc0, min_unc0};
+        TGraphErrors *min_unc_graph = new TGraphErrors(2, xfake, yfake, 0, errfake);
+        min_unc_graph->SetFillColor(lPurple);
+        min_unc_graph->SetFillStyle(3003);
+        min_unc_graph->Draw("3 SAME");
+        min_diff_graph[i]->Draw("P");
+        gPad->Modified();
+
+
+
+
+
+
+        max_diff_graph[i] = new TGraphErrors(X, phi_max, max_diff[i], 0, max_dunc[i]);
+        max_diff_graph[i]->SetTitle("");
+        max_diff_graph[i]->GetXaxis()->SetTitle("\\max\\,|\\sin\\phi|");
+        max_diff_graph[i]->GetYaxis()->SetTitle("\\Delta A_{" + lepChan[i] + "}");
+        max_diff_graph[i]->GetYaxis()->SetTitleOffset(0.7 * lTitleOffsetY);
+        max_diff_graph[i]->SetMarkerStyle(kFullCircle);
+        max_diff_graph[i]->SetMarkerSize(2);
+        max_diff_graph[i]->SetLineWidth(2);
+
+        maxDiffCanvas[i] = new TCanvas("diff_max_sinphi" + selection[i], "", lCanvasSize, lCanvasSize);
+        maxDiffCanvas[i]->cd();
+        Facelift(maxDiffCanvas[i]);
+//      maxDiffCanvas[i]->SetLeftMargin(1.2 * lCanvasMargin);
+        maxDiffCanvas[i]->SetCanvasSize(lCanvasSize, 0.5 * lCanvasSize);
+        maxDiffCanvas[i]->SetMargin(1.3*lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+        max_diff_graph[i]->Draw("AP");
+
+        max_diff_graph[i]->GetYaxis()->SetRangeUser(-0.17, 0.17);
+        Facelift(max_diff_graph[i]->GetXaxis());
+        Facelift(max_diff_graph[i]->GetYaxis());
+
+
+        errfake[0] = max_unc0; errfake[1] = max_unc0;
+        TGraphErrors *max_unc_graph = new TGraphErrors(2, xfake, yfake, 0, errfake);
+        max_unc_graph->SetFillColor(lRed);
+        max_unc_graph->SetFillStyle(3003);
+        max_unc_graph->Draw("3 SAME");
+        max_diff_graph[i]->Draw("P");
+        gPad->Modified();
     }
 
 
@@ -504,16 +655,7 @@ void CalculateAsymmetry(bool useDY = kFALSE)
     TFile *outFile  = new TFile(outName, "RECREATE");
     outFile->cd();
 
-    TCanvas *gCanvas = new TCanvas("asymmetry_canvas", "", lCanvasSize, lCanvasSize);
-    gCanvas->cd();
-    Facelift(gCanvas);
-    graph->Draw();
-    Facelift(graph->GetXaxis());
-    Facelift(graph->GetYaxis());
-    gPad->Modified();
-
-    graph->Write();
-    gCanvas->Write();
+    asyCanvas->Write();
 
 
 
@@ -574,11 +716,13 @@ void CalculateAsymmetry(bool useDY = kFALSE)
                 canvas[h][i][k]->Write();
             }
         }
-        fCanvas[i]->Write();
-        deltaA_unc[i]->Write();
+        minCanvas[i]->Write();
+        minDiffCanvas[i]->Write();
+        maxCanvas[i]->Write();
+        maxDiffCanvas[i]->Write();
     }
     cout << "done!" << endl << endl;
     outFile->Close();
 
-    cout << "Wrote canvases, graphs to " << outName << endl << endl << endl;
+    cout << "Wrote canvases to " << outName << endl << endl << endl;
 }
