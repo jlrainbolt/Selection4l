@@ -5,8 +5,8 @@
 executable  = execSyst.sh
 universe    = vanilla
 
-output      = reports/smeared_$(systematics)_$(suffix)_$INT(Process).out
-error       = reports/smeared_$(systematics)_$(suffix)_$INT(Process).err
+output      = reports/smeared_$(systematics)$(hist)_$(suffix)_$INT(Process).out
+error       = reports/smeared_$(systematics)$(hist)_$(suffix)_$INT(Process).err
 log         = reports/smeared.log
 
 should_transfer_files   = YES
@@ -14,5 +14,5 @@ initialdir              = output
 transfer_input_files    = source.tar.gz
 when_to_transfer_output = ON_EXIT
 
-arguments   = "$(suffix) $INT(Process) $(systematics)"
+arguments   = "$(suffix) $INT(Process) $(systematics) $(hist)"
 queue $INT(nFiles)

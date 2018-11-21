@@ -1,0 +1,70 @@
+##
+##  Submits RecoSelection jobs to Condor for all samples included below
+##  Hadds job output for each 
+##
+
+
+#   JOB             muon_2016       submitReco.sub 
+#   VARS            muon_2016       suffix="muon_2016"
+#   VARS            muon_2016       nFiles="7"
+#   SCRIPT  POST    muon_2016       ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             electron_2016   submitReco.sub 
+#   VARS            electron_2016   suffix="electron_2016"
+#   VARS            electron_2016   nFiles="7"
+#   SCRIPT  POST    electron_2016   ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             dy_m-10to50     submitReco.sub
+#   VARS            dy_m-10to50     suffix="dy_m-10to50"
+#   VARS            dy_m-10to50     nFiles="1"
+#   SCRIPT  POST    dy_m-10to50     ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             dy_m-50         submitReco.sub
+#   VARS            dy_m-50         suffix="dy_m-50"
+#   VARS            dy_m-50         nFiles="9"
+#   SCRIPT  POST    dy_m-50         ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             ttbar		    submitReco.sub
+#   VARS            ttbar		    suffix="ttbar"
+#   VARS            ttbar		    nFiles="4"
+#   SCRIPT  POST    ttbar		    ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             ttz_2l2nu       submitReco.sub
+#   VARS            ttz_2l2nu       suffix="ttz_2l2nu"
+#   VARS            ttz_2l2nu       nFiles="1"
+#   SCRIPT  POST    ttz_2l2nu	    ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             ww_2l2nu	    submitReco.sub
+#   VARS            ww_2l2nu	    suffix="ww_2l2nu"
+#   VARS            ww_2l2nu	    nFiles="1"
+#   SCRIPT  POST    ww_2l2nu	    ../scripts/mergeOutput.sh selected $JOB
+
+
+    JOB             wz_3lnu	        submitReco.sub
+    VARS            wz_3lnu	        suffix="wz_3lnu"
+    VARS            wz_3lnu	        nFiles="1"
+    SCRIPT  POST    wz_3lnu	        ../scripts/mergeOutput.sh selected $JOB
+
+
+    JOB             zz_4l		    submitReco.sub
+    VARS            zz_4l		    suffix="zz_4l"
+    VARS            zz_4l		    nFiles="1"
+    SCRIPT  POST    zz_4l		    ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             ggH_zz_4l	    submitReco.sub
+#   VARS            ggH_zz_4l	    suffix="ggH_zz_4l"
+#   VARS            ggH_zz_4l	    nFiles="1"
+#   SCRIPT  POST    ggH_zz_4l	    ../scripts/mergeOutput.sh selected $JOB
+
+
+#   JOB             H_zz_4l         submitReco.sub
+#   VARS            H_zz_4l         suffix="H_zz_4l"
+#   VARS            H_zz_4l         nFiles="1"
+#   SCRIPT  POST    H_zz_4l         ../scripts/mergeOutput.sh selected $JOB

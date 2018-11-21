@@ -16,7 +16,8 @@
 #include "TMathText.h"
 
 // Cuts
-#include "Cuts2017.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -279,7 +280,7 @@ void StackDists2l()
     //  OUTPUT FILE
     //
 
-    TString outName = "stacks2l_raw_2017.root";
+    TString outName = "stacks2l_raw_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 

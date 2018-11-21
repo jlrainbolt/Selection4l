@@ -185,3 +185,38 @@ bool MakePairsMaxDiff(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2
 
     return kTRUE;
 }
+
+
+
+////
+////
+////    TRIGGER SF
+////
+////
+
+
+//
+//  SINGLE LEPTON
+//
+
+float GetSingleTriggerSF(const Lepton& lep1, const Lepton& lep2)
+{
+    float sf = 1;
+
+    // Only lepton 1 triggered
+    if      (lep1.fired.first && !lep2.fired.first)
+        sf = lep1.te_data.first / lep1.te_mc.first;
+
+    // Only lepton 2 triggered
+    else if (lep2.fired.first && !lep1.fired.first)
+        sf = lep2.te_data.first / lep2.te_mc.first;
+
+    // Both leptons triggered
+    else if (lep1.fired.first && lep2.fired.first)
+    {
+        sf = 1. - (1. - lep1.te_data.first) * (1. - lep2.te_data.first);
+        sf /= 1. - (1. - lep1.te_mc.first) * (1. - lep2.te_mc.first);
+    }
+
+    return sf;
+}

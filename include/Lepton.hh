@@ -20,26 +20,27 @@ using namespace std;
 struct Lepton
 {
     // Basics
-    TLorentzVector      p4;         // Lab frame 4-momentum
-    int                 q;          // Charge
-    int                 pdg;        // PDG ID (signed)
-    unsigned            mother;     // Mother Z index
+    TLorentzVector      p4;                 // Lab frame 4-momentum
+    int                 q;                  // Charge
+    int                 pdg;                // PDG ID (signed)
+    unsigned            mother;             // Mother Z index
 
     // Reco quantities
-    TLorentzVector      o_p4;       // 4-momentum before scale factor ("original")
-    float               iso;        // Relative isolation
-    float               id_sf;      // ID scale factor
-//  pair<bool, bool>    fired;      // Fired trigger leg1/leg2
+    TLorentzVector      o_p4;               // 4-momentum before scale factor ("original")
+    float               iso;                // Relative isolation
+    float               id_sf;              // ID scale factor
+    pair<bool, bool>    fired;              // Fired trigger leg1/leg2
+    pair<float, float>  te_data,    te_mc;  // Trigger efficiency leg1/leg2
 
     // Boosted quantities
-    TLorentzVector      b_p4;       // boosted 4-momentum
-    TVector3            b_v3;       // 3-momentum corresponding to b_p4
+    TLorentzVector      b_p4;               // boosted 4-momentum
+    TVector3            b_v3;               // 3-momentum corresponding to b_p4
 
     // Matched quantities
-    TLorentzVector      m_p4;       // 4-momentum of matched gen lepton
-    float               dr;         // DeltaR between p4 and m_p4
-    TLorentzVector      m_b_p4;     // boosted m_p4
-    TVector3            m_b_v3;     // 3-momentum corresponding to m_b_p4
+    TLorentzVector      m_p4;               // 4-momentum of matched gen lepton
+    float               dr;                 // DeltaR between p4 and m_p4
+    TLorentzVector      m_b_p4;             // Boosted m_p4
+    TVector3            m_b_v3;             // 3-momentum corresponding to m_b_p4
 
 
     // Calculate boosted p4 (and p3) using p4 and given boost vector

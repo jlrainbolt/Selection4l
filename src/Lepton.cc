@@ -64,14 +64,3 @@ TLorentzVector TotalP4(const vector<Lepton> &leps)
         p4 += leps[i].p4;
     return p4;
 }
-
-/*
-// TotalBoostedP4
-TLorentzVector  TotalBoostedP4( const vector<Lepton> &leps)
-{
-    TLorentzVector b_p4sum;
-    for (unsigned i = 0; i < leps.size(); i++)
-        b_p4sum += leps[i].b_p4;
-    return b_p4sum;
-}
-*/
