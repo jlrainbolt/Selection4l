@@ -2,6 +2,9 @@
 ##  Pack source files before submitting jobs in submitSystJobs2017.dag
 ##
 
-    SUBDAG  EXTERNAL    jobs    submitSystJobs2017.dag
-    SCRIPT  PRE         jobs    ../scripts/packDirectory.sh
-#   SCRIPT  POST        jobs    haddStack.sh
+    SUBDAG  EXTERNAL    zz_4l       submitSystJobs2017_4l.dag
+    SCRIPT  PRE         zz_4l       ../scripts/packDirectory.sh
+    SCRIPT  POST        zz_4l       ../scripts/concatAccEff.sh electronReco zz_4l
+ 
+    SUBDAG  EXTERNAL    zjets_m-50  submitSystJobs2017_2l.dag
+    SCRIPT  POST        zjets_m-50  ../scripts/concatAccEff.sh electronReco zjets_m-50

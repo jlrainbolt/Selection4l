@@ -3,6 +3,7 @@
 suffix="$1"
 id="$2"
 syst="$3"
+hist="$4"
 
 
 echo "Date:     " `date`
@@ -18,7 +19,7 @@ echo "ROOTSYS = " $ROOTSYS
 tar -xzvf source.tar.gz
 cd "test"
 
-root.exe -q -b "../macros/RecoSelection.cc(\"$suffix\", \"$id\", \"$syst\")"
+root.exe -q -b "../macros/RecoSelection.cc(\"$suffix\", \"$id\", \"$syst\", \"$hist\")"
 
 cp *_${suffix}_*.root ${_CONDOR_SCRATCH_DIR}
 

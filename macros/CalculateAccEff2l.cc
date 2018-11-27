@@ -1,5 +1,6 @@
 // STL
 #include <iostream>
+#include <fstream>
 
 // ROOT
 #include "TString.h"
@@ -18,14 +19,13 @@ using namespace std;
 **  Calculates acceptance * efficiency for input file name
 */
 
-void CalculateAccEff2l(const TString inName)
+void CalculateAccEff2l(const TString suffix, const TString systematics, const TString hID)
 {
 
     //
     //  SAMPLE INFO
     //
 
-    TString suffix = "zjets_m-50";
     const unsigned N = 3;   // Channel indices
     unsigned                LL = 0, MM = 1, EE = 2;
     unsigned chanIdx[N] = { 2,      3,      4};
@@ -38,7 +38,9 @@ void CalculateAccEff2l(const TString inName)
     //  INPUT FILE
     //
 
-    TFile *inFile = TFile::Open(inName);
+    TString inPath = "output";
+    TString inName = systematics + hID + "_" + suffix + ".root";
+    TFile *inFile = TFile::Open(inPath + "/" + inName);
 
     cout << "Opened " << inName << endl;
 
@@ -56,9 +58,9 @@ void CalculateAccEff2l(const TString inName)
     //
 
     TString psPath = EOS_PATH + "/BLT/" + YEAR_STR + "/";
-    TString prefix = "genHardProc";
+    TString psPrefix = "genHardProc";
 
-    TString psName = psPath + "gen_" + suffix + "/" + prefix + "_" + suffix + ".root";
+    TString psName = psPath + "gen_" + suffix + "/" + psPrefix + "_" + suffix + ".root";
     TFile *psFile = TFile::Open(psName);
 
     cout << "Opened " << psName << endl;
@@ -100,4 +102,21 @@ void CalculateAccEff2l(const TString inName)
         cout << selection[i] << "\t\t" << setw(8) << nSelected[i] << "\t";
         cout << setw(8) << nPhaseSpace[i] << "\t" << setw(8) << xAccEff[i] << endl;
     }
+
+
+
+    //
+    //  WRITE OUT
+    //
+
+    TString ofsName = systematics + "_" + suffix + "_" + hID + ".txt";
+    ofstream ofs;
+    ofs.open(inPath + "/" + ofsName);
+
+    ofs << hID;
+    for (unsigned i = 0; i < N; i++)
+        ofs << "\t" << xAccEff[i];
+
+    ofs << endl;
+    ofs.close();
 }
