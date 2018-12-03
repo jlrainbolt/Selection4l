@@ -380,7 +380,7 @@ void StackDists4l(bool scaleAccEff = kFALSE, bool scaleWidth = kFALSE)
 
     TString dentry = _sp+"\\mbox{Data}";
     TString lentry[5] = {_sp+_ZZ+_to+_4l, _sp+_Z+_to+_ll, _sp+_H, _sp+_ttbar, _sp+_V+_V};
-    Int_t lfill[5] = {lLightBlue, lYellow, lPurple, lGreen, lRed};
+    Int_t lfill[5] = {lLightBlue, lYellow, lPurple, lGreen, lOrange};
 
     TH1D* dummy = new TH1D(dentry, "", 1, 0, 1);
     dummy->SetMarkerColor(kBlack);

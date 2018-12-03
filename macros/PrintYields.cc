@@ -8,7 +8,8 @@
 #include "TH1.h"
 
 // Cuts
-#include "Cuts2017.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -216,7 +217,7 @@ void PrintYields(bool useDY = kTRUE)
             nBackground = round(nBackground);   uBackground = round(uBackground);
         }
 
-        TString texName = "2017_" + selection[i] + ".tex";
+        TString texName = YEAR_STR + "_" + selection[i] + ".tex";
 
         ofstream texFile;
         texFile.open(texName);

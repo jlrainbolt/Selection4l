@@ -4,7 +4,7 @@
 
     SUBDAG  EXTERNAL    zz_4l       submitSystJobs2017_4l.dag
     SCRIPT  PRE         zz_4l       ../scripts/packDirectory.sh
-    SCRIPT  POST        zz_4l       ../scripts/concatAccEff.sh electronReco zz_4l
+    SCRIPT  POST        zz_4l       ../scripts/concatAccEff.sh muonPt zz_4l
  
     SUBDAG  EXTERNAL    zjets_m-50  submitSystJobs2017_2l.dag
-    SCRIPT  POST        zjets_m-50  ../scripts/concatAccEff.sh electronReco zjets_m-50
+    SCRIPT  POST        zjets_m-50  ../scripts/concatAccEff.sh muonPt zjets_m-50

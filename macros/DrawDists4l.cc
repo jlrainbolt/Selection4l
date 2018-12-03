@@ -125,8 +125,10 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
         make_tuple( "psi",              "psi",              _psi,           20,     -5000,  5000),
         make_tuple( "sin_phi",          "sin_phi",          _sinphi,        20,     -1,     1),
         make_tuple( "sin_phi_2",        "sin_phi",          _sinphi,        2,      -1,     1),
-        make_tuple( "theta_z1",         "theta_z1",         _theta_(_Z1),   10,     0,      PI),
-        make_tuple( "theta_z2",         "theta_z2",         _theta_(_Z2),   10,     0,      PI),
+        make_tuple( "cos_theta_z1",     "cos_theta_z1",     _costheta_(_Z1),10,     -1,     1),
+        make_tuple( "cos_theta_z2",     "cos_theta_z2",     _costheta_(_Z2),10,     -1,     1),
+        make_tuple( "cos_zeta_z1",      "cos_zeta_z1",      _coszeta_(_Z1), 10,     -1,     1),
+        make_tuple( "cos_zeta_z2",      "cos_zeta_z2",      _coszeta_(_Z2), 10,     -1,     1),
         make_tuple( "angle_z1leps",     "angle_z1leps",     _alpha_(_Z1),   12,     0,      PI),
         make_tuple( "angle_z2leps",     "angle_z2leps",     _alpha_(_Z2),   10,     0,      PI),
         make_tuple( "angle_z1l2_z2",    "angle_z1l2_z2",    _beta,          15,     0,      PI)

@@ -88,7 +88,8 @@ void BoostedAnalysis(const TString suffix)
 
     // Observables
     Float_t             psi,                    sin_phi;
-    Float_t             theta_z1,               theta_z2;
+    Float_t             cos_theta_z1,           cos_theta_z2;
+    Float_t             cos_zeta_z1,            cos_zeta_z2;
     Float_t             angle_z1leps,           angle_z2leps;
     Float_t             angle_z1l2_z2;
 
@@ -100,11 +101,15 @@ void BoostedAnalysis(const TString suffix)
         tree[i]->Branch("met",      &met);                  tree[i]->Branch("weight",   &weight);
         tree[i]->Branch("channel",  &channel);
 
-        tree[i]->Branch("psi", &psi);                       tree[i]->Branch("sin_phi",  &sin_phi);
-        tree[i]->Branch("theta_z1", &theta_z1);             tree[i]->Branch("theta_z2", &theta_z2);
-        tree[i]->Branch("angle_z1leps", &angle_z1leps);
-        tree[i]->Branch("angle_z2leps", &angle_z2leps);
-        tree[i]->Branch("angle_z1l2_z2",  &angle_z1l2_z2);
+        tree[i]->Branch("psi",              &psi);
+        tree[i]->Branch("sin_phi",          &sin_phi);
+        tree[i]->Branch("cos_theta_z1",     &cos_theta_z1);
+        tree[i]->Branch("cos_theta_z2",     &cos_theta_z2);
+        tree[i]->Branch("cos_zeta_z1",      &cos_zeta_z1);
+        tree[i]->Branch("cos_zeta_z2",      &cos_zeta_z2);
+        tree[i]->Branch("angle_z1leps",     &angle_z1leps);
+        tree[i]->Branch("angle_z2leps",     &angle_z2leps);
+        tree[i]->Branch("angle_z1l2_z2",    &angle_z1l2_z2);
 
         tree[i]->Branch("b_z1p4",   &b_z1p4);               tree[i]->Branch("b_z2p4",   &b_z2p4);
         tree[i]->Branch("b_ttp4",   &b_ttp4);
@@ -138,7 +143,7 @@ void BoostedAnalysis(const TString suffix)
     //
 
     TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = /*EOS_PATH + "/Selected/" + YEAR_STR + "/" +*/ "output/" +    inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;
@@ -297,22 +302,33 @@ void BoostedAnalysis(const TString suffix)
             // Angles between paired leptons
             angle_z1leps = z1_plus.Angle(z1_minus);         angle_z2leps = z2_plus.Angle(z2_minus);
 
-            // "theta": angle between trailing pair 1 lepton and low-mass pair
+            // "beta": angle between trailing pair 1 lepton and low-mass pair
             TVector3    z1_low = z1.BSecond().b_v3;
             angle_z1l2_z2 = z2.b_p4.Angle(z1_low);
 
 
             // Boosted lepton-pair angles
-
             TVector3    z1_boost = z1.p4.BoostVector(),     z2_boost = z2.p4.BoostVector();
             LeptonPair  b1_z1 = z1,     b1_z2 = z2,         b2_z1 = z1,     b2_z2 = z2;
 
             b1_z1.SetBoostedP4(z1_boost);                   b1_z2.SetBoostedP4(z1_boost);
             b2_z1.SetBoostedP4(z2_boost);                   b2_z2.SetBoostedP4(z2_boost);
 
+
             // "theta_zX": angle between positive pair X lepton and Y pair in X pair CM frame
-            theta_z1  = b1_z2.b_v3.Angle(b1_z1.Plus().b_v3);
-            theta_z2  = b2_z1.b_v3.Angle(b2_z2.Plus().b_v3);
+            TVector3    u_b1_z2 = b1_z2.b_v3.Unit(),        u_b2_z1 = b2_z1.b_v3.Unit();
+            TVector3    u_b1_z1_plus = b1_z1.Plus().b_v3.Unit();
+            TVector3    u_b2_z2_plus = b2_z2.Plus().b_v3.Unit();
+
+            cos_theta_z1 = u_b1_z2.Dot(u_b1_z1_plus);
+            cos_theta_z2 = u_b2_z1.Dot(u_b2_z2_plus);
+
+
+            // "zeta_zX": polarization angle for positive pair X lepton and X pair in Z CM frame
+            TVector3    u_z1 = z1.b_v3.Unit(),              u_z2 = z2.b_v3.Unit();
+
+            cos_zeta_z1 = u_z1.Dot(u_b1_z1_plus);
+            cos_zeta_z2 = u_z2.Dot(u_b2_z2_plus);
 
 
 

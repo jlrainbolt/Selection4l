@@ -109,7 +109,8 @@ TString _l_(    const unsigned  n)      {return _l_(TString::Format("%u", n));}
 TString _m_(    const TString   x)      {return "m_{" + x + "}\\ (" + _GeV + ")";}
 TString _eta_(  const TString   x)      {return "\\eta_{" + x + "}";}
 TString _iso_(  const TString   x)      {return "\\mbox{RelPFIso}_{" + x + "}";}
-TString _theta_(const TString   x)      {return "\\theta_{" + x + "}\\ (" + _rad + ")";}
+TString _costheta_(const TString x)     {return "\\cos\\theta_{" + x + "}";}
+TString _coszeta_(const TString x)      {return "\\cos\\zeta_{" + x + "}";}
 TString _alpha_(const TString   x)      {return "\\alpha_{" + x + "}\\ (" + _rad + ")";}
 
 /*

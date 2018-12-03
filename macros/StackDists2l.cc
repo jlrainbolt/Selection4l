@@ -28,17 +28,8 @@ using namespace std;
  **  Scales and stacks all "unscaled2l_" distributions
  */
 
-void StackDists2l()
+void StackDists2l(bool useLog = kFALSE)
 {
-
-    //
-    //  OPTIONS
-    //
-
-//  gErrorIgnoreLevel = kError;
-    const int nRebin = 5;
-
-
 
     //
     //  SAMPLE INFO
@@ -227,7 +218,25 @@ void StackDists2l()
             // Create and fill stack object
             stack[i][h] = new THStack(hname[h] + "_" + selection[i], "");
 
-            for (unsigned j = 0; j < N_MC; j++) // sample loop
+            mc[i][h][ZZ]->SetTitle("");
+            mc[i][h][ZZ]->SetStats(0);
+            mc[i][h][ZZ]->SetFillColor(COLOR[ZZ]);
+            mc[i][h][ZZ]->SetLineColor(COLOR[ZZ]);
+            stack[i][h]->Add(mc[i][h][ZZ]);
+
+            for (unsigned j_ = N_MC; j_ > DY+1; j_--) // sample loop
+            {
+                unsigned j = j_ - 1;
+
+                mc[i][h][j]->SetTitle("");
+                mc[i][h][j]->SetStats(0);
+                mc[i][h][j]->SetFillColor(COLOR[j]);
+                mc[i][h][j]->SetLineColor(COLOR[j]);
+
+                stack[i][h]->Add(mc[i][h][j]);
+            }
+
+            for (unsigned j = DY; j <= DY+1; j++) // sample loop
             {
                 mc[i][h][j]->SetTitle("");
                 mc[i][h][j]->SetStats(0);
@@ -254,8 +263,8 @@ void StackDists2l()
                                     TopPosition + TopMargin, TopPosition + TopMargin);
 
     TString dentry = _sp+"\\mbox{Data}";
-    TString lentry[5] = {_sp+_ZZ+_to+_4l, _sp+_Z+_to+_ll, _sp+_H, _sp+_ttbar, _sp+_V+_V};
-    Int_t lfill[5] = {lLightBlue, lYellow, lPurple, lGreen, lRed};
+    TString lentry[5] = {_sp+_Z+_to+_ll, _sp+_H, _sp+_ttbar, _sp+_V+_V, _sp+_ZZ+_to+_4l};
+    Int_t lfill[5] = {lYellow, lPurple, lGreen, lOrange, lLightBlue};
 
     TH1D* dummy = new TH1D(dentry, "", 1, 0, 1);
     dummy->SetMarkerColor(kBlack);
@@ -280,7 +289,8 @@ void StackDists2l()
     //  OUTPUT FILE
     //
 
-    TString outName = "stacks2l_raw_" + YEAR_STR + ".root";
+    TString tag     = useLog ? "log" : "lin";
+    TString outName = "stacks2l_" + tag + "_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -304,30 +314,41 @@ void StackDists2l()
             Facelift(canvas[i][h]);
             canvas[i][h]->cd();
 
-//          data[i][h]->SetMinimum(0);
-//          total[i][h]->SetMinimum(0);
+            if (useLog)
+            {
+                data[i][h]->SetMinimum(1);
+                total[i][h]->SetMinimum(1);
+            }
 
             ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
-//          ratio[i][h]->SetH1DrawOpt("E");
-//          ratio[i][h]->SetH2DrawOpt("E");
+            ratio[i][h]->SetH1DrawOpt("E");
+            ratio[i][h]->SetH2DrawOpt("E");
             ratio[i][h]->SetSeparationMargin(0.0);
             ratio[i][h]->Draw();
 
             TPad *upper = ratio[i][h]->GetUpperPad(), *lower = ratio[i][h]->GetLowerPad();
             upper->cd();
-  
-            stack[i][h]->Draw("HIST");
+
+            stack[i][h]->SetMaximum(1.2 * total[i][h]->GetMaximum());
+            stack[i][h]->Draw("HIST SAME");
             stack[i][h]->GetXaxis()->SetTitle(data[i][h]->GetXaxis()->GetTitle());
             Facelift(stack[i][h]);
             data[i][h]->Draw("AE SAME");
   
-//          ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.75);
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
+//          if (ratio[i][h]->GetLowerRefGraph()->GetMinimum() < 0)
+//              ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.9);
             lower->SetBottomMargin(3 * lCanvasMargin);
             lower->Modified();
 
             legend->Draw();
+
+            if (useLog)
+            {
+                stack[i][h]->SetMinimum(1);
+                upper->SetLogy();
+            }
 
             canvas[i][h]->Write();
         }

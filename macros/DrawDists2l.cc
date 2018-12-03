@@ -12,8 +12,8 @@
 #include "TError.h"
 
 // Custom
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -81,8 +81,8 @@ void DrawDists2l(const TString suffix)
         make_tuple( "l2eta",    "l2p4.Eta()",       _eta_(_l_(2)),      40,     -2.5,   2.5),
         make_tuple( "l2pdg",    "l2pdg",            "",                 27,     -13.5,  13.5),
 
-        make_tuple( "dphi",     "fabs(l1p4.Phi()-l2p4.Phi())",
-                                                    "|\\Delta\\phi|",   27,     -0,     6.3)
+        make_tuple( "dphi",     "fabs(l1p4.Phi()-l2p4.Phi())/3.141492654",
+                                "|\\Delta\\phi|/\\pi",                  40,     -0,     2)
     };
 
 

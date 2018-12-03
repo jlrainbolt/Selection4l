@@ -56,6 +56,15 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 
 
 //
+//  LEPTON ID
+//
+
+const float     MUON_D0_MAX = 0.5,      MUON_DZ_MAX = 1,        MUON_SIP_MAX = 4;
+const int       MUON_BAD_TRACK = 2;
+
+
+
+//
 //  OBJECT MATCHING
 //
 

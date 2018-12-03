@@ -81,7 +81,7 @@ void GenTests()
     TTreeReader reader("tree_zz_4l", inFile);
 
     TTreeReaderValue    <Float_t>               genWeight_  (reader,    "genWeight");
-    TTreeReaderValue    <UInt_t>                channel_    (reader,    "decayChannel");
+    TTreeReaderValue    <UShort_t>              channel_    (reader,    "decayChannel");
     TTreeReaderValue    <UShort_t>              nMuons_     (reader,    "nHardProcMuons");
     TTreeReaderValue    <UShort_t>              nElecs_     (reader,    "nHardProcElectrons");
     TTreeReaderValue    <UShort_t>              nLeps_      (reader,    "nHardProcLeptons");
@@ -122,6 +122,9 @@ void GenTests()
     hMassDFOS->Sumw2();
     hMassDFSS = new TH1D("MassDFSS", "MassDFSS", 100, 0, 100);
     hMassDFSS->Sumw2();
+
+    TH1D *hDeltaR = new TH1D("DeltaR", "DeltaR", 100, 0, 1);
+    hDeltaR->Sumw2();
 
 
 
@@ -264,6 +267,8 @@ void GenTests()
                     else                            // opposite sign
                         hMassDFOS->Fill(dilep.M(), weight);
                 }
+
+                hDeltaR->Fill(leps[i].p4.DeltaR(leps[j].p4), weight);
             }
         }
 
@@ -284,6 +289,7 @@ void GenTests()
     hMassSFSS->Write();
     hMassDFOS->Write();
     hMassDFSS->Write();
+    hDeltaR->Write();
 
     outFile->Purge();
     outFile->Close();
