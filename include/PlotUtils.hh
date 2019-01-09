@@ -73,7 +73,7 @@ const TString   _Z1     = _Z + "_{1}";
 const TString   _Z2     = _Z + "_{2}";
 
 const TString   _GeV    = "\\mbox{GeV}";
-const TString   _rad    = "\\mbox{rad}";
+const TString   _rad    = "\\pi \\mbox{ rad}";
 const TString   _unit   = "\\mbox{unit}";
 const TString   _units  = "\\mbox{units}";
 

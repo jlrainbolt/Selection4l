@@ -102,10 +102,11 @@ void MatchedAnalysis()
     UShort_t            b_l1z,          b_l2z,          b_l3z,          b_l4z;
 
     // Observables
-    Float_t             psi,            gen_psi,                  sin_phi,        gen_sin_phi;
-    Float_t             theta_z1,       gen_theta_z1,             theta_z2,       gen_theta_z2;
-    Float_t             angle_z1leps,   gen_angle_z1leps,         angle_z2leps,   gen_angle_z2leps;
-    Float_t             angle_z1l2_z2,  gen_angle_z1l2_z2;
+    Float_t     psi,            gen_psi,                sin_phi,        gen_sin_phi;
+    Float_t     cos_theta_z1,   gen_cos_theta_z1,       cos_theta_z2,   gen_cos_theta_z2;
+    Float_t     cos_zeta_z1,    gen_cos_zeta_z1,        cos_zeta_z2,    gen_cos_zeta_z2;
+    Float_t     angle_z1leps,   gen_angle_z1leps,       angle_z2leps,   gen_angle_z2leps;
+    Float_t     angle_z1l2_z2,  gen_angle_z1l2_z2;
 
     // Matched quantities
 
@@ -118,9 +119,15 @@ void MatchedAnalysis()
         tree[i]->Branch("channel",  &channel);
         tree[i]->Branch("psi",      &psi);          tree[i]->Branch("gen_psi",      &gen_psi);                       
         tree[i]->Branch("sin_phi",  &sin_phi);      tree[i]->Branch("gen_sin_phi",  &gen_sin_phi);
-        tree[i]->Branch("theta_z1", &theta_z1);     tree[i]->Branch("gen_theta_z1", &gen_theta_z1);             
-        tree[i]->Branch("theta_z2", &theta_z2);     tree[i]->Branch("gen_theta_z2", &gen_theta_z2);
 
+        tree[i]->Branch("cos_theta_z1",         &cos_theta_z1);
+        tree[i]->Branch("gen_cos_theta_z1",     &gen_cos_theta_z1);             
+        tree[i]->Branch("cos_theta_z2",         &cos_theta_z2);
+        tree[i]->Branch("gen_cos_theta_z2",     &gen_cos_theta_z2);
+        tree[i]->Branch("cos_zeta_z1",          &cos_zeta_z1);
+        tree[i]->Branch("gen_cos_zeta_z1",      &gen_cos_zeta_z1);             
+        tree[i]->Branch("cos_zeta_z2",          &cos_zeta_z2);
+        tree[i]->Branch("gen_cos_zeta_z2",      &gen_cos_zeta_z2);
         tree[i]->Branch("angle_z1leps",         &angle_z1leps);
         tree[i]->Branch("gen_angle_z1leps",     &gen_angle_z1leps);
         tree[i]->Branch("angle_z2leps",         &angle_z2leps);
@@ -522,12 +529,29 @@ void MatchedAnalysis()
             b1_z1.SetBoostedP4(z1_boost, m_z1_boost);   b1_z2.SetBoostedP4(z1_boost, m_z1_boost);
             b2_z1.SetBoostedP4(z2_boost, m_z2_boost);   b2_z2.SetBoostedP4(z2_boost, m_z2_boost);
 
-            // "theta_zX": angle between positive pair X lepton and Y pair in X pair CM frame
-            theta_z1  = b1_z2.b_v3.Angle(b1_z1.Plus().b_v3);
-            gen_theta_z1  = b1_z2.m_b_v3.Angle(b1_z1.Plus().m_b_v3);
 
-            theta_z2  = b2_z1.b_v3.Angle(b2_z2.Plus().b_v3);
-            gen_theta_z2  = b2_z1.m_b_v3.Angle(b2_z2.Plus().m_b_v3);
+            // "theta_zX": angle between positive pair X lepton and Y pair in X pair CM frame
+            TVector3    u_b1_z2 = b1_z2.b_v3.Unit(),        u_b2_z1 = b2_z1.b_v3.Unit();
+            TVector3    u_b1_z1_plus = b1_z1.Plus().b_v3.Unit();
+            TVector3    u_b2_z2_plus = b2_z2.Plus().b_v3.Unit();
+            cos_theta_z1 = u_b1_z2.Dot(u_b1_z1_plus);
+            cos_theta_z2 = u_b2_z1.Dot(u_b2_z2_plus);
+
+            TVector3    m_u_b1_z2 = b1_z2.m_b_v3.Unit(),    m_u_b2_z1 = b2_z1.m_b_v3.Unit();
+            TVector3    m_u_b1_z1_plus = b1_z1.Plus().m_b_v3.Unit();
+            TVector3    m_u_b2_z2_plus = b2_z2.Plus().m_b_v3.Unit();
+            gen_cos_theta_z1 = m_u_b1_z2.Dot(m_u_b1_z1_plus);
+            gen_cos_theta_z2 = m_u_b2_z1.Dot(m_u_b2_z2_plus);
+
+
+            // "zeta_zX": polarization angle for positive pair X lepton and X pair in Z CM frame
+            TVector3    u_z1 = z1.b_v3.Unit(),              u_z2 = z2.b_v3.Unit();
+            cos_zeta_z1 = u_z1.Dot(u_b1_z1_plus);
+            cos_zeta_z2 = u_z2.Dot(u_b2_z2_plus);
+
+            TVector3    m_u_z1 = z1.m_b_v3.Unit(),          m_u_z2 = z2.m_b_v3.Unit();
+            gen_cos_zeta_z1 = m_u_z1.Dot(m_u_b1_z1_plus);
+            gen_cos_zeta_z2 = m_u_z2.Dot(m_u_b2_z2_plus);
 
 
 

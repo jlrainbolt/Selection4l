@@ -20,8 +20,8 @@
 #include "SelectionTools.hh"
 
 // Cuts
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -100,7 +100,7 @@ void RecoSelection( const TString suffix,           const TString id,
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
     UShort_t            nPV;
-    Float_t             met,        weight;
+    Float_t             met,        weight,     genWeight,  puWeight,   trigWeight, idWeight;
     UInt_t              channel;
 
     // Pairs
@@ -115,7 +115,6 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
     // Gen-level info (only written for signal)
-    Float_t             genWeight;
     UShort_t            nHardProcMuons,             nHardProcElectrons,         nHardProcLeptons;
     UShort_t            nFinalStateMuons,           nFinalStateElectrons,       nFinalStateLeptons;
 
@@ -136,10 +135,12 @@ void RecoSelection( const TString suffix,           const TString id,
 
     for (unsigned i = 0; i < N; i++)
     {
-        tree[i]->Branch("runNum",   &runNum);               tree[i]->Branch("evtNum",   &evtNum);               
-        tree[i]->Branch("lumiSec",  &lumiSec);              tree[i]->Branch("nPV",      &nPV);
-        tree[i]->Branch("met",      &met);                  tree[i]->Branch("weight",   &weight);
-        tree[i]->Branch("channel",  &channel);
+        tree[i]->Branch("runNum",       &runNum);           tree[i]->Branch("evtNum",   &evtNum);               
+        tree[i]->Branch("lumiSec",      &lumiSec);          tree[i]->Branch("nPV",      &nPV);
+        tree[i]->Branch("met",          &met);              tree[i]->Branch("weight",   &weight);
+        tree[i]->Branch("genWeight",    &genWeight);        tree[i]->Branch("puWeight", &puWeight);
+        tree[i]->Branch("trigWeight",   &trigWeight);       tree[i]->Branch("idWeight", &idWeight);
+        tree[i]->Branch("channel",      &channel);
 
         if (i >= L4) {  tree[i]->Branch("zzp4", &zzp4);}
                         tree[i]->Branch("z1p4", &z1p4);     tree[i]->Branch("z1pdg",    &z1pdg);
@@ -161,7 +162,6 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if (isSignal && i >= L4)
         {
-            tree[i]->Branch("genWeight",                &genWeight);
             tree[i]->Branch("nFinalStateMuons",         &nFinalStateMuons);
             tree[i]->Branch("nFinalStateElectrons",     &nFinalStateElectrons);
             tree[i]->Branch("nFinalStateLeptons",       &nFinalStateLeptons);
@@ -231,15 +231,16 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderValue    <vector<Short_t>>   muonQ_          (reader,    "muonQ");
     TTreeReaderValue    <vector<Float_t>>   muonIso_        (reader,    "muonCombIso");
 //  TTreeReaderValue    <vector<Bool_t>>    muonIsHZZ_      (reader,    "muonIsHZZ");
-    TTreeReaderValue    <vector<Float_t>>   muonEnergySF_   (reader,    "muonEnergySF");
-    TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonHZZIDSF");
+//  TTreeReaderValue    <vector<Float_t>>   muonEnergySF_   (reader,    "muonEnergySF");
+//  TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonHZZIDSF");
 //  TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg1_  (reader,    "muonFiredLeg1");
 //  TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg2_  (reader,    "muonFiredLeg2");
 
     // 2016
     TTreeReaderValue    <vector<Bool_t>>    muonIsHZZ_      (reader,    "muonIsTight");
     TTreeReaderValue    <vector<Float_t>>   muonEnergySF_   (reader,    "muonSF");
-    TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonHZZIDWeight");
+    TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonTightIDWeight");
+    TTreeReaderValue    <vector<Float_t>>   muonIsoSF_      (reader,    "muonTightIsoWeight");
     TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg1_  (reader,    "muonTriggered");
     TTreeReaderValue    <vector<Float_t>>   muonEffL1Data_  (reader,    "muonTriggerEffData");
     TTreeReaderValue    <vector<Float_t>>   muonEffL1MC_    (reader,    "muonTriggerEffMC");
@@ -250,15 +251,15 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderValue    <vector<Float_t>>   elecIso_        (reader,    "electronCombIso");
 //  TTreeReaderValue    <vector<Bool_t>>    elecIsHZZ_      (reader,    "electronIsHZZ");
 //  TTreeReaderValue    <vector<Bool_t>>    elecPassMVA_    (reader,    "electronPassNoIsoMVA");
-    TTreeReaderValue    <vector<Float_t>>   elecEnergySF_   (reader,    "electronEnergySF");
-    TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronHZZIDSF");
+//  TTreeReaderValue    <vector<Float_t>>   elecEnergySF_   (reader,    "electronEnergySF");
+//  TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronHZZIDSF");
 //  TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronFiredLeg1");
 //  TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg2_  (reader,    "electronFiredLeg2");
 
     // 2016
     TTreeReaderValue    <vector<Bool_t>>    elecIsHZZ_      (reader,    "electronIsTight");
     TTreeReaderValue    <vector<Float_t>>   elecEnergySF_   (reader,    "electronSF");
-    TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronHZZRecoWeight");
+    TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronRecoWeight");
     TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronTriggered");
     TTreeReaderValue    <vector<Float_t>>   elecEffL1Data_  (reader,    "electronTriggerEffData");
     TTreeReaderValue    <vector<Float_t>>   elecEffL1MC_    (reader,    "electronTriggerEffMC");
@@ -352,7 +353,7 @@ void RecoSelection( const TString suffix,           const TString id,
                         hTotalEvents->GetBinContent(1) - 2 * hTotalEvents->GetBinContent(10));
 
     // Systematics
-    TH2D *hSystematics;
+    TH2 *hSystematics;
     if (smearOn)
     {
         TString histName = "../data/" + systematics + "_smear_" + YEAR_STR + ".root";
@@ -361,6 +362,16 @@ void RecoSelection( const TString suffix,           const TString id,
         cout << "Opened " << histName << endl;
 
         histFile->GetObject("SMEAR" + idH, hSystematics);
+        hSystematics->SetDirectory(outFile);
+    }
+    if (YEAR_STR.EqualTo("2016"))
+    {
+        TString histName = "../data/electronTightID_SF_" + YEAR_STR + ".root";
+        TFile *histFile = TFile::Open(histName);
+
+        cout << "Opened " << histName << endl;
+
+        histFile->GetObject("EGamma_SF2D", hSystematics);
         hSystematics->SetDirectory(outFile);
     }
 
@@ -419,17 +430,18 @@ void RecoSelection( const TString suffix,           const TString id,
         //
 
         // Quantities copied directly to output tree
-        runNum  = *runNum_;         evtNum  = *evtNum_;         lumiSec     = *lumiSec_;
-        nPV     = *nPV_;            met     = *met_;            genWeight   = *genWeight_;
+        runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
+        nPV         = *nPV_;            met         = *met_;
+        puWeight    = *puWeight_;       genWeight   = *genWeight_;
+
+        // Quantities written out, but not read in
+        trigWeight  = 1,            idWeight    = 1;
 
         // Quantities used in analysis, but not written out
         bool        muonTrig    = *muonTrig_,           elecTrig    = *elecTrig_;
         unsigned    nMuons      = *nMuons_,             nElecs      = *nElecs_;
         unsigned    nHZZMuons   = *nHZZMuons_,          nHZZElecs   = *nHZZElecs_;
         float       puWeight    = *puWeight_;
-
-        // Quantities used in analysis, but not read in
-        float       trigWeight  = 1,                    idWeight    = 1;
 
 
 
@@ -465,7 +477,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //  SYSTEMATICS
         //
 
-
+/*
         // Get smudge factors from histograms and apply them before creating objects
         if (smearOn)
         {
@@ -517,7 +529,18 @@ void RecoSelection( const TString suffix,           const TString id,
                     (*elecEnergySF_)[i] *= 1 + ELEC_PT_SHIFT;
             }
         }
-
+*/
+            if (YEAR_STR.EqualTo("2016"))
+            {
+                for (unsigned i = 0; i < nElecs; i++)
+                {
+                    TLorentzVector p4 = elecP4_.At(i);
+                    int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
+                    (*elecIDSF_)[i] *= hSystematics->GetBinContent(bin);
+                }
+                for (unsigned i = 0; i < nMuons; i++)
+                    (*muonIDSF_)[i] *= (*muonIsoSF_)[i];
+            }
 
 
 
@@ -555,7 +578,8 @@ void RecoSelection( const TString suffix,           const TString id,
             if (fabs(corr_p4.Eta()) > MUON_ETA_MAX) // outside detector region
                 continue;
 
-            if (rel_iso > MUON_ISO_MAX)             // failed isolation requirement
+//          if (rel_iso > MUON_ISO_MAX)             // failed isolation requirement
+            if (rel_iso > MUON_TIGHT_ISO_MAX)
                 continue;                           // (okay to apply when Pt > 200 GeV?)
 
 
@@ -569,17 +593,14 @@ void RecoSelection( const TString suffix,           const TString id,
             muon.pdg    = -13 * muon.q;
             muon.iso    = rel_iso;
             muon.id_sf  = (*muonIDSF_)[i];
-/*
+
             if (YEAR_STR.EqualTo("2016"))
             {
                 muon.fired      = make_pair((*muonFiredLeg1_)[i],   kFALSE);
                 muon.te_data    = make_pair((*muonEffL1Data_)[i],   1);
                 muon.te_mc      = make_pair((*muonEffL1MC_)[i],     1);
-//              muon.fired      = make_pair((*muonFiredLeg1_)[i],   (*muonFiredLeg2_)[i]);
-//              muon.te_data    = make_pair((*muonEffL1Data_)[i],   (*muonEffL2Data_)[i]);
-//              muon.te_mc      = make_pair((*muonEffL1MC_)[i],     (*muonEffL2MC_)[i]);
             }
-*/
+
             muons.push_back(muon);
         }
 
@@ -593,8 +614,8 @@ void RecoSelection( const TString suffix,           const TString id,
             if (!(*elecIsHZZ_)[i])                  // failed ID *after* energy correction
                 continue;                           // (remove for systematics analysis?)
 
-            if (!(*elecPassMVA_)[i])                // failed MVA WP chosen in branch address 
-                continue;
+//          if (!(*elecPassMVA_)[i])                // failed MVA WP chosen in branch address 
+//              continue;
 
 
             // Double-check ID requirements after energy correction (for systematics analysis)
@@ -609,7 +630,10 @@ void RecoSelection( const TString suffix,           const TString id,
             if (fabs(corr_p4.Eta()) > ELEC_ETA_MAX) // outside detector region
                 continue;
 
-            if (rel_iso > ELEC_ISO_MAX)             // failed isolation requirement
+//          if (rel_iso > ELEC_ISO_MAX)             // failed isolation requirement
+            if (fabs(corr_p4.Eta()) <= EB_ETA_MAX && rel_iso > EB_TIGHT_ISO_MAX)
+                continue;
+            if (fabs(corr_p4.Eta()) > EB_ETA_MAX && rel_iso > EE_TIGHT_ISO_MAX)
                 continue;                           // (okay to apply for IsoMVA?)
 
 
@@ -623,17 +647,14 @@ void RecoSelection( const TString suffix,           const TString id,
             elec.pdg    = -11 * elec.q;
             elec.iso    = rel_iso;
             elec.id_sf  = (*elecIDSF_)[i];
-/*
+
             if (YEAR_STR.EqualTo("2016"))
             {
                 elec.fired      = make_pair((*elecFiredLeg1_)[i],   kFALSE);
                 elec.te_data    = make_pair((*elecEffL1Data_)[i],   1);
                 elec.te_mc      = make_pair((*elecEffL1MC_)[i],     1);
-//              elec.fired      = make_pair((*elecFiredLeg1_)[i],   (*elecFiredLeg2_)[i]);
-//              elec.te_data    = make_pair((*elecEffL1Data_)[i],   (*elecEffL2Data_)[i]);
-//              elec.te_mc      = make_pair((*elecEffL1MC_)[i],     (*elecEffL2MC_)[i]);
             }
-*/
+
             elecs.push_back(elec);
         }
 

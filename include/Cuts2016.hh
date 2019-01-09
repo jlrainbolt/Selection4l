@@ -56,6 +56,16 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 
 
 //
+//  TIGHT ID
+//
+
+const float     MUON_TIGHT_ISO_MAX = 0.15;
+const float     EB_TIGHT_ISO_MAX = 0.0588,                      EE_TIGHT_ISO_MAX = 0.0571;
+const float     EB_ETA_MAX = 1.479;
+
+
+
+//
 //  OBJECT MATCHING
 //
 
@@ -80,13 +90,14 @@ const float     MUON_TRIG_LUMI = 35.9,                          ELEC_TRIG_LUMI =
 const float                                                     ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "electron_" + YEAR_STR;
 
-// Event numbers from hTotalEvents with negative events subtracted (nb p 64)
+// Event numbers from hTotalEvents with negative events subtracted (notebook p 64)
 //
 // Cross sections from
 //      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
 //      https://twiki.cern.ch/twiki/bin/view/CMS/HiggsZZ4l2016#Samples_Cross_sections
 const float     NGEN_ZZ_4L      = 6838244,                      XSEC_ZZ_4L      = 1.212;
 const float     NGEN_ZJETS_M50  = 75087060,                     XSEC_ZJETS_M50  = 5765.4;
+//const float     NGEN_ZJETS_M50  = 81616008,                     XSEC_ZJETS_M50  = 5765.4 * 1.18;
 const float     NGEN_ZJETS_M10  = 99482541,                     XSEC_ZJETS_M10  = 18610;
 const float     NGEN_GGH_ZZ_4L  = 999778,                       XSEC_GGH_ZZ_4L  = 0.01212;
 const float     NGEN_VBFH_ZZ_4L = 499293,                       XSEC_VBFH_ZZ_4L = 0.001034;
@@ -112,7 +123,7 @@ const TString   MC_TEX[N_MC] = {"\\Z\\Zto",     "\\DY",         "\\DY",
                                 "\\text{VBF }\\Higgs\\to\\Z\\Zto",
                                 "\\text{ggF }\\Higgs\\to\\Z\\Zto",
                                 "\\tq\\tbar",                   "\\tq\\tq\\to 2\\ell 2\\nu",
-                                "\\W\\Z\\to 3\\ell \\nu"};
+                                "\\W\\W\\to 2\\ell 2\\nu",      "\\W\\Z\\to 3\\ell \\nu"};
 
 
 

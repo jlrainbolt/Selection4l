@@ -47,6 +47,7 @@ void StackDists2l(bool useLog = kFALSE)
     //
 
     TString prefix  = "unscaled2l";
+//  TString prefix  = "rescaled2l";
     cout << endl << endl;
 
     // Muon file
@@ -291,6 +292,7 @@ void StackDists2l(bool useLog = kFALSE)
 
     TString tag     = useLog ? "log" : "lin";
     TString outName = "stacks2l_" + tag + "_" + YEAR_STR + ".root";
+//  TString outName = "stacks2l_" + tag + "_rescaled_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -329,16 +331,20 @@ void StackDists2l(bool useLog = kFALSE)
             TPad *upper = ratio[i][h]->GetUpperPad(), *lower = ratio[i][h]->GetLowerPad();
             upper->cd();
 
-            stack[i][h]->SetMaximum(1.2 * total[i][h]->GetMaximum());
             stack[i][h]->Draw("HIST SAME");
             stack[i][h]->GetXaxis()->SetTitle(data[i][h]->GetXaxis()->GetTitle());
             Facelift(stack[i][h]);
-            data[i][h]->Draw("AE SAME");
+            data[i][h]->Draw("E SAME");
+
+            float maximum = total[i][h]->GetMaximum();
+            if (data[i][h]->GetMaximum() > maximum)
+                maximum = data[i][h]->GetMaximum();
+            data[i][h]->SetMaximum(1.1 * maximum);
   
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
-//          if (ratio[i][h]->GetLowerRefGraph()->GetMinimum() < 0)
-//              ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.9);
+            ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.8);
+            ratio[i][h]->GetLowerRefGraph()->SetMaximum(1.2);
             lower->SetBottomMargin(3 * lCanvasMargin);
             lower->Modified();
 
@@ -349,7 +355,14 @@ void StackDists2l(bool useLog = kFALSE)
                 stack[i][h]->SetMinimum(1);
                 upper->SetLogy();
             }
-
+/*
+            if (hname[h].EqualTo("z1pt"))
+            {
+                data[i][h]->Divide(data[i][h], total[i][h]);
+                data[i][h]->SetName("hist_" + hname[h] + "_" + selection[i]);
+                data[i][h]->Write();
+            }
+*/
             canvas[i][h]->Write();
         }
     }

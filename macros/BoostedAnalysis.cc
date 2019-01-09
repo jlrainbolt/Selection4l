@@ -8,6 +8,8 @@
 #include "TString.h"
 #include "TFile.h"
 #include "TH1.h"
+#include "TH2.h"
+#include "TGraph.h"
 #include "TTree.h"
 #include "TTreeReader.h"
 #include "TTreeReaderValue.h"
@@ -30,19 +32,24 @@ using namespace std;
 **
 **  Reads 4-lepton events from a "Selected" level tree.  Boosts objects into Z ("zz") rest frame
 **  and calculates observables for differential distributions.
+**
+**  Also calculates event weights per source using scale factors from external histograms.
 */
 
-void BoostedAnalysis(const TString suffix)
+void BoostedAnalysis(const TString suffix, bool doWeights = kFALSE, bool doRescale = kFALSE)
 {
 
     //
     //  SAMPLE INFO
     //
 
+    const bool isData = suffix.Contains(YEAR_STR);
+
     const unsigned N = 5;
-    unsigned                   L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = {"4l",   "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {5,      6,      7,      8,      9};
+    unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
+    TString selection[N]    = { "4l",   "4m",   "2m2e", "2e2m", "4e"    };
+    TString selection2l[N]  = { "",     "mumu", "mumu", "ee",   "ee"    };
+    unsigned chanIdx[N]     = { 5,      6,      7,      8,      9       };
 
 
 
@@ -66,7 +73,7 @@ void BoostedAnalysis(const TString suffix)
 
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
-    Float_t             weight,     met;
+    Float_t             met,        weight,     rescale;
     UInt_t              channel,    nPV;
 
 
@@ -86,6 +93,7 @@ void BoostedAnalysis(const TString suffix)
     Short_t             b_l1pdg,    b_l2pdg,    b_l3pdg,    b_l4pdg;
     UShort_t            b_l1z,      b_l2z,      b_l3z,      b_l4z;
 
+
     // Observables
     Float_t             psi,                    sin_phi;
     Float_t             cos_theta_z1,           cos_theta_z2;
@@ -94,12 +102,19 @@ void BoostedAnalysis(const TString suffix)
     Float_t             angle_z1l2_z2;
 
 
+    // Weights
+    Float_t             gen_weight,             pileup_weight;  //,          trigger_weight;
+    Float_t             muonID_weight,          elecID_weight,          elecReco_weight;
+
+
     for (unsigned i = 0; i < N; i++)
     {
         tree[i]->Branch("runNum",   &runNum);               tree[i]->Branch("evtNum",   &evtNum);
         tree[i]->Branch("lumiSec",  &lumiSec);              tree[i]->Branch("nPV",      &nPV);
-        tree[i]->Branch("met",      &met);                  tree[i]->Branch("weight",   &weight);
-        tree[i]->Branch("channel",  &channel);
+        tree[i]->Branch("met",      &met);                  tree[i]->Branch("channel",  &channel);
+        tree[i]->Branch("weight",   &weight);
+
+        if (doRescale)  tree[i]->Branch("rescale",  &rescale);
 
         tree[i]->Branch("psi",              &psi);
         tree[i]->Branch("sin_phi",          &sin_phi);
@@ -134,6 +149,16 @@ void BoostedAnalysis(const TString suffix)
         tree[i]->Branch("l3z",      &l3z);
         tree[i]->Branch("l4p4",     &l4p4);                 tree[i]->Branch("l4pdg",    &l4pdg);
         tree[i]->Branch("l4z",      &l4z);
+
+        if (doWeights)
+        {
+            tree[i]->Branch("gen_weight",       &gen_weight);
+            tree[i]->Branch("pileup_weight",    &pileup_weight);
+//          tree[i]->Branch("trigger_weight",   &trigger_weight);
+            tree[i]->Branch("muonID_weight",    &muonID_weight);
+            tree[i]->Branch("elecID_weight",    &elecID_weight);
+            tree[i]->Branch("elecReco_weight",  &elecReco_weight);
+        }
     }
 
 
@@ -160,9 +185,43 @@ void BoostedAnalysis(const TString suffix)
     hTotalEvents->SetDirectory(outFile);
     hTotalEvents->Sumw2();
 
-    inFile->GetObject("SelectedEvents_" + suffix, hSelectedEvents);
+    if (doRescale)
+        hSelectedEvents = new TH1D("SelectedEvents_" + suffix, "SelectedEvents", 10, 0.5, 10.5);
+    else
+        inFile->GetObject("SelectedEvents_" + suffix, hSelectedEvents);
+
     hSelectedEvents->SetDirectory(outFile);
     hSelectedEvents->Sumw2();
+
+
+
+    //
+    //  WEIGHT UTILS
+    //
+
+    TString sfPath = "../data/",    sfSuffix = "sf";
+
+    TGraph  *gPileup;
+    TH1     *hRescale[N];
+
+    if (doWeights)
+    {
+        TString puName = sfPath + "pileup_" + sfSuffix + "_" + YEAR_STR + ".root";  
+        TFile*  puFile = new TFile(puName, "OPEN");
+        puFile->GetObject("pileup_sf", gPileup);
+    }
+
+    if (doRescale)
+    {
+        TString sfName = "../data/z1pt_rescale_" + YEAR_STR + ".root";
+        TFile*  sfFile = new TFile(sfName, "OPEN");
+
+        for (unsigned i = 1; i < N; i++)
+        {
+            sfFile->GetObject(selection2l[i] + "/hist_z1pt_" + selection2l[i], hRescale[i]);
+            hRescale[i]->SetDirectory(0);
+        }
+    }
 
 
 
@@ -234,6 +293,10 @@ void BoostedAnalysis(const TString suffix)
             l2p4    = *l2p4_;           l2pdg   = *l2pdg_;          l2z     = *l2z_;
             l3p4    = *l3p4_;           l3pdg   = *l3pdg_;          l3z     = *l3z_;
             l4p4    = *l4p4_;           l4pdg   = *l4pdg_;          l4z     = *l4z_;
+
+            // Initialize weights
+            gen_weight      = 0;        pileup_weight   = 0;        //trigger_weight  = 1;
+            muonID_weight   = 1;        elecID_weight   = 1;        elecReco_weight = 1;
 
 
 
@@ -332,6 +395,36 @@ void BoostedAnalysis(const TString suffix)
 
 
 
+
+
+
+            ////
+            ////
+            ////    WEIGHTS
+            ////
+            ////
+
+
+            // "Gen" weight: whether event weight is positively or negatively weighted
+            gen_weight = copysign(1, weight);
+
+            // Pileup weight
+            
+            // Rescale
+
+            if (doRescale)
+            {
+                if (!isData)
+                    rescale = hRescale[i]->GetBinContent(hRescale[i]->FindBin(zzp4.Pt()));
+                else
+                    rescale = 1;
+
+                hSelectedEvents->Fill(chanIdx[i], weight * rescale);
+                hSelectedEvents->Fill(chanIdx[L4], weight * rescale);
+            }
+
+
+
             //
             //  FILL TREE
             //
@@ -350,7 +443,7 @@ void BoostedAnalysis(const TString suffix)
 
         } // END event loop
 
-            cout << "done!" << endl;
+        cout << "done!" << endl;
 
     } // END tree loop
 

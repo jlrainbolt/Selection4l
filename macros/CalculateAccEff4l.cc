@@ -31,7 +31,7 @@ void CalculateAccEff4l(const TString suffix, const TString systematics, const TS
 
     // Reduced to calculate acc * eff
     const unsigned N = 4;   // Channel indices
-    float nSelected[N], nPhaseSpace[N],xAccEff[N];
+    float nSelected[N], nPhaseSpace[N], xAccEff[N];
     TString selection[N] = {"4l", "4m", "2m2e", "4e"};
 
 
@@ -42,7 +42,9 @@ void CalculateAccEff4l(const TString suffix, const TString systematics, const TS
 
     TString inPath = "output";
     TString inName = systematics + hID + "_" + suffix + ".root";
+//  TString inName = "boosted_" + suffix + ".root";
     TFile *inFile = TFile::Open(inPath + "/" + inName);
+//  TFile *inFile = TFile::Open(inName);
 
     cout << "Opened " << inName << endl;
 
@@ -63,12 +65,14 @@ void CalculateAccEff4l(const TString suffix, const TString systematics, const TS
     TString psPrefix = "genHardProc";
 
     TString psName = psPath + "gen_" + suffix + "/" + psPrefix + "_" + suffix + ".root";
+//  TString psName = "boosted_phase_space.root";
     TFile *psFile = TFile::Open(psName);
 
     cout << "Opened " << psName << endl;
 
     TH1 *hPhaseSpace;
     psFile->GetObject("PhaseSpaceEvents_" + suffix, hPhaseSpace);
+//  psFile->GetObject("PhaseSpaceEvents_phase_space", hPhaseSpace);
     hPhaseSpace->SetDirectory(0);
     hPhaseSpace->Sumw2();
 
@@ -117,6 +121,7 @@ void CalculateAccEff4l(const TString suffix, const TString systematics, const TS
     TString ofsName = systematics + "_" + suffix + "_" + hID + ".txt";
     ofstream ofs;
     ofs.open(inPath + "/" + ofsName);
+//  ofs.open(ofsName);
 
     ofs << hID;
     for (unsigned i = 0; i < N; i++)

@@ -8,7 +8,6 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
-#include "TMath.h"
 #include "TError.h"
 
 // Custom
@@ -32,7 +31,6 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
 
     gErrorIgnoreLevel = kWarning;
     int rebinFactor = 5;
-    const double PI = TMath::Pi();
 
 
     //
@@ -129,9 +127,9 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
         make_tuple( "cos_theta_z2",     "cos_theta_z2",     _costheta_(_Z2),10,     -1,     1),
         make_tuple( "cos_zeta_z1",      "cos_zeta_z1",      _coszeta_(_Z1), 10,     -1,     1),
         make_tuple( "cos_zeta_z2",      "cos_zeta_z2",      _coszeta_(_Z2), 10,     -1,     1),
-        make_tuple( "angle_z1leps",     "angle_z1leps",     _alpha_(_Z1),   12,     0,      PI),
-        make_tuple( "angle_z2leps",     "angle_z2leps",     _alpha_(_Z2),   10,     0,      PI),
-        make_tuple( "angle_z1l2_z2",    "angle_z1l2_z2",    _beta,          15,     0,      PI)
+        make_tuple( "angle_z1leps",     "angle_z1leps/3.14",_alpha_(_Z1),   12,     0,      1),
+        make_tuple( "angle_z2leps",     "angle_z2leps/3.14",_alpha_(_Z2),   10,     0,      1),
+        make_tuple( "angle_z1l2_z2",    "angle_z1l2_z2/3.14",   _beta,      15,     0,      1)
     };
 
 
@@ -142,7 +140,8 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
 
     TString inName  = "boosted_" + suffix + ".root";
     TString inPath  = HOME_PATH + "/Boosted/" + YEAR_STR + "/" + inName;
-    TFile   *inFile = TFile::Open(inPath);
+//  TFile   *inFile = TFile::Open(inPath);
+    TFile   *inFile = TFile::Open(inName);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
 

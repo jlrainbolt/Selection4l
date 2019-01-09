@@ -40,7 +40,7 @@ using namespace std;
 **  Currently only implemented for signal (zz_4l) events...and only uses hard leptons.
 */
 
-void GenAnalysis(const bool fidOnly)
+void GenAnalysis(const bool fidOnly, bool doRescale = kFALSE)
 {
 
     //
@@ -62,9 +62,10 @@ void GenAnalysis(const bool fidOnly)
     //
 
     const unsigned N = 5;
-    unsigned                   L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = {"4l",   "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {5,      6,      7,      8,      9};
+    unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
+    TString selection[N]    = { "4l",   "4m",   "2m2e", "2e2m", "4e"    };
+    TString selection2l[N]  = { "",     "mumu", "mumu", "ee",   "ee"    };
+    unsigned chanIdx[N]     = { 5,      6,      7,      8,      9       };
 
 
 
@@ -89,7 +90,7 @@ void GenAnalysis(const bool fidOnly)
 
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
-    Float_t             weight;
+    Float_t             weight,     rescale;
     UInt_t              channel;
     Bool_t              isFiducial;
 
@@ -119,9 +120,10 @@ void GenAnalysis(const bool fidOnly)
     for (unsigned i = 0; i < N; i++)
     {
         tree[i]->Branch("runNum",   &runNum);               tree[i]->Branch("evtNum",   &evtNum);
-        tree[i]->Branch("lumiSec",  &lumiSec);
-        tree[i]->Branch("weight",   &weight);               tree[i]->Branch("channel",  &channel);
-        tree[i]->Branch("isFiducial", &isFiducial);
+        tree[i]->Branch("lumiSec",  &lumiSec);              tree[i]->Branch("channel",  &channel);
+        tree[i]->Branch("weight",   &weight);               tree[i]->Branch("isFiducial", &isFiducial);
+
+        if (doRescale)  tree[i]->Branch("rescale",  &rescale);
 
         tree[i]->Branch("psi", &psi);                       tree[i]->Branch("sin_phi",  &sin_phi);
         tree[i]->Branch("theta_z1", &theta_z1);             tree[i]->Branch("theta_z2", &theta_z2);
@@ -179,7 +181,7 @@ void GenAnalysis(const bool fidOnly)
     TTreeReaderValue    <Int_t>                 evtNum_     (reader,    "evtNumber.eventNumber");
     TTreeReaderValue    <Int_t>                 lumiSec_    (reader,    "lumiSection");
     TTreeReaderValue    <Float_t>               genWeight_  (reader,    "genWeight");
-    TTreeReaderValue    <UInt_t>                channel_    (reader,    "decayChannel");
+    TTreeReaderValue    <UShort_t>              channel_    (reader,    "decayChannel");
     TTreeReaderValue    <UShort_t>              nMuons_     (reader,    "nHardProcMuons");
     TTreeReaderValue    <UShort_t>              nElecs_     (reader,    "nHardProcElectrons");
     TTreeReaderArray    <TLorentzVector>        muonP4_     (reader,    "hardProcMuonP4");
@@ -200,9 +202,15 @@ void GenAnalysis(const bool fidOnly)
 
     TH1D *hPhaseSpaceEvents, *hFiducialEvents;
 
-    inFile->GetObject("PhaseSpaceEvents_zz_4l", hPhaseSpaceEvents);
+    if (doRescale)
+        hPhaseSpaceEvents = new TH1D("PhaseSpaceEvents_"+suffix, "PhaseSpaceEvents", 10, 0.5, 10.5);
+    else
+    {
+        inFile->GetObject("PhaseSpaceEvents_zz_4l", hPhaseSpaceEvents);
+        hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + suffix);
+    }
+
     hPhaseSpaceEvents->SetDirectory(outFile);
-    hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + suffix);
     hPhaseSpaceEvents->Sumw2();
     // forgot to write bin 1 in BLT analyzer :(
     hPhaseSpaceEvents->SetBinContent(chanIdx[L4], hPhaseSpaceEvents->GetBinContent(chanIdx[M4])
@@ -213,6 +221,26 @@ void GenAnalysis(const bool fidOnly)
     hFiducialEvents = new TH1D("FiducialEvents_" + suffix, "FiducialEvents", 10, 0.5, 10.5);
     hFiducialEvents->SetDirectory(outFile);
     hFiducialEvents->Sumw2();
+
+
+
+    //
+    //  WEIGHT UTILS
+    //
+
+    TH1     *hRescale[N];
+
+    if (doRescale)
+    {
+        TString sfName = "../data/z1pt_rescale_" + YEAR_STR + ".root";
+        TFile*  sfFile = new TFile(sfName, "OPEN");
+
+        for (unsigned i = 1; i < N; i++)
+        {
+            sfFile->GetObject(selection2l[i] + "/hist_z1pt_" + selection2l[i], hRescale[i]);
+            hRescale[i]->SetDirectory(0);
+        }
+    }
 
 
 
@@ -269,7 +297,7 @@ void GenAnalysis(const bool fidOnly)
         //                
 
         // Quantities copied directly to output tree
-        runNum  = *runNum_;         evtNum  = *evtNum_;         lumiSec     = *lumiSec_;
+        runNum  = *runNum_;         evtNum  = *evtNum_;         lumiSec = *lumiSec_;
         weight  = *genWeight_;      channel = *channel_;        zzp4    = *lepsP4_;
 
         // Quantities used in analysis, but not written out
@@ -388,6 +416,23 @@ void GenAnalysis(const bool fidOnly)
 
 
         //
+        //  WEIGHTS
+        //
+
+        float histWeight = weight;
+
+        if (doRescale)
+        {
+            rescale = hRescale[C]->GetBinContent(hRescale[C]->FindBin(zzp4.Pt()));
+
+            histWeight *= rescale;
+            hPhaseSpaceEvents->Fill(chanIdx[C], histWeight);
+            hPhaseSpaceEvents->Fill(chanIdx[L4], histWeight);
+        }
+
+
+
+        //
         //  FIDUCIAL CHECK
         //
 
@@ -415,11 +460,13 @@ void GenAnalysis(const bool fidOnly)
         }
 
 
-        hFiducialEvents->Fill(1, weight);
+        hFiducialEvents->Fill(1, histWeight);
 
         if (isFiducial)
-            hFiducialEvents->Fill(chanIdx[C], weight);
-            hFiducialEvents->Fill(chanIdx[L4], weight);
+        {
+            hFiducialEvents->Fill(chanIdx[C], histWeight);
+            hFiducialEvents->Fill(chanIdx[L4], histWeight);
+        }
 
         if (fidOnly && !isFiducial)
             continue;

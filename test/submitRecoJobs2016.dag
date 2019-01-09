@@ -10,10 +10,10 @@
 #   SCRIPT  POST    muon_2016       ../scripts/mergeOutput.sh selected $JOB
 
 
-#   JOB             electron_2016   submitReco.sub 
-#   VARS            electron_2016   suffix="electron_2016"
-#   VARS            electron_2016   nFiles="7"
-#   SCRIPT  POST    electron_2016   ../scripts/mergeOutput.sh selected $JOB
+    JOB             electron_2016   submitReco.sub 
+    VARS            electron_2016   suffix="electron_2016"
+    VARS            electron_2016   nFiles="7"
+    SCRIPT  POST    electron_2016   ../scripts/mergeOutput.sh selected $JOB
 
 
 #   JOB             dy_m-10to50     submitReco.sub
@@ -46,16 +46,16 @@
 #   SCRIPT  POST    ww_2l2nu	    ../scripts/mergeOutput.sh selected $JOB
 
 
-    JOB             wz_3lnu	        submitReco.sub
-    VARS            wz_3lnu	        suffix="wz_3lnu"
-    VARS            wz_3lnu	        nFiles="1"
-    SCRIPT  POST    wz_3lnu	        ../scripts/mergeOutput.sh selected $JOB
+#   JOB             wz_3lnu	        submitReco.sub
+#   VARS            wz_3lnu	        suffix="wz_3lnu"
+#   VARS            wz_3lnu	        nFiles="1"
+#   SCRIPT  POST    wz_3lnu	        ../scripts/mergeOutput.sh selected $JOB
 
 
-    JOB             zz_4l		    submitReco.sub
-    VARS            zz_4l		    suffix="zz_4l"
-    VARS            zz_4l		    nFiles="1"
-    SCRIPT  POST    zz_4l		    ../scripts/mergeOutput.sh selected $JOB
+#   JOB             zz_4l		    submitReco.sub
+#   VARS            zz_4l		    suffix="zz_4l"
+#   VARS            zz_4l		    nFiles="1"
+#   SCRIPT  POST    zz_4l		    ../scripts/mergeOutput.sh selected $JOB
 
 
 #   JOB             ggH_zz_4l	    submitReco.sub

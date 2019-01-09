@@ -458,9 +458,7 @@ void StackDists4l(bool scaleAccEff = kFALSE, bool scaleWidth = kFALSE)
             if (scaleWidth)
             {
 /*
-                ratio[i][h]->GetLowerRefXaxis()->SetRangeUser(0, TMath::Pi());
                 data[i][h]->GetXaxis()->SetRangeUser(0, TMath::Pi());
-                ratio[i][h]->GetXaxis()->SetRangeUser(0, 3.14);
 */
                 TString xtitle = data[i][h]->GetXaxis()->GetTitle();
                 xtitle.ReplaceAll("(", "(\\mbox{eV}/");
@@ -472,6 +470,8 @@ void StackDists4l(bool scaleAccEff = kFALSE, bool scaleWidth = kFALSE)
 
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
+            ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.8);
+            ratio[i][h]->GetLowerRefGraph()->SetMaximum(1.2);
             lower->SetBottomMargin(3 * lCanvasMargin);
             lower->Modified();
 

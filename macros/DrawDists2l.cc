@@ -21,19 +21,11 @@ using namespace std;
 /*
 **  DrawDists2l
 **
-**  Draws UNSCALED distributions for a "boosted_" sample
+**  Draws UNSCALED distributions for a "selected_" sample
 */ 
 
 void DrawDists2l(const TString suffix)
 {
-
-    //
-    //  OPTIONS
-    //
-
-//  gErrorIgnoreLevel = kWarning;
-
-
 
     //
     //  SAMPLE INFO
@@ -51,7 +43,8 @@ void DrawDists2l(const TString suffix)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "unscaled2l";
+//  TString prefix  = "unscaled2l";
+    TString prefix  = "rescaled2l";
     TString outName = prefix + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -82,7 +75,7 @@ void DrawDists2l(const TString suffix)
         make_tuple( "l2pdg",    "l2pdg",            "",                 27,     -13.5,  13.5),
 
         make_tuple( "dphi",     "fabs(l1p4.Phi()-l2p4.Phi())/3.141492654",
-                                "|\\Delta\\phi|/\\pi",                  40,     -0,     2)
+                                "|\\Delta\\phi_{"+_ll+"}|/\\pi",        40,     -0,     2)
     };
 
 
@@ -91,8 +84,10 @@ void DrawDists2l(const TString suffix)
     //  INPUT FILE
     //
 
-    TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
+//  TString inName  = "selected_" + suffix + ".root";
+//  TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
+    TString inName  = "rescaled_" + suffix + ".root";
+    TString inPath  = inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -152,7 +147,8 @@ void DrawDists2l(const TString suffix)
             TString hname,  quantity,   xlabel;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight";
+//          TString weight = "weight";
+            TString weight = "weight*rescale";
             tie(hname, quantity, xlabel, bins, xmin, xmax) = v[j];
 
 

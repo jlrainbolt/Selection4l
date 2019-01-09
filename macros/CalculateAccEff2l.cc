@@ -38,9 +38,13 @@ void CalculateAccEff2l(const TString suffix, const TString systematics, const TS
     //  INPUT FILE
     //
 
-    TString inPath = "output";
-    TString inName = systematics + hID + "_" + suffix + ".root";
-    TFile *inFile = TFile::Open(inPath + "/" + inName);
+    TString inPath = EOS_PATH + "/Selected/" + YEAR_STR + "/";
+    TString inName = inPath + "selected_" + suffix + ".root";
+//  TString inPath = "output/";
+//  TString inName = systematics + hID + "_" + suffix + ".root";
+//  TString inPath = "";
+//  TString inName = inPath + "rescaled_" + suffix + ".root";
+    TFile *inFile = TFile::Open(inName);
 
     cout << "Opened " << inName << endl;
 
@@ -61,12 +65,14 @@ void CalculateAccEff2l(const TString suffix, const TString systematics, const TS
     TString psPrefix = "genHardProc";
 
     TString psName = psPath + "gen_" + suffix + "/" + psPrefix + "_" + suffix + ".root";
+//  TString psName = "rescaled_phase_space.root";
     TFile *psFile = TFile::Open(psName);
 
     cout << "Opened " << psName << endl;
 
     TH1 *hPhaseSpace;
     psFile->GetObject("PhaseSpaceEvents_" + suffix, hPhaseSpace);
+//  psFile->GetObject("PhaseSpaceEvents_phase_space", hPhaseSpace);
     hPhaseSpace->SetDirectory(0);
     hPhaseSpace->Sumw2();
 
