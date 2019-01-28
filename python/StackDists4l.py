@@ -208,10 +208,12 @@ mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}', r'\usepackage{sa
                                         r'\sansmath'] 
 # Figure size, aspect ratio
 mpl.rcParams["figure.figsize"] = [6, 6]
+mpl.rcParams["axes.labelsize"], mpl.rcParams["axes.titlesize"] = "xx-large", "xx-large"
+mpl.rcParams["xtick.labelsize"], mpl.rcParams["ytick.labelsize"] = "large", "large"
 
 # Subplot
 fig, (ax_top, ax_bot) = plt.subplots(2, sharex=True, gridspec_kw={'height_ratios':[3, 1]})
-fig.subplots_adjust(hspace=0)
+fig.subplots_adjust(left=0.13, right=0.93, bottom=0.11, top = 0.91, hspace=0.05)
 
 
 
@@ -256,19 +258,20 @@ ax_bot.set_ylim(0.5, 1.5)
 ##
 
 # Titles
-ax_top.set_title(r'\textbf{CMS} \textit{Work in Progress}', loc='left')
-ax_top.set_title(r'41.5\,fb$^{-1}$ (13\,TeV)', loc='right')
+ax_top.set_title(r'\textbf{CMS} \Large{\textit{Work in Progress}}', loc='left')
+ax_top.set_title(r'\Large{41.5\,fb$^{-1}$ (13\,TeV)}', loc='right')
 
 # Top y axis
-ax_top.set_ylabel(r'Events $/$ GeV', horizontalalignment='right')
-ax_top.yaxis.set_label_coords(-0.075, 1)
+ax_top.set_ylabel(r'Events$/$GeV', horizontalalignment='right')
+ax_top.yaxis.set_label_coords(-0.08, 1)
 
 # Bottom y axis
-ax_bot.set_ylabel(r'Data $/$ MC')
-ax_bot.yaxis.set_label_coords(-0.075, 0.5)
+ax_bot.set_ylabel(r'Data$/$MC')
+ax_bot.yaxis.set_label_coords(-0.08, 0.5)
 
 # Shared x axis
-plt.xlabel(r'$m_{4\ell}$ (GeV)', horizontalalignment='right', x=1)
+ax_bot.set_xlabel(r'$m_{4\ell}$ (GeV)', horizontalalignment='right')
+ax_bot.xaxis.set_label_coords(1, -0.3)
 plt.xticks(np.arange(x_mc[0], x_mc[-1]+2, step=2))
 
 
