@@ -17,7 +17,7 @@ echo "ROOTSYS = " $ROOTSYS
 tar -xzvf source.tar.gz
 cd "test"
 
-root.exe -q -b "../macros/RecoSelection.cc(\"$suffix\", \"$id\", \"\")"
+root.exe -q -b "../macros/RecoSelection.cc(\"$suffix\", \"$id\")"
 
 cp *_${suffix}_*.root ${_CONDOR_SCRATCH_DIR}
 

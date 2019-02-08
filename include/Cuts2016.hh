@@ -1,5 +1,5 @@
-#ifndef CUTS2017_HH
-#define CUTS2017_HH
+#ifndef CUTS2016_HH
+#define CUTS2016_HH
 
 
 // ROOT
@@ -56,16 +56,6 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 
 
 //
-//  TIGHT ID
-//
-
-const float     MUON_TIGHT_ISO_MAX = 0.15;
-const float     EB_TIGHT_ISO_MAX = 0.0588,                      EE_TIGHT_ISO_MAX = 0.0571;
-const float     EB_ETA_MAX = 1.479;
-
-
-
-//
 //  OBJECT MATCHING
 //
 
@@ -85,10 +75,10 @@ const float     MUON_PT_SHIFT = 0.002,  ELEC_PT_SHIFT = 0.005;
 //  SAMPLES
 //
 
-// Muon trigger lumi doesn't include 2017B
 const float     MUON_TRIG_LUMI = 35.9,                          ELEC_TRIG_LUMI = 35.9;
 const float                                                     ELEC_TRIG_SF = 1;
-const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "electron_" + YEAR_STR;
+//const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "electron_" + YEAR_STR;
+const TString   MU_SUFF = "DoubleMuon",                         EL_SUFF = "DoubleEG";
 
 // Event numbers from hTotalEvents with negative events subtracted (notebook p 64)
 //
@@ -128,4 +118,4 @@ const TString   MC_TEX[N_MC] = {"\\Z\\Zto",     "\\DY",         "\\DY",
 
 
 
-#endif // CUTS2017_HH
+#endif // CUTS2016_HH

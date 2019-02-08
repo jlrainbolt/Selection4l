@@ -104,7 +104,7 @@ const float     NGEN_ZZ_4L      = 6967853   * (1 - 2 * 0.005244),       XSEC_ZZ_
 const float     NGEN_ZJETS_M50  = 27413121  * (1 - 2 * 0.1624),         XSEC_ZJETS_M50 = 5765.4;
 const float     NGEN_GGH_ZZ_4L  = 1000000   * (1 - 2 * 0.004958),       XSEC_GGH_ZZ_4L = 0.01212;
 const float     NGEN_VBFH_ZZ_4L = 234800    * (1 - 2 * 0.00073),        XSEC_VBFH_ZZ_4L = 0.001034;
-const float     NGEN_TTBAR      = 153531390 * (1 - 2 * 0.3163),         XSEC_TTBAR = 831.76;
+const float     NGEN_TTBAR      = (153531390-626036) * (1 - 2 * 0.3163),XSEC_TTBAR = 831.76;
 const float     NGEN_WW_2L2NU   = 2000000   * (1 - 2 * 0.001928),       XSEC_WW_2L2NU = 12.178;
 const float     NGEN_WZ_2L2Q    = 27582164  * (1 - 2 * 0.2006),         XSEC_WZ_2L2Q = 5.595;
 const float     NGEN_WZ_3LNU    = 10881896  * (1 - 2 * 0.1879),         XSEC_WZ_3LNU = 4.42965;

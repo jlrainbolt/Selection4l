@@ -63,8 +63,7 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
 
         //          name            quantity         axis label             bins    xmin    xmax
         make_tuple( "channel",      "channel",       "",                    4,      5.5,    9.5),
-        make_tuple( "nPV",          "nPV",           _nPV,                  20,     0,      60),
-        make_tuple( "met",          "met",           _met,                  20,     0,      100),
+//      make_tuple( "nPV",          "nPV",           _nPV,                  20,     0,      60),
 
         // Lab frame kinematics
         make_tuple( "zzm",          "zzp4.M()",      _m_(_4l),              20,     80,     100),
@@ -205,13 +204,22 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
 
 
             // Create and draw histogram
-            TH1D *h = new TH1D(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
+//          TH1D *h = new TH1D(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
+            TH1D *h = new TH1D(hname + "_" + suffix, "", 2*bins, xmin, xmax);
             tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
 
             xlabel.ReplaceAll(_l, lepChan[i]);
             h->GetXaxis()->SetTitle(xlabel);
-            h->Sumw2(kTRUE);
+//          h->Sumw2(kTRUE);
+            h->SetStats(0);
+            h->SetFillColor(lLightBlue);
+            h->SetLineColor(lLightBlue);
             h->Write();
+
+            TCanvas *c = new TCanvas("c_" + hname + "_" + suffix, "", 800, 800);
+            c->cd();
+            h->Draw("HIST");
+            c->Write();
         }
 
         cout << "done!" << endl;

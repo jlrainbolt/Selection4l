@@ -20,8 +20,8 @@
 #include "SelectionTools.hh"
 
 // Cuts
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -100,7 +100,8 @@ void RecoSelection( const TString suffix,           const TString id,
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
     UShort_t            nPV;
-    Float_t             met,        weight,     genWeight,  puWeight,   trigWeight, idWeight;
+    Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
+    Float_t             trigWeight, idWeight,   recoWeight;
     UInt_t              channel;
 
     // Pairs
@@ -130,16 +131,17 @@ void RecoSelection( const TString suffix,           const TString id,
     vector<UShort_t>    *finalStateMuonZIndex   = 0,        *finalStateElectronZIndex   = 0;
     TLorentzVector      *finalStateLeptonsP4    = 0;
 
-    TLorentzVector      o_l1p4,     o_l2p4,     o_l3p4,     o_l4p4;
+    TLorentzVector      u_l1p4,     u_l2p4,     u_l3p4,     u_l4p4;
 
 
     for (unsigned i = 0; i < N; i++)
     {
-        tree[i]->Branch("runNum",       &runNum);           tree[i]->Branch("evtNum",   &evtNum);               
-        tree[i]->Branch("lumiSec",      &lumiSec);          tree[i]->Branch("nPV",      &nPV);
-        tree[i]->Branch("met",          &met);              tree[i]->Branch("weight",   &weight);
-        tree[i]->Branch("genWeight",    &genWeight);        tree[i]->Branch("puWeight", &puWeight);
-        tree[i]->Branch("trigWeight",   &trigWeight);       tree[i]->Branch("idWeight", &idWeight);
+        tree[i]->Branch("runNum",       &runNum);       tree[i]->Branch("evtNum",       &evtNum);               
+        tree[i]->Branch("lumiSec",      &lumiSec);      tree[i]->Branch("nPV",          &nPV);
+        tree[i]->Branch("weight",       &weight);       tree[i]->Branch("genWeight",    &genWeight);
+        tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
+        tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
+        tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
         tree[i]->Branch("channel",      &channel);
 
         if (i >= L4) {  tree[i]->Branch("zzp4", &zzp4);}
@@ -185,8 +187,8 @@ void RecoSelection( const TString suffix,           const TString id,
             tree[i]->Branch("finalStateElectronZIndex", &finalStateElectronZIndex);
             tree[i]->Branch("finalStateLeptonsP4",      &finalStateLeptonsP4);
 
-            tree[i]->Branch("uncorr_l1p4",  &o_l1p4);   tree[i]->Branch("uncorr_l2p4",  &o_l2p4);
-            tree[i]->Branch("uncorr_l3p4",  &o_l3p4);   tree[i]->Branch("uncorr_l4p4",  &o_l4p4);
+            tree[i]->Branch("uncorr_l1p4",  &u_l1p4);   tree[i]->Branch("uncorr_l2p4",  &u_l2p4);
+            tree[i]->Branch("uncorr_l3p4",  &u_l3p4);   tree[i]->Branch("uncorr_l4p4",  &u_l4p4);
         }
     }
 
@@ -196,12 +198,11 @@ void RecoSelection( const TString suffix,           const TString id,
     //  INPUT FILE
     //
 
-    TString inDir   = suffix;
     TString inName  = suffix + "_" + id + ".root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/" + inDir + "/" + inName;
-    TFile   *inFile = TFile::Open(inPath);
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/";
+    TFile   *inFile = TFile::Open(inPath + inName);
 
-    cout << endl << endl << "Opened " << inPath << endl;
+    cout << endl << endl << "Opened " << inPath + inName << endl;
 
 
 
@@ -212,57 +213,46 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReader reader("tree_" + suffix, inFile);
 
     TTreeReaderValue    <Int_t>             runNum_         (reader,    "runNumber");
-    TTreeReaderValue    <Int_t>             evtNum_         (reader,    "evtNumber.eventNumber");
+    TTreeReaderValue    <Int_t>             evtNum_         (reader,    "evtNumber");
     TTreeReaderValue    <Int_t>             lumiSec_        (reader,    "lumiSection");
-    TTreeReaderValue    <UShort_t>          nPV_            (reader,    "nPV");
-    TTreeReaderValue    <Float_t>           met_            (reader,    "met");
-//  TTreeReaderValue    <Float_t>           genWeight_      (reader,    "genWeight");
-    TTreeReaderValue    <Float_t>           genWeight_      (reader,    "eventWeight");
+    TTreeReaderValue    <Float_t>           genWeight_      (reader,    "genWeight");
+    TTreeReaderValue    <Float_t>           ecalWeight_     (reader,    "ECALWeight");
     TTreeReaderValue    <Float_t>           puWeight_       (reader,    "PUWeight");
+    TTreeReaderValue    <UShort_t>          nPV_            (reader,    "nPV");
+
     TTreeReaderValue    <Bool_t>            muonTrig_       (reader,    "evtMuonTriggered");
     TTreeReaderValue    <Bool_t>            elecTrig_       (reader,    "evtElectronTriggered");
-    TTreeReaderValue    <UShort_t>          nMuons_         (reader,    "nMuons");
-    TTreeReaderValue    <UShort_t>          nElecs_         (reader,    "nElectrons");
-    TTreeReaderValue    <UShort_t>          nHZZMuons_      (reader,    "nHZZMuons");
-    TTreeReaderValue    <UShort_t>          nHZZElecs_      (reader,    "nHZZElectrons");
-                        
+    TTreeReaderValue    <UShort_t>          nMuons_         (reader,    "nLooseMuons");
+    TTreeReaderValue    <UShort_t>          nElecs_         (reader,    "nLooseElectrons");
+    TTreeReaderValue    <UShort_t>          nTightMuons_    (reader,    "nTightMuons");
+    TTreeReaderValue    <UShort_t>          nTightElecs_    (reader,    "nTightElectrons");
 
     TTreeReaderArray    <TLorentzVector>    muonP4_         (reader,    "muonP4");
+    TTreeReaderArray    <TLorentzVector>    muonUncorrP4_   (reader,    "muonUncorrectedP4");
     TTreeReaderValue    <vector<Short_t>>   muonQ_          (reader,    "muonQ");
-    TTreeReaderValue    <vector<Float_t>>   muonIso_        (reader,    "muonCombIso");
-//  TTreeReaderValue    <vector<Bool_t>>    muonIsHZZ_      (reader,    "muonIsHZZ");
-//  TTreeReaderValue    <vector<Float_t>>   muonEnergySF_   (reader,    "muonEnergySF");
-//  TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonHZZIDSF");
-//  TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg1_  (reader,    "muonFiredLeg1");
-//  TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg2_  (reader,    "muonFiredLeg2");
-
-    // 2016
-    TTreeReaderValue    <vector<Bool_t>>    muonIsHZZ_      (reader,    "muonIsTight");
-    TTreeReaderValue    <vector<Float_t>>   muonEnergySF_   (reader,    "muonSF");
-    TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonTightIDWeight");
-    TTreeReaderValue    <vector<Float_t>>   muonIsoSF_      (reader,    "muonTightIsoWeight");
-    TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg1_  (reader,    "muonTriggered");
-    TTreeReaderValue    <vector<Float_t>>   muonEffL1Data_  (reader,    "muonTriggerEffData");
-    TTreeReaderValue    <vector<Float_t>>   muonEffL1MC_    (reader,    "muonTriggerEffMC");
-                        
+    TTreeReaderValue    <vector<Float_t>>   muonIso_        (reader,    "muonIsolation");
+    TTreeReaderValue    <vector<Bool_t>>    muonIsTight_    (reader,    "muonIsTight");
+    TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonIDSF");
+    TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg1_  (reader,    "muonFiredLeg1");
+    TTreeReaderValue    <vector<Float_t>>   muonEffL1Data_  (reader,    "muonTrigEffLeg1Data");
+    TTreeReaderValue    <vector<Float_t>>   muonEffL1MC_    (reader,    "muonTrigEffLeg1MC");
+    TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg2_  (reader,    "muonFiredLeg2");
+    TTreeReaderValue    <vector<Float_t>>   muonEffL2Data_  (reader,    "muonTrigEffLeg2Data");
+    TTreeReaderValue    <vector<Float_t>>   muonEffL2MC_    (reader,    "muonTrigEffLeg2MC");
 
     TTreeReaderArray    <TLorentzVector>    elecP4_         (reader,    "electronP4");
+    TTreeReaderArray    <TLorentzVector>    elecUncorrP4_   (reader,    "electronUncorrectedP4");
     TTreeReaderValue    <vector<Short_t>>   elecQ_          (reader,    "electronQ");
-    TTreeReaderValue    <vector<Float_t>>   elecIso_        (reader,    "electronCombIso");
-//  TTreeReaderValue    <vector<Bool_t>>    elecIsHZZ_      (reader,    "electronIsHZZ");
-//  TTreeReaderValue    <vector<Bool_t>>    elecPassMVA_    (reader,    "electronPassNoIsoMVA");
-//  TTreeReaderValue    <vector<Float_t>>   elecEnergySF_   (reader,    "electronEnergySF");
-//  TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronHZZIDSF");
-//  TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronFiredLeg1");
-//  TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg2_  (reader,    "electronFiredLeg2");
-
-    // 2016
-    TTreeReaderValue    <vector<Bool_t>>    elecIsHZZ_      (reader,    "electronIsTight");
-    TTreeReaderValue    <vector<Float_t>>   elecEnergySF_   (reader,    "electronSF");
-    TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronRecoWeight");
-    TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronTriggered");
-    TTreeReaderValue    <vector<Float_t>>   elecEffL1Data_  (reader,    "electronTriggerEffData");
-    TTreeReaderValue    <vector<Float_t>>   elecEffL1MC_    (reader,    "electronTriggerEffMC");
+    TTreeReaderValue    <vector<Float_t>>   elecIso_        (reader,    "electronIsolation");
+    TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTight");
+    TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronIDSF");
+    TTreeReaderValue    <vector<Float_t>>   elecRecoSF_     (reader,    "electronRecoSF");
+    TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronFiredLeg1");
+    TTreeReaderValue    <vector<Float_t>>   elecEffL1Data_  (reader,    "electronTrigEffLeg1Data");
+    TTreeReaderValue    <vector<Float_t>>   elecEffL1MC_    (reader,    "electronTrigEffLeg1MC");
+    TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg2_  (reader,    "electronFiredLeg2");
+    TTreeReaderValue    <vector<Float_t>>   elecEffL2Data_  (reader,    "electronTrigEffLeg2Data");
+    TTreeReaderValue    <vector<Float_t>>   elecEffL2MC_    (reader,    "electronTrigEffLeg2MC");
 
     cout << "Loaded branches" << endl;
 
@@ -307,31 +297,6 @@ void RecoSelection( const TString suffix,           const TString id,
         cout << "Loaded gen branches" << endl;
     }
 
-    // ID requirements
-
-    // Only read for energy scale systematics analysis
-
-    vector<Float_t>     *muonD0 = 0,            *muonDz = 0,            *muonSIP3d = 0;
-    vector<Bool_t>      *muonIsPF = 0,          *muonIsGlobal = 0,      *muonIsTracker = 0;
-    vector<UShort_t>    *muonNMatchStn = 0;
-    vector<Short_t>     *muonBestTrackType = 0;
-
-    if (smearMuonPt)
-    {
-        inFile->GetObject("tree_" + suffix, inTree);
-
-        inTree->SetBranchAddress(   "muonD0",                       &muonD0);
-        inTree->SetBranchAddress(   "muonDz",                       &muonDz);
-        inTree->SetBranchAddress(   "muonSIP3d",                    &muonSIP3d);
-        inTree->SetBranchAddress(   "muonIsPF",                     &muonIsPF);
-        inTree->SetBranchAddress(   "muonIsGlobal",                 &muonIsGlobal);
-        inTree->SetBranchAddress(   "muonIsTracker",                &muonIsTracker);
-        inTree->SetBranchAddress(   "muonNMatchStn",                &muonNMatchStn);
-        inTree->SetBranchAddress(   "muonBestTrackType",            &muonBestTrackType);
-
-        cout << "Loaded ID branches" << endl;
-    }
-
 
 
     //
@@ -351,7 +316,7 @@ void RecoSelection( const TString suffix,           const TString id,
     // First bin of SelectedEvents is number of generated events
     hSelectedEvents->SetBinContent(1,
                         hTotalEvents->GetBinContent(1) - 2 * hTotalEvents->GetBinContent(10));
-
+/*
     // Systematics
     TH2 *hSystematics;
     if (smearOn)
@@ -364,17 +329,7 @@ void RecoSelection( const TString suffix,           const TString id,
         histFile->GetObject("SMEAR" + idH, hSystematics);
         hSystematics->SetDirectory(outFile);
     }
-    if (YEAR_STR.EqualTo("2016"))
-    {
-        TString histName = "../data/electronTightID_SF_" + YEAR_STR + ".root";
-        TFile *histFile = TFile::Open(histName);
-
-        cout << "Opened " << histName << endl;
-
-        histFile->GetObject("EGamma_SF2D", hSystematics);
-        hSystematics->SetDirectory(outFile);
-    }
-
+*/
 
 
 
@@ -431,17 +386,13 @@ void RecoSelection( const TString suffix,           const TString id,
 
         // Quantities copied directly to output tree
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
-        nPV         = *nPV_;            met         = *met_;
-        puWeight    = *puWeight_;       genWeight   = *genWeight_;
-
-        // Quantities written out, but not read in
-        trigWeight  = 1,            idWeight    = 1;
+        genWeight   = *genWeight_;      qtWeight    = 1;                ecalWeight  = *ecalWeight_;
+        puWeight    = *puWeight_;       nPV         = *nPV_;
 
         // Quantities used in analysis, but not written out
-        bool        muonTrig    = *muonTrig_,           elecTrig    = *elecTrig_;
-        unsigned    nMuons      = *nMuons_,             nElecs      = *nElecs_;
-        unsigned    nHZZMuons   = *nHZZMuons_,          nHZZElecs   = *nHZZElecs_;
-        float       puWeight    = *puWeight_;
+        bool        muonTrig    = *muonTrig_,       elecTrig    = *elecTrig_;
+        unsigned    nMuons      = *nMuons_,         nElecs      = *nElecs_;
+        unsigned    nTightMuons = *nTightMuons_,    nTightElecs = *nTightElecs_;
 
 
 
@@ -450,6 +401,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //
 
         // Make sure data events aren't triggered twice (hmm...should be done at BLT level?)
+
         if (isData && suffix.Contains("muon"))
             elecTrig = kFALSE;
         if (isData && suffix.Contains("electron"))
@@ -461,7 +413,7 @@ void RecoSelection( const TString suffix,           const TString id,
         if (!muonTrig && !elecTrig)         // event does not pass trigger
             continue;
 
-        if (nHZZMuons < 2 && nHZZElecs < 2) // not enough HZZ-identified leptons
+        if (nTightMuons < 2 && nTightElecs < 2) // not enough HZZ-identified leptons
             continue;
 
 
@@ -476,7 +428,6 @@ void RecoSelection( const TString suffix,           const TString id,
         //
         //  SYSTEMATICS
         //
-
 /*
         // Get smudge factors from histograms and apply them before creating objects
         if (smearOn)
@@ -508,19 +459,6 @@ void RecoSelection( const TString suffix,           const TString id,
                     TLorentzVector p4 = muonP4_.At(i);
                     int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
                     (*muonEnergySF_)[i] *= 1 + hSystematics->GetBinContent(bin);
-//                  (*muonEnergySF_)[i] *= 1 - MUON_PT_SHIFT;
-
-                    // Recheck momentum-independent muon ID requirements
-                    if (    !(*muonIsHZZ_)[i]
-                        &&  fabs((*muonD0)[i])     < MUON_D0_MAX
-                        &&  fabs((*muonDz)[i])     < MUON_DZ_MAX
-                        &&  fabs((*muonSIP3d)[i])  < MUON_SIP_MAX
-                        &&  ((*muonIsGlobal)[i] || ((*muonIsTracker)[i] && (*muonNMatchStn)[i] > 0))
-                        &&  (*muonBestTrackType)[i] != MUON_BAD_TRACK
-                        &&  (*muonIsPF)[i])
-                    {
-                        (*muonIsHZZ_)[i] = kTRUE;
-                    }
                 }
             }
             else if (smearElecPt)
@@ -530,18 +468,6 @@ void RecoSelection( const TString suffix,           const TString id,
             }
         }
 */
-            if (YEAR_STR.EqualTo("2016"))
-            {
-                for (unsigned i = 0; i < nElecs; i++)
-                {
-                    TLorentzVector p4 = elecP4_.At(i);
-                    int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
-                    (*elecIDSF_)[i] *= hSystematics->GetBinContent(bin);
-                }
-                for (unsigned i = 0; i < nMuons; i++)
-                    (*muonIDSF_)[i] *= (*muonIsoSF_)[i];
-            }
-
 
 
 
@@ -559,47 +485,23 @@ void RecoSelection( const TString suffix,           const TString id,
 
         for (unsigned i = 0; i < nMuons; i++)
         {
-            if (!(*muonIsHZZ_)[i])                  // failed ID *after* Rochester correction
-                continue;                           // (remove for systematics analysis?)
-
-
-            // Double-check ID requirements after energy correction (for systematics analysis)
-            TLorentzVector  orig_p4 = muonP4_.At(i),      corr_p4;
-
-            corr_p4.SetPtEtaPhiM(orig_p4.Pt() * (*muonEnergySF_)[i],
-                                    orig_p4.Eta(), orig_p4.Phi(), orig_p4.M());
-
-            float rel_iso = (*muonIso_)[i] / corr_p4.Pt();
-
-
-            if (corr_p4.Pt() < MUON_PT_MIN)         // Pt lower than ID threshold
+            if (!(*muonIsTight_)[i])                // failed ID *after* Rochester correction
                 continue;
-
-            if (fabs(corr_p4.Eta()) > MUON_ETA_MAX) // outside detector region
-                continue;
-
-//          if (rel_iso > MUON_ISO_MAX)             // failed isolation requirement
-            if (rel_iso > MUON_TIGHT_ISO_MAX)
-                continue;                           // (okay to apply when Pt > 200 GeV?)
 
 
             // Build and store lepton object
 
             Lepton  muon;
 
-            muon.p4     = corr_p4;
-            muon.o_p4   = orig_p4;
-            muon.q      = (*muonQ_)[i];
-            muon.pdg    = -13 * muon.q;
-            muon.iso    = rel_iso;
-            muon.id_sf  = (*muonIDSF_)[i];
-
-            if (YEAR_STR.EqualTo("2016"))
-            {
-                muon.fired      = make_pair((*muonFiredLeg1_)[i],   kFALSE);
-                muon.te_data    = make_pair((*muonEffL1Data_)[i],   1);
-                muon.te_mc      = make_pair((*muonEffL1MC_)[i],     1);
-            }
+            muon.p4         = muonP4_.At(i);
+            muon.u_p4       = muonUncorrP4_.At(i);
+            muon.q          = (*muonQ_)[i];
+            muon.pdg        = -13 * muon.q;
+            muon.iso        = (*muonIso_)[i] / muon.p4.Pt();    // actually rel iso
+            muon.id_sf      = make_pair((*muonIDSF_)[i],        1);
+            muon.fired      = make_pair((*muonFiredLeg1_)[i],   (*muonFiredLeg2_)[i]);
+            muon.te_data    = make_pair((*muonEffL1Data_)[i],   (*muonEffL2Data_)[i]);
+            muon.te_mc      = make_pair((*muonEffL1MC_)[i],     (*muonEffL2MC_)[i]);
 
             muons.push_back(muon);
         }
@@ -611,49 +513,23 @@ void RecoSelection( const TString suffix,           const TString id,
 
         for (unsigned i = 0; i < nElecs; i++)
         {
-            if (!(*elecIsHZZ_)[i])                  // failed ID *after* energy correction
-                continue;                           // (remove for systematics analysis?)
-
-//          if (!(*elecPassMVA_)[i])                // failed MVA WP chosen in branch address 
-//              continue;
-
-
-            // Double-check ID requirements after energy correction (for systematics analysis)
-            TLorentzVector  orig_p4 = elecP4_.At(i);
-            TLorentzVector  corr_p4 = orig_p4 * (*elecEnergySF_)[i];
-
-            float           rel_iso = (*elecIso_)[i] / corr_p4.Pt();
-
-            if (corr_p4.Pt() < ELEC_PT_MIN)         // Pt lower than ID threshold
+            if (!(*elecIsTight_)[i])                // failed ID *after* energy correction
                 continue;
-
-            if (fabs(corr_p4.Eta()) > ELEC_ETA_MAX) // outside detector region
-                continue;
-
-//          if (rel_iso > ELEC_ISO_MAX)             // failed isolation requirement
-            if (fabs(corr_p4.Eta()) <= EB_ETA_MAX && rel_iso > EB_TIGHT_ISO_MAX)
-                continue;
-            if (fabs(corr_p4.Eta()) > EB_ETA_MAX && rel_iso > EE_TIGHT_ISO_MAX)
-                continue;                           // (okay to apply for IsoMVA?)
 
 
             // Build and store lepton object
 
             Lepton  elec;
 
-            elec.p4     = corr_p4;
-            elec.o_p4   = orig_p4;
-            elec.q      = (*elecQ_)[i];
-            elec.pdg    = -11 * elec.q;
-            elec.iso    = rel_iso;
-            elec.id_sf  = (*elecIDSF_)[i];
-
-            if (YEAR_STR.EqualTo("2016"))
-            {
-                elec.fired      = make_pair((*elecFiredLeg1_)[i],   kFALSE);
-                elec.te_data    = make_pair((*elecEffL1Data_)[i],   1);
-                elec.te_mc      = make_pair((*elecEffL1MC_)[i],     1);
-            }
+            elec.p4         = elecP4_.At(i);
+            elec.u_p4       = elecUncorrP4_.At(i);
+            elec.q          = (*elecQ_)[i];
+            elec.pdg        = -11 * elec.q;
+            elec.iso        = (*elecIso_)[i] / elec.p4.Pt();    // actually rel iso
+            elec.id_sf      = make_pair((*elecIDSF_)[i],        (*elecRecoSF_)[i]);
+            elec.fired      = make_pair((*elecFiredLeg1_)[i],   (*elecFiredLeg2_)[i]);
+            elec.te_data    = make_pair((*elecEffL1Data_)[i],   (*elecEffL2Data_)[i]);
+            elec.te_mc      = make_pair((*elecEffL1MC_)[i],     (*elecEffL2MC_)[i]);
 
             elecs.push_back(elec);
         }
@@ -665,21 +541,21 @@ void RecoSelection( const TString suffix,           const TString id,
         //
 
         sort(muons.begin(), muons.end(), DecreasingPt);
-        nHZZMuons = muons.size();
+        nTightMuons = muons.size();
         sort(elecs.begin(), elecs.end(), DecreasingPt);
-        nHZZElecs = elecs.size();
+        nTightElecs = elecs.size();
         vector<Lepton> tmp_leps = muons;
         tmp_leps.insert(tmp_leps.end(), elecs.begin(), elecs.end());
-        unsigned nHZZLeps = tmp_leps.size();
+        unsigned nTightLeps = tmp_leps.size();
 
-        if (nHZZLeps != 2 && nHZZLeps != 4) // wrong number of leptons
+        if (nTightLeps != 2 && nTightLeps != 4) // wrong number of leptons
             continue;
         
 
         hTotalEvents->Fill(7);
 
         if (print)
-            cout << "Passed lepton count requirement (" << nHZZLeps << " leps)" << endl;
+            cout << "Passed lepton count requirement (" << nTightLeps << " leps)" << endl;
 
 
 
@@ -710,7 +586,7 @@ void RecoSelection( const TString suffix,           const TString id,
         // "exitloops" at the end of the following three outer loops
 
         // Muons
-        for (unsigned j = 1; j < nHZZMuons; j++)
+        for (unsigned j = 1; j < nTightMuons; j++)
         {
             for (unsigned i = 0; i < j; i++)
             {
@@ -731,7 +607,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
         // Electrons
-        for (unsigned j = 1; j < nHZZElecs; j++)
+        for (unsigned j = 1; j < nTightElecs; j++)
         {
             for (unsigned i = 0; i < j; i++)
             {
@@ -752,9 +628,9 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
         // Apply (larger) minimum DeltaR cut to opposite-flavor leptons
-        for (unsigned i = 0; i < nHZZElecs; i++)
+        for (unsigned i = 0; i < nTightElecs; i++)
         {
-            for (unsigned j = 0; j < nHZZMuons; j++)
+            for (unsigned j = 0; j < nTightMuons; j++)
             {
                 if (elecs[i].p4.DeltaR(muons[j].p4) < OF_DR_MIN)    // failed opp-flavor DeltaR
                 {
@@ -794,13 +670,13 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if (elecTrig)                       // higher-priority electron trigger (reevaluate?)
         {
-            if      (nHZZElecs == 2 && nHZZMuons == 0)      // ee
+            if      (nTightElecs == 2 && nTightMuons == 0)      // ee
             {
                 C = EE;
 
                 z1.SetMembers(elecs[0], elecs[1]);
             }
-            else if (nHZZElecs == 2 && nHZZMuons == 2)      // 2e2m
+            else if (nTightElecs == 2 && nTightMuons == 2)      // 2e2m
             {
                 C = EM;
 
@@ -808,7 +684,7 @@ void RecoSelection( const TString suffix,           const TString id,
                 z1.SetMembers(elecs[0], elecs[1]); 
                 z2.SetMembers(muons[0], muons[1]);
             }
-            else if (nHZZElecs == 4 && nHZZMuons == 0)      // 4e
+            else if (nTightElecs == 4 && nTightMuons == 0)      // 4e
             {
                 C = E4;
 
@@ -821,13 +697,13 @@ void RecoSelection( const TString suffix,           const TString id,
 
         else if (muonTrig)                  // lower-priority muon trigger
         {
-            if      (nHZZMuons == 2 && nHZZElecs == 0)      // mumu
+            if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
             {
                 C = MM;
 
                 z1.SetMembers(muons[0], muons[1]);
             }
-            else if (nHZZMuons == 2 && nHZZElecs == 2)      // 2m2e
+            else if (nTightMuons == 2 && nTightElecs == 2)      // 2m2e
             {
                 C = ME;
 
@@ -835,7 +711,7 @@ void RecoSelection( const TString suffix,           const TString id,
                 z1.SetMembers(muons[0], muons[1]);
                 z2.SetMembers(elecs[0], elecs[1]);
             }
-            else if (nHZZMuons == 4 && nHZZElecs == 0)      // 4m
+            else if (nTightMuons == 4 && nTightElecs == 0)      // 4m
             {
                 C = M4;
 
@@ -885,7 +761,7 @@ void RecoSelection( const TString suffix,           const TString id,
             //  CHARGE REQUIREMENT
             //
 
-            if ((z1.Plus().q != 1) || (z1.Minus().q != -1))     // lepton charges are not +1 and -1
+            if ((z1.Plus().q != 1) || (z1.Minus().q != -1)) // lepton charges are not +1 and -1
                 continue;
 
             if (print)
@@ -912,11 +788,9 @@ void RecoSelection( const TString suffix,           const TString id,
             //  EVENT WEIGHT
             //
 
-            if (YEAR_STR.EqualTo("2016"))
-                trigWeight = GetSingleTriggerSF(z1.First(), z1.Second());
-
-
-            idWeight = z1.First().id_sf * z1.Second().id_sf;
+            idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
+            recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
+            trigWeight  = 1;    // FIXME
 
 
             hTotalEvents->Fill(9);
@@ -944,10 +818,10 @@ void RecoSelection( const TString suffix,           const TString id,
             //  CHARGE REQUIREMENT
             //
 
-            if ((z1.Plus().q != 1) || (z1.Minus().q != -1))     // lepton charges are not +1 and -1 
+            if ((z1.Plus().q != 1) || (z1.Minus().q != -1)) // lepton charges are not +1 and -1 
                 continue;
 
-            if ((z2.Plus().q != 1) || (z2.Minus().q != -1))     // (both extraneous for same-flavor)
+            if ((z2.Plus().q != 1) || (z2.Minus().q != -1)) // (both extraneous for same-flavor)
                 continue;
 
             if (print)
@@ -992,7 +866,6 @@ void RecoSelection( const TString suffix,           const TString id,
 
             if (z1.p4.M() < z2.p4.M())                          // mixed-flavor pairs are swapped
                 swap(z1, z2);
-//              continue;
 
             if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
                 continue;                                       // (z2's mass is bound by z1)
@@ -1008,9 +881,11 @@ void RecoSelection( const TString suffix,           const TString id,
             //  EVENT WEIGHT
             //
 
-            // FIXME trigger efficiency
-
-            idWeight = z1.First().id_sf * z1.Second().id_sf * z2.First().id_sf * z2.Second().id_sf;
+            idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
+            idWeight   *= z2.First().id_sf.first * z2.Second().id_sf.first;
+            recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
+            recoWeight *= z2.First().id_sf.second * z2.Second().id_sf.second;
+            trigWeight  = 1;    // FIXME
 
 
             hTotalEvents->Fill(9);
@@ -1048,7 +923,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
         // Set branch variables
-        weight  = genWeight * puWeight * trigWeight * idWeight;
+        weight  = genWeight * qtWeight * ecalWeight * puWeight * trigWeight * idWeight * recoWeight;
         channel = chanIdx[C];
 
         z1p4    = z1.p4;                z1pdg   = z1.pdg;
@@ -1069,8 +944,8 @@ void RecoSelection( const TString suffix,           const TString id,
         // Get gen particle info
         if (isFourLepton && isSignal && YEAR_STR.EqualTo("2017") && !smearOn)
         {
-            o_l1p4  = leps[0].o_p4;         o_l2p4  = leps[1].o_p4;
-            o_l3p4  = leps[2].o_p4;         o_l4p4  = leps[3].o_p4;
+            u_l1p4  = leps[0].u_p4;         u_l2p4  = leps[1].u_p4;
+            u_l3p4  = leps[2].u_p4;         u_l4p4  = leps[3].u_p4;
 
             hardProcMuonP4->Delete();       finalStateMuonP4->Delete();
             hardProcElectronP4->Delete();   finalStateElectronP4->Delete();
@@ -1091,7 +966,9 @@ void RecoSelection( const TString suffix,           const TString id,
 
         // Trees
         tree[C]->Fill();
-        tree[D]->Fill();
+
+        if (C > L4)                         // don't write ll tree because it's HUGE and useless
+            tree[D]->Fill();
 
 
         count++;
@@ -1135,9 +1012,10 @@ void RecoSelection( const TString suffix,           const TString id,
 
     hTotalEvents->Write();
     hSelectedEvents->Write();
+/*
     if (smearOn)
         hSystematics->Write();
-
+*/
     outFile->Purge();
     outFile->Close();
     inFile->Close();

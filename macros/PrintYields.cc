@@ -8,8 +8,8 @@
 #include "TH1.h"
 
 // Cuts
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -20,7 +20,7 @@ using namespace std;
 **  Prints event yields for each channel.
 */
 
-void PrintYields(bool useDY = kTRUE)
+void PrintYields()
 {
 
     //
@@ -151,13 +151,10 @@ void PrintYields(bool useDY = kTRUE)
     for (unsigned j = 1; j < N_MC; j++)
         mcTotal->Add(mcHist[j]);
 
-    TH1 *sigBackground = (TH1*) mcHist[2]->Clone("BackgroundEvents");
-    if (useDY)  // otherwise, omit DY background from signal calculation
-        sigBackground->Add(mcHist[DY]);
+    TH1 *sigBackground = (TH1*) mcHist[DY]->Clone("BackgroundEvents");
 
     TH1 *dyBackground = (TH1*) mcHist[ZZ]->Clone("DYBackgroundEvents");
-    dyBackground->Add(mcHist[2]);
-    for (unsigned j = 3; j < N_MC; j++)
+    for (unsigned j = 2; j < N_MC; j++)
     {
         sigBackground->Add(mcHist[j]);
         dyBackground->Add(mcHist[j]);

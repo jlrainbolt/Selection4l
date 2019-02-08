@@ -43,8 +43,7 @@ void DrawDists2l(const TString suffix)
     //  OUTPUT FILE
     //
 
-//  TString prefix  = "unscaled2l";
-    TString prefix  = "rescaled2l";
+    TString prefix  = "unscaled2l";
     TString outName = prefix + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -58,21 +57,20 @@ void DrawDists2l(const TString suffix)
 
         //          name        quantity            axis label          bins    xmin    xmax
         make_tuple( "nPV",      "nPV",              _nPV,               60,     0,      60),
-        make_tuple( "met",      "met",              _met,               40,     0,      100),
                                                                         
         // Lab frame kinematics                                         
         make_tuple( "z1m",      "z1p4.M()",         _m_(_ll),           40,     80,     100),
         make_tuple( "z1pt",     "z1p4.Pt()",        _pT_(_ll),          40,     0,      80),
         make_tuple( "z1y",      "z1p4.Rapidity()",  "y_{"+_ll+"}",      40,     -2.5,   2.5),
-        make_tuple( "z1pdg",    "z1pdg",            "",                 3,      10.5,   13.5),
+//      make_tuple( "z1pdg",    "z1pdg",            "",                 3,      10.5,   13.5),
                                                                     
         make_tuple( "l1pt",     "l1p4.Pt()",        _pT_(_l_(1)),       40,     20,     100),
         make_tuple( "l1eta",    "l1p4.Eta()",       _eta_(_l_(1)),      40,     -2.5,   2.5),
-        make_tuple( "l1pdg",    "l1pdg",            "",                 27,     -13.5,  13.5),
+//      make_tuple( "l1pdg",    "l1pdg",            "",                 27,     -13.5,  13.5),
                                                                     
         make_tuple( "l2pt",     "l2p4.Pt()",        _pT_(_l_(2)),       40,     10,     50),
         make_tuple( "l2eta",    "l2p4.Eta()",       _eta_(_l_(2)),      40,     -2.5,   2.5),
-        make_tuple( "l2pdg",    "l2pdg",            "",                 27,     -13.5,  13.5),
+//      make_tuple( "l2pdg",    "l2pdg",            "",                 27,     -13.5,  13.5),
 
         make_tuple( "dphi",     "fabs(l1p4.Phi()-l2p4.Phi())/3.141492654",
                                 "|\\Delta\\phi_{"+_ll+"}|/\\pi",        40,     -0,     2)
@@ -84,10 +82,8 @@ void DrawDists2l(const TString suffix)
     //  INPUT FILE
     //
 
-//  TString inName  = "selected_" + suffix + ".root";
-//  TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
-    TString inName  = "rescaled_" + suffix + ".root";
-    TString inPath  = inName;
+    TString inName  = "selected_" + suffix + ".root";
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -147,8 +143,7 @@ void DrawDists2l(const TString suffix)
             TString hname,  quantity,   xlabel;
             int     bins;
             float   xmin,   xmax;
-//          TString weight = "weight";
-            TString weight = "weight*rescale";
+            TString weight = "weight";
             tie(hname, quantity, xlabel, bins, xmin, xmax) = v[j];
 
 

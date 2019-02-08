@@ -16,19 +16,19 @@
 #include "TMathText.h"
 
 // Cuts
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
 
 /*
- **  StackDists2l
+ **  StackTest
  **
- **  Scales and stacks all "unscaled2l_" distributions
+ **  Scales and stacks all "unscaled2l_" distributions for Bacon sanity check
  */
 
-void StackDists2l(bool useLog = kFALSE)
+void StackTest()
 {
 
     //
@@ -47,7 +47,6 @@ void StackDists2l(bool useLog = kFALSE)
     //
 
     TString prefix  = "unscaled2l";
-//  TString prefix  = "rescaled2l";
     cout << endl << endl;
 
     // Muon file
@@ -89,6 +88,8 @@ void StackDists2l(bool useLog = kFALSE)
 
             hist->SetDirectory(0);
 
+            hist->Rebin(2);
+
             data[i][h] = hist;
         }
 
@@ -107,40 +108,31 @@ void StackDists2l(bool useLog = kFALSE)
     //  MONTE CARLO
     //
 
-    TH1 *mc[N][H][N_MC];
-    for (unsigned j = 0; j < N_MC; j++) // sample loop
-    {   
-        TString inName = prefix + "_" + MC_SUFF[j] + ".root";
-        TFile *inFile = TFile::Open(inName);
+    TH1 *mc[N][H];
+    TString inName = prefix + "_DYJetsToLL.root";
+    TFile *inFile = TFile::Open(inName);
 
-        cout << "Opened " << inName << endl;
+    cout << "Opened " << inName << endl;
 
-        for (unsigned h = 0; h < H; h++)    // distribution loop
+    for (unsigned h = 0; h < H; h++)    // distribution loop
+    {
+        TH1 *hist;
+        for (unsigned i = 1; i < N; i++)    // channel loop
         {
-            TH1 *hist;
-            for (unsigned i = 1; i < N; i++)    // channel loop
-            {
-                inFile->GetObject(selection[i] + "/" + hname[h] + "_" + MC_SUFF[j], hist);
-                hist->SetDirectory(0);
+            inFile->GetObject(selection[i] + "/" + hname[h] + "_DYJetsToLL", hist);
+            hist->SetDirectory(0);
 
-                float LUMI;
-                if      (i == MM)
-                    LUMI = MUON_TRIG_LUMI;
-                else if (i == EE)
-                    LUMI = ELEC_TRIG_LUMI * ELEC_TRIG_SF;
-                float sf = LUMI * 1000 * XSEC[j] / NGEN[j];
+            hist->Rebin(2);
+            hist->Scale(data[i][h]->Integral() / hist->Integral());
 
-                hist->Scale(sf);
-
-                mc[i][h][j] = hist;
-            }
-
-            // Placeholder for 4l histogram
-            mc[LL][h][j] = (TH1*) hist->Clone();
-            mc[LL][h][j]->Reset();
+            mc[i][h] = hist;
         }
-        inFile->Close();
+
+        // Placeholder for 2l histogram
+        mc[LL][h] = (TH1*) hist->Clone();
+        mc[LL][h]->Reset();
     }
+    inFile->Close();
     cout << "Got MC histograms" << endl << endl;
 
 
@@ -162,37 +154,12 @@ void StackDists2l(bool useLog = kFALSE)
 
 
         // Monte Carlo
-        for (unsigned j = 0; j < N_MC; j++)
-        {
-            TH1 *mc_ = (TH1*) mc[1][h][j]->Clone();
+        TH1 *mc_ = (TH1*) mc[1][h]->Clone();
 
-            for (unsigned i = 2; i < N; i++)
-                mc_->Add(mc[i][h][j]);
+        for (unsigned i = 2; i < N; i++)
+            mc_->Add(mc[i][h]);
 
-            mc[LL][h][j] = mc_;
-        }
-    }
-
-
-
-    //
-    //  ADD SAMPLES
-    //
-
-    TH1 *total[N][H];
-    for (unsigned i = 0; i < N; i++)    // channel loop
-    {
-        for (unsigned h = 0; h < H; h++)    // distribution loop
-        {
-            TH1 *total_ = (TH1*) mc[i][h][0]->Clone();
-
-            for (unsigned j = 1; j < N_MC; j++)     // sample loop
-                total_->Add(mc[i][h][j]);
-
-            total[i][h] = total_;
-            total[i][h]->Sumw2();
-            total[i][h]->SetLineColor(0);
-        }
+        mc[LL][h] = mc_;
     }
 
 
@@ -219,70 +186,14 @@ void StackDists2l(bool useLog = kFALSE)
             // Create and fill stack object
             stack[i][h] = new THStack(hname[h] + "_" + selection[i], "");
 
-            mc[i][h][ZZ]->SetTitle("");
-            mc[i][h][ZZ]->SetStats(0);
-            mc[i][h][ZZ]->SetFillColor(COLOR[ZZ]);
-            mc[i][h][ZZ]->SetLineColor(COLOR[ZZ]);
-            stack[i][h]->Add(mc[i][h][ZZ]);
-
-            for (unsigned j_ = N_MC; j_ > DY+1; j_--) // sample loop
-            {
-                unsigned j = j_ - 1;
-
-                mc[i][h][j]->SetTitle("");
-                mc[i][h][j]->SetStats(0);
-                mc[i][h][j]->SetFillColor(COLOR[j]);
-                mc[i][h][j]->SetLineColor(COLOR[j]);
-
-                stack[i][h]->Add(mc[i][h][j]);
-            }
-
-            for (unsigned j = DY; j <= DY+1; j++) // sample loop
-            {
-                mc[i][h][j]->SetTitle("");
-                mc[i][h][j]->SetStats(0);
-                mc[i][h][j]->SetFillColor(COLOR[j]);
-                mc[i][h][j]->SetLineColor(COLOR[j]);
-
-                stack[i][h]->Add(mc[i][h][j]);
-            }
+            mc[i][h]->SetTitle("");
+            mc[i][h]->SetStats(0);
+            mc[i][h]->SetFillColor(COLOR[DY]);
+            mc[i][h]->SetLineColor(COLOR[DY]);
+            mc[i][h]->SetLineWidth(0);
+            stack[i][h]->Add(mc[i][h]);
         }
     }
-
-
-
-    //
-    //  LEGEND
-    //
-
-    float LeftPosition = 0.5,       LeftMargin = 2. * lCanvasMargin - lLegendMargin;
-    float RightPosition = 1,        RightMargin = -lLegendMargin;
-    float TopPosition = 1,          TopMargin = -lLegendMargin;
-    float BottomPosition = TopPosition - 0.085 * 6;//0.065 * 6.;
-    float BottomMargin = 2. * lCanvasMargin - lLegendMargin;
-    TLegend *legend = new TLegend(LeftPosition + LeftMargin, BottomPosition - TopMargin,
-                                    TopPosition + TopMargin, TopPosition + TopMargin);
-
-    TString dentry = _sp+"\\mbox{Data}";
-    TString lentry[5] = {_sp+_Z+_to+_ll, _sp+_H, _sp+_ttbar, _sp+_V+_V, _sp+_ZZ+_to+_4l};
-    Int_t lfill[5] = {lYellow, lPurple, lGreen, lOrange, lLightBlue};
-
-    TH1D* dummy = new TH1D(dentry, "", 1, 0, 1);
-    dummy->SetMarkerColor(kBlack);
-    dummy->SetMarkerStyle(kFullCircle);
-    dummy->SetMarkerSize(2);
-    dummy->SetLineWidth(2);
-    dummy->SetLineColor(kBlack);
-    legend->AddEntry(dummy, dentry, "LP");
-
-    for (unsigned h = 0; h < 5; h++)
-    {
-        TH1D* hist = new TH1D(lentry[h], "", 1, 0, 1);
-        hist->SetFillColor(lfill[h]);
-        hist->SetLineColor(lfill[h]);
-        legend->AddEntry(hist, lentry[h], "F");
-    }
-    Facelift(legend);
 
 
 
@@ -290,9 +201,8 @@ void StackDists2l(bool useLog = kFALSE)
     //  OUTPUT FILE
     //
 
-    TString tag     = useLog ? "log" : "lin";
+    TString tag     = "test";
     TString outName = "stacks2l_" + tag + "_" + YEAR_STR + ".root";
-//  TString outName = "stacks2l_" + tag + "_rescaled_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -316,13 +226,7 @@ void StackDists2l(bool useLog = kFALSE)
             Facelift(canvas[i][h]);
             canvas[i][h]->cd();
 
-            if (useLog)
-            {
-                data[i][h]->SetMinimum(1);
-                total[i][h]->SetMinimum(1);
-            }
-
-            ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
+            ratio[i][h] = new TRatioPlot(data[i][h], mc[i][h], "divsym");
             ratio[i][h]->SetH1DrawOpt("E");
             ratio[i][h]->SetH2DrawOpt("E");
             ratio[i][h]->SetSeparationMargin(0.0);
@@ -336,7 +240,7 @@ void StackDists2l(bool useLog = kFALSE)
             Facelift(stack[i][h]);
             data[i][h]->Draw("E SAME");
 
-            float maximum = total[i][h]->GetMaximum();
+            float maximum = mc[i][h]->GetMaximum();
             if (data[i][h]->GetMaximum() > maximum)
                 maximum = data[i][h]->GetMaximum();
             data[i][h]->SetMaximum(1.1 * maximum);
@@ -348,21 +252,6 @@ void StackDists2l(bool useLog = kFALSE)
             lower->SetBottomMargin(3 * lCanvasMargin);
             lower->Modified();
 
-            legend->Draw();
-
-            if (useLog)
-            {
-                stack[i][h]->SetMinimum(1);
-                upper->SetLogy();
-            }
-/*
-            if (hname[h].EqualTo("z1pt"))
-            {
-                data[i][h]->Divide(data[i][h], total[i][h]);
-                data[i][h]->SetName("hist_" + hname[h] + "_" + selection[i]);
-                data[i][h]->Write();
-            }
-*/
             canvas[i][h]->Write();
         }
     }

@@ -26,9 +26,9 @@ struct Lepton
     unsigned            mother;             // Mother Z index
 
     // Reco quantities
-    TLorentzVector      o_p4;               // 4-momentum before scale factor ("original")
+    TLorentzVector      u_p4;               // 4-momentum before scale factor ("uncorrected")
     float               iso;                // Relative isolation
-    float               id_sf;              // ID scale factor
+    pair<float, float>  id_sf;              // Scale factors for ID/reco
     pair<bool, bool>    fired;              // Fired trigger leg1/leg2
     pair<float, float>  te_data,    te_mc;  // Trigger efficiency leg1/leg2
 
