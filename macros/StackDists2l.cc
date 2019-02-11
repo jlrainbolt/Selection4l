@@ -321,6 +321,11 @@ void StackDists2l(bool useLog = kFALSE)
                 data[i][h]->SetMinimum(1);
                 total[i][h]->SetMinimum(1);
             }
+            else
+            {
+                data[i][h]->SetMinimum(0);
+                total[i][h]->SetMinimum(0);
+            }
 
             ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
             ratio[i][h]->SetH1DrawOpt("E");

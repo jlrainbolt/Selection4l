@@ -2,58 +2,21 @@ from __future__ import print_function
 from __future__ import division
 
 import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib import rc
 
-from ROOT import TFile, TH1
+from ROOT import TFile, TH1, TKey
 
+from PlotUtils import *
+from Cuts2017 import *
 
-
-##
-## CONSTANTS (FIXME)
-##
-
-MU_SUFF = "muon_2017"
-EL_SUFF = "electron_2017"
-MC_SUFF = [ "zz_4l", "zjets_m-50", "ggH_zz_4l", "vbfH_zz_4l", "ttbar", "ww_2l2nu", "wz_2l2q",
-            "wz_3lnu", "zz_2l2q"
-            ]
-MUON_TRIG_LUMI = 36.735
-ELEC_TRIG_LUMI = 41.529
-ELEC_TRIG_SF = 0.991
-NGEN = [    6.89477e+06, 1.85093e+07, 990084, 234457, 5.64074e+07, 1.99229e+06, 1.65162e+07, 
-        6.79248e+06, 1.77959e+07
-        ]
-XSEC = [1.212, 5765.4, 0.01212, 0.001034, 831.76, 12.178, 5.595, 4.42965, 3.22]
-
-# Real transparency
-lAlpha = 0.75
-lBlue = (0, 0.4470, 0.7410, lAlpha)
-lOrange = (0.8500, 0.3250, 0.0980, lAlpha)
-lYellow = (0.9290, 0.6940, 0.1250, lAlpha)
-lPurple = (0.4940, 0.1840, 0.5560, lAlpha)
-lGreen = (0.4660, 0.6740, 0.1880, lAlpha)
-lLightBlue = (0.3010, 0.7450, 0.9330, lAlpha)
-lRed = (0.6350, 0.0780, 0.1840, lAlpha)
-
-# Fake transparency
-#lBlue = (0.25, 0.58525, 0.80575)
-#lOrange = (0.8875, 0.49375, 0.3235)
-#lYellow = (0.94675, 0.7705, 0.34375)
-#lPurple = (0.6205, 0.388, 0.667)
-#lGreen = (0.5995, 0.7555, 0.391)
-#lLightBlue = (0.47575, 0.80875, 0.94975)
-#lRed = (0.72625, 0.3085, 0.388)
-
-COLOR = [lLightBlue, lYellow, lPurple, lPurple, lGreen, lOrange, lOrange, lOrange, lOrange]
 
 
 ##
 ##  SAMPLE INFO
 ##
 
-selection = ["4m", "2m2e", "2e2m", "4e"]
+L4, M4, ME, EM, E4  = 0, 1, 2, 3, 4
+selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
+N = len(selection)
 
 
 
@@ -61,7 +24,7 @@ selection = ["4m", "2m2e", "2e2m", "4e"]
 ##  LOAD DATA
 ##
 
-prefix = "../SMPV/unscaled4l"
+prefix = "~/nobackup/Selection2017/SMPV/unscaled4l"
 
 # Muon file
 muName = prefix + "_" + MU_SUFF + ".root"
@@ -73,17 +36,34 @@ elName = prefix + "_" + EL_SUFF + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
 
-# Get histograms
-hname = "zzm"
+
+
+##
+##  GET KEYS
+##
+
+keyDir = muFile.GetDirectory("/" + selection[M4], True, "GetDirectory")
+
+hnames = []
+for key in keyDir.GetListOfKeys():
+    hname = key.GetName()
+    hnames.append(hname.replace("_" + MU_SUFF, "")
+
+H = len(hnames)
+
+
 
 hdata = []
 for sel in selection:
-    if sel == "4m" or sel == "2m2e":
-        hist = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
-    elif sel == "2e2m" or sel == "4e":
-        hist = elFile.Get(sel + "/" + hname + "_" + EL_SUFF)
-    hist.SetDirectory(0)
-    hdata.append(hist)
+    hists = []
+    for hname in hnames:
+        if sel == "4m" or sel == "2m2e":
+            hist = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
+        elif sel == "2e2m" or sel == "4e":
+            hist = elFile.Get(sel + "/" + hname + "_" + EL_SUFF)
+        hist.SetDirectory(0)
+        hists.append(hist)
+    hdata.append(hists)
 
 muFile.Close()
 elFile.Close()
@@ -112,22 +92,25 @@ for suff, xsec, ngen in zip(MC_SUFF, XSEC, NGEN):
     # Get histograms
     hmc = []
     for sel in selection:
-        hist = inFile.Get(sel + "/" + hname + "_" + suff)
-        hist.SetDirectory(0)
+        hists = []
+        for hname in hnames:
+            hist = inFile.Get(sel + "/" + hname + "_" + suff)
+            hist.SetDirectory(0)
 
-        if sel == "4m" or sel == "2m2e":
-            lumi = MUON_TRIG_LUMI
-        elif sel == "2e2m" or sel == "4e":
-            lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
-        sf = lumi * 1000 * xsec / ngen
+            if sel == "4m" or sel == "2m2e":
+                lumi = MUON_TRIG_LUMI
+            elif sel == "2e2m" or sel == "4e":
+                lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+            sf = lumi * 1000 * xsec / ngen
 
-        hist.Scale(sf)
-        hmc.append(hist)
+            hist.Scale(sf)
+            hists.append(hist)
+        hmc.append(hists)
     inFile.Close()
 
     # Add channels
     h4l = hmc[0]
-    for i in range(1, len(hmc)):
+    for i in range(1, N_MC):
         h4l.Add(hmc[i])
     mc.append(h4l)
 
@@ -136,15 +119,34 @@ print("")
 
 
 
+
+
+####
+####
+####    DISTRIBUTION LOOP
+####
+####
+
+
+
 ##
 ##  RATIO PLOT
 ##
 
-total = mc[0].Clone()
-for i in range(1, len(mc)):
-    total.Add(mc[i])
-ratio = data.Clone()
-ratio.Divide(total)
+ratios = []
+
+for i in range(N):
+    hists = []
+    for h in range(H):
+        total = mc[0].Clone()
+
+        for j in range(1, N_MC):
+            total.Add(mc[i])
+
+        ratio = hdata[i][h].Clone()
+        ratio.Divide(total)
+        hists.append(ratio)
+    ratios.append(hists)
 
 
 
@@ -197,23 +199,11 @@ for i in range(1, ratio.GetNbinsX()+1):
 ####
 
 
-##
-##  SETUP
-##
+fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
 
-# Font/TeX setup
-# (https://3diagramsperpage.wordpress.com/2015/04/11/)
-rc('text', usetex=True)
-mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}', r'\usepackage{sansmath}', 
-                                        r'\sansmath'] 
-# Figure size, aspect ratio
-mpl.rcParams["figure.figsize"] = [6, 6]
-mpl.rcParams["axes.labelsize"], mpl.rcParams["axes.titlesize"] = "xx-large", "xx-large"
-mpl.rcParams["xtick.labelsize"], mpl.rcParams["ytick.labelsize"] = "large", "large"
-
-# Subplot
-fig, (ax_top, ax_bot) = plt.subplots(2, sharex=True, gridspec_kw={'height_ratios':[3, 1]})
-fig.subplots_adjust(left=0.13, right=0.93, bottom=0.11, top = 0.91, hspace=0.05)
+fig.subplots_adjust(    left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
+                        top = lTopMargin,   hspace = lHorizSpace
+                        )
 
 
 
@@ -222,15 +212,19 @@ fig.subplots_adjust(left=0.13, right=0.93, bottom=0.11, top = 0.91, hspace=0.05)
 ##
 
 # Data
-p_data = ax_top.errorbar(x_data, y_data, yerr=yerr_data, 
-        marker='o', markersize=10, markeredgecolor='black', markerfacecolor='black',
-        linewidth=0, ecolor='black', elinewidth=2, capsize=0) 
+p_data = ax_top.errorbar(   x_data, y_data, yerr = yerr_data, 
+                            linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth,
+                            marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize,
+                            markeredgecolor = lMarkerColor,     markerfacecolor = lMarkerColor
+                            )
 
 # MC
 p_mc = []
 for i in range(0, len(mc)):
-    p_mc.append(ax_top.bar(x_mc, y_mc[i], 1.0, align='edge', color=COLOR[i], linewidth=0,
-        bottom=bot_mc[i]))
+    p_mc.append(
+                    ax_top.bar( x_mc,   y_mc[i],    1.0,            bottom=bot_mc[i],
+                                align = 'edge',     linewidth=0,    color = COLOR[i]    )
+                    )
 
 
 
@@ -239,17 +233,19 @@ for i in range(0, len(mc)):
 ##
 
 # Ratio plot
-ax_bot.errorbar(x_data, y_ratio, yerr=yerr_ratio, xerr=xerr_ratio, 
-        marker='o', markersize=10, markeredgecolor='black', markerfacecolor='black',
-        linewidth=0, ecolor='black', elinewidth=2, capsize=0) 
+ax_bot.errorbar(    x_data, y_ratio,    yerr = yerr_ratio,  xerr = xerr_ratio, 
+                    linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth,
+                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize,
+                    markeredgecolor = lMarkerColor,     markerfacecolor = lMarkerColor
+                    )
 
 # Horizontal lines
-ax_bot.axhline(1, color='black')
-ax_bot.axhline(0.8, color='black', linestyle=':')
-ax_bot.axhline(1.2, color='black', linestyle=':')
+ax_bot.axhline(lRatioUpper, color = lRatioLineColor, linestyle = ':')
+ax_bot.axhline(lRatioMid,   color = lRatioLineColor)
+ax_bot.axhline(lRatioLower, color = lRatioLineColor, linestyle = ':')
 
 # Vertical range
-ax_bot.set_ylim(0.5, 1.5)
+ax_bot.set_ylim(lRatioMin, lRatioMax)
 
 
 
@@ -262,7 +258,9 @@ ax_top.set_title(r'\textbf{CMS} \Large{\textit{Work in Progress}}', loc='left')
 ax_top.set_title(r'\Large{41.5\,fb$^{-1}$ (13\,TeV)}', loc='right')
 
 # Top y axis
-ax_top.set_ylabel(r'Events$/$GeV', horizontalalignment='right')
+#ytitle = '$' + hdata[0].GetYaxis().GetTitle() + '$'
+ytitle = "Events"
+ax_top.set_ylabel(ytitle, horizontalalignment='right')
 ax_top.yaxis.set_label_coords(-0.08, 1)
 
 # Bottom y axis
@@ -270,7 +268,8 @@ ax_bot.set_ylabel(r'Data$/$MC')
 ax_bot.yaxis.set_label_coords(-0.08, 0.5)
 
 # Shared x axis
-ax_bot.set_xlabel(r'$m_{4\ell}$ (GeV)', horizontalalignment='right')
+xtitle = '$' + hdata[0].GetXaxis().GetTitle() + '$'
+ax_bot.set_xlabel(xtitle, horizontalalignment='right')
 ax_bot.xaxis.set_label_coords(1, -0.3)
 plt.xticks(np.arange(x_mc[0], x_mc[-1]+2, step=2))
 

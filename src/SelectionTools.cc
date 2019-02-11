@@ -1,6 +1,7 @@
 // STL
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 // ROOT
 #include "TLorentzVector.h"
@@ -188,35 +189,40 @@ bool MakePairsMaxDiff(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2
 
 
 
+
+
 ////
 ////
-////    TRIGGER SF
+////    TRIGGER WEIGHT
 ////
 ////
 
 
-//
-//  SINGLE LEPTON
-//
-
-float GetSingleTriggerSF(const Lepton& lep1, const Lepton& lep2)
+float GetTriggerWeight(const vector<Lepton> &leps)
 {
-    float sf = 1;
+    pair<float, float> data(1, 1), mc(1, 1);
 
-    // Only lepton 1 triggered
-    if      (lep1.fired.first && !lep2.fired.first)
-        sf = lep1.te_data.first / lep1.te_mc.first;
-
-    // Only lepton 2 triggered
-    else if (lep2.fired.first && !lep1.fired.first)
-        sf = lep2.te_data.first / lep2.te_mc.first;
-
-    // Both leptons triggered
-    else if (lep1.fired.first && lep2.fired.first)
+    for (unsigned i = 1; i < leps.size(); i++)
     {
-        sf = 1. - (1. - lep1.te_data.first) * (1. - lep2.te_data.first);
-        sf /= 1. - (1. - lep1.te_mc.first) * (1. - lep2.te_mc.first);
+        if (leps[i].fired.first)
+        {
+            data.first  *= 1. - leps[i].te_data.first;
+            mc.first    *= 1. - leps[i].te_mc.first;
+        }
+
+        if (leps[i].fired.second)
+        {
+            data.second *= 1. - leps[i].te_data.second;
+            mc.second   *= 1. - leps[i].te_mc.second;
+        }
     }
 
-    return sf;
+    float eff1 = (1. - data.first)  / (1. - mc.first);
+    float eff2 = (1. - data.second) / (1. - mc.second);
+    float eff = eff1 * eff2;
+
+    if (isfinite(eff))
+        return eff;
+    else
+        return 1;
 }

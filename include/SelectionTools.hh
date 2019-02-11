@@ -31,8 +31,7 @@ bool MakePairsMaxDiff(const vector<Lepton>&, LeptonPair*, LeptonPair*);
 //  SCALE FACTORS
 //
 
-// Calculate scale factor for single-lepton trigger
-float GetSingleTriggerSF(const Lepton&, const Lepton&);
+float GetTriggerWeight(const vector<Lepton>&);
 
 
 

@@ -8,6 +8,7 @@
 #include "TString.h"
 #include "TFile.h"
 #include "TH1.h"
+#include "TGraphAsymmErrors.h"
 #include "TTree.h"
 #include "TTreeReader.h"
 #include "TTreeReaderValue.h"
@@ -51,7 +52,7 @@ void RecoSelection( const TString suffix,           const TString id,
     //
 
     bool debug = kFALSE;
-    long selectEvents = 100;
+    long selectEvents = 10000;
     int  printEvery = 30000;
 
     // Systematics toggle
@@ -79,8 +80,17 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
 
+
+
+    ////
+    ////
+    ////    OUTPUT
+    ////
+    ////
+
+
     //
-    //  OUTPUT FILE
+    //  FILE
     //
 
     TString prefix  = smearOn ? systematics + idH : "selected";
@@ -94,7 +104,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
     //
-    //  OUTPUT BRANCHES
+    //  BRANCHES
     //
 
     // Event info
@@ -194,8 +204,17 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
 
+
+
+    ////
+    ////
+    ////    INPUT
+    ////
+    ////
+
+
     //
-    //  INPUT FILE
+    //  FILE
     //
 
     TString inName  = suffix + "_" + id + ".root";
@@ -207,7 +226,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
     //
-    //  INPUT BRANCHES
+    //  BRANCHES
     //
 
     TTreeReader reader("tree_" + suffix, inFile);
@@ -300,6 +319,35 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
     //
+    //  DATA
+    //
+
+    // Dilepton Qt reweighting
+    TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
+    TFile *graphFile = TFile::Open(graphName);
+
+    TGraphAsymmErrors *qtGraph[2];
+    graphFile->GetObject(selection[EE] + "_weight", qtGraph[0]);    // ee: muonPairLeads = 0
+    graphFile->GetObject(selection[MM] + "_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
+
+    graphFile->Close();
+/*
+    // Systematics
+    TH2 *hSystematics;
+    if (smearOn)
+    {
+        TString histName = "../data/" + systematics + "_smear_" + YEAR_STR + ".root";
+        TFile *histFile = TFile::Open(histName);
+
+        cout << "Opened " << histName << endl;
+
+        histFile->GetObject("SMEAR" + idH, hSystematics);
+        hSystematics->SetDirectory(0);
+    }
+*/
+
+
+    //
     //  HISTOGRAMS
     //
 
@@ -316,20 +364,6 @@ void RecoSelection( const TString suffix,           const TString id,
     // First bin of SelectedEvents is number of generated events
     hSelectedEvents->SetBinContent(1,
                         hTotalEvents->GetBinContent(1) - 2 * hTotalEvents->GetBinContent(10));
-/*
-    // Systematics
-    TH2 *hSystematics;
-    if (smearOn)
-    {
-        TString histName = "../data/" + systematics + "_smear_" + YEAR_STR + ".root";
-        TFile *histFile = TFile::Open(histName);
-
-        cout << "Opened " << histName << endl;
-
-        histFile->GetObject("SMEAR" + idH, hSystematics);
-        hSystematics->SetDirectory(outFile);
-    }
-*/
 
 
 
@@ -733,7 +767,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //
 
         // false => elecPairLeads
-        const bool  muonPairLeads   = ((C == MM) || (C == ME) || (C == M4));
+        bool muonPairLeads = ((C == MM) || (C == ME) || (C == M4));
 
         const float LEP_PT1_MIN     = muonPairLeads ? MUON_PT1_MIN  : ELEC_PT1_MIN;
         const float LEP_PT2_MIN     = muonPairLeads ? MUON_PT2_MIN  : ELEC_PT2_MIN;
@@ -788,9 +822,12 @@ void RecoSelection( const TString suffix,           const TString id,
             //  EVENT WEIGHT
             //
 
+            unsigned Q  = muonPairLeads;
+            qtWeight    = qtGraph[Q]->Eval(z1.p4.Pt());
+            trigWeight  = GetTriggerWeight(z1.GetMembers());
+
             idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
             recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
-            trigWeight  = 1;    // FIXME
 
 
             hTotalEvents->Fill(9);
@@ -831,6 +868,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
             //
             //  PT REQUIREMENTS
+            //  &
+            //  TRIGGER WEIGHT
             //
 
             if (isMixedFlavor)  // z1 leptons are triggered
@@ -840,6 +879,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
                 if (z1.Second().p4.Pt() < LEP_PT2_MIN)
                     continue;
+
+                trigWeight = GetTriggerWeight(z1.GetMembers());
             }
             else                // triggered leptons could be in either pair
             {
@@ -853,6 +894,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
                 if (all_leps[1].p4.Pt() < LEP_PT2_MIN)  // no lepton passes Pt2 threshold
                     continue;
+
+                trigWeight = GetTriggerWeight(all_leps);
             }
 
             if (print)
@@ -865,7 +908,10 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             if (z1.p4.M() < z2.p4.M())                          // mixed-flavor pairs are swapped
+            {
                 swap(z1, z2);
+                muonPairLeads = !muonPairLeads;
+            }
 
             if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
                 continue;                                       // (z2's mass is bound by z1)
@@ -881,11 +927,14 @@ void RecoSelection( const TString suffix,           const TString id,
             //  EVENT WEIGHT
             //
 
+            TLorentzVector zzp4 = z1.p4 + z2.p4;
+            unsigned Q  = muonPairLeads;
+            qtWeight    = qtGraph[Q]->Eval(zzp4.Pt());
+
             idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
             idWeight   *= z2.First().id_sf.first * z2.Second().id_sf.first;
             recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
             recoWeight *= z2.First().id_sf.second * z2.Second().id_sf.second;
-            trigWeight  = 1;    // FIXME
 
 
             hTotalEvents->Fill(9);
@@ -980,8 +1029,6 @@ void RecoSelection( const TString suffix,           const TString id,
     //
     //  PRINT RESULTS
     //
-
-    int nSelected = tree[LL]->GetEntries() + tree[L4]->GetEntries(); 
 
     cout << endl << endl;
     cout << "Done!" << endl;
