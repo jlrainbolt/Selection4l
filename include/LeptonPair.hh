@@ -55,6 +55,10 @@ struct LeptonPair
     void SetBoostedP4(const TVector3&, const TVector3&);// Also sets matched boost
 
 
+    // Other
+    bool BlindCharges(const float);                     // Swap member charges (for blinding)
+
+
     // Protected attributes
     private:        pair<Lepton, Lepton> leptons;       // STD pair of member leptons
 };

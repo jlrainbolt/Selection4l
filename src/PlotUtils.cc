@@ -72,8 +72,6 @@ void Facelift(THStack *stack)
     stack->GetYaxis()->SetTitleFont(lHelveticaMediumR);
     stack->GetYaxis()->SetTitleSize(lLarge);
     stack->GetYaxis()->SetTitleOffset(lTitleOffsetY);
-
-//  gPad->Modified();
 }
 
 // TLegend

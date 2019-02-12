@@ -188,6 +188,7 @@ void StackDists4l(bool scaleAccEff = kFALSE, bool scaleWidth = kFALSE)
                     LUMI = ELEC_TRIG_LUMI * ELEC_TRIG_SF;
                 float sf = LUMI * 1000 * XSEC[j] / NGEN[j];
 
+                cout << sf << endl;
                 hist->Scale(sf);
                 if (scaleAccEff)
                     hist->Divide(ae[i][h]);
@@ -250,7 +251,7 @@ void StackDists4l(bool scaleAccEff = kFALSE, bool scaleWidth = kFALSE)
         // Data
         data[L4][h] = (TH1*) data[M4][h]->Clone();
         data[L4][h]->Sumw2();
-        data[L4][h]->GetXaxis()->SetTitle(data[EM][h]->GetXaxis()->GetTitle());
+        data[L4][h]->GetXaxis()->SetTitle(mc[EM][h][ZZ]->GetXaxis()->GetTitle());   // FIXME
 
         data[L4][h]->Add(data[ME][h]);
         data[L4][h]->Add(data[E4][h]);
@@ -304,13 +305,9 @@ void StackDists4l(bool scaleAccEff = kFALSE, bool scaleWidth = kFALSE)
             total[i][h]->Sumw2();
             total[i][h]->SetLineColor(0);
 
-            // DRELL-YAN EXLUDED
+            // DRELL-YAN EXCLUDED
             for (unsigned j = 2; j < N_MC; j++)     // sample loop
-            {
-//              if ((i == E4) && (mc[i][h][j]->GetNbinsX() == 20))
-//                  mc[i][h][j]->Rebin(2);
                 total[i][h]->Add(mc[i][h][j]);
-            }
 
             if ((i == E4) && (total[i][h]->GetNbinsX() == 20))
                 total[i][h]->Rebin(2);
@@ -470,8 +467,8 @@ void StackDists4l(bool scaleAccEff = kFALSE, bool scaleWidth = kFALSE)
 
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
-            ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.8);
-            ratio[i][h]->GetLowerRefGraph()->SetMaximum(1.2);
+            ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.5);
+            ratio[i][h]->GetLowerRefGraph()->SetMaximum(1.5);
             lower->SetBottomMargin(3 * lCanvasMargin);
             lower->Modified();
 

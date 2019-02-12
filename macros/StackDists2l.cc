@@ -28,7 +28,7 @@ using namespace std;
  **  Scales and stacks all "unscaled2l_" distributions
  */
 
-void StackDists2l(bool useLog = kFALSE)
+void StackDists2l(const TString tag, bool useLog = kFALSE)
 {
 
     //
@@ -40,14 +40,11 @@ void StackDists2l(bool useLog = kFALSE)
     TString selection[N]    = { "ll",   "mumu", "ee"};
     unsigned chanIdx[N]     = { 2,      3,      4};
 
-
-
     //
     //  DATA
     //
 
-    TString prefix  = "unscaled2l";
-//  TString prefix  = "rescaled2l";
+    TString prefix  = "2l_" + tag;
     cout << endl << endl;
 
     // Muon file
@@ -290,9 +287,7 @@ void StackDists2l(bool useLog = kFALSE)
     //  OUTPUT FILE
     //
 
-    TString tag     = useLog ? "log" : "lin";
     TString outName = "stacks2l_" + tag + "_" + YEAR_STR + ".root";
-//  TString outName = "stacks2l_" + tag + "_rescaled_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -327,6 +322,8 @@ void StackDists2l(bool useLog = kFALSE)
                 total[i][h]->SetMinimum(0);
             }
 
+            data[i][h]->GetXaxis()->SetTitle(mc[i][h][DY]->GetXaxis()->GetTitle()); //FIXME
+
             ratio[i][h] = new TRatioPlot(data[i][h], total[i][h], "divsym");
             ratio[i][h]->SetH1DrawOpt("E");
             ratio[i][h]->SetH2DrawOpt("E");
@@ -335,9 +332,10 @@ void StackDists2l(bool useLog = kFALSE)
 
             TPad *upper = ratio[i][h]->GetUpperPad(), *lower = ratio[i][h]->GetLowerPad();
             upper->cd();
+            upper->SetLeftMargin(1.5 * lCanvasMargin);
 
             stack[i][h]->Draw("HIST SAME");
-            stack[i][h]->GetXaxis()->SetTitle(data[i][h]->GetXaxis()->GetTitle());
+            stack[i][h]->GetYaxis()->SetTitle(mc[i][h][DY]->GetYaxis()->GetTitle());
             Facelift(stack[i][h]);
             data[i][h]->Draw("E SAME");
 
@@ -345,12 +343,16 @@ void StackDists2l(bool useLog = kFALSE)
             if (data[i][h]->GetMaximum() > maximum)
                 maximum = data[i][h]->GetMaximum();
             data[i][h]->SetMaximum(1.1 * maximum);
+            upper->Modified();
   
+            ratio[i][h]->GetLowerRefYaxis()->SetTitle("Data/MC");
             Facelift(ratio[i][h]->GetLowerRefXaxis());
             Facelift(ratio[i][h]->GetLowerRefYaxis());
+            ratio[i][h]->GetLowerRefYaxis()->SetTitleOffset(lTitleOffsetY);
             ratio[i][h]->GetLowerRefGraph()->SetMinimum(0.8);
             ratio[i][h]->GetLowerRefGraph()->SetMaximum(1.2);
             lower->SetBottomMargin(3 * lCanvasMargin);
+            lower->SetLeftMargin(1.5 * lCanvasMargin);
             lower->Modified();
 
             legend->Draw();
@@ -360,14 +362,7 @@ void StackDists2l(bool useLog = kFALSE)
                 stack[i][h]->SetMinimum(1);
                 upper->SetLogy();
             }
-/*
-            if (hname[h].EqualTo("z1pt"))
-            {
-                data[i][h]->Divide(data[i][h], total[i][h]);
-                data[i][h]->SetName("hist_" + hname[h] + "_" + selection[i]);
-                data[i][h]->Write();
-            }
-*/
+
             canvas[i][h]->Write();
         }
     }

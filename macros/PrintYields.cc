@@ -5,7 +5,7 @@
 // ROOT
 #include "TString.h"
 #include "TFile.h"
-#include "TH1.h"
+#include "TTree.h"
 
 // Cuts
 #include "Cuts2017.hh"
@@ -39,7 +39,7 @@ void PrintYields()
 
     ////
     ////
-    ////    FILL HISTOGRAMS
+    ////    READ TREES
     ////
     ////
 
@@ -53,35 +53,40 @@ void PrintYields()
     //  DATA
     //
 
+    float data[N];
+
     // Muon file
     TString muName = inPath + prefix + "_" + MU_SUFF + ".root";
     TFile *muFile = TFile::Open(muName);
     cout << "Opened " << muName << endl;
-
-    TH1 *muHist;
-    muFile->GetObject("SelectedEvents_" + MU_SUFF, muHist);
-    muHist->SetDirectory(0);    
-    muHist->Sumw2();
-    muFile->Close();
-
 
     // Electron file
     TString elName = inPath + prefix + "_" + EL_SUFF + ".root";
     TFile *elFile = TFile::Open(elName);
     cout << "Opened " << elName << endl;
 
-    TH1 *elHist;
-    elFile->GetObject("SelectedEvents_" + EL_SUFF, elHist);
-    elHist->SetDirectory(0);    
-    elHist->Sumw2();
+    for (unsigned i = 0; i < N; i++)
+    {
+        TTree *tree;
+
+        if      ((i == LL) || (i == L4))
+            continue;
+        else if ((i == MM) || (i == M4) || (i == ME))
+            muFile->GetObject(selection[i] + "_" + MU_SUFF, tree);
+        else if ((i == EE) || (i == E4) || (i == EM))
+            elFile->GetObject(selection[i] + "_", tree);
+
+        data[i] = tree->GetEntries();
+        cout << data[i] << ", ";
+    }
+    cout << endl;
+
+    muFile->Close();
     elFile->Close();
 
 
-    TH1 *dataHist = (TH1*) muHist->Clone("SelectedEvents_data_" + YEAR_STR);
-    dataHist->Add(elHist);
 
-
-
+/*
     //
     //  MONTE CARLO
     //
@@ -265,4 +270,5 @@ void PrintYields()
         texFile.close();
         cout << "Wrote LaTeX table to " << texName << endl;
     }
+*/
 }

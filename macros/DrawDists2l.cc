@@ -24,7 +24,7 @@ using namespace std;
 **  Draws UNSCALED distributions for a "selected_" sample
 */ 
 
-void DrawDists2l(const TString suffix)
+void DrawDists2l(const TString suffix, const TString tag)
 {
 
     //
@@ -43,8 +43,8 @@ void DrawDists2l(const TString suffix)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "unscaled2l";
-    TString outName = prefix + "_" + suffix + ".root";
+    TString prefix  = "2l";
+    TString outName = prefix + "_" + tag + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -56,7 +56,7 @@ void DrawDists2l(const TString suffix)
     vector<tuple<TString, TString, TString, TString, Int_t, Double_t, Double_t>> v = {
 
         //          name        quantity        x label         unit        bins    xmin    xmax
-        make_tuple( "nPV",      "nPV",          _nPV,           "count",    60,     0,      60),
+        make_tuple( "nPV",      "nPV",          _nPV,           _unit,      60,     0,      60),
                                                                     
         // Lab frame kinematics                                     
         make_tuple( "z1m",      "z1p4.M()",     _m_(_ll),       _GeV,       40,     80,     100),
@@ -140,7 +140,7 @@ void DrawDists2l(const TString suffix)
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight";
+            TString weight = "weight/trigWeight/qtWeight";
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 
 

@@ -98,23 +98,23 @@ const TString   _sp     = "\\,";
 const TString   _psi    = "\\psi";
 const TString   _phi    = "\\phi";
 const TString   _sinphi = "\\sin\\phi";
-const TString   _beta   = "\\beta\\ (" + _rad + ")";
+const TString   _beta   = "\\beta\\ (" + _pirad + ")";
 
 
 TString _PWZto( const TString   chan)   {return "\\Gamma_{" + _Z + _to + chan + "}";}
 TString _BFZto( const TString   chan)   {return "\\mathcal{B}(\\" + _Z + _to + chan + ")";}
-TString _pT_(   const TString   x)      {return "p_{\\mbox{T}}^{" + x + "}";}
-TString _p_(    const TString   x)      {return "p_{" + x + "}";}
+TString _pT_(   const TString   x)      {return "p_{\\mbox{T}}^{" + x + "}\\ (" + _GeV + ")";}
+TString _p_(    const TString   x)      {return "p_{" + x + "}\\ (" + _GeV + ")";}
 TString _l_(    const TString   x)      {return _l + "_{" + x + "}";}
 TString _y_(    const TString   x)      {return "y_{" + x + "}";}
 TString _l_(    const unsigned  n)      {return _l_(TString::Format("%u", n));}
-TString _m_(    const TString   x)      {return "m_{" + x + "}";}
+TString _m_(    const TString   x)      {return "m_{" + x + "}\\ (" + _GeV + ")";}
 TString _eta_(  const TString   x)      {return "\\eta_{" + x + "}";}
 TString _iso_(  const TString   x)      {return "\\mbox{RelPFIso}_{" + x + "}";}
 TString _costheta_(const TString x)     {return "\\cos\\theta_{" + x + "}";}
 TString _coszeta_(const TString x)      {return "\\cos\\zeta_{" + x + "}";}
-TString _alpha_(const TString   x)      {return "\\alpha_{" + x + "}";}
-TString _dphi_( const TString   x)      {return "|\\Delta\\_{" + x + "}|";}
+TString _alpha_(const TString   x)      {return "\\alpha_{" + x + "}\\ (" + _pirad + ")";}
+TString _dphi_( const TString   x)      {return "|\\Delta\\phi_{" + x + "}|";}
 
 TString _EventsPer(const float n, const TString unit)
 {

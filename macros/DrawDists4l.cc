@@ -8,7 +8,6 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
-#include "TError.h"
 
 // Custom
 #include "Cuts2017.hh"
@@ -22,16 +21,8 @@ using namespace std;
 **  Draws UNSCALED distributions for a "boosted_" sample
 */ 
 
-void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
+void DrawDists4l(const TString suffix)
 {
-
-    //
-    //  OPTIONS
-    //
-
-    gErrorIgnoreLevel = kWarning;
-    int rebinFactor = 5;
-
 
     //
     //  SAMPLE INFO
@@ -63,7 +54,7 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
 
         //          name            quantity         axis label             bins    xmin    xmax
         make_tuple( "channel",      "channel",       "",                    4,      5.5,    9.5),
-//      make_tuple( "nPV",          "nPV",           _nPV,                  20,     0,      60),
+        make_tuple( "nPV",          "nPV",           _nPV,                  20,     0,      60),
 
         // Lab frame kinematics
         make_tuple( "zzm",          "zzp4.M()",      _m_(_4l),              20,     80,     100),
@@ -139,8 +130,7 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
 
     TString inName  = "boosted_" + suffix + ".root";
     TString inPath  = HOME_PATH + "/Boosted/" + YEAR_STR + "/" + inName;
-//  TFile   *inFile = TFile::Open(inPath);
-    TFile   *inFile = TFile::Open(inName);
+    TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
 
@@ -199,27 +189,19 @@ void DrawDists4l(const TString suffix, bool fineBins = kFALSE)
             TString hname,  quantity,   xlabel;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight";
+            TString weight = "weight/trigWeight";
             tie(hname, quantity, xlabel, bins, xmin, xmax) = v[j];
 
 
             // Create and draw histogram
-//          TH1D *h = new TH1D(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
-            TH1D *h = new TH1D(hname + "_" + suffix, "", 2*bins, xmin, xmax);
+            TH1D *h = new TH1D(hname + "_" + suffix, "", bins, xmin, xmax);
             tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
 
             xlabel.ReplaceAll(_l, lepChan[i]);
             h->GetXaxis()->SetTitle(xlabel);
-//          h->Sumw2(kTRUE);
+            h->Sumw2(kTRUE);
             h->SetStats(0);
-            h->SetFillColor(lLightBlue);
-            h->SetLineColor(lLightBlue);
             h->Write();
-
-            TCanvas *c = new TCanvas("c_" + hname + "_" + suffix, "", 800, 800);
-            c->cd();
-            h->Draw("HIST");
-            c->Write();
         }
 
         cout << "done!" << endl;

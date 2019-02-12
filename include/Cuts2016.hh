@@ -15,6 +15,8 @@ const TString   YEAR_STR = "2016";
 const TString   EOS_PATH = "root://cmseos.fnal.gov//store/user/jrainbol";
 const TString   HOME_PATH = "/uscms/home/jrainbol/nobackup";
 
+const unsigned  RNG_SEED = 2016;
+
 
 
 //

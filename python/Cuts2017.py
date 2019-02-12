@@ -1,3 +1,5 @@
+from __future__ import division
+
 from PlotUtils import *
 
 ##
@@ -15,7 +17,7 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 ##
 
 # Muon trigger lumi doesn't include 2017B
-MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 36.735, 45.529, 0.991
+MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 36.735, 41.529, 0.991
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
 # Event numbers from DAS, negative fractions from XSDB (FIXME?)
@@ -33,16 +35,26 @@ NGEN_WZ_2L2Q,       XSEC_WZ_2L2Q        =   27582164  * (1 - 2 * 0.2006),       
 NGEN_WZ_3LNU,       XSEC_WZ_3LNU        =   10881896  * (1 - 2 * 0.1879),             4.42965
 NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        =   27840918  * (1 - 2 * 0.1804),             3.22
 
-N_MC, ZZ, DY = 9, 0, 1
-MC_SUFF = [ "zz_4l",            "zjets_m-50",       "ggH_zz_4l",
-            "vbfH_zz_4l",       "ttbar",            "ww_2l2nu",
-            "wz_2l2q",          "wz_3lnu",          "zz_2l2q"       ]
-NGEN    = [ NGEN_ZZ_4L,         NGEN_ZJETS_M50,     NGEN_GGH_ZZ_4L,
-            NGEN_VBFH_ZZ_4L,    NGEN_TTBAR,         NGEN_WW_2L2NU,
-            NGEN_WZ_2L2Q,       NGEN_WZ_3LNU,       NGEN_ZZ_2L2Q    ]
-XSEC    = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,     XSEC_GGH_ZZ_4L,
-            XSEC_VBFH_ZZ_4L,    XSEC_TTBAR,         XSEC_WW_2L2NU,
-            XSEC_WZ_2L2Q,       XSEC_WZ_3LNU,       XSEC_ZZ_2L2Q    ]
-COLOR   = [ lLightBlue,         lYellow,            lPurple,
-            lPurple,            lGreen,             lOrange,
-            lOrange,            lOrange,            lOrange         ]
+N_MC = 9
+MC_SUFF = [ "zjets_m-50",               "ttbar",                        "ww_2l2nu",
+            "wz_2l2q",                  "wz_3lnu",                      "zz_2l2q",
+            "zz_4l",                    "vbfH_zz_4l",                   "ggH_zz_4l"
+            ]
+XSEC    = { "zz_4l":XSEC_ZZ_4L,         "zjets_m-50":XSEC_ZJETS_M50,    "ggH_zz_4l":XSEC_GGH_ZZ_4L,
+            "vbfH_zz_4l":XSEC_VBFH_ZZ_4L,   "ttbar":XSEC_TTBAR,         "ww_2l2nu":XSEC_WW_2L2NU,
+            "wz_2l2q":XSEC_WZ_2L2Q,     "wz_3lnu":XSEC_WZ_3LNU,         "zz_2l2q":XSEC_ZZ_2L2Q
+            }
+NGEN    = { "zz_4l":NGEN_ZZ_4L,         "zjets_m-50":NGEN_ZJETS_M50,    "ggH_zz_4l":NGEN_GGH_ZZ_4L,
+            "vbfH_zz_4l":NGEN_VBFH_ZZ_4L,   "ttbar":NGEN_TTBAR,         "ww_2l2nu":NGEN_WW_2L2NU,
+            "wz_2l2q":NGEN_WZ_2L2Q,     "wz_3lnu":NGEN_WZ_3LNU,         "zz_2l2q":NGEN_ZZ_2L2Q
+            }
+COLOR   = { lLightBlue:"zz_4l",         lYellow:"zjets_m-50",           lPurple:"ggH_zz_4l",
+            lPurple:"vbfH_zz_4l",       lGreen:"ttbar",                 lOrange:"ww_2l2nu",
+            lOrange:"wz_2l2q",          lOrange:"wz_3lnu",              lOrange:"zz_2l2q"
+            }
+MC_TEX  = { "zz_4l":r"$\ZZtofl$",                   "zjets_m-50":r"$\Ztoll$",
+            "vbfH_zz_4l":r"VBF $\PH\to\ZZtofl$",    "ggH_zz_4l":r"$\Pg\Pg$F $\PH \to \ZZtofl$",
+            "ttbar":r"$\ttbar$",                    "ww_2l2nu":r"$\WW \to 2\Pell2\PGn$",
+            "wz_2l2q":r"$\WZ \to 2\Pell2\PQq$",     "wz_3lnu":r"$\WZ \to 3\Pell\PGn$",
+            "zz_2l2q":r"$\ZZ \to 2\Pell2\PQq$"
+            }

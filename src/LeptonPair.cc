@@ -59,6 +59,7 @@ Lepton LeptonPair :: Plus() const
 
     else    // return an empty lepton :(
     {
+        cout << "sign error" << endl;
         Lepton lep;
         lep.q = 0;
         return lep;
@@ -76,6 +77,7 @@ Lepton LeptonPair :: Minus() const
 
     else    // return an empty lepton :(
     {
+        cout << "sign error" << endl;
         Lepton lep;
         lep.q = 0;
         return lep;
@@ -179,4 +181,23 @@ void LeptonPair :: SetBoostedP4(const TVector3& beta, const TVector3& m_beta)
     // Recalculate matched boost for pair
     m_b_p4 = leptons.first.m_b_p4 + leptons.second.m_b_p4;
     m_b_v3 = m_b_p4.Vect();
+}
+
+
+
+//
+//  UTILITIES
+//
+
+bool LeptonPair :: BlindCharges(const float rng)
+{
+    if (rng > 0.5)
+    {
+        leptons.first.q     *= -1;
+        leptons.second.q    *= -1;
+
+        return kTRUE;
+    }
+    else
+        return kFALSE;
 }
