@@ -50,7 +50,7 @@ void DrawDists4l(const TString suffix)
     //  HISTOGRAMS
     //
 
-    vector<tuple<TString, TString, TString, Int_t, Double_t, Double_t>> v = {
+    vector<tuple<TString, TString, TString, int, float, float>> v = {
 
         //          name            quantity         axis label             bins    xmin    xmax
         make_tuple( "channel",      "channel",       "",                    4,      5.5,    9.5),
@@ -62,64 +62,64 @@ void DrawDists4l(const TString suffix)
 
         make_tuple( "z1m",          "z1p4.M()",      _m_(_Z1),              23,     0,      92),
         make_tuple( "z1pt",         "z1p4.Pt()",     _pT_(_Z1),             20,     0,      120),
-        make_tuple( "z1pdg",        "z1pdg",         "",                    3,      10.5,   13.5),
+//      make_tuple( "z1pdg",        "z1pdg",         "",                    3,      10.5,   13.5),
 
         make_tuple( "z2m",          "z2p4.M()",      _m_(_Z2),              22,     0,      44),
         make_tuple( "z2pt",         "z2p4.Pt()",     _pT_(_Z2),             20,     0,      60),
-        make_tuple( "z2pdg",        "z2pdg",         "",                    3,      10.5,   13.5),
+//      make_tuple( "z2pdg",        "z2pdg",         "",                    3,      10.5,   13.5),
 
         make_tuple( "l1pt",         "l1p4.Pt()",     _pT_(_l_(1)),          24,     0,      120),
         make_tuple( "l1eta",        "l1p4.Eta()",    _eta_(_l_(1)),         20,     -2.5,   2.5),
-        make_tuple( "l1pdg",        "l1pdg",         "",                    27,     -13.5,  13.5),
-        make_tuple( "l1z",          "l1z",           "",                    2,      0.5,    2.5),
+//      make_tuple( "l1pdg",        "l1pdg",         "",                    27,     -13.5,  13.5),
+//      make_tuple( "l1z",          "l1z",           "",                    2,      0.5,    2.5),
 
         make_tuple( "l2pt",         "l2p4.Pt()",     _pT_(_l_(2)),          24,     0,      60),
         make_tuple( "l2eta",        "l2p4.Eta()",    _eta_(_l_(2)),         20,     -2.5,   2.5),
-        make_tuple( "l2pdg",        "l2pdg",         "",                    27,     -13.5,  13.5),
-        make_tuple( "l2z",          "l2z",           "",                    2,      0.5,    2.5),
+//      make_tuple( "l2pdg",        "l2pdg",         "",                    27,     -13.5,  13.5),
+//      make_tuple( "l2z",          "l2z",           "",                    2,      0.5,    2.5),
 
         make_tuple( "l3pt",         "l3p4.Pt()",     _pT_(_l_(3)),          20,     1,      41),
         make_tuple( "l3eta",        "l3p4.Eta()",    _eta_(_l_(3)),         20,     -2.5,   2.5),
-        make_tuple( "l3pdg",        "l3pdg",         "",                    27,     -13.5,  13.5),
-        make_tuple( "l3z",          "l3z",           "",                    2,      0.5,    2.5),
+//      make_tuple( "l3pdg",        "l3pdg",         "",                    27,     -13.5,  13.5),
+//      make_tuple( "l3z",          "l3z",           "",                    2,      0.5,    2.5),
 
         make_tuple( "l4pt",         "l4p4.Pt()",     _pT_(_l_(4)),          25,     0,      25),
         make_tuple( "l4eta",        "l4p4.Eta()",    _eta_(_l_(4)),         20,     -2.5,   2.5),
-        make_tuple( "l4pdg",        "l4pdg",         "",                    27,     -13.5,  13.5),
-        make_tuple( "l4z",          "l4z",           "",                    2,      0.5,    2.5),
+//      make_tuple( "l4pdg",        "l4pdg",         "",                    27,     -13.5,  13.5),
+//      make_tuple( "l4z",          "l4z",           "",                    2,      0.5,    2.5),
  
         // Z rest frame kinematics                                                
-        make_tuple( "b_z1p",        "b_z1p4.P()",    "",                    16,     0,      48),
-        make_tuple( "b_ttm",        "b_ttp4.M()",    _m_(_l_("2,3,4")),     15,     0,      60),
+//      make_tuple( "b_z1p",        "b_z1p4.P()",    "",                    16,     0,      48),
+        make_tuple( "b_ttm",        "b_ttp4.M()",    _m_(_l_("2,3,4")),     10,     4,      54),
                                     
-        make_tuple( "b_l1p",        "b_l1v3.Mag()",  _p_(_l_(1)),           13,     24,     50),
-        make_tuple( "b_l1pdg",      "b_l1pdg",       "",                    27,     -13.5,  13.5),
-        make_tuple( "b_l1z",        "b_l1z",         "",                    2,      0.5,    2.5),
-                                    
-        make_tuple( "b_l2p",        "b_l2v3.Mag()",  _p_(_l_(2)),           15,     15,     45),
-        make_tuple( "b_l2pdg",      "b_l2pdg",       "",                    27,     -13.5,  13.5),
-        make_tuple( "b_l2z",        "b_l2z",         "",                    2,      0.5,    2.5),
-                                    
-        make_tuple( "b_l3p",        "b_l3v3.Mag()",  _p_(_l_(3)),           12,     2,      26),
-        make_tuple( "b_l3pdg",      "b_l3pdg",       "",                    27,     -13.5,  13.5),
-        make_tuple( "b_l3z",        "b_l3z",         "",                    2,      0.5,    2.5),
-                                    
-        make_tuple( "b_l4p",        "b_l4v3.Mag()",  _p_(_l_(4)),           14,     0,      21),
-        make_tuple( "b_l4pdg",      "b_l4pdg",       "",                    27,     -13.5,  13.5),
-        make_tuple( "b_l4z",        "b_l4z",         "",                    2,      0.5,    2.5),
+        make_tuple( "b_l1p",        "b_l1v3.Mag()",  _p_(_l_(1)),           10,     25,     50),
+//      make_tuple( "b_l1pdg",      "b_l1pdg",       "",                    27,     -13.5,  13.5),
+//      make_tuple( "b_l1z",        "b_l1z",         "",                    2,      0.5,    2.5),
+//                                  
+//      make_tuple( "b_l2p",        "b_l2v3.Mag()",  _p_(_l_(2)),           15,     15,     45),
+//      make_tuple( "b_l2pdg",      "b_l2pdg",       "",                    27,     -13.5,  13.5),
+//      make_tuple( "b_l2z",        "b_l2z",         "",                    2,      0.5,    2.5),
+//                                  
+//      make_tuple( "b_l3p",        "b_l3v3.Mag()",  _p_(_l_(3)),           12,     2,      26),
+//      make_tuple( "b_l3pdg",      "b_l3pdg",       "",                    27,     -13.5,  13.5),
+//      make_tuple( "b_l3z",        "b_l3z",         "",                    2,      0.5,    2.5),
+//                                  
+//      make_tuple( "b_l4p",        "b_l4v3.Mag()",  _p_(_l_(4)),           14,     0,      21),
+//      make_tuple( "b_l4pdg",      "b_l4pdg",       "",                    27,     -13.5,  13.5),
+//      make_tuple( "b_l4z",        "b_l4z",         "",                    2,      0.5,    2.5),
                         
                         
         // Observables      
-        make_tuple( "psi",              "psi",              _psi,           20,     -5000,  5000),
+//      make_tuple( "psi",              "psi",              _psi,           20,     -5000,  5000),
         make_tuple( "sin_phi",          "sin_phi",          _sinphi,        20,     -1,     1),
         make_tuple( "sin_phi_2",        "sin_phi",          _sinphi,        2,      -1,     1),
         make_tuple( "cos_theta_z1",     "cos_theta_z1",     _costheta_(_Z1),10,     -1,     1),
         make_tuple( "cos_theta_z2",     "cos_theta_z2",     _costheta_(_Z2),10,     -1,     1),
         make_tuple( "cos_zeta_z1",      "cos_zeta_z1",      _coszeta_(_Z1), 10,     -1,     1),
         make_tuple( "cos_zeta_z2",      "cos_zeta_z2",      _coszeta_(_Z2), 10,     -1,     1),
-        make_tuple( "angle_z1leps",     "angle_z1leps/3.14",_alpha_(_Z1),   12,     0,      1),
+        make_tuple( "angle_z1leps",     "angle_z1leps/3.14",_alpha_(_Z1),   10,     0,      1),
         make_tuple( "angle_z2leps",     "angle_z2leps/3.14",_alpha_(_Z2),   10,     0,      1),
-        make_tuple( "angle_z1l2_z2",    "angle_z1l2_z2/3.14",   _beta,      15,     0,      1)
+        make_tuple( "angle_z1l2_z2",    "angle_z1l2_z2/3.14",   _beta,      10,     0,      1)
     };
 
 

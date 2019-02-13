@@ -8,8 +8,8 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
-#include "TMath.h"
-//#include "TError.h"
+#include "TCanvas.h"
+#include "TLine.h"
 
 // Custom
 #include "Cuts2017.hh"
@@ -23,17 +23,8 @@ using namespace std;
 **  Draws resolution of distributions for a "matched_" sample
 */ 
 
-void DrawResolution(const bool scale = kFALSE)
+void DrawResolution()
 {
-
-    //
-    //  OPTIONS
-    //
-
-//  gErrorIgnoreLevel = kError;
-    const double PI = TMath::Pi();
-
-
 
     //
     //  SAMPLE INFO
@@ -53,8 +44,7 @@ void DrawResolution(const bool scale = kFALSE)
     //
 
     TString prefix  = "resolution";
-    TString suffix2 = scale ? "scaled" : "unscaled";
-    TString outName = prefix + "_" + suffix2 + "_100bins.root";
+    TString outName = prefix + "_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -63,25 +53,28 @@ void DrawResolution(const bool scale = kFALSE)
     //  HISTOGRAMS
     //
 
-    vector<tuple<TString, TString, TString, Int_t, Double_t, Double_t>> v = {
+    vector<tuple<TString, TString, TString, int, float, float, float>> v = {
 
-        //          name            quantity            axis label          bins    xmin    xmax
+        //          name            quantity            axis label          bins xmin   xmax  width
         // Z rest frame kinematics
-        make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  100,    -10,    10),
-        make_tuple( "b_l1p",        "b_l1v3.Mag()",     _p_(_l_(1)),        100,    -10,    10),
-        make_tuple( "b_l2p",        "b_l2v3.Mag()",     _p_(_l_(2)),        100,    -10,    10),
-        make_tuple( "b_l3p",        "b_l3v3.Mag()",     _p_(_l_(3)),        100,    -5,     5),
-        make_tuple( "b_l4p",        "b_l4v3.Mag()",     _p_(_l_(4)),        100,    -5,     5),
+        make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  100, -10,   10,     5),
+        make_tuple( "b_l1p",        "b_l1v3.Mag()",     _p_(_l_(1)),        100, -10,   10,   2.5),
+//      make_tuple( "b_l2p",        "b_l2v3.Mag()",     _p_(_l_(2)),        100, -10,   10,     2),
+//      make_tuple( "b_l3p",        "b_l3v3.Mag()",     _p_(_l_(3)),        100, -5,    5,      2),
+//      make_tuple( "b_l4p",        "b_l4v3.Mag()",     _p_(_l_(4)),        100, -5,    5,    1.5),
 
 
         // Observables
-        make_tuple( "psi",              "psi",              _psi,           100,    -1000,  1000),
-        make_tuple( "sin_phi",          "sin_phi",          _sinphi,        100,    -0.2,   0.2),
-        make_tuple( "theta_z1",         "theta_z1",         _theta_(_Z1),   100,    -PI/6., PI/6.),
-        make_tuple( "theta_z2",         "theta_z2",         _theta_(_Z2),   100,    -PI/6., PI/6.),
-        make_tuple( "angle_z1leps",     "angle_z1leps",     _alpha_(_Z1),   100,    -PI/8., PI/8.),
-        make_tuple( "angle_z2leps",     "angle_z2leps",     _alpha_(_Z2),   100,    -PI/8., PI/8.),
-        make_tuple( "angle_z1l2_z2",    "angle_z1l2_z2",    _beta,          100,    -PI/6., PI/6.)
+//      make_tuple( "psi",          "psi",              _psi,               100, -1000, 1000, 500),
+        make_tuple( "sin_phi",      "sin_phi",          _sinphi,            100, -0.25, 0.25, 0.1),
+        make_tuple( "sin_phi_2",    "sin_phi",          _sinphi,            100, -0.25, 0.25,   1),
+        make_tuple( "cos_theta_z1", "cos_theta_z1",     _costheta_(_Z1),    100, -0.25, 0.25, 0.2),
+        make_tuple( "cos_theta_z2", "cos_theta_z2",     _costheta_(_Z2),    100, -0.25, 0.25, 0.2),
+        make_tuple( "cos_zeta_z1",  "cos_zeta_z1",      _coszeta_(_Z1),     100, -0.25, 0.25, 0.2),
+        make_tuple( "cos_zeta_z2",  "cos_zeta_z2",      _coszeta_(_Z2),     100, -0.25, 0.25, 0.2),
+        make_tuple( "angle_z1leps", "angle_z1leps/3.14",_alpha_(_Z1),       100, -0.25, 0.25, 0.1),
+        make_tuple( "angle_z2leps", "angle_z2leps/3.14",_alpha_(_Z2),       100, -0.25, 0.25, 0.1),
+        make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.14",   _beta,          100, -0.25, 0.25, 0.1)
     };
 
 
@@ -108,9 +101,7 @@ void DrawResolution(const bool scale = kFALSE)
     ////
     ////
 
-//  outFile->mkdir(selection[L4]);  // put 4l directory at the top
-
-    for (unsigned i = 1; i < N; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
@@ -119,15 +110,6 @@ void DrawResolution(const bool scale = kFALSE)
         inFile->GetObject(selection[i] + "_" + suffix, tree);
 
         cout << selection[i] << " tree has " << tree->GetEntries() << " events." << flush;
-
-        // Overall scale factor
-        float LUMI; 
-        if      (i == M4 || i == ME)
-            LUMI = MUON_TRIG_LUMI;
-        else if (i == E4 || i == EM)
-            LUMI = ELEC_TRIG_LUMI;
-
-        float sf = LUMI * 1000 * XSEC_ZZ_4L / NGEN_ZZ_4L;
 
 
 
@@ -142,15 +124,15 @@ void DrawResolution(const bool scale = kFALSE)
             // Get parameters from tuple and form string
             TString hname,  quantity,   xlabel;
             int     bins;
-            float   xmin,   xmax;
-            TString weight = "weight";
-            tie(hname, quantity, xlabel, bins, xmin, xmax) = v[j];
+            float   xmin,   xmax,       width;
+            TString weight = "genWeight";
+            tie(hname, quantity, xlabel, bins, xmin, xmax, width) = v[j];
             
             // Add subtraction to quantity
             quantity = "gen_" + quantity + " - " + quantity;
 
             // Create and draw histogram
-            TH1D *h = new TH1D(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
+            TH1D *h = new TH1D(hname + "_" + suffix, "", bins, xmin, xmax);
             tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
 
             xlabel.ReplaceAll(_l, lepChan[i]);
@@ -164,19 +146,30 @@ void DrawResolution(const bool scale = kFALSE)
             Facelift(canvas);
             canvas->SetCanvasSize(lCanvasSize, 0.625*lCanvasSize);
             canvas->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
-            h->SetTitle("");
-//          h->SetLineWidth(2);
+
             h->SetFillColor(lColor[i]);
             h->SetLineColor(lColor[i]);
             Facelift(h);
             h->SetStats(kTRUE);
             h->Draw("HIST");
+
             canvas->Update();
             TPaveStats *stats = (TPaveStats*)h->GetListOfFunctions()->FindObject("stats");
             stats->SetOptStat(1000111110);
             stats->SetTextFont(lHelveticaMediumR);
             stats->SetTextSize(lSmall);
             stats->SetX1NDC(0.7); stats->SetY1NDC(0.5);
+
+            float x = 0.5 * width;
+            float y1 = gPad->GetUymin(), y2 = gPad->GetUymax();
+            TLine *line[2] = {new TLine(-x, y1, -x, y2), new TLine(x, y1, x, y2)};
+            for (unsigned l = 0; l < 2; l++)
+            {
+                line[l]->SetLineColor(kBlack);
+                line[l]->SetLineStyle(kDashed);
+                line[l]->SetLineWidth(2);
+                line[l]->Draw();
+            }
 
             gPad->Modified();
             gPad->Update();
@@ -192,5 +185,5 @@ void DrawResolution(const bool scale = kFALSE)
     outFile->Close();
     inFile->Close();
 
-    cout << endl << "Wrote histograms to " << outName << endl << endl << endl;
+    cout << endl << "Wrote histograms, canvases to " << outName << endl << endl << endl;
 }

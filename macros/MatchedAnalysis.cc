@@ -75,8 +75,10 @@ void MatchedAnalysis()
     //
 
     // Event info
-    Int_t               runNum,         evtNum,         lumiSec;
-    Float_t             weight,         genWeight;
+    Int_t               runNum,     evtNum,     lumiSec;
+    UShort_t            nPV;
+    Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
+    Float_t             trigWeight, idWeight,   recoWeight;
     UInt_t              channel;
 
 
@@ -113,27 +115,30 @@ void MatchedAnalysis()
 
     for (unsigned i = 0; i < N; i++)
     {
-        tree[i]->Branch("runNum",   &runNum);       tree[i]->Branch("evtNum",       &evtNum);
-        tree[i]->Branch("lumiSec",  &lumiSec);
-        tree[i]->Branch("weight",   &weight);       tree[i]->Branch("genWeight",    &genWeight);
-        tree[i]->Branch("channel",  &channel);
+        tree[i]->Branch("runNum",       &runNum);       tree[i]->Branch("evtNum",       &evtNum);
+        tree[i]->Branch("lumiSec",      &lumiSec);      tree[i]->Branch("nPV",          &nPV);
+        tree[i]->Branch("weight",       &weight);       tree[i]->Branch("genWeight",    &genWeight);
+        tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
+        tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
+        tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
+        tree[i]->Branch("channel",      &channel);
+
         tree[i]->Branch("psi",      &psi);          tree[i]->Branch("gen_psi",      &gen_psi);                       
         tree[i]->Branch("sin_phi",  &sin_phi);      tree[i]->Branch("gen_sin_phi",  &gen_sin_phi);
-
-        tree[i]->Branch("cos_theta_z1",         &cos_theta_z1);
-        tree[i]->Branch("gen_cos_theta_z1",     &gen_cos_theta_z1);             
-        tree[i]->Branch("cos_theta_z2",         &cos_theta_z2);
-        tree[i]->Branch("gen_cos_theta_z2",     &gen_cos_theta_z2);
-        tree[i]->Branch("cos_zeta_z1",          &cos_zeta_z1);
-        tree[i]->Branch("gen_cos_zeta_z1",      &gen_cos_zeta_z1);             
-        tree[i]->Branch("cos_zeta_z2",          &cos_zeta_z2);
-        tree[i]->Branch("gen_cos_zeta_z2",      &gen_cos_zeta_z2);
-        tree[i]->Branch("angle_z1leps",         &angle_z1leps);
-        tree[i]->Branch("gen_angle_z1leps",     &gen_angle_z1leps);
-        tree[i]->Branch("angle_z2leps",         &angle_z2leps);
-        tree[i]->Branch("gen_angle_z2leps",     &gen_angle_z2leps);
-        tree[i]->Branch("angle_z1l2_z2",        &angle_z1l2_z2);
-        tree[i]->Branch("gen_angle_z1l2_z2",    &gen_angle_z1l2_z2);
+        tree[i]->Branch("cos_theta_z1",     &cos_theta_z1);
+        tree[i]->Branch("gen_cos_theta_z1", &gen_cos_theta_z1);             
+        tree[i]->Branch("cos_theta_z2",     &cos_theta_z2);
+        tree[i]->Branch("gen_cos_theta_z2", &gen_cos_theta_z2);
+        tree[i]->Branch("cos_zeta_z1",      &cos_zeta_z1);
+        tree[i]->Branch("gen_cos_zeta_z1",  &gen_cos_zeta_z1);             
+        tree[i]->Branch("cos_zeta_z2",      &cos_zeta_z2);
+        tree[i]->Branch("gen_cos_zeta_z2",  &gen_cos_zeta_z2);
+        tree[i]->Branch("angle_z1leps",     &angle_z1leps);
+        tree[i]->Branch("gen_angle_z1leps", &gen_angle_z1leps);
+        tree[i]->Branch("angle_z2leps",     &angle_z2leps);
+        tree[i]->Branch("gen_angle_z2leps", &gen_angle_z2leps);
+        tree[i]->Branch("angle_z1l2_z2",    &angle_z1l2_z2);
+        tree[i]->Branch("gen_angle_z1l2_z2",&gen_angle_z1l2_z2);
 
         tree[i]->Branch("b_z1p4",   &b_z1p4);       tree[i]->Branch("gen_b_z1p4",   &gen_b_z1p4);
         tree[i]->Branch("b_z2p4",   &b_z2p4);       tree[i]->Branch("gen_b_z2p4",   &gen_b_z2p4);
@@ -206,30 +211,37 @@ void MatchedAnalysis()
     {
         TTreeReader reader(selection[i] + "_" + suffix, inFile);
 
-        TTreeReaderValue    <Int_t>             runNum_         (reader,    "runNum");
-        TTreeReaderValue    <Int_t>             evtNum_         (reader,    "evtNum");
-        TTreeReaderValue    <Int_t>             lumiSec_        (reader,    "lumiSec");
-        TTreeReaderValue    <Float_t>           weight_         (reader,    "weight");
-        TTreeReaderValue    <UInt_t>            channel_        (reader,    "channel");
-        TTreeReaderValue    <TLorentzVector>    zzp4_           (reader,    "zzp4");
-        TTreeReaderValue    <TLorentzVector>    z1p4_           (reader,    "z1p4");
-        TTreeReaderValue    <Short_t>           z1pdg_          (reader,    "z1pdg");
-        TTreeReaderValue    <TLorentzVector>    z2p4_           (reader,    "z2p4");
-        TTreeReaderValue    <Short_t>           z2pdg_          (reader,    "z2pdg");
-        TTreeReaderValue    <TLorentzVector>    l1p4_           (reader,    "l1p4");
-        TTreeReaderValue    <Short_t>           l1pdg_          (reader,    "l1pdg");
-        TTreeReaderValue    <UShort_t>          l1z_            (reader,    "l1z");
-        TTreeReaderValue    <TLorentzVector>    l2p4_           (reader,    "l2p4");
-        TTreeReaderValue    <Short_t>           l2pdg_          (reader,    "l2pdg");
-        TTreeReaderValue    <UShort_t>          l2z_            (reader,    "l2z");
-        TTreeReaderValue    <TLorentzVector>    l3p4_           (reader,    "l3p4");
-        TTreeReaderValue    <Short_t>           l3pdg_          (reader,    "l3pdg");
-        TTreeReaderValue    <UShort_t>          l3z_            (reader,    "l3z");
-        TTreeReaderValue    <TLorentzVector>    l4p4_           (reader,    "l4p4");
-        TTreeReaderValue    <Short_t>           l4pdg_          (reader,    "l4pdg");
-        TTreeReaderValue    <UShort_t>          l4z_            (reader,    "l4z");
+        TTreeReaderValue    <Int_t>                 runNum_         (reader,    "runNum");
+        TTreeReaderValue    <Int_t>                 evtNum_         (reader,    "evtNum");
+        TTreeReaderValue    <Int_t>                 lumiSec_        (reader,    "lumiSec");
+        TTreeReaderValue    <UShort_t>              nPV_            (reader,    "nPV");
+        TTreeReaderValue    <Float_t>               weight_         (reader,    "weight");
+        TTreeReaderValue    <Float_t>               genWeight_      (reader,    "genWeight");
+        TTreeReaderValue    <Float_t>               qtWeight_       (reader,    "qtWeight");
+        TTreeReaderValue    <Float_t>               puWeight_       (reader,    "puWeight");
+        TTreeReaderValue    <Float_t>               ecalWeight_     (reader,    "ecalWeight");
+        TTreeReaderValue    <Float_t>               trigWeight_     (reader,    "trigWeight");
+        TTreeReaderValue    <Float_t>               idWeight_       (reader,    "idWeight");
+        TTreeReaderValue    <Float_t>               recoWeight_     (reader,    "recoWeight");
+        TTreeReaderValue    <UInt_t>                channel_        (reader,    "channel");
+        TTreeReaderValue    <TLorentzVector>        zzp4_           (reader,    "zzp4");
+        TTreeReaderValue    <TLorentzVector>        z1p4_           (reader,    "z1p4");
+        TTreeReaderValue    <Short_t>               z1pdg_          (reader,    "z1pdg");
+        TTreeReaderValue    <TLorentzVector>        z2p4_           (reader,    "z2p4");
+        TTreeReaderValue    <Short_t>               z2pdg_          (reader,    "z2pdg");
+        TTreeReaderValue    <TLorentzVector>        l1p4_           (reader,    "l1p4");
+        TTreeReaderValue    <Short_t>               l1pdg_          (reader,    "l1pdg");
+        TTreeReaderValue    <UShort_t>              l1z_            (reader,    "l1z");
+        TTreeReaderValue    <TLorentzVector>        l2p4_           (reader,    "l2p4");
+        TTreeReaderValue    <Short_t>               l2pdg_          (reader,    "l2pdg");
+        TTreeReaderValue    <UShort_t>              l2z_            (reader,    "l2z");
+        TTreeReaderValue    <TLorentzVector>        l3p4_           (reader,    "l3p4");
+        TTreeReaderValue    <Short_t>               l3pdg_          (reader,    "l3pdg");
+        TTreeReaderValue    <UShort_t>              l3z_            (reader,    "l3z");
+        TTreeReaderValue    <TLorentzVector>        l4p4_           (reader,    "l4p4");
+        TTreeReaderValue    <Short_t>               l4pdg_          (reader,    "l4pdg");
+        TTreeReaderValue    <UShort_t>              l4z_            (reader,    "l4z");
                                                                 
-        TTreeReaderValue    <Float_t>           genWeight_      (reader,    "genWeight");
         TTreeReaderValue    <UShort_t>          nGenMuons_      (reader,    "nFinalStateMuons");
         TTreeReaderValue    <UShort_t>          nGenElecs_      (reader,    "nFinalStateElectrons");
         TTreeReaderArray    <TLorentzVector>    genMuonP4_      (reader,    "finalStateMuonP4");
@@ -237,10 +249,10 @@ void MatchedAnalysis()
         TTreeReaderArray    <TLorentzVector>    genElecP4_      (reader,    "finalStateElectronP4");
         TTreeReaderValue    <vector<Short_t>>   genElecQ_       (reader,    "finalStateElectronQ");
         TTreeReaderValue    <TLorentzVector>    genLepsP4_      (reader,    "finalStateLeptonsP4");
-        TTreeReaderValue    <TLorentzVector>    o_l1p4_         (reader,    "uncorr_l1p4");
-        TTreeReaderValue    <TLorentzVector>    o_l2p4_         (reader,    "uncorr_l2p4");
-        TTreeReaderValue    <TLorentzVector>    o_l3p4_         (reader,    "uncorr_l3p4");
-        TTreeReaderValue    <TLorentzVector>    o_l4p4_         (reader,    "uncorr_l4p4");
+        TTreeReaderValue    <TLorentzVector>    u_l1p4_         (reader,    "uncorr_l1p4");
+        TTreeReaderValue    <TLorentzVector>    u_l2p4_         (reader,    "uncorr_l2p4");
+        TTreeReaderValue    <TLorentzVector>    u_l3p4_         (reader,    "uncorr_l3p4");
+        TTreeReaderValue    <TLorentzVector>    u_l4p4_         (reader,    "uncorr_l4p4");
 
 
 
@@ -297,10 +309,13 @@ void MatchedAnalysis()
             //                
 
             // Quantities copied directly to output tree
-            runNum  = *runNum_;         evtNum      = *evtNum_;         lumiSec = *lumiSec_;
-            weight  = *weight_;         genWeight   = *genWeight_;      channel = *channel_; 
-            zzp4    = *zzp4_;           gen_zzp4    = *genLepsP4_;
+            runNum      = *runNum_;     evtNum      = *evtNum_;     lumiSec     = *lumiSec_;
+            nPV         = *nPV_;        weight      = *weight_;     genWeight   = *genWeight_;
+            qtWeight    = *qtWeight_;   puWeight    = *puWeight_;   ecalWeight  = *ecalWeight_;
+            trigWeight  = *trigWeight_; idWeight    = *idWeight_;   recoWeight  = *recoWeight_;
+            channel     = *channel_;
 
+            zzp4    = *zzp4_;           gen_zzp4    = *genLepsP4_;
             z1p4    = *z1p4_;           z1pdg   = *z1pdg_;
             z2p4    = *z2p4_;           z2pdg   = *z2pdg_;
             l1p4    = *l1p4_;           l1pdg   = *l1pdg_;          l1z     = *l1z_;
@@ -344,8 +359,8 @@ void MatchedAnalysis()
             leps[3].p4  = l4p4;         leps[3].pdg = l4pdg;        leps[3].mother  = l4z;
 
             // Fill uncorrected p4
-            leps[0].o_p4     = *o_l1p4_;                leps[1].o_p4     = *o_l2p4_;
-            leps[2].o_p4     = *o_l3p4_;                leps[3].o_p4     = *o_l4p4_;
+            leps[0].u_p4     = *u_l1p4_;                leps[1].u_p4     = *u_l2p4_;
+            leps[2].u_p4     = *u_l3p4_;                leps[3].u_p4     = *u_l4p4_;
 
             for (unsigned i = 0; i < leps.size(); i++)
                 leps[i].q = -1 * copysign(1, leps[i].pdg);
@@ -409,7 +424,7 @@ void MatchedAnalysis()
 
                 for (unsigned j = 0; j < gen_leps.size(); j++)
                 {
-                    deltaR[j] = leps[i].o_p4.DeltaR(gen_leps[j].p4);
+                    deltaR[j] = leps[i].u_p4.DeltaR(gen_leps[j].p4);
 
                     if (print)
                         cout << deltaR[j] << "\t";

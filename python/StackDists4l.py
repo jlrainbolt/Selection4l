@@ -255,7 +255,7 @@ ax_bot.set_ylim(lRatioMin, lRatioMax)
 
 # Titles
 ax_top.set_title(r'\textbf{CMS} \Large{\textit{Work in Progress}}', loc='left')
-ax_top.set_title(r'\Large{41.5\,fb$^{-1}$ (13\,TeV)}', loc='right')
+ax_top.set_title(r'\Large{41.5\,fb$^{-1}$ (13\,TeV, ' + YEAR_STR + ')}', loc='right')
 
 # Top y axis
 #ytitle = '$' + hdata[0].GetYaxis().GetTitle() + '$'

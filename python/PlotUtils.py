@@ -42,11 +42,12 @@ lHorizSpace = 0.05
 
 lRatioGridSpec = {'height_ratios':[3, 1]}
 
-lMarkerSize = 10
+lMarkerSize2l, lMarkerSize4l = 5, 10
 lMarkerColor = 'black'
-lErrorLineWidth = 2
+lErrorLineWidth2l, lErrorLineWidth4l = 2, 1
 lCapSize = 0
 
 lRatioLineColor = 'black'
-lRatioMin,      lRatioMax                       =   0.5,    1.5
-lRatioUpper,    lRatioMid,      lRatioLower     =   1.2,    1,      0.8
+lRatioMin4l,    lRatioMax4l                     =   0,      2
+lRatioMin2l,    lRatioMax2l                     =   0.8,    1.2
+lRatioUpper,    lRatioMid,      lRatioLower     =   1.5,    1,      0.5

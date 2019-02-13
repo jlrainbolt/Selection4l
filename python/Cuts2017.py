@@ -36,9 +36,9 @@ NGEN_WZ_3LNU,       XSEC_WZ_3LNU        =   10881896  * (1 - 2 * 0.1879),       
 NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        =   27840918  * (1 - 2 * 0.1804),             3.22
 
 N_MC = 9
-MC_SUFF = [ "zjets_m-50",               "ttbar",                        "ww_2l2nu",
-            "wz_2l2q",                  "wz_3lnu",                      "zz_2l2q",
-            "zz_4l",                    "vbfH_zz_4l",                   "ggH_zz_4l"
+MC_SUFF = [ "zjets_m-50",               "zz_4l",                        "ttbar",
+            "ww_2l2nu",                 "wz_2l2q",                      "wz_3lnu",
+            "zz_2l2q",                  "vbfH_zz_4l",                   "ggH_zz_4l"
             ]
 XSEC    = { "zz_4l":XSEC_ZZ_4L,         "zjets_m-50":XSEC_ZJETS_M50,    "ggH_zz_4l":XSEC_GGH_ZZ_4L,
             "vbfH_zz_4l":XSEC_VBFH_ZZ_4L,   "ttbar":XSEC_TTBAR,         "ww_2l2nu":XSEC_WW_2L2NU,
@@ -48,9 +48,9 @@ NGEN    = { "zz_4l":NGEN_ZZ_4L,         "zjets_m-50":NGEN_ZJETS_M50,    "ggH_zz_
             "vbfH_zz_4l":NGEN_VBFH_ZZ_4L,   "ttbar":NGEN_TTBAR,         "ww_2l2nu":NGEN_WW_2L2NU,
             "wz_2l2q":NGEN_WZ_2L2Q,     "wz_3lnu":NGEN_WZ_3LNU,         "zz_2l2q":NGEN_ZZ_2L2Q
             }
-COLOR   = { lLightBlue:"zz_4l",         lYellow:"zjets_m-50",           lPurple:"ggH_zz_4l",
-            lPurple:"vbfH_zz_4l",       lGreen:"ttbar",                 lOrange:"ww_2l2nu",
-            lOrange:"wz_2l2q",          lOrange:"wz_3lnu",              lOrange:"zz_2l2q"
+COLOR   = { "zz_4l":lLightBlue,         "zjets_m-50":lYellow,           "ggH_zz_4l":lPurple,
+            "vbfH_zz_4l":lPurple,       "ttbar":lGreen,                 "ww_2l2nu":lOrange,
+            "wz_2l2q":lOrange,          "wz_3lnu":lOrange,              "zz_2l2q":lOrange
             }
 MC_TEX  = { "zz_4l":r"$\ZZtofl$",                   "zjets_m-50":r"$\Ztoll$",
             "vbfH_zz_4l":r"VBF $\PH\to\ZZtofl$",    "ggH_zz_4l":r"$\Pg\Pg$F $\PH \to \ZZtofl$",
