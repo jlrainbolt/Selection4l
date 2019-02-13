@@ -14,7 +14,7 @@ from Cuts2017 import *
 ##  SAMPLE INFO
 ##
 
-selection   = [ "mumu",         "ee"]
+selection = ["mumu", "ee"]
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
@@ -26,7 +26,7 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 ##
 
 prefix = "2l"
-tag = "noTrig"
+tag = "noQt"
 
 # Muon file
 muName = prefix + "_" + tag + "_" + MU_SUFF + ".root"
@@ -206,9 +206,9 @@ for sel in selection:
         top_min, top_max = ax_top.get_ylim()
 
         if "eta" in hnames[h]:
-            top_max = top_max * 1.5
+            top_max = top_max * 1.7
         elif "y" in hnames[h]:
-            top_max = top_max * 2
+            top_max = top_max * 1.8
         elif "pt" in hnames[h]:
             top_max = top_max * 1.2
         elif "phi" in hnames[h]:
@@ -252,6 +252,8 @@ for sel in selection:
 
         # Shared x axis
         xtitle = '$' + mc['zjets_m-50'][h][sel].GetXaxis().GetTitle() + '$'
+        if "Delta" in xtitle:
+            xtitle = xtitle.replace("Delta", "bigtriangleup")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 

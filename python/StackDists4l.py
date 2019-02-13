@@ -14,17 +14,19 @@ from Cuts2017 import *
 ##  SAMPLE INFO
 ##
 
-L4, M4, ME, EM, E4  = 0, 1, 2, 3, 4
 selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
-N = len(selection)
+
+T = np.dtype([(sel, object) for sel in selection])
+V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
 
 
 
 ##
-##  LOAD DATA
+##  DATA
 ##
 
-prefix = "~/nobackup/Selection2017/SMPV/unscaled4l"
+prefix = "unscaled4l"
+#tag = "noQt"
 
 # Muon file
 muName = prefix + "_" + MU_SUFF + ".root"
@@ -37,257 +39,315 @@ elFile = TFile(elName, "READ")
 print("Opened", elName)
 
 
+# Get keys
+#keyDir = muFile.GetDirectory("/4m", True, "GetDirectory")
 
-##
-##  GET KEYS
-##
-
-keyDir = muFile.GetDirectory("/" + selection[M4], True, "GetDirectory")
-
-hnames = []
-for key in keyDir.GetListOfKeys():
-    hname = key.GetName()
-    hnames.append(hname.replace("_" + MU_SUFF, "")
+#hnames = []
+#for key in keyDir.GetListOfKeys():
+#    hname = key.GetName()
+#    hnames.append(hname.replace("_" + MU_SUFF, ""))
+hnames = ["zzm", "zzpt", "z1m", "z2m"]
 
 H = len(hnames)
 
 
+# Get histograms
+data = np.empty(H, dtype=T)
+h = 0
 
-hdata = []
 for sel in selection:
-    hists = []
+    if sel == "4l":
+        continue
+
     for hname in hnames:
-        if sel == "4m" or sel == "2m2e":
-            hist = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
-        elif sel == "2e2m" or sel == "4e":
-            hist = elFile.Get(sel + "/" + hname + "_" + EL_SUFF)
-        hist.SetDirectory(0)
-        hists.append(hist)
-    hdata.append(hists)
+        if sel in ["4m", "2m2e"]:
+            data[h][sel] = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
+        elif sel in ["4e", "2e2m"]:
+            data[h][sel] = elFile.Get(sel + "/" + hname + "_" + EL_SUFF)
+
+        data[h][sel].SetDirectory(0)
+        h = h + 1
+    h = 0
 
 muFile.Close()
 elFile.Close()
 print("Got data histograms")
 print("")
 
-# Add channels #FIXME
-data = hdata[0]
-for i in range(1, len(hdata)):
-    data.Add(hdata[i])
-
 
 
 ##
-##  LOAD MC
+##  MONTE CARLO
 ##
 
-mc = []
+mc_arr = np.empty((N_MC, H), dtype=T)
+mc = {}
+h, j = 0, 0
 
 # Loop over all samples
-for suff, xsec, ngen in zip(MC_SUFF, XSEC, NGEN):
+for suff in MC_SUFF:
     inName = prefix + "_" + suff + ".root"
-    inFile = TFile(inName, "READ")
+    inFile = TFile.Open(inName)
     print("Opened", inName)
 
     # Get histograms
-    hmc = []
     for sel in selection:
-        hists = []
+        if sel == "4l":
+            continue
+        elif sel in ["4m", "2m2e"]:
+            lumi = MUON_TRIG_LUMI
+        elif sel in ["4e", "2e2m"]:
+            lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+
+        sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
+
         for hname in hnames:
-            hist = inFile.Get(sel + "/" + hname + "_" + suff)
-            hist.SetDirectory(0)
+            mc_arr[j][h][sel] = inFile.Get(sel + "/" + hname + "_" + suff)
+            mc_arr[j][h][sel].SetDirectory(0)
+            mc_arr[j][h][sel].Scale(sf)
 
-            if sel == "4m" or sel == "2m2e":
-                lumi = MUON_TRIG_LUMI
-            elif sel == "2e2m" or sel == "4e":
-                lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
-            sf = lumi * 1000 * xsec / ngen
+            h = h + 1
+        h = 0
 
-            hist.Scale(sf)
-            hists.append(hist)
-        hmc.append(hists)
+    mc[suff] = mc_arr[j]
+    j = j + 1
     inFile.Close()
-
-    # Add channels
-    h4l = hmc[0]
-    for i in range(1, N_MC):
-        h4l.Add(hmc[i])
-    mc.append(h4l)
 
 print("Got MC histograms")
 print("")
 
 
 
-
-
-####
-####
-####    DISTRIBUTION LOOP
-####
-####
-
-
-
 ##
-##  RATIO PLOT
+##  ADD CHANNELS
 ##
 
-ratios = []
+# Get 4l and 2m2e, rebin 4e
+for h in range(H):
+    data[h]['2m2e'].Add(data[h]['2e2m'])
+    data[h]['4l'] = data[h]['2m2e'].Clone()
+    data[h]['4l'].Add(data[h]['4m'])
+    data[h]['4l'].Add(data[h]['4e'])
+    data[h]['4e'].Rebin(2)
 
-for i in range(N):
-    hists = []
+    for suff in MC_SUFF:
+        mc[suff][h]['2m2e'].Add(mc[suff][h]['2e2m'])
+        mc[suff][h]['4l'] = mc[suff][h]['2m2e'].Clone()
+        mc[suff][h]['4l'].Add(mc[suff][h]['4m'])
+        mc[suff][h]['4l'].Add(mc[suff][h]['4e'])
+        mc[suff][h]['4e'].Rebin(2)
+
+# Get total
+total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
+
+for sel in selection:
+    if sel == "2e2m":
+        continue
+
     for h in range(H):
-        total = mc[0].Clone()
+        for suff in MC_SUFF:
+            if suff == "zjets_m-50":
+                total[h][sel] = mc[suff][h][sel].Clone()
+            else:
+                total[h][sel].Add(mc[suff][h][sel])
 
-        for j in range(1, N_MC):
-            total.Add(mc[i])
-
-        ratio = hdata[i][h].Clone()
-        ratio.Divide(total)
-        hists.append(ratio)
-    ratios.append(hists)
-
+        ratio[h][sel] = data[h][sel].Clone()
+        ratio[h][sel].Divide(total[h][sel])
 
 
-##
-##  GET BIN CONTENT
-##
-
-# Data
-x_data, y_data, yerr_data = [], [], []
-for i in range(1, data.GetNbinsX()+1):
-    x_data.append(data.GetBinCenter(i))
-    y_data.append(data.GetBinContent(i))
-    yerr_data.append(data.GetBinError(i))
-
-# MC
-x_mc, y_mc = [], []
-for i in range(1, total.GetNbinsX()+1):
-    x_mc.append(total.GetBinLowEdge(i))
-for hist in mc:
-    y_mc_ = []
-    for i in range(1, hist.GetNbinsX()+1):
-        binc = hist.GetBinContent(i)
-        if binc < 0:
-            binc = 0
-        y_mc_.append(binc)
-    y_mc.append(y_mc_)
-
-# Bottoms
-# FIXME use numpy
-bot_mc = [[0] * len(x_mc)]
-for j in range(0, len(y_mc)):
-    bot_mc_ = []
-    for i in range(0, len(x_mc)):
-        bot_mc_.append(bot_mc[j][i] + y_mc[j][i])
-    bot_mc.append(bot_mc_)
-
-# Ratio
-y_ratio, yerr_ratio, xerr_ratio = [], [], []
-for i in range(1, ratio.GetNbinsX()+1):
-    y_ratio.append(ratio.GetBinContent(i))
-    yerr_ratio.append(ratio.GetBinError(i))
-    xerr_ratio.append(ratio.GetBinWidth(i)/2)
 
 
 
 ####
 ####
-####    MAKE PLOTS
+####    LOOP OVER STACKS
 ####
 ####
 
 
-fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
+for sel in selection:
+    if sel == "2e2m":
+        continue
+    elif sel == "4m":
+        lumi = '%.1f' % MUON_TRIG_LUMI
+    elif sel == "4e":
+        lumi = '%.1f' % ELEC_TRIG_LUMI
+    elif sel in ["4l", "2m2e"]:
+        lumi = '%.1f' % MUON_TRIG_LUMI + " + " + '%.1f' % ELEC_TRIG_LUMI
 
-fig.subplots_adjust(    left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
-                        top = lTopMargin,   hspace = lHorizSpace
-                        )
+    print("Drawing", sel, "plots...")
+
+    for h in range(H):
+
+        ##
+        ##  GET BIN CONTENT
+        ##
+
+        # Data
+        v_data = np.zeros(data[h][sel].GetNbinsX(), dtype=V)
+        for i in range(len(v_data)):
+            v_data[i]['x']  = data[h][sel].GetBinCenter(i+1)
+            v_data[i]['y']  = data[h][sel].GetBinContent(i+1)
+            v_data[i]['ey'] = data[h][sel].GetBinError(i+1)
+
+        # MC
+        v_mc_arr = np.zeros([N_MC, total[h][sel].GetNbinsX()], dtype=V)
+        v_mc = {}
+        j = 0
+        for suff in MC_SUFF:
+            for i in range(len(v_mc_arr[0])):
+                v_mc_arr[j][i]['x'] = total[h][sel].GetBinLowEdge(i+1)
+                v_mc_arr[j][i]['y'] = mc[suff][h][sel].GetBinContent(i+1)
+
+            v_mc[suff] = v_mc_arr[j]
+            j = j + 1
+
+        # "Bottoms"
+        for j in range(N_MC - 1):
+            v_mc_arr[j]['b'] = np.sum(v_mc_arr[j+1:]['y'], axis=0)
+
+        # Ratio
+        v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
+        for i in range(len(v_ratio)):
+            v_ratio[i]['x']     = ratio[h][sel].GetBinCenter(i+1)
+            v_ratio[i]['ex']    = ratio[h][sel].GetBinWidth(i+1) / 2
+            v_ratio[i]['y']     = ratio[h][sel].GetBinContent(i+1)
+            v_ratio[i]['ey']    = ratio[h][sel].GetBinError(i+1)
 
 
 
-##
-##  TOP PLOTS
-##
+        ##
+        ##  MAKE PLOTS
+        ##
 
-# Data
-p_data = ax_top.errorbar(   x_data, y_data, yerr = yerr_data, 
-                            linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth,
-                            marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize,
-                            markeredgecolor = lMarkerColor,     markerfacecolor = lMarkerColor
+        width = total[h][sel].GetBinWidth(1)
+
+        fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
+        fig.subplots_adjust(left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
+                            top = lTopMargin,   hspace = lHorizSpace
                             )
 
-# MC
-p_mc = []
-for i in range(0, len(mc)):
-    p_mc.append(
-                    ax_top.bar( x_mc,   y_mc[i],    1.0,            bottom=bot_mc[i],
-                                align = 'edge',     linewidth=0,    color = COLOR[i]    )
+        # Top plots
+        p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = v_data['ey'], 
+                            linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
+                            marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
+                            markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
+                            )
+
+        p_mc = {}
+        for suff in MC_SUFF:
+            p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
+                                bottom = v_mc[suff]['b'],   align = 'edge',     linewidth=0,
+                                color = COLOR[suff]
+                                )
+
+        top_min, top_max = ax_top.get_ylim()
+
+        if hnames[h] == "zzpt":
+            top_max = top_max * 1.2
+        if hnames[h] == "z2m":
+            top_max = top_max * 1.3
+        ax_top.set_ylim(0, top_max)
+
+
+        # Ratio plot
+        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],   xerr = v_ratio['ex'],   yerr = v_ratio['ey'], 
+                    linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
+                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
+                    markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                     )
 
-
-
-##
-##  BOTTOM PLOTS
-##
-
-# Ratio plot
-ax_bot.errorbar(    x_data, y_ratio,    yerr = yerr_ratio,  xerr = xerr_ratio, 
-                    linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth,
-                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize,
-                    markeredgecolor = lMarkerColor,     markerfacecolor = lMarkerColor
-                    )
-
-# Horizontal lines
-ax_bot.axhline(lRatioUpper, color = lRatioLineColor, linestyle = ':')
-ax_bot.axhline(lRatioMid,   color = lRatioLineColor)
-ax_bot.axhline(lRatioLower, color = lRatioLineColor, linestyle = ':')
-
-# Vertical range
-ax_bot.set_ylim(lRatioMin, lRatioMax)
+        ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')
+        ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
 
 
 
-##
-##  LABELS
-##
+        ##
+        ##  LABELS
+        ##
 
-# Titles
-ax_top.set_title(r'\textbf{CMS} \Large{\textit{Work in Progress}}', loc='left')
-ax_top.set_title(r'\Large{41.5\,fb$^{-1}$ (13\,TeV, ' + YEAR_STR + ')}', loc='right')
+        # Titles
+        ax_top.text(    0.025,  0.95,
+                r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
+                verticalalignment = 'top', transform = ax_top.transAxes)
+        ax_top.set_title(r'\Large{' + lumi + '\,fb$^{-1}$ (13\,TeV, ' + YEAR_STR + ')}',
+                loc='right')
 
-# Top y axis
-#ytitle = '$' + hdata[0].GetYaxis().GetTitle() + '$'
-ytitle = "Events"
-ax_top.set_ylabel(ytitle, horizontalalignment='right')
-ax_top.yaxis.set_label_coords(-0.08, 1)
+        # Top y axis
+        if sel == "4e":
+            ytitle = r'\mbox{Events / }' + '%.0f' % width + r'\mbox{ }\mbox{GeV}'
+        else:
+            ytitle = '$' + mc['zz_4l'][h][sel].GetYaxis().GetTitle() + '$'
+        ax_top.set_ylabel(ytitle, horizontalalignment='right')
+        ax_top.yaxis.set_label_coords(-0.08, 1)
+        ax_top.minorticks_on()
 
-# Bottom y axis
-ax_bot.set_ylabel(r'Data$/$MC')
-ax_bot.yaxis.set_label_coords(-0.08, 0.5)
+        # Bottom y axis
+        ax_bot.set_ylabel(r'Data$/$MC')
+        ax_bot.yaxis.set_label_coords(-0.08, 0.5)
 
-# Shared x axis
-xtitle = '$' + hdata[0].GetXaxis().GetTitle() + '$'
-ax_bot.set_xlabel(xtitle, horizontalalignment='right')
-ax_bot.xaxis.set_label_coords(1, -0.3)
-plt.xticks(np.arange(x_mc[0], x_mc[-1]+2, step=2))
+        # Shared x axis
+        xtitle = '$' + mc['zz_4l'][h][sel].GetXaxis().GetTitle() + '$'
+        if "Delta" in xtitle:
+            xtitle = xtitle.replace("Delta", "bigtriangleup")
+        ax_bot.set_xlabel(xtitle, horizontalalignment='right')
+        ax_bot.xaxis.set_label_coords(1, -0.3)
+
+        
+
+        ##
+        ##  TICKS
+        ##
+
+        # x axes
+        plt.xlim(v_mc['zz_4l']['x'][0], v_mc['zz_4l']['x'][-1] + width)
+
+        major_step, minor_step = 2 * width, width
+        if sel == "4e":
+            major_step = width
+
+        for ax in [ax_bot.xaxis, ax_top.xaxis]:
+            ax.set_ticks( np.arange(
+                            v_mc['zjets_m-50']['x'][0],
+                            v_mc['zjets_m-50']['x'][-1] + major_step,
+                            step = major_step)
+                            )
+            ax.set_ticks( np.arange(
+                            v_mc['zjets_m-50']['x'][0],
+                            v_mc['zjets_m-50']['x'][-1] + minor_step,
+                            step = minor_step),
+                        minor = True)
+
+        # Top y axis
+#       ax_top.ticklabel_format(axis = 'y', style = 'sci')
+#       ax_top.yaxis.get_major_formatter().set_powerlimits((0, 1))
+
+        # Bottom y axis
+        ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, lRatioMax4l, step = 0.5) )
+#       ax_bot.yaxis.set_ticks( np.arange(lRatioMin2l+0.05, lRatioMax4l, step = 0.05),
+#                       minor = True  )
 
 
 
-##
-##  LEGEND
-##
+        ##
+        ##  LEGEND
+        ##
 
-ax_top.legend((p_data, p_mc[0], p_mc[1], p_mc[2], p_mc[4], p_mc[5]),
-        (r'Data', r'$\mbox{ZZ} \to 4\ell$', r'$\mbox{Z} \to \ell^{+} \ell^{-}$', 
-        r'H', r'$\mbox{t}\bar{\mbox{t}}$', r'VV'),
-        loc=2, numpoints=1, frameon=False)
+        if hnames[h] in ["zzm", "z1m"]:
+            leg_loc = 'center left'
+        else:
+            leg_loc = 'upper right'
 
+        ax_top.legend(
+                (   p_data,                         p_mc['zjets_m-50'],
+                    p_mc['zz_4l'],                  p_mc['ttbar'],
+                    p_mc['ww_2l2nu'],               p_mc['ggH_zz_4l']
+                    ),
+                (   r'Data',                        r'$\mbox{Z}\to\ell^+\ell^-$',
+                    r'$\mbox{ZZ}\to4\ell$',         r'$\mbox{t}\bar{\mbox{t}}$', 
+                    r'VV',                          r'H'
+                    ),
+                loc = leg_loc, numpoints = 1, frameon = False)
 
-
-##
-##  WRITE TO FILE
-##
-
-fig.savefig('mass.pdf')
+        fig.savefig(hnames[h] + "_" + sel + ".pdf")
+        plt.clf()

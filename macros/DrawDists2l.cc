@@ -53,7 +53,7 @@ void DrawDists2l(const TString suffix, const TString tag)
     //  HISTOGRAMS
     //
 
-    vector<tuple<TString, TString, TString, TString, Int_t, Double_t, Double_t>> v = {
+    vector<tuple<TString, TString, TString, TString, int, float, float>> v = {
 
         //          name        quantity        x label         unit        bins    xmin    xmax
         make_tuple( "nPV",      "nPV",          _nPV,           _unit,      60,     0,      60),

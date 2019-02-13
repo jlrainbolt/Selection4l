@@ -24,7 +24,7 @@ from matplotlib import rc
 # Font/TeX setup
 # (https://3diagramsperpage.wordpress.com/2015/04/11/)
 rc('text', usetex=True)
-mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}', r'\usepackage{sansmath}', 
+mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}', r'\usepackage{sansmath}',
                                         r'\sansmath'] 
 # Figure size, aspect ratio
 mpl.rcParams["figure.figsize"] = [6, 6]
