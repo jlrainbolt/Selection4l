@@ -12,8 +12,8 @@
 #include "TError.h"
 
 // Custom
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -150,10 +150,9 @@ void DrawDists2l(const TString suffix, const TString tag)
             tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
 
             xlabel.ReplaceAll(_l, lepChan[i]);
-            TString ylabel = _EventsPer(h->GetBinWidth(1), unit);
 
             h->GetXaxis()->SetTitle(xlabel);
-            h->GetYaxis()->SetTitle(ylabel);
+            h->GetYaxis()->SetTitle(unit);
             h->Sumw2(kTRUE);
             h->Write();
         }

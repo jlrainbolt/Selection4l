@@ -6,7 +6,8 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-from Cuts2017 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 
 
 
@@ -26,7 +27,7 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 ##
 
 prefix = "2l"
-tag = "noQt"
+tag = "noTrig"
 
 # Muon file
 muName = prefix + "_" + tag + "_" + MU_SUFF + ".root"
@@ -41,12 +42,11 @@ print("Opened", elName)
 
 # Get keys
 keyDir = muFile.GetDirectory("/mumu", True, "GetDirectory")
-
 hnames = []
 for key in keyDir.GetListOfKeys():
     hname = key.GetName()
     hnames.append(hname.replace("_" + MU_SUFF, ""))
-
+#hnames = ["dphi"]
 H = len(hnames)
 
 
@@ -210,8 +210,10 @@ for sel in selection:
         elif "y" in hnames[h]:
             top_max = top_max * 1.8
         elif "pt" in hnames[h]:
-            top_max = top_max * 1.2
-        elif "phi" in hnames[h]:
+            top_max = top_max * 1.3
+#       elif "phi" in hnames[h]:
+#           top_max = top_max * 1.2
+        elif "z1m" in hnames[h]:
             top_max = top_max * 1.2
 
         ax_top.set_ylim(0, top_max)
@@ -241,7 +243,8 @@ for sel in selection:
                 loc='right')
 
         # Top y axis
-        ytitle = '$' + mc['zjets_m-50'][h][sel].GetYaxis().GetTitle() + '$'
+        unit = '$' + mc['zjets_m-50'][h][sel].GetYaxis().GetTitle() + '$'
+        ytitle = "Events / " + '%g' % width + " " + unit
         ax_top.set_ylabel(ytitle, horizontalalignment='right')
         ax_top.yaxis.set_label_coords(-0.08, 1)
         ax_top.minorticks_on()

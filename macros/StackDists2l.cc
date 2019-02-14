@@ -16,8 +16,8 @@
 #include "TMathText.h"
 
 // Cuts
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -30,6 +30,7 @@ using namespace std;
 
 void StackDists2l(const TString tag, bool useLog = kFALSE)
 {
+    const unsigned N_MC_ = 2;
 
     //
     //  SAMPLE INFO
@@ -104,8 +105,8 @@ void StackDists2l(const TString tag, bool useLog = kFALSE)
     //  MONTE CARLO
     //
 
-    TH1 *mc[N][H][N_MC];
-    for (unsigned j = 0; j < N_MC; j++) // sample loop
+    TH1 *mc[N][H][N_MC_];
+    for (unsigned j = 0; j < N_MC_; j++) // sample loop
     {   
         TString inName = prefix + "_" + MC_SUFF[j] + ".root";
         TFile *inFile = TFile::Open(inName);
@@ -159,7 +160,7 @@ void StackDists2l(const TString tag, bool useLog = kFALSE)
 
 
         // Monte Carlo
-        for (unsigned j = 0; j < N_MC; j++)
+        for (unsigned j = 0; j < N_MC_; j++)
         {
             TH1 *mc_ = (TH1*) mc[1][h][j]->Clone();
 
@@ -183,7 +184,7 @@ void StackDists2l(const TString tag, bool useLog = kFALSE)
         {
             TH1 *total_ = (TH1*) mc[i][h][0]->Clone();
 
-            for (unsigned j = 1; j < N_MC; j++)     // sample loop
+            for (unsigned j = 1; j < N_MC_; j++)     // sample loop
                 total_->Add(mc[i][h][j]);
 
             total[i][h] = total_;
@@ -222,7 +223,7 @@ void StackDists2l(const TString tag, bool useLog = kFALSE)
             mc[i][h][ZZ]->SetLineColor(COLOR[ZZ]);
             stack[i][h]->Add(mc[i][h][ZZ]);
 
-            for (unsigned j_ = N_MC; j_ > DY+1; j_--) // sample loop
+            for (unsigned j_ = N_MC_; j_ > DY+1; j_--) // sample loop
             {
                 unsigned j = j_ - 1;
 

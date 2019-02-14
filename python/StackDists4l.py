@@ -6,7 +6,8 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-from Cuts2017 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 
 
 
@@ -85,7 +86,7 @@ mc = {}
 h, j = 0, 0
 
 # Loop over all samples
-for suff in MC_SUFF:
+for suff in MC_SUFF_4L:
     inName = prefix + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
@@ -130,7 +131,7 @@ for h in range(H):
     data[h]['4l'].Add(data[h]['4e'])
     data[h]['4e'].Rebin(2)
 
-    for suff in MC_SUFF:
+    for suff in MC_SUFF_4L:
         mc[suff][h]['2m2e'].Add(mc[suff][h]['2e2m'])
         mc[suff][h]['4l'] = mc[suff][h]['2m2e'].Clone()
         mc[suff][h]['4l'].Add(mc[suff][h]['4m'])
@@ -145,8 +146,8 @@ for sel in selection:
         continue
 
     for h in range(H):
-        for suff in MC_SUFF:
-            if suff == "zjets_m-50":
+        for suff in MC_SUFF_4L:
+            if suff == "zz_4l":
                 total[h][sel] = mc[suff][h][sel].Clone()
             else:
                 total[h][sel].Add(mc[suff][h][sel])
@@ -175,6 +176,8 @@ for sel in selection:
     elif sel in ["4l", "2m2e"]:
         lumi = '%.1f' % MUON_TRIG_LUMI + " + " + '%.1f' % ELEC_TRIG_LUMI
 
+    lumi = '%.1f' % MUON_TRIG_LUMI
+
     print("Drawing", sel, "plots...")
 
     for h in range(H):
@@ -194,7 +197,7 @@ for sel in selection:
         v_mc_arr = np.zeros([N_MC, total[h][sel].GetNbinsX()], dtype=V)
         v_mc = {}
         j = 0
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_4L:
             for i in range(len(v_mc_arr[0])):
                 v_mc_arr[j][i]['x'] = total[h][sel].GetBinLowEdge(i+1)
                 v_mc_arr[j][i]['y'] = mc[suff][h][sel].GetBinContent(i+1)
@@ -235,7 +238,7 @@ for sel in selection:
                             )
 
         p_mc = {}
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_4L:
             p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
                                 bottom = v_mc[suff]['b'],   align = 'edge',     linewidth=0,
                                 color = COLOR[suff]
@@ -308,13 +311,13 @@ for sel in selection:
 
         for ax in [ax_bot.xaxis, ax_top.xaxis]:
             ax.set_ticks( np.arange(
-                            v_mc['zjets_m-50']['x'][0],
-                            v_mc['zjets_m-50']['x'][-1] + major_step,
+                            v_mc['zz_4l']['x'][0],
+                            v_mc['zz_4l']['x'][-1] + major_step,
                             step = major_step)
                             )
             ax.set_ticks( np.arange(
-                            v_mc['zjets_m-50']['x'][0],
-                            v_mc['zjets_m-50']['x'][-1] + minor_step,
+                            v_mc['zz_4l']['x'][0],
+                            v_mc['zz_4l']['x'][-1] + minor_step,
                             step = minor_step),
                         minor = True)
 
@@ -339,12 +342,12 @@ for sel in selection:
             leg_loc = 'upper right'
 
         ax_top.legend(
-                (   p_data,                         p_mc['zjets_m-50'],
-                    p_mc['zz_4l'],                  p_mc['ttbar'],
+                (   p_data,                         p_mc['zz_4l'],
+                    p_mc['zjets_m-50'],             p_mc['ttbar'],
                     p_mc['ww_2l2nu'],               p_mc['ggH_zz_4l']
                     ),
-                (   r'Data',                        r'$\mbox{Z}\to\ell^+\ell^-$',
-                    r'$\mbox{ZZ}\to4\ell$',         r'$\mbox{t}\bar{\mbox{t}}$', 
+                (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
+                    r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$', 
                     r'VV',                          r'H'
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)

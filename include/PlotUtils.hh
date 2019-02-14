@@ -114,11 +114,11 @@ TString _iso_(  const TString   x)      {return "\\mbox{RelPFIso}_{" + x + "}";}
 TString _costheta_(const TString x)     {return "\\cos\\theta_{" + x + "}";}
 TString _coszeta_(const TString x)      {return "\\cos\\zeta_{" + x + "}";}
 TString _alpha_(const TString   x)      {return "\\alpha_{" + x + "}\\ (" + _pirad + ")";}
-TString _dphi_( const TString   x)      {return "|\\Delta\\phi_{" + x + "}|";}
+TString _dphi_( const TString   x)      {return "|\\Delta\\phi_{" + x + "}|\\ (" + _pirad + ")";}
 
 TString _EventsPer(const float n, const TString unit)
 {
-    return "\\mbox{Events / }" + TString::Format("%g", n) + "\\mbox{ }" + unit;
+    return "\\mbox{Events / }" + TString::Format("%g", n) + "\\ " + unit;
 }
 
 

@@ -11,8 +11,8 @@
 #include "TGraphAsymmErrors.h"
 
 // Custom
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -130,7 +130,7 @@ void QtReweighting()
         cout << "MC " << selection[i] << " tree has " << tree->GetEntries() << " events." << flush;
         cout << "\t" << "Drawing histograms..." << flush;
 
-        tree->Draw("z1p4.Pt()>>+" + selection[i] + "_mc_GeV", "weight/qtWeight");
+        tree->Draw("z1p4.Pt()>>+" + selection[i] + "_mc_GeV", "weight/qtWeight/trigWeight");
         cout << "done!" << endl;
     }
     muFile->Close();

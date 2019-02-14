@@ -5,8 +5,7 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
 
 
 
@@ -19,14 +18,16 @@ selTeX      = { "mumu":r"\MM",  "ee":r"\EE",
                 "4l":r"4\Pell", "4m":r"4\PGm",  "4e":r"4\Pe",   "2m2e":r"2\PGm 2\Pe"
                 }
 selDef      = { "mumu":"MM",    "ee":"EE",  "4l":"4L",  "4m":"4M",  "4e":"4E",  "2m2e":"2M2E"   }
+channel     = { "mumu":"3",     "ee":"4",   "4m":"6",   "2m2e":"7", "2e2m":"8", "4e":"9"    }
 T = np.dtype([(sel, 'f4') for sel in selection])
+
 
 
 ##
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Selected/" + YEAR_STR + "/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_old/"
 prefix = "selected"
 
 # Muon file
@@ -40,7 +41,7 @@ elFile = TFile.Open(inPath + elName)
 print("Opened", inPath + elName)
 
 # Get yields
-data = np.zeros(1, dtype=T)
+data, data_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 
 for sel in selection:
     if sel == "4l":
@@ -51,9 +52,14 @@ for sel in selection:
         tree = elFile.Get(sel + "_" + EL_SUFF)
 
     data[sel] = tree.GetEntries()
+    data_unc[sel] = np.sqrt(data[sel])
 
 muFile.Close()
 elFile.Close()
+
+print("Data")
+print(data)
+print("")
 
 
 
@@ -63,7 +69,7 @@ elFile.Close()
 
 mc_arr, mc_unc_arr = np.zeros(N_MC, dtype=T), np.zeros(N_MC, dtype=T)
 mc, mc_unc = {}, {}
-row = 0
+j = 0
 
 # Loop over all samples
 for suff in MC_SUFF:
@@ -84,17 +90,70 @@ for suff in MC_SUFF:
 
         hist = TH1D("hist", "", 1, 0, 2)
         tree = inFile.Get(sel + "_" + suff)
-        tree.Draw("1>>hist", "weight/trigWeight", "goff")
+#       tree.Draw("1>>hist", "weight/trigWeight", "goff")
+        tree.Draw("1>>hist", "weight", "goff")
 
-        mc_arr[row][sel] = sf * hist.Integral()
-        mc_unc_arr[row][sel] = sf * np.sqrt(tree.GetEntries())
+        mc_arr[j][sel] = sf * hist.Integral()
+        mc_unc_arr[j][sel] = sf * np.sqrt(tree.GetEntries())
 
         hist.Delete()
 
-    mc[suff] = mc_arr[row]
-    mc_unc[suff] = mc_unc_arr[row]
-    row = row + 1
+    mc[suff] = mc_arr[j]
+    mc_unc[suff] = mc_unc_arr[j]
+    j = j + 1
     inFile.Close()
+
+
+
+##
+##  PHASE SPACE
+##
+
+inPath = EOS_PATH + "/BLT/" + YEAR_STR + "_old/"
+prefix = "genHardProc"
+
+# ZZTo4L file
+zzName = "gen_zz_4l/" + prefix + "_" + "zz_4l" + ".root"
+zzFile = TFile.Open(inPath + zzName)
+print("Opened", inPath + zzName)
+
+# DYJetsToLL file
+dyName = "gen_zjets_m-50/" + prefix + "_" + "zjets_m-50" + ".root"
+dyFile = TFile.Open(inPath + dyName)
+print("Opened", inPath + dyName)
+
+# Get yields
+ps, ps_unc = np.zeros(2, dtype=T), np.zeros(2, dtype=T)
+
+for sel in selection:
+    if sel == "4l":
+        continue
+    elif sel in ["mumu", "4m", "2m2e"]:
+        lumi = MUON_TRIG_LUMI
+    elif sel in ["ee", "4e", "2e2m"]:
+        lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+    
+    elif sel in ["mumu", "ee"]:
+        suff = "zjets_m-50"
+        tree = dyFile.Get("tree_" + suff)
+    elif sel in ["4m", "4e", "2e2m", "2m2e"]:
+        suff = "zz_4l"
+        tree = zzFile.Get("tree_" + suff)
+
+    sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
+
+    # JUST USE SELECTED EVENTS HIST
+    hist = TH1D("hist", "", 1, 0, 2)
+    tree.Draw("1>>hist", "genWeight * (decayChannel == " + channel[sel] + ")", "goff")
+
+    ps[sel] = sf * hist.Integral()
+    ps_unc[sel] = sf * np.sqrt(tree.GetEntries())
+
+    hist.Delete()
+
+dyFile.Close()
+zzFile.Close()
+
 
 
 
@@ -102,15 +161,16 @@ for suff in MC_SUFF:
 ##  ADD CHANNELS
 ##
 
-for sample in [data, mc_arr]:
+for sample in [data, mc_arr, ps]:
     sample['2m2e']  = sample['2m2e'] + sample['2e2m']
     sample['4l']    = sample['4m'] + sample['2m2e'] + sample['4e']
     sample['2e2m']  = 0
 
 # Handle uncertainty
-mc_unc_arr['2m2e']  = np.sqrt(mc_unc_arr['2m2e'] ** 2 + mc_unc_arr['2e2m'] ** 2)
-mc_unc_arr['4l']    = np.sqrt(mc_unc_arr['4m']**2 + mc_unc_arr['2m2e']**2 + mc_unc_arr['4e']**2)
-mc_unc_arr['2e2m']  = 0
+for sample_unc in [data_unc, mc_unc_arr, ps_unc]:
+    sample_unc['2m2e']  = np.sqrt(sample_unc['2m2e'] ** 2 + sample_unc['2e2m'] ** 2)
+    sample_unc['4l']    = np.sqrt(sample_unc['4m']**2 + sample_unc['2m2e']**2 + sample_unc['4e']**2)
+    sample_unc['2e2m']  = 0
 
 
 
@@ -127,6 +187,17 @@ for sel in ["mumu", "ee"]:
     sig[sel]        = mc['zjets_m-50'][sel]
     sig_unc[sel]    = mc_unc['zjets_m-50'][sel]
 
+# Calculated acceptance * efficiency
+axe, axe_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
+for sel in selection:
+    if sel == "2e2m":
+        continue
+    axe[sel]    = sig['sel'] / ps['sel']
+    # FIXME add uncertainty?
+print("A x e")
+print(axe)
+print("")
+
 # Get total expected and background events
 exp, exp_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 bg, bg_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
@@ -137,7 +208,7 @@ for sel in selection:
     bg_unc[sel]     = np.sqrt(np.sum(mc_unc_arr[sel] ** 2) - sig_unc[sel] ** 2)
 
 
-
+'''
 ##
 ##  WRITE TEX FILES
 ##
@@ -185,3 +256,4 @@ for sel in selection:
 
     f.close()
     print("Wrote table to", fileName)
+'''

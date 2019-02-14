@@ -20,7 +20,8 @@
 #include "LeptonPair.hh"
 
 // Cuts
-#include "Cuts2017.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 

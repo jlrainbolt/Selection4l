@@ -21,8 +21,8 @@
 #include "SelectionTools.hh"
 
 // Cuts
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -263,7 +263,8 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderArray    <TLorentzVector>    elecUncorrP4_   (reader,    "electronUncorrectedP4");
     TTreeReaderValue    <vector<Short_t>>   elecQ_          (reader,    "electronQ");
     TTreeReaderValue    <vector<Float_t>>   elecIso_        (reader,    "electronIsolation");
-    TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTight");
+//  TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTight");
+    TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTightIsoMVA");
     TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronIDSF");
     TTreeReaderValue    <vector<Float_t>>   elecRecoSF_     (reader,    "electronRecoSF");
     TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronFiredLeg1");
@@ -331,6 +332,7 @@ void RecoSelection( const TString suffix,           const TString id,
     graphFile->GetObject(selection[MM] + "_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
 
     graphFile->Close();
+
 /*
     // Systematics
     TH2 *hSystematics;
@@ -823,9 +825,10 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             unsigned Q  = muonPairLeads;
-            qtWeight    = qtGraph[Q]->Eval(z1.p4.Pt());
-            trigWeight  = GetTriggerWeight(z1.GetMembers());
+            if (!isData)
+                qtWeight = qtGraph[Q]->Eval(z1.p4.Pt());
 
+            trigWeight  = GetTriggerWeight(z1.GetMembers());
             idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
             recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
 
@@ -929,7 +932,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
             TLorentzVector zzp4 = z1.p4 + z2.p4;
             unsigned Q  = muonPairLeads;
-            qtWeight    = qtGraph[Q]->Eval(zzp4.Pt());
+            if (!isData)
+                qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
             idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
             idWeight   *= z2.First().id_sf.first * z2.Second().id_sf.first;

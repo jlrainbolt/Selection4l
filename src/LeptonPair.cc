@@ -59,7 +59,6 @@ Lepton LeptonPair :: Plus() const
 
     else    // return an empty lepton :(
     {
-        cout << "sign error" << endl;
         Lepton lep;
         lep.q = 0;
         return lep;
@@ -77,7 +76,6 @@ Lepton LeptonPair :: Minus() const
 
     else    // return an empty lepton :(
     {
-        cout << "sign error" << endl;
         Lepton lep;
         lep.q = 0;
         return lep;
