@@ -13,6 +13,22 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 
 ##
+##  SYSTEMATICS
+##
+
+F_NR = 0.04
+BF_LL = 0.033658 * 2
+
+mu_id = {   "4l":0.0047,    "4m":0.0068,    "2m2e":0.0035,  "4e":0.0006 }
+el_id = {   "4l":0.0051,    "4m":0.0015,    "2m2e":0.0083,  "4e":0.0183 }
+el_reco = { "4l":0.0118,    "4m":0.0012,    "2m2e":0.0183,  "4e":0.0432 }
+mu_pt = {   "4l":0.0015,    "4m":0.0014,    "2m2e":0.0022,  "4e":0.0002 }
+el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+
+
+
+
+##
 ##  SAMPLE INFO
 ##
 
@@ -36,9 +52,16 @@ NGEN_WZ_3LNU,       XSEC_WZ_3LNU        =   10881896  * (1 - 2 * 0.1879),       
 NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        =   27840918  * (1 - 2 * 0.1804),             3.22
 
 N_MC = 9
-MC_SUFF = [ "zjets_m-50",               "zz_4l",                        "ttbar",
+MC_SUFF = [ "zjets_m-50",               "ttbar",
             "ww_2l2nu",                 "wz_2l2q",                      "wz_3lnu",
-            "zz_2l2q",                  "vbfH_zz_4l",                   "ggH_zz_4l"
+            "zz_2l2q",                  "zz_4l",
+            "vbfH_zz_4l",               "ggH_zz_4l"
+            ]
+
+MC_SUFF_4L = [ "zjets_m-50",            "zz_4l",                        "ttbar",
+            "ww_2l2nu",                 "wz_2l2q",                      "wz_3lnu",
+            "zz_2l2q",
+            "vbfH_zz_4l",               "ggH_zz_4l"
             ]
 XSEC    = { "zz_4l":XSEC_ZZ_4L,         "zjets_m-50":XSEC_ZJETS_M50,    "ggH_zz_4l":XSEC_GGH_ZZ_4L,
             "vbfH_zz_4l":XSEC_VBFH_ZZ_4L,   "ttbar":XSEC_TTBAR,         "ww_2l2nu":XSEC_WW_2L2NU,

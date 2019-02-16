@@ -22,8 +22,13 @@ using namespace std;
 **  Draws UNSCALED distributions for a "boosted_" sample
 */ 
 
-void DrawDists4l(const TString suffix)
+void DrawDists4l(const TString suffix, const TString year)
 {
+    if (!year.EqualTo(YEAR_STR))
+    {
+        cout << "Wrong year in header file!" << endl;
+        return;
+    }
 
     //
     //  SAMPLE INFO
@@ -41,8 +46,8 @@ void DrawDists4l(const TString suffix)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "unscaled4l";
-    TString outName = prefix + "_" + suffix + ".root";
+    TString prefix  = "4l";
+    TString outName = prefix + "_" + year + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -107,7 +112,7 @@ void DrawDists4l(const TString suffix)
     //
 
     TString inName  = "boosted_" + suffix + ".root";
-    TString inPath  = HOME_PATH + "/Boosted/" + YEAR_STR + "/" + inName;
+    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -167,7 +172,9 @@ void DrawDists4l(const TString suffix)
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight/trigWeight";
+            TString weight = "weight/trigWeight/qtWeight";
+            if (suffix.EqualTo("zjets_m-50"))
+                weight = "weight/trigWeight";
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 
 

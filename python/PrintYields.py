@@ -84,7 +84,10 @@ for suff in MC_SUFF:
 
         hist = TH1D("hist", "", 1, 0, 2)
         tree = inFile.Get(sel + "_" + suff)
-        tree.Draw("1>>hist", "weight/trigWeight", "goff")
+        if suff == "zjets_m-50":
+            tree.Draw("1>>hist", "weight/trigWeight", "goff")
+        else:
+            tree.Draw("1>>hist", "weight/trigWeight/qtWeight", "goff")
 
         mc_arr[row][sel] = sf * hist.Integral()
         mc_unc_arr[row][sel] = sf * np.sqrt(tree.GetEntries())
@@ -159,16 +162,17 @@ for sel in selection:
     f.write("\t" + r"\multicolumn{3}{l}{Type} & \multicolumn{3}{l}{$N_{" 
             + selTeX[sel] + r"}$ (events)} \\" + "\n")
     f.write(r"\midrule" + "\n")
-    f.write("\t" + r"\multicolumn{3}{l}{Observed} & " + '%.0f' % np.squeeze(data[sel]) + " \\\\\n")
+    f.write("\t" + r"\multicolumn{3}{l}{Observed} & \num{" + '%.0f' % np.squeeze(data[sel])
+            + r"} \\" + "\n")
     f.write(r"\addlinespace\addlinespace" + "\n")
-    f.write("\t" + r"\multicolumn{3}{l}{Expected} & " + fmt % np.squeeze(exp[sel])
-            + r" & $\pm$ & " + fmt % np.squeeze(exp_unc[sel]) + " \\\\\n")
+    f.write("\t" + r"\multicolumn{3}{l}{Expected} & \num{" + fmt % np.squeeze(exp[sel])
+            + r"} & $\pm$ & \num{" + fmt % np.squeeze(exp_unc[sel]) + r"} \\" + "\n")
     f.write(r"\addlinespace" + "\n")
-    f.write("\t&\t" + r"\multicolumn{2}{l}{Signal} & " + fmt % np.squeeze(sig[sel])
-            + r" & $\pm$ & " + fmt % np.squeeze(sig_unc[sel]) + " \\\\\n")
+    f.write("\t&\t" + r"\multicolumn{2}{l}{Signal} & \num{" + fmt % np.squeeze(sig[sel])
+            + r"} & $\pm$ & \num{" + fmt % np.squeeze(sig_unc[sel]) + r"} \\" + "\n")
     f.write(r"\addlinespace" + "\n")
-    f.write("\t&\t" + r"\multicolumn{2}{l}{Background} & " + fmt % np.squeeze(bg[sel])
-            + r" & $\pm$ & " + fmt % np.squeeze(bg_unc[sel]) + " \\\\\n")
+    f.write("\t&\t" + r"\multicolumn{2}{l}{Background} & \num{" + fmt % np.squeeze(bg[sel])
+            + r"} & $\pm$ & \num{" + fmt % np.squeeze(bg_unc[sel]) + r"} \\" + "\n")
     f.write(r"\addlinespace" + "\n")
 
     for suff in MC_SUFF:
@@ -177,8 +181,10 @@ for sel in selection:
         elif suff == "zz_4l" and sel in ["4l", "4m", "2m2e", "4e"]:
             continue
         else:
-            f.write("\t&\t&\t" + MC_TEX[suff] + " & " + fmt % np.squeeze(mc[suff][sel])
-                    + r" & $\pm$ & " + fmt % np.squeeze(mc_unc[suff][sel]) + " \\\\\n")
+            f.write("\t&\t&\t" + MC_TEX[suff] + r" & \num{" + fmt % np.squeeze(mc[suff][sel])
+                    + r"} & $\pm$ & \num{" + fmt % np.squeeze(mc_unc[suff][sel]) + r"} \\" + "\n")
+        if YEAR_STR == "2017" and suff == "wz_3lnu":
+            f.write("\t" + r"\\" + "\n")
 
     f.write(r"\bottomrule" + "\n")
     f.write(r"\end{tabular}" + "\n")

@@ -140,8 +140,8 @@ void DrawDists2l(const TString suffix, const TString tag)
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-//          TString weight = "weight/trigWeight/qtWeight";
-            TString weight = "weight/trigWeight";
+            TString weight = "weight/trigWeight/qtWeight";
+//          TString weight = "weight/trigWeight";
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 
 

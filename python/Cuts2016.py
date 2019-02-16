@@ -13,6 +13,21 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 
 ##
+##  SYSTEMATICS
+##
+
+F_NR = 0.04
+BF_LL = 0.033658 * 2
+
+mu_id = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+el_id = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+el_reco = { "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+mu_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+
+
+
+##
 ##  SAMPLE INFO
 ##
 
@@ -37,9 +52,9 @@ NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        = 496436,         3.22
 NGEN_ZZ_2L2NU,      XSEC_ZZ_2L2NU       = 48623080,       0.564
 
 N_MC = 10
-MC_SUFF = [ "zjets_m-50",               "zz_4l",                        "ttbar",
+MC_SUFF = [ "zjets_m-50",               "ttbar",
             "ww_2l2nu",                 "wz_2l2q",                      "wz_3lnu",
-            "zz_2l2nu",                 "zz_2l2q",
+            "zz_2l2nu",                 "zz_2l2q",                      "zz_4l", 
             "vbfH_zz_4l",               "ggH_zz_4l"
             ]
 MC_SUFF_4L = [ "zz_4l",                 "zjets_m-50",                   "ttbar",

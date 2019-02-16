@@ -27,7 +27,7 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 ##
 
 prefix = "2l"
-tag = "noTrig"
+tag = "noQt"
 
 # Muon file
 muName = prefix + "_" + tag + "_" + MU_SUFF + ".root"

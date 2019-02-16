@@ -1,13 +1,14 @@
 from __future__ import print_function
 from __future__ import division
+import sys
 
 import numpy as np
 
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
+#from Cuts2016 import *
 
 
 
@@ -20,22 +21,25 @@ selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
 
+year = sys.argv[1]
+if year != YEAR_STR:
+    print("Wrong year in header file")
+
 
 
 ##
 ##  DATA
 ##
 
-prefix = "unscaled4l"
-#tag = "noQt"
+prefix = "4l"
 
 # Muon file
-muName = prefix + "_" + MU_SUFF + ".root"
+muName = prefix + "_" + year + "_" + MU_SUFF + ".root"
 muFile = TFile(muName, "READ")
 print("Opened", muName)
 
 # Electron file
-elName = prefix + "_" + EL_SUFF + ".root"
+elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
 
@@ -87,7 +91,7 @@ h, j = 0, 0
 
 # Loop over all samples
 for suff in MC_SUFF_4L:
-    inName = prefix + "_" + suff + ".root"
+    inName = prefix + "_" +year + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
 
@@ -147,7 +151,7 @@ for sel in selection:
 
     for h in range(H):
         for suff in MC_SUFF_4L:
-            if suff == "zz_4l":
+            if suff == MC_SUFF_4L[0]:
                 total[h][sel] = mc[suff][h][sel].Clone()
             else:
                 total[h][sel].Add(mc[suff][h][sel])
@@ -167,8 +171,12 @@ for sel in selection:
 
 
 for sel in selection:
+#for sel in ["4e"]:
     if sel == "2e2m":
         continue
+
+    if (MUON_TRIG_LUMI == ELEC_TRIG_LUMI):
+        lumi = '%.1f' % MUON_TRIG_LUMI
     elif sel == "4m":
         lumi = '%.1f' % MUON_TRIG_LUMI
     elif sel == "4e":
@@ -176,7 +184,6 @@ for sel in selection:
     elif sel in ["4l", "2m2e"]:
         lumi = '%.1f' % MUON_TRIG_LUMI + " + " + '%.1f' % ELEC_TRIG_LUMI
 
-    lumi = '%.1f' % MUON_TRIG_LUMI
 
     print("Drawing", sel, "plots...")
 
@@ -261,7 +268,10 @@ for sel in selection:
                     )
 
         ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')
-        ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
+        if sel == "4e":
+            ax_bot.set_ylim(0, 3)
+        else:
+            ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
 
 
 
@@ -326,7 +336,10 @@ for sel in selection:
 #       ax_top.yaxis.get_major_formatter().set_powerlimits((0, 1))
 
         # Bottom y axis
-        ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, lRatioMax4l, step = 0.5) )
+        if sel == "4e":
+            ax_bot.yaxis.set_ticks( np.arange(lRatioMid, lRatioMid+2, step = 1) )
+        else:
+            ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, lRatioMax4l, step = 0.5) )
 #       ax_bot.yaxis.set_ticks( np.arange(lRatioMin2l+0.05, lRatioMax4l, step = 0.05),
 #                       minor = True  )
 
@@ -341,6 +354,9 @@ for sel in selection:
         else:
             leg_loc = 'upper right'
 
+        if year == "2017" and hnames[h] == "zzm" and sel == "4e":
+            leg_loc = 'upper right'
+
         ax_top.legend(
                 (   p_data,                         p_mc['zz_4l'],
                     p_mc['zjets_m-50'],             p_mc['ttbar'],
@@ -352,5 +368,5 @@ for sel in selection:
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 
-        fig.savefig(hnames[h] + "_" + sel + ".pdf")
+        fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
         plt.clf()
