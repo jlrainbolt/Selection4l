@@ -52,6 +52,7 @@ NGEN_WZ_3LNU,       XSEC_WZ_3LNU        =   10881896  * (1 - 2 * 0.1879),       
 NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        =   27840918  * (1 - 2 * 0.1804),             3.22
 
 N_MC = 9
+N_DY = 1
 MC_SUFF = [ "zjets_m-50",               "ttbar",
             "ww_2l2nu",                 "wz_2l2q",                      "wz_3lnu",
             "zz_2l2q",                  "zz_4l",

@@ -51,7 +51,8 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-hnames = ["zzm", "zzpt", "z1m", "z2m"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi", "sin_phi_2"]
+hnames = ["sin_phi", "sin_phi_2"]
 
 H = len(hnames)
 
@@ -133,14 +134,18 @@ for h in range(H):
     data[h]['4l'] = data[h]['2m2e'].Clone()
     data[h]['4l'].Add(data[h]['4m'])
     data[h]['4l'].Add(data[h]['4e'])
-    data[h]['4e'].Rebin(2)
+
+    if hnames[h] != "sin_phi_2":
+        data[h]['4e'].Rebin(2)
 
     for suff in MC_SUFF_4L:
         mc[suff][h]['2m2e'].Add(mc[suff][h]['2e2m'])
         mc[suff][h]['4l'] = mc[suff][h]['2m2e'].Clone()
         mc[suff][h]['4l'].Add(mc[suff][h]['4m'])
         mc[suff][h]['4l'].Add(mc[suff][h]['4e'])
-        mc[suff][h]['4e'].Rebin(2)
+
+        if hnames[h] != "sin_phi_2":
+            mc[suff][h]['4e'].Rebin(2)
 
 # Get total
 total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
@@ -255,8 +260,10 @@ for sel in selection:
 
         if hnames[h] == "zzpt":
             top_max = top_max * 1.2
-        if hnames[h] == "z2m":
+        elif hnames[h] == "z2m":
             top_max = top_max * 1.3
+        elif hnames[h] == "sin_phi_2":
+            top_max = top_max * 2
         ax_top.set_ylim(0, top_max)
 
 
@@ -351,6 +358,8 @@ for sel in selection:
 
         if hnames[h] in ["zzm", "z1m"]:
             leg_loc = 'center left'
+        elif hnames[h] in ["sin_phi", "sin_phi_2"]:
+            leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'
 

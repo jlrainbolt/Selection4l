@@ -6,8 +6,8 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 from secret_number import *
 
-from Cuts2017 import *
-#from Cuts2016 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 
 
 
@@ -110,18 +110,33 @@ for suff in MC_SUFF:
 ##  PHASE SPACE
 ##
 
-inPath = EOS_PATH + "/BLT/" + YEAR_STR + "_old/"
-prefix = "genHardProc"
+inPath = EOS_PATH + "/BLT/" + YEAR_STR + "/"
+prefix, hname = "gen", "PhaseSpaceEvents"
 
 # ZZTo4L file
-zzName = "gen_zz_4l/" + prefix + "_" + "zz_4l" + ".root"
+zzName = prefix + "_zz_4l_" + "0" + ".root"
 zzFile = TFile.Open(inPath + zzName)
 print("Opened", inPath + zzName)
+zzHist = zzFile.Get(hname + "_zz_4l")
+zzHist.SetDirectory(0)
+zzFile.Close()
 
 # DYJetsToLL file
-dyName = "gen_zjets_m-50/" + prefix + "_" + "zjets_m-50" + ".root"
-dyFile = TFile.Open(inPath + dyName)
-print("Opened", inPath + dyName)
+for i in range(N_DY):
+    dyName = prefix + "_zjets_m-50_" + str(i) + ".root"
+    dyFile = TFile.Open(inPath + dyName)
+    print("Opened", inPath + dyName)
+
+    if i == 0:
+        dyHist = dyFile.Get(hname + "_zjets_m-50")
+        dyHist.SetDirectory(0)
+    else:
+        dyHist_ = dyFile.Get(hname + "_zjets_m-50")
+        dyHist.Add(dyHist_)
+        dyHist_.Delete()
+
+    dyFile.Close()
+
 
 # Get yields
 ps, ps_stat = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
@@ -131,10 +146,10 @@ for sel in selection:
         continue
     elif sel in ["mumu", "ee"]:
         suff = "zjets_m-50"
-        hist = dyFile.Get("PhaseSpaceEvents_" + suff)
+        hist = dyHist
     elif sel in ["4m", "4e", "2e2m", "2m2e"]:
         suff = "zz_4l"
-        hist = zzFile.Get("PhaseSpaceEvents_" + suff)
+        hist = zzHist
 
     if sel in ["mumu", "4m", "2m2e"]:
         lumi = MUON_TRIG_LUMI
@@ -145,11 +160,8 @@ for sel in selection:
     ps[sel] = sf * hist.GetBinContent(channel[sel])
     ps_stat[sel] = sf * hist.GetBinError(channel[sel])
 
-    hist.Delete()
-
-dyFile.Close()
-zzFile.Close()
-
+dyHist.Delete()
+zzHist.Delete()
 
 
 

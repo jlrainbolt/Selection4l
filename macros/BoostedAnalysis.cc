@@ -20,8 +20,8 @@
 #include "LeptonPair.hh"
 
 // Cuts
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -300,10 +300,8 @@ void BoostedAnalysis(const TString suffix)
             // Blinding
             if (isData)
             {
-                if (rng->Rndm() > 0.5)                  // Will we try blinding z1 or z2?
-                    z1.BlindCharges(rng->Rndm());       // 50% chance to flip z1 charges
-                else
-                    z2.BlindCharges(rng->Rndm());       // 50% chance to flip z2 charges
+                z1.BlindCharges(rng->Rndm());       // 50% chance to flip z1 charges
+                z2.BlindCharges(rng->Rndm());       // 50% chance to flip z2 charges
             }
 
 
