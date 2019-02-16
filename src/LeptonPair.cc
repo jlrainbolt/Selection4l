@@ -62,6 +62,7 @@ Lepton LeptonPair :: Plus() const
         Lepton lep;
         lep.q = 0;
         return lep;
+        cout << "bad plus" << endl;
     }
 }
 
@@ -79,6 +80,7 @@ Lepton LeptonPair :: Minus() const
         Lepton lep;
         lep.q = 0;
         return lep;
+        cout << "bad minus" << endl;
     }
 }
 
@@ -200,13 +202,28 @@ bool LeptonPair :: BlindCharges(const float rng)
     else
         return kFALSE;
 */
+    short l1q = 0, l2q = 0;
     if (rng > 0.5)
     {
-        leptons.first.q     = -1 * leptons.first.q;
-        leptons.second.q    = -1 * leptons.second.q;
-
-        return kTRUE;
+        l1q = 1;
+        l2q = -1;
     }
     else
-        return kFALSE;
+    {
+        l1q = -1;
+        l2q = 1;
+    }
+
+    if (leptons.first.b_p4.P() > leptons.second.b_p4.P())
+    {
+        leptons.first.q     = l1q;
+        leptons.second.q    = l2q;
+    }
+    else
+    {
+        leptons.first.q     = l2q;
+        leptons.second.q    = l1q;
+    }
+
+    return kTRUE;
 }
