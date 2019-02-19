@@ -12,8 +12,8 @@
 #include "TError.h"
 
 // Custom
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -24,8 +24,13 @@ using namespace std;
 **  Draws UNSCALED distributions for a "selected_" sample
 */ 
 
-void DrawDists2l(const TString suffix, const TString tag)
+void DrawDists2l(const TString suffix, const TString year)
 {
+    if (!year.EqualTo(YEAR_STR))
+    {
+        cout << "Wrong year in header file!" << endl;
+        return;
+    }
 
     //
     //  SAMPLE INFO
@@ -44,7 +49,7 @@ void DrawDists2l(const TString suffix, const TString tag)
     //
 
     TString prefix  = "2l";
-    TString outName = prefix + "_" + tag + "_" + suffix + ".root";
+    TString outName = prefix + "_" + YEAR_STR + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -141,7 +146,11 @@ void DrawDists2l(const TString suffix, const TString tag)
             int     bins;
             float   xmin,   xmax;
             TString weight = "weight/trigWeight/qtWeight";
-//          TString weight = "weight/trigWeight";
+
+
+//          if (suffix.EqualTo("zjets_m-50"))
+//              weight = "weight/trigWeight";
+
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 
 

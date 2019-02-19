@@ -2,6 +2,7 @@
 ##  COLORS
 ##
 
+'''
 lAlpha = 0.75
 lBlue = (0, 0.4470, 0.7410, lAlpha)
 lOrange = (0.8500, 0.3250, 0.0980, lAlpha)
@@ -10,7 +11,14 @@ lPurple = (0.4940, 0.1840, 0.5560, lAlpha)
 lGreen = (0.4660, 0.6740, 0.1880, lAlpha)
 lLightBlue = (0.3010, 0.7450, 0.9330, lAlpha)
 lRed = (0.6350, 0.0780, 0.1840, lAlpha)
-
+'''
+lBlue       = (0.25,    0.58525, 0.80575)
+lOrange     = (0.8875,  0.49375, 0.3235)
+lYellow     = (0.94675, 0.7705,  0.34375) 
+lPurple     = (0.6205,  0.388,   0.667)
+lGreen      = (0.5995,  0.7555,  0.391) 
+lLightBlue  = (0.47575, 0.80875, 0.94975) 
+lRed        = (0.72625, 0.3085,  0.388)
 
 
 ##
@@ -24,8 +32,8 @@ from matplotlib import rc
 # Font/TeX setup
 # (https://3diagramsperpage.wordpress.com/2015/04/11/)
 rc('text', usetex=True)
-mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}', r'\usepackage{sansmath}',
-                                        r'\sansmath'] 
+mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{sansmath}', r'\sansmath'] 
+
 # Figure size, aspect ratio
 mpl.rcParams["figure.figsize"] = [6, 6]
 mpl.rcParams["axes.labelsize"], mpl.rcParams["axes.titlesize"] = "xx-large", "xx-large"

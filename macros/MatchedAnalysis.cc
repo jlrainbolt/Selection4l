@@ -19,7 +19,8 @@
 #include "LeptonPair.hh"
 
 // Cuts
-#include "Cuts2017.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -207,7 +208,7 @@ void MatchedAnalysis()
     //  INPUT BRANCHES
     //
 
-    for (unsigned i = 1; i < N; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         TTreeReader reader(selection[i] + "_" + suffix, inFile);
 

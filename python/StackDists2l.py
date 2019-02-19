@@ -1,13 +1,14 @@
 from __future__ import print_function
 from __future__ import division
+import sys
 
 import numpy as np
 
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
+#from Cuts2016 import *
 
 
 
@@ -20,6 +21,11 @@ selection = ["mumu", "ee"]
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
 
+year = sys.argv[1]
+if year != YEAR_STR:
+    print("Wrong year in header file")
+
+tag = "noQt"
 
 
 ##
@@ -27,26 +33,25 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 ##
 
 prefix = "2l"
-tag = "noQt"
 
 # Muon file
-muName = prefix + "_" + tag + "_" + MU_SUFF + ".root"
+muName = prefix + "_" + year + "_" + MU_SUFF + ".root"
 muFile = TFile(muName, "READ")
 print("Opened", muName)
 
 # Electron file
-elName = prefix + "_" + tag + "_" + EL_SUFF + ".root"
+elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
 
 
 # Get keys
-keyDir = muFile.GetDirectory("/mumu", True, "GetDirectory")
-hnames = []
-for key in keyDir.GetListOfKeys():
-    hname = key.GetName()
-    hnames.append(hname.replace("_" + MU_SUFF, ""))
-#hnames = ["dphi"]
+#keyDir = muFile.GetDirectory("/mumu", True, "GetDirectory")
+#hnames = []
+#for key in keyDir.GetListOfKeys():
+#    hname = key.GetName()
+#    hnames.append(hname.replace("_" + MU_SUFF, ""))
+hnames = ["z1m", "z1pt", "l1pt", "l2pt", "l1eta", "l2eta", "dphi", "z1y", "nPV"]
 H = len(hnames)
 
 
@@ -80,7 +85,7 @@ h, j = 0, 0
 
 # Loop over all samples
 for suff in MC_SUFF:
-    inName = prefix + "_" + tag + "_" + suff + ".root"
+    inName = prefix + "_" + year + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
 
@@ -244,7 +249,7 @@ for sel in selection:
 
         # Top y axis
         unit = '$' + mc['zjets_m-50'][h][sel].GetYaxis().GetTitle() + '$'
-        ytitle = "Events / " + '%g' % width + " " + unit
+        ytitle = r"Events$/$" + '%g' % width + " " + unit
         ax_top.set_ylabel(ytitle, horizontalalignment='right')
         ax_top.yaxis.set_label_coords(-0.08, 1)
         ax_top.minorticks_on()
@@ -256,7 +261,7 @@ for sel in selection:
         # Shared x axis
         xtitle = '$' + mc['zjets_m-50'][h][sel].GetXaxis().GetTitle() + '$'
         if "Delta" in xtitle:
-            xtitle = xtitle.replace("Delta", "bigtriangleup")
+            xtitle = xtitle.replace("Delta", "triangle")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 
@@ -316,5 +321,6 @@ for sel in selection:
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 
-        fig.savefig(tag + "_" +  hnames[h] + "_" + sel + ".pdf")
+#       fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
+        fig.savefig(year + "_" + tag + "_" + hnames[h] + "_" + sel + ".pdf")
         plt.clf()

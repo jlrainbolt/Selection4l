@@ -11,8 +11,8 @@
 #include "TGraphAsymmErrors.h"
 
 // Custom
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -34,7 +34,7 @@ void QtReweighting()
     unsigned                    MM = 0,     EE = 1;     // Indices
     TString selection[N]    = { "mumu",     "ee"    };
     unsigned chanIdx[N]     = { 3,          4       };
-    TString lepChan[N]      = { _mu,        _e      };
+    TString lepChan[N]      = { _mumu,      _ee     };
 
 
 
@@ -102,7 +102,7 @@ void QtReweighting()
 
     TH1D *dataGeV[N], *mcGeV[N];
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         // 1-GeV binning
         dataGeV[i]  = new TH1D(selection[i] + "_data_GeV",  "", B, xbins[0], xbins[M]);
@@ -143,7 +143,7 @@ void QtReweighting()
     TH1 *data[N], *mc[N];
     TH1D *ratio[N];
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         data[i] = dataGeV[i]->Rebin(M, selection[i] + "_data",  xbins);
         mc[i]   = mcGeV[i]->Rebin(  M, selection[i] + "_mc",    xbins);
@@ -170,10 +170,8 @@ void QtReweighting()
 
     float x[N][M];
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
-//      x[N][0] = 0;
-
         for (unsigned j = 0; j < M; j++)
         {
             float binContent = data[i]->GetBinContent(j+1) + mc[i]->GetBinContent(j+1);
@@ -200,7 +198,7 @@ void QtReweighting()
 
     float y[N][M], exl[N][M], exh[N][M], ey[N][M];
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         for (unsigned j = 0; j <= M; j++)
         {
@@ -217,11 +215,78 @@ void QtReweighting()
 
     TGraphAsymmErrors *graph[N];
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         graph[i] = new TGraphAsymmErrors(M, x[i], y[i], exl[i], exh[i], ey[i], ey[i]);
         graph[i]->SetName(selection[i] + "_weight");
     }
+
+
+
+    //
+    //  DRAW
+    //
+
+    TCanvas *c_graph[N], *c_data[N], *c_mc[N];
+
+    for (unsigned i = 0; i < 1; i++)
+    {
+        c_graph[i] = new TCanvas("c_weight_" + selection[i] + "_canvas", "", 100, 100);
+        c_graph[i]->cd();
+        Facelift(c_graph[i]);
+        c_graph[i]->SetCanvasSize(lCanvasSize, 0.625*lCanvasSize);
+        c_graph[i]->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+
+        c_graph[i]->SetLogx();
+        graph[i]->Draw("APL");
+        graph[i]->GetYaxis()->SetRangeUser(0.7, 1.3);
+
+        graph[i]->SetTitle("");
+        graph[i]->GetXaxis()->SetTitle(_pT_(lepChan[i]));
+        graph[i]->GetYaxis()->SetTitle("q_{\\mbox{T}}\\mbox{ weight}");
+        Facelift(graph[i]->GetXaxis());
+        Facelift(graph[i]->GetYaxis());
+        graph[i]->GetYaxis()->SetTitleOffset(0.5*lTitleOffsetY);
+
+        float xmin = graph[i]->GetXaxis()->GetXmin(), xmax = graph[i]->GetXaxis()->GetXmax();
+
+
+        c_data[i] = new TCanvas("c_data_" + selection[i] + "_canvas", "", 100, 100);
+        c_data[i]->cd();
+        Facelift(c_data[i]);
+        c_data[i]->SetCanvasSize(lCanvasSize, 0.625*lCanvasSize);
+        c_data[i]->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+        c_data[i]->SetLogx();
+        TH1 *f_data = c_data[i]->DrawFrame(xmin, 0, xmax, 0.05);
+        f_data->GetXaxis()->SetTitle(_pT_(lepChan[i]));
+        Facelift(f_data);
+
+        dataGeV[i]->SetStats(0);
+        dataGeV[i]->SetMarkerColor(kBlack);
+        dataGeV[i]->SetMarkerStyle(kFullCircle);
+        dataGeV[i]->SetMarkerSize(2);
+        dataGeV[i]->SetLineWidth(2);
+        dataGeV[i]->SetLineColor(kBlack);
+        dataGeV[i]->Draw("E SAME");
+
+
+        c_mc[i] = new TCanvas("c_mc_" + selection[i] + "_canvas", "", 100, 100);
+        c_mc[i]->cd();
+        Facelift(c_mc[i]);
+        c_mc[i]->SetCanvasSize(lCanvasSize, 0.625*lCanvasSize);
+        c_mc[i]->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+        c_mc[i]->SetLogx();
+        TH1 *f_mc = c_mc[i]->DrawFrame(xmin, 0, xmax, 0.06);
+        f_mc->GetXaxis()->SetTitle(_pT_(lepChan[i]));
+        Facelift(f_mc);
+
+        mcGeV[i]->SetStats(0);
+        mcGeV[i]->SetFillColor(lYellow);
+        mcGeV[i]->SetLineColor(lYellow);
+        mcGeV[i]->Draw("HIST SAME");
+    }
+
+
 
 
 
@@ -231,12 +296,16 @@ void QtReweighting()
     //  WRITE OUTPUT
     //
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         data[i]->Write();
         mc[i]->Write();
         ratio[i]->Write();
         graph[i]->Write();
+
+        c_graph[i]->Write();
+        c_data[i]->Write();
+        c_mc[i]->Write();
     }
     outFile->Close();
     cout << endl << "Wrote histograms to " << outName << endl << endl << endl;

@@ -52,21 +52,22 @@ void Unfold4l()
     //  GET HISTOGRAM KEYS
     //
 
-    vector<TString> hname;
+    vector<TString> hname = {"b_l1p"};
+//  vector<TString> hname;
     TString inName = "migration_zz_4l.root";
     TFile *inFile = TFile::Open(inName);
     cout << "Opened " << inName << endl;
 
-    TDirectory *keyDir = inFile->GetDirectory("/" + selection[M4] + "/2d", kTRUE, "GetDirectory");
-    TKey *histKey;
-    TIter next(keyDir->GetListOfKeys());
-    while ((histKey = (TKey*) next()))
-    {
-        TString hname_ = histKey->GetName();
-        hname_.Resize(hname_.Length() - (3));    // truncate before suffix
-        hname.push_back(hname_);
-    }
-    cout << "Got histogram keys" << endl;
+//  TDirectory *keyDir = inFile->GetDirectory("/" + selection[M4] + "/2d", kTRUE, "GetDirectory");
+//  TKey *histKey;
+//  TIter next(keyDir->GetListOfKeys());
+//  while ((histKey = (TKey*) next()))
+//  {
+//      TString hname_ = histKey->GetName();
+//      hname_.Resize(hname_.Length() - (3));    // truncate before suffix
+//      hname.push_back(hname_);
+//  }
+//  cout << "Got histogram keys" << endl;
 
     const unsigned H = hname.size();
 
@@ -74,6 +75,8 @@ void Unfold4l()
 
     //
     //  SIGNAL MONTE CARLO
+    //  &
+    //  MIGRATION MATRICES
     // 
 
     TH1 *h_gen[N][H], *h_reco[N][H], *h_gen_sc[N][H], *h_reco_sc[N][H];
@@ -88,23 +91,26 @@ void Unfold4l()
         {
             // Get histograms
 
-            inFile->GetObject(selection[i] + "/gen/" + hname[h] + "_gen", h_gen_);
+            inFile->GetObject(selection[i] + "/" + hname[h] + "_gen", h_gen_);
             h_gen_->SetDirectory(0);
             h_gen_->SetStats(0);
             h_gen[i][h] = (TH1*) h_gen_->Clone();
             h_gen_->Scale(sf[i]);
             h_gen_sc[i][h] = (TH1*) h_gen_->Clone();
 
-            inFile->GetObject(selection[i] + "/reco/" + hname[h] + "_reco", h_reco_);
+            inFile->GetObject(selection[i] + "/" + hname[h] + "_reco", h_reco_);
             h_reco_->SetDirectory(0);
             h_reco_->SetStats(0);
             h_reco[i][h] = (TH1*) h_reco_->Clone();
             h_reco_->Scale(sf[i]);
             h_reco_sc[i][h] = (TH1*) h_reco_->Clone();
 
-            inFile->GetObject(selection[i] + "/2d/" + hname[h] + "_2d", m_A_);
+            inFile->GetObject(selection[i] + "/" + hname[h] + "_2d", m_A_);
             m_A_->SetDirectory(0);
             m_A_->SetStats(0);
+
+            m_A_->ClearUnderflowAndOverflow();
+
             m_A[i][h] = m_A_;
         }
     }
@@ -118,7 +124,7 @@ void Unfold4l()
     //
 
 
-    TString prefix  = "unscaled4l";
+    TString prefix  = "4l_" + YEAR_STR;
 
     // Muon file
     TString muName = prefix + "_" + MU_SUFF + ".root";
@@ -193,18 +199,22 @@ void Unfold4l()
     TH1 *h_result[N][H];
     TH2 *m_response[N][H], *m_unfolding[N][H];
 
+    TSpline *spline;
+
     for (unsigned h = 0; h < H; h++)    // distribution loop
     {
         cout << "Unfolding " << hname[h] << " distribution..." << endl;
 
-        for (unsigned i = 0; i < N; i++)
+        for (unsigned i = 0; i < 1; i++)
         {
-            TUnfoldDensity unfolder(m_A[i][h], TUnfold::kHistMapOutputHoriz, TUnfold::kRegModeNone);
+            TUnfoldDensity unfolder(m_A[i][h], TUnfold::kHistMapOutputVert, TUnfold::kRegModeCurvature);
 
-//          unfolder.SetInput(h_data[i][h], sf[i]);
             unfolder.SetBias(h_gen_sc[i][h]);
             unfolder.SetInput(h_data[i][h]);
-            unfolder.DoUnfold(0);
+
+//          unfolder.DoUnfold();
+//          unfolder.ScanTau(20, 1e-7, 1, &spline);
+            unfolder.DoUnfold(pow(10, -1.412524));
 
             h_result[i][h] = unfolder.GetOutput("h_result_" + hname[h] + "_" + selection[i], "");
             h_result[i][h]->SetStats(0);
@@ -219,6 +229,7 @@ void Unfold4l()
             cout << endl;
         }
     }
+//  spline->Draw();
 
 
 
@@ -231,7 +242,7 @@ void Unfold4l()
     TCanvas *c[N][H];
     for (unsigned h = 0; h < H; h++)
     {
-        for (unsigned i = 0; i < N; i++)
+        for (unsigned i = 0; i < 1; i++)
         {
             c[i][h] = new TCanvas("c_" + hname[h] + "_" + selection[i], "", 800, 600);
 
@@ -277,7 +288,7 @@ void Unfold4l()
     TString outName = "unfolding_" + YEAR_STR + ".root";
     TFile *outFile = new TFile(outName, "RECREATE");
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         outFile->mkdir(selection[i]);
 

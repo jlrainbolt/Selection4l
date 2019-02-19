@@ -1,5 +1,6 @@
 from __future__ import print_function
 from __future__ import division
+import sys
 
 import numpy as np
 
@@ -93,30 +94,27 @@ print(unc)
 print(sig)
 
 
-'''
+
 ##
 ##  WRITE TEX FILES
 ##
 
-fileName = "BranchingFrac" + YEAR_STR + ".tex"
+fileName = "Asymmetry" + YEAR_STR + ".tex"
 f = open(fileName, "w")
-fmt = '%.2f'
+fmt = '%.1f'
 
-f.write(r"\begin{tabular}{l p{.5in} p{.75in} p{.75in}>{\leavevmode\color{purple}}p{.75in} c}"
-        + "\n")
+f.write(r"\begin{tabular}{l r r r c r c}" + "\n")
 f.write(r"\toprule" + "\n")
-f.write("\t" + r"& \multicolumn{4}{c}{$\BF$ ($\times 10^{-6}$)}"
-        + r" & \multirow{2}{1in}[-1ex]{Statistical Precision (\%)} \\" + "\n")
-f.write(r"\cmidrule{2-5}" + "\n")
-f.write(r"Channel & & (stat.) & (syst.) & (MC stat.) \\" + "\n")
+f.write(r"Channel & \multicolumn{1}{l}{$N_{+}$} & \multicolumn{1}{l}{$N_{-}$}"
+        + r"& \multicolumn{3}{l}{$A$ (\%)} & Significance ($\sigma$) \\" + "\n")
 f.write(r"\midrule" + "\n")
 
 for sel in ["4l", "4m", "2m2e", "4e"]:
-    f.write("$" + selTeX[sel] + r"$ & " + fmt % np.squeeze(bf[sel])
-            + r" & $\pm$ " + fmt % np.squeeze(bf_stat[sel])
-            + r" & $\pm$ " + fmt % np.squeeze(bf_syst[sel])
-            + r" & $\pm$ " + fmt % np.squeeze(mc_stat[sel])
-            + r" & " + '%.1f' % np.squeeze(prec[sel]) + r" \\" + "\n")
+    f.write("$" + selTeX[sel] + r"$ & " + '%i' % np.squeeze(pos[sel])
+            + r" & " + '%i' % np.squeeze(neg[sel])
+            + r" & $" + fmt % np.squeeze(100 * assy[sel])
+            + r"$ & $\pm$ & $" + fmt % np.squeeze(100 * unc[sel])
+            + r"$ & " + '%.2f' % np.squeeze(sig[sel]) + r" \\" + "\n")
     if sel == "4l":
         f.write(r"\addlinespace" + "\n")
 
@@ -125,4 +123,3 @@ f.write(r"\end{tabular}" + "\n")
 
 f.close()
 print("Wrote table to", fileName)
-'''

@@ -51,7 +51,9 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]#, "sin_phi_2"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi", "sin_phi_2"]
+hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", 
+            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 H = len(hnames)
 
@@ -77,6 +79,59 @@ for sel in selection:
 muFile.Close()
 elFile.Close()
 print("Got data histograms")
+print("")
+
+
+
+##
+##  ACC * EFF
+##
+
+# Unscaled signal events
+zzName = prefix + "_" + year + "_zz_4l.root"
+zzFile = TFile(zzName, "READ")
+print("Opened", zzName)
+
+axe = np.empty(H, dtype=T)
+h = 0
+
+for sel in selection:
+    if sel == "4l":
+        continue
+
+    for hname in hnames:
+        axe[h][sel] = zzFile.Get(sel + "/" + hname + "_zz_4l")
+        axe[h][sel].SetDirectory(0)
+        axe[h][sel].SetName(hname + "_acc_x_eff")
+
+        h = h + 1
+    h = 0
+
+zzFile.Close()
+
+
+# Phase space events
+ps = np.empty(H, dtype=T)
+h = 0
+
+psName = prefix + "_" + year + "_phase_space.root"
+psFile = TFile(psName, "READ")
+print("Opened", psName)
+
+for sel in selection:
+    if sel == "4l":
+        continue
+
+    for hname in hnames:
+        ps[h][sel] = psFile.Get(sel + "/" + hname + "_phase_space")
+        ps[h][sel].SetDirectory(0)
+
+        h = h + 1
+    h = 0
+
+psFile.Close()
+
+print("Got acc * eff histograms")
 print("")
 
 
@@ -118,9 +173,6 @@ for suff in MC_SUFF_4L:
     j = j + 1
     inFile.Close()
 
-print("Got MC histograms")
-print("")
-
 
 
 ##
@@ -129,13 +181,11 @@ print("")
 
 # Get 4l and 2m2e, rebin 4e
 for h in range(H):
-    data[h]['2m2e'].Add(data[h]['2e2m'])
-    data[h]['4l'] = data[h]['2m2e'].Clone()
-    data[h]['4l'].Add(data[h]['4m'])
-    data[h]['4l'].Add(data[h]['4e'])
-
-    if hnames[h] != "sin_phi_2":
-        data[h]['4e'].Rebin(2)
+    for sample in [data, ps, axe]:
+        sample[h]['2m2e'].Add(sample[h]['2e2m'])
+        sample[h]['4l'] = sample[h]['2m2e'].Clone()
+        sample[h]['4l'].Add(sample[h]['4m'])
+        sample[h]['4l'].Add(sample[h]['4e'])
 
     for suff in MC_SUFF_4L:
         mc[suff][h]['2m2e'].Add(mc[suff][h]['2e2m'])
@@ -143,8 +193,27 @@ for h in range(H):
         mc[suff][h]['4l'].Add(mc[suff][h]['4m'])
         mc[suff][h]['4l'].Add(mc[suff][h]['4e'])
 
-        if hnames[h] != "sin_phi_2":
-            mc[suff][h]['4e'].Rebin(2)
+
+
+##
+##  SCALING
+##
+
+for sel in selection:
+    if sel == "2e2m":
+        continue
+    for h in range(H):
+        axe[h][sel].Divide(ps[h][sel])
+
+        scale = CAP_K * GAMMA_Z
+
+        data[h][sel].Divide(axe[h][sel])
+        data[h][sel].Scale(scale)
+
+        for suff in MC_SUFF_4L:
+            mc[suff][h][sel].Divide(axe[h][sel])
+            mc[suff][h][sel].Scale(scale)
+
 
 # Get total
 total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
@@ -174,11 +243,7 @@ for sel in selection:
 ####
 
 
-for sel in selection:
-#for sel in ["4e"]:
-    if sel == "2e2m":
-        continue
-
+for sel in ["4l"]:
     if (MUON_TRIG_LUMI == ELEC_TRIG_LUMI):
         lumi = '%.1f' % MUON_TRIG_LUMI
     elif sel == "4m":
@@ -257,12 +322,10 @@ for sel in selection:
 
         top_min, top_max = ax_top.get_ylim()
 
-        if hnames[h] == "zzpt":
+        if hnames[h] in ["angle_z1l2_z2", "angle_z2leps", "b_ttm"]:
             top_max = top_max * 1.2
-        elif hnames[h] == "z2m":
-            top_max = top_max * 1.3
-        elif hnames[h] == "sin_phi_2":
-            top_max = top_max * 2
+        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
+            top_max = top_max * 1.5
         ax_top.set_ylim(0, top_max)
 
 
@@ -288,20 +351,9 @@ for sel in selection:
         # Titles
         ax_top.text(    0.025,  0.95,
                 r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-                verticalalignment = 'top', transform = ax_top.transAxes)
+                verticalalignment = 'top', transform = ax_top.transAxes, fontname = "Helvetica")
         ax_top.set_title(r'\Large{' + lumi + '\,fb$^{-1}$ (13\,TeV, ' + YEAR_STR + ')}',
-                loc='right')
-
-        # Top y axis
-        unit = '$' + mc['zz_4l'][h][sel].GetYaxis().GetTitle() + '$'
-        ytitle = r"Events$/$" + '%g' % width + " " + unit
-        ax_top.set_ylabel(ytitle, horizontalalignment='right')
-        ax_top.yaxis.set_label_coords(-0.08, 1)
-        ax_top.minorticks_on()
-
-        # Bottom y axis
-        ax_bot.set_ylabel(r'Data$/$MC')
-        ax_bot.yaxis.set_label_coords(-0.08, 0.5)
+                loc='right', fontname = "Helvetica")
 
         # Shared x axis
         xtitle = '$' + mc['zz_4l'][h][sel].GetXaxis().GetTitle() + '$'
@@ -309,6 +361,20 @@ for sel in selection:
             xtitle = xtitle.replace("Delta", "bigtriangleup")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
+
+        # Top y axis
+        ytitle = r'$d\Gamma / d$' + xtitle
+        ytitle = ytitle.replace("$$", "")
+        ytitle = ytitle.replace("(", "$ (keV$/" + '%g' % width + r"\ ")
+        if hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
+            ytitle = ytitle + r" (keV$/$ " + '%g' % width + " units)"
+        ax_top.set_ylabel(ytitle, horizontalalignment='right')
+        ax_top.yaxis.set_label_coords(-0.08, 1)
+        ax_top.minorticks_on()
+
+        # Bottom y axis
+        ax_bot.set_ylabel(r'Data$/$MC')
+        ax_bot.yaxis.set_label_coords(-0.08, 0.5)
 
         
 
@@ -353,9 +419,9 @@ for sel in selection:
         ##  LEGEND
         ##
 
-        if hnames[h] in ["zzm", "z1m"]:
+        if hnames[h] in ["angle_z1leps", "b_l1p"]:
             leg_loc = 'center left'
-        elif hnames[h] in ["sin_phi", "sin_phi_2"]:
+        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
             leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'

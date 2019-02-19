@@ -20,7 +20,8 @@
 #include "LeptonPair.hh"
 
 // Cuts
-#include "Cuts2017.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -40,7 +41,7 @@ using namespace std;
 **  Currently only implemented for signal (zz_4l) events...and only uses hard leptons.
 */
 
-void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
+void GenAnalysis(const bool fidOnly = kFALSE)
 {
 
     //
@@ -90,7 +91,7 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
 
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
-    Float_t             weight,     rescale;
+    Float_t             weight;
     UInt_t              channel;
     Bool_t              isFiducial;
 
@@ -123,8 +124,6 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
         tree[i]->Branch("runNum",   &runNum);               tree[i]->Branch("evtNum",   &evtNum);
         tree[i]->Branch("lumiSec",  &lumiSec);              tree[i]->Branch("channel",  &channel);
         tree[i]->Branch("weight",   &weight);               tree[i]->Branch("isFiducial", &isFiducial);
-
-        if (doRescale)  tree[i]->Branch("rescale",  &rescale);
 
         tree[i]->Branch("psi",              &psi);
         tree[i]->Branch("sin_phi",          &sin_phi);
@@ -167,9 +166,8 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
     //  INPUT FILE
     //
 
-    TString inDir   = "gen_zz_4l";
     TString inName  = "genHardProc_zz_4l.root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/" + inDir + "/" + inName;
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/gen_zz_4l_0.root";
     TFile   *inFile = TFile::Open(inPath);
 
     cout << "Opened " << inPath << endl;
@@ -207,14 +205,8 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
 
     TH1D *hPhaseSpaceEvents, *hFiducialEvents;
 
-    if (doRescale)
-        hPhaseSpaceEvents = new TH1D("PhaseSpaceEvents_"+suffix, "PhaseSpaceEvents", 10, 0.5, 10.5);
-    else
-    {
-        inFile->GetObject("PhaseSpaceEvents_zz_4l", hPhaseSpaceEvents);
-        hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + suffix);
-    }
-
+    inFile->GetObject("PhaseSpaceEvents_zz_4l", hPhaseSpaceEvents);
+    hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + suffix);
     hPhaseSpaceEvents->SetDirectory(outFile);
     hPhaseSpaceEvents->Sumw2();
     // forgot to write bin 1 in BLT analyzer :(
@@ -226,26 +218,6 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
     hFiducialEvents = new TH1D("FiducialEvents_" + suffix, "FiducialEvents", 10, 0.5, 10.5);
     hFiducialEvents->SetDirectory(outFile);
     hFiducialEvents->Sumw2();
-
-
-
-    //
-    //  WEIGHT UTILS
-    //
-
-    TH1     *hRescale[N];
-
-    if (doRescale)
-    {
-        TString sfName = "../data/z1pt_rescale_" + YEAR_STR + ".root";
-        TFile*  sfFile = new TFile(sfName, "OPEN");
-
-        for (unsigned i = 1; i < N; i++)
-        {
-            sfFile->GetObject(selection2l[i] + "/hist_z1pt_" + selection2l[i], hRescale[i]);
-            hRescale[i]->SetDirectory(0);
-        }
-    }
 
 
 
@@ -421,23 +393,6 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
 
 
         //
-        //  WEIGHTS
-        //
-
-        float histWeight = weight;
-
-        if (doRescale)
-        {
-            rescale = hRescale[C]->GetBinContent(hRescale[C]->FindBin(zzp4.Pt()));
-
-            histWeight *= rescale;
-            hPhaseSpaceEvents->Fill(chanIdx[C], histWeight);
-            hPhaseSpaceEvents->Fill(chanIdx[L4], histWeight);
-        }
-
-
-
-        //
         //  FIDUCIAL CHECK
         //
 
@@ -465,12 +420,12 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
         }
 
 
-        hFiducialEvents->Fill(1, histWeight);
+        hFiducialEvents->Fill(1, weight);
 
         if (isFiducial)
         {
-            hFiducialEvents->Fill(chanIdx[C], histWeight);
-            hFiducialEvents->Fill(chanIdx[L4], histWeight);
+            hFiducialEvents->Fill(chanIdx[C], weight);
+            hFiducialEvents->Fill(chanIdx[L4], weight);
         }
 
         if (fidOnly && !isFiducial)
@@ -505,7 +460,7 @@ void GenAnalysis(const bool fidOnly = kFALSE, const bool doRescale = kFALSE)
         // Angles between paired leptons
         angle_z1leps = z1_plus.Angle(z1_minus);         angle_z2leps = z2_plus.Angle(z2_minus);
 
-        // "theta": angle between trailing pair 1 lepton and low-mass pair
+        // "beta": angle between trailing pair 1 lepton and low-mass pair
         TVector3    z1_low = z1.BSecond().b_v3;
         angle_z1l2_z2 = z2.b_p4.Angle(z1_low);
 

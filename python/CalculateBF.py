@@ -6,8 +6,8 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 from secret_number import *
 
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
+#from Cuts2016 import *
 
 
 
@@ -236,7 +236,7 @@ for sel in ["4l", "4m", "2m2e", "4e"]:
     for src in [mu_id, el_id, el_reco, mu_pt, el_pt]:
         bf_syst[sel] = bf_syst[sel] + bf[sel] * src[sel]
 
-    prec[sel] = bf_stat[sel] / bf[sel] * 100
+    prec[sel] = 1 / np.sqrt(data[sel]) * 100
 
 print("\nResults\n", bf, "\n", sep='')
 
