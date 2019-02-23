@@ -238,7 +238,7 @@ for sel in selection:
 
 ####
 ####
-####    LOOP OVER STACKS
+####    LOOP OVER DISTS
 ####
 ####
 

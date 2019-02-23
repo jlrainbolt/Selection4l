@@ -42,7 +42,7 @@ void DrawMigration()
     //
 
     TString prefix  = "migration";
-    TString outName = prefix + "_zz_4l.root";
+    TString outName = prefix + "_" + YEAR_STR + "_zz_4l.root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -53,25 +53,25 @@ void DrawMigration()
 
     vector<tuple<TString, TString, TString, Int_t, Double_t, Double_t>> v = {
 
-        //          name            quantity        axis label              bins    xmin    xmax
+        //          name            quantity            title               bins    xmin    xmax
         // Z rest frame kinematics
-//      make_tuple( "b_ttm",        "b_ttp4.M()",    _m_(_l_("2,3,4")),     15,     0,      60),
-        make_tuple( "b_l1p",        "b_l1v3.Mag()",  _p_(_l_(1)),           10,     25,     50),
+        make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  10,     4,      54),
+        make_tuple( "b_l1p",        "b_l1v3.Mag()",     _p_(_l_(1)),        10,     25,     50),
 
 
         // Observables
 //      make_tuple( "psi",          "psi",              _psi,               20,     -5000,  5000),
 //      make_tuple( "sin_phi",      "sin_phi",          _sinphi,            20,     -1,     1),
-//      make_tuple( "cos_theta_z1", "cos_theta_z1",     _costheta_(_Z1),    10,     -1,     1),
-//      make_tuple( "cos_theta_z2", "cos_theta_z2",     _costheta_(_Z2),    10,     -1,     1),
+        make_tuple( "cos_theta_z1", "cos_theta_z1",     _costheta_(_Z1),    10,     -1,     1),
+        make_tuple( "cos_theta_z2", "cos_theta_z2",     _costheta_(_Z2),    10,     -1,     1),
 //      make_tuple( "cos_zeta_z1",  "cos_zeta_z1",      _coszeta_(_Z1),     10,     -1,     1),
 //      make_tuple( "cos_zeta_z2",  "cos_zeta_z2",      _coszeta_(_Z2),     10,     -1,     1),
-//      make_tuple( "angle_z1leps",
-//                          "angle_z1leps/3.14",        _alpha_(_Z1),       12,     0,      1),
-//      make_tuple( "angle_z2leps",
-//                          "angle_z2leps/3.14",        _alpha_(_Z2),       10,     0,      1),
-//      make_tuple( "angle_z1l2_z2",
-//                          "angle_z1l2_z2/3.14",       _beta,              15,     0,      1)
+        make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
+                                                        _alpha_(_Z1),       10,     0,      1),
+        make_tuple( "angle_z2leps", "angle_z2leps/3.141592654",
+                                                        _alpha_(_Z2),       10,     0,      1),
+        make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.141592654",
+                                                        _beta,              10,     0,      1)
     };
 
 
@@ -98,7 +98,7 @@ void DrawMigration()
     ////
     ////
 
-    for (unsigned i = 1; i < N; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
@@ -122,48 +122,51 @@ void DrawMigration()
             TString hname,  quantity,   xlabel;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight";
+            TString weight = "weight/trigWeight/qtWeight";
+//          TString weight = "genWeight";
             tie(hname, quantity, xlabel, bins, xmin, xmax) = v[j];
 
             xlabel.ReplaceAll(_l, lepChan[i]);
             
 
-            // Create and draw histograms
-            float width = (xmax - xmin) / bins;
+            // Draw
+            outFile->cd(selection[i]);
 
-            TH1D *h_reco = new TH1D(hname + "_reco", quantity, bins + 3, xmin - width, xmax + width);
+            TH1D *h_reco = new TH1D(hname + "_reco", "", bins, xmin, xmax);
+            h_reco->Sumw2(kTRUE);
             tree->Draw(quantity + ">>+" + hname + "_reco", weight);
             h_reco->GetXaxis()->SetTitle(xlabel);
-            h_reco->Sumw2(kTRUE);
-            outFile->cd(selection[i]);
             h_reco->Write();
 
-            TH1D *h_gen = new TH1D(hname + "_gen", "gen_" + quantity, bins, xmin, xmax);
-            tree->Draw("gen_" + quantity + ">>+" + hname + "_gen", weight);
-//          h_gen->ClearUnderflowAndOverflow();
-            h_gen->GetXaxis()->SetTitle(xlabel);
+            TH1D *h_gen = new TH1D(hname + "_gen", "", bins, xmin, xmax);
             h_gen->Sumw2(kTRUE);
-            outFile->cd(selection[i]);
+            tree->Draw("gen_" + quantity + ">>+" + hname + "_gen", "isMatched*" + weight);
+            h_gen->GetXaxis()->SetTitle(xlabel);
             h_gen->Write();
 
 
-            TH2D *h_2d = new TH2D(hname + "_2d", quantity + ":gen_" + quantity,
-                    bins + 3, xmin - width, xmax + width, bins, xmin, xmax);
-            tree->Draw("gen_"+quantity + ":" + quantity + ">>+" + hname + "_2d", weight);
+            TH2D *h_2d = new TH2D(hname + "_2d", "Migrations",
+                    bins, xmin, xmax, bins, xmin, xmax);
+            h_2d->Sumw2(kTRUE);
+            tree->Draw("gen_"+quantity + ":" + quantity + ">>+" + hname + "_2d",
+                    "isMatched*" + weight);
 /*
-            for (unsigned b = 0; b <= bins + 1; b++)
+            // Clean reco under/overflow bins
+            for (unsigned b = 0; b < bins + 1; b++)
             {
+                h_2d->AddBinContent(h_2d->GetBin(1, b), h_2d->GetBinContent(0, b));
                 h_2d->SetBinContent(0, b, 0);
+                h_2d->SetBinError(0, b, 0);
+
+                h_2d->AddBinContent(h_2d->GetBin(bins, b), h_2d->GetBinContent(bins + 1, b));
                 h_2d->SetBinContent(bins + 1, b, 0);
+                h_2d->SetBinError(bins + 1, b, 0);
             }
 */
             h_2d->GetXaxis()->SetTitle("reco");
             h_2d->GetYaxis()->SetTitle("gen");
-            h_2d->Sumw2(kTRUE);
-            outFile->cd(selection[i]);
             h_2d->Write();
         }
-
         cout << "done!" << endl;
     }
 

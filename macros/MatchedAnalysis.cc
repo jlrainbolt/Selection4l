@@ -1,5 +1,6 @@
 // STL
 #include <vector>
+#include <cmath>
 #include <iostream>
 #include <utility>
 #include <algorithm>
@@ -19,8 +20,8 @@
 #include "LeptonPair.hh"
 
 // Cuts
-#include "Cuts2016.hh"
-//#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -76,6 +77,7 @@ void MatchedAnalysis()
     //
 
     // Event info
+    Bool_t              isMatched;
     Int_t               runNum,     evtNum,     lumiSec;
     UShort_t            nPV;
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
@@ -116,6 +118,8 @@ void MatchedAnalysis()
 
     for (unsigned i = 0; i < N; i++)
     {
+        tree[i]->Branch("isMatched",    &isMatched);
+
         tree[i]->Branch("runNum",       &runNum);       tree[i]->Branch("evtNum",       &evtNum);
         tree[i]->Branch("lumiSec",      &lumiSec);      tree[i]->Branch("nPV",          &nPV);
         tree[i]->Branch("weight",       &weight);       tree[i]->Branch("genWeight",    &genWeight);
@@ -309,6 +313,9 @@ void MatchedAnalysis()
             //  EVENT INFO
             //                
 
+            // Innocent until proven guilty
+            isMatched   = kTRUE;
+
             // Quantities copied directly to output tree
             runNum      = *runNum_;     evtNum      = *evtNum_;     lumiSec     = *lumiSec_;
             nPV         = *nPV_;        weight      = *weight_;     genWeight   = *genWeight_;
@@ -327,24 +334,14 @@ void MatchedAnalysis()
             // Quantities used in analysis, but not written out
             unsigned    nGenMuons   = *nGenMuons_,          nGenElecs   = *nGenElecs_;
 
-
-
-            //
-            //  PRESELECTION
-            //
-
-            // Make sure there are enough lepons available for matching
-            // (Remember: there *can* be extras!
-
-            hMatchedEvents->Fill(1, weight);
-
-            if (nGenMuons + nGenElecs != 4)
-            {
-                if (print)
-                    cout << "Wrong number of gen leptons" << endl;
-
-                continue;
-            }
+            // Reset gen quantities in case event is fake
+            gen_b_z1p4.Delete();        gen_b_z2p4.Delete();        gen_b_ttp4.Delete();
+            gen_b_l1v3.Delete();        gen_b_l2v3.Delete();
+            gen_b_l3v3.Delete();        gen_b_l4v3.Delete();
+            gen_psi = NAN;              gen_sin_phi = NAN;
+            gen_cos_theta_z1 = NAN;     gen_cos_theta_z2 = NAN;
+            gen_cos_zeta_z1 = NAN;      gen_cos_zeta_z2 = NAN;
+            gen_angle_z1leps = NAN;     gen_angle_z2leps = NAN;     gen_angle_z1l2_z2 = NAN;
 
 
 
@@ -365,6 +362,31 @@ void MatchedAnalysis()
 
             for (unsigned i = 0; i < leps.size(); i++)
                 leps[i].q = -1 * copysign(1, leps[i].pdg);
+
+
+
+            //
+            //  PRESELECTION
+            //
+
+            // Make sure there are enough lepons available for matching
+            // (Remember: there *can* be extras!
+
+            hMatchedEvents->Fill(1, weight);
+
+            if (nGenMuons + nGenElecs != 4)
+            {
+                if (print)
+                    cout << "Wrong number of gen leptons" << endl;
+
+                isMatched = kFALSE;
+
+                tree[i]->Fill();
+                tree[L4]->Fill();
+
+                continue;
+
+            }
 
 
 
@@ -457,9 +479,16 @@ void MatchedAnalysis()
                 if (print)
                     cout << "Could not find a match!" << endl;
 
+                isMatched = kFALSE;
+
+                tree[i]->Fill();
+                tree[L4]->Fill();
+
                 continue;
             }
 
+
+            // Now we for sure have a match!
             hMatchedEvents->Fill(chanIdx[i], weight);
             hMatchedEvents->Fill(chanIdx[L4], weight);
 
@@ -598,7 +627,7 @@ void MatchedAnalysis()
 
             cout << "done!" << endl;
 
-            cout << "Matched " << tree[i]->GetEntries() << "/";
+            cout << "Matched " << tree[i]->GetEntries("isMatched") << "/";
             cout << reader.GetCurrentEntry() << " events" << endl;
             cout << endl << endl;
 

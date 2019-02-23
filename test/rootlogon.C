@@ -29,5 +29,10 @@
 
 //  gStyle->SetOptStat(1111);
 
+    // Load RooUnfold
+    gInterpreter->AddIncludePath("~/RooUnfold-trunk/src");
+    gSystem->Load("~/RooUnfold-trunk/libRooUnfold");
+    cout << "Loaded RooUnfold libraries" << endl;
+
     cout << endl;
 }
