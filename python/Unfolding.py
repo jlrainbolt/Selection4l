@@ -6,7 +6,7 @@ import numpy as np
 from pyunfold import iterative_unfold
 from pyunfold.callbacks import Logger
 
-from ROOT import TFile, TH1, TH2, TCanvas, TLegend
+from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
 from Cuts2017 import *
@@ -33,7 +33,7 @@ if year != YEAR_STR:
 
 
 ##
-##  INPUT FILES
+##  INPUT fiLES
 ##
 
 # Migration and MC matrices
@@ -51,7 +51,7 @@ for sel in selection:
     elif sel in ["4m", "2m2e"]:
         lumi = MUON_TRIG_LUMI
     elif sel in ["4e", "2e2m"]:
-        lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+        Lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
 
     sf = lumi * 1000 * XSEC['zz_4l'] / NGEN['zz_4l']
 
@@ -118,7 +118,7 @@ print("")
 
 '''
 ##
-##  ACC * EFF
+##  ACC * EFf
 ##
 
 # Unscaled signal events
@@ -136,7 +136,7 @@ for sel in selection:
         for hname in hnames:
             axe[h][sel] = zzFile.Get(sel + "/" + hname + "_zz_4l")
             axe[h][sel].SetDirectory(0)
-            axe[h][sel].SetName(hname + "_acc_x_eff")
+            axe[h][sel].SetNAME(hname + "_acc_x_eff")
 
             h = h + 1
         h = 0
@@ -144,7 +144,7 @@ for sel in selection:
 zzFile.Close()
 
 
-# Phase space events
+# Phase space eventS
 ps = np.empty(H, dtype=T)
 h = 0
 
@@ -250,6 +250,11 @@ for sel in ["4l"]:
                 v_mig[i][j]['y']    = mig[h][sel].GetBinContent(i, j)
                 v_mig[i][j]['ey']   = mig[h][sel].GetBinError(i, j)
 
+        v_data = v_data[:-1]
+        v_gen = v_gen[:-1]
+        v_reco = v_reco[:-1]
+        v_mig = v_mig[:-1, :-1]
+
 
 
         ##
@@ -276,7 +281,7 @@ for sel in ["4l"]:
 
         sigma = np.linalg.svd(v_resp['y'], compute_uv = False)
         cond_num = np.max(sigma) / np.min(sigma)
-        print("Condition number of", hname[h], "is", cond_num)
+        print("Condition number for", hnames[h], "is", cond_num)
 
 
 
@@ -287,10 +292,34 @@ for sel in ["4l"]:
         results = iterative_unfold( data = v_data['y'],         data_err = v_data['ey'],
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
-#                                   ts = 'chi2',                ts_stopping = 0.05,
-                                    ts = 'chi2',                ts_stopping = 0.1,
+                                    ts = 'chi2',                ts_stopping = 1 / len(v_data),
+#                                   max_iter = 4,
+#                                   max_iter = 100,             return_iterations = True,
                                     callbacks = [Logger()]
                                     )
+
+#       # Goodness-of-fit test in smeared space
+#       for i in range(results.shape[0]):
+#           dof = len(v_data)
+#           folded = np.dot(v_resp['y'], results.iloc[i]['unfolded'].T)
+#           f_cov = np.diag(folded)
+#           num = v_data['y'] - folded
+#           T = np.dot(num, np.dot(np.linalg.pinv(f_cov), num.T)) / dof
+#           print("Test statistic for iteration", i, "is", T)
+
+#       # Bottom-line test
+#       dof = len(v_data)
+#       cov_data = np.diag(v_data['ey'] ** 2)
+#       num = v_data['y'] - v_reco['y']
+#       chi2_smr = np.dot(num, np.dot(np.linalg.pinv(cov_data), num.T)) / dof
+#       print("Smeared chi square is", chi2_smr)
+
+#       dof = len(v_gen)
+#       for i in range(results.shape[0]):
+#           num = results.iloc[i]['unfolded'] - v_gen['y']
+#           v_cov = results.iloc[i]['covariance_matrix']
+#           chi2_unf = np.dot(num, np.dot(np.linalg.pinv(v_cov), num.T)) / dof
+#           print("Test statistic for iteration", i, "is", chi2_unf)
 
 
 
@@ -299,7 +328,7 @@ for sel in ["4l"]:
         ##
 
         # Unfolded result
-        v_result        = np.zeros_like(v_data, dtype=V)
+        v_result        = np.zeros_like(v_gen, dtype=V)
         v_result['y']   = results['unfolded']
         v_result['ey']  = np.sqrt(results['stat_err']**2, results['sys_err']**2)
 
@@ -309,34 +338,44 @@ for sel in ["4l"]:
             result[h][sel].SetBinError(i, v_result[i]['ey'])
 
 
+        # Get bin edges for histograms (including under/overflow)
+        xbins, xwid = np.size(v_resp['y'], axis = 0), mig[h][sel].GetXaxis().GetBinWidth(1)
+        xmin = mig[h][sel].GetXaxis().GetBinLowEdge(1) - xwid
+        xmax = xmin + xbins * xwid
+
+        ybins, ywid = np.size(v_resp['y'], axis = 1), mig[h][sel].GetYaxis().GetBinWidth(1)
+        ymin = mig[h][sel].GetYaxis().GetBinLowEdge(1) - ywid
+        ymax = ymin + ybins * ywid
+
+
         # Response matrix
-        resp[h][sel] = mig[h][sel].Clone(hnames[h] + "_response");
-        resp[h][sel].Reset()
-        resp[h][sel].SetTitle("")
-        for i in range(np.size(v_resp, 0)):
-            for j in range(np.size(v_resp, 1)):
-                resp[h][sel].SetBinContent(i, j, v_resp[i][j]['y'])
-                resp[h][sel].SetBinError(i, j, v_resp[i][j]['ey'])
+        resp[h][sel] = TH2D(hnames[h] + "_response", "", xbins, xmin, xmax, ybins, ymin, ymax);
+        resp[h][sel].SetXTitle("P(reco)");
+        resp[h][sel].SetYTitle("gen");
+        for i in range(xbins):
+            for j in range(ybins):
+                resp[h][sel].SetBinContent(i + 1, j + 1, v_resp[i][j]['y'])
+                resp[h][sel].SetBinError(i + 1, j + 1, v_resp[i][j]['ey'])
 
         # Unfolding matrix
         v_unf   = results['unfolding_matrix']
 
-        unf[h][sel] = mig[h][sel].Clone(hnames[h] + "_unfolding");
-        unf[h][sel].Reset()
-        unf[h][sel].SetTitle("")
-        for i in range(np.size(v_unf, 0)):
-            for j in range(np.size(v_unf, 1)):
-                unf[h][sel].SetBinContent(i, j, v_unf[i][j])
+        unf[h][sel] = TH2D(hnames[h] + "_unfolding", "", xbins, xmin, xmax, ybins, ymin, ymax);
+        unf[h][sel].SetXTitle("reco");
+        unf[h][sel].SetYTitle("gen");
+        for i in range(xbins):
+            for j in range(ybins):
+                unf[h][sel].SetBinContent(i + 1, j + 1, v_unf[i][j])
 
         # Covariance matrix
         v_cov   = results['covariance_matrix']
 
-        cov[h][sel] = mig[h][sel].Clone(hnames[h] + "_covariance");
-        cov[h][sel].Reset()
-        cov[h][sel].SetTitle("")
-        for i in range(np.size(v_cov, 0)):
-            for j in range(np.size(v_cov, 1)):
-                cov[h][sel].SetBinContent(i, j, v_cov[i][j])
+        cov[h][sel] = TH2D(hnames[h] + "_covariance", "", xbins, xmin, xmax, ybins, ymin, ymax);
+        cov[h][sel].SetXTitle("reco");
+        cov[h][sel].SetYTitle("gen");
+        for i in range(xbins):
+            for j in range(ybins):
+                cov[h][sel].SetBinContent(i + 1, j + 1, v_cov[i][j])
 
 
 
@@ -344,14 +383,24 @@ for sel in ["4l"]:
         ##  BOTTOM-LINE TEST
         ##
 
-        dof = len(v_data[1:-1])
-        chi2_smr = np.sum(((v_data[1:-1]['y'] - v_reco[1:-1]['y']) / v_data[1:-1]['ey']) ** 2) / dof
+#       dof = len(v_data[1:-1])
+#       chi2_smr = np.sum(((v_data[1:-1]['y'] - v_reco[1:-1]['y']) / v_data[1:-1]['ey']) ** 2) / dof
+#       print("Smeared chi square is", chi2_smr)
+
+#       num = v_result[1:-1]['y'] - v_gen[1:-1]['y']
+#       chi2_unf = np.dot(num, np.dot(np.linalg.pinv(v_cov[1:-1,1:-1]), num.T)) / dof
+#       print("Unfolded chi square is", chi2_unf)
+        
+        dof = len(v_data)
+        cov_data = np.diag(v_data['ey'] ** 2)
+        num = v_data['y'] - v_reco['y']
+        chi2_smr = np.dot(num, np.dot(np.linalg.pinv(cov_data), num.T)) / dof
         print("Smeared chi square is", chi2_smr)
 
-        num = v_result[1:-1]['y'] - v_gen[1:-1]['y']
-        chi2_unf = np.dot(num, np.dot(np.linalg.pinv(v_cov[1:-1,1:-1]), num.T)) / dof
+        dof = len(v_gen)
+        num = v_result['y'] - v_gen['y']
+        chi2_unf = np.dot(num, np.dot(np.linalg.pinv(v_cov), num.T)) / dof
         print("Unfolded chi square is", chi2_unf)
-        
 
 
 
@@ -419,3 +468,4 @@ c.Write()
 
 outFile.Close()
 print("Wrote output to", outName)
+

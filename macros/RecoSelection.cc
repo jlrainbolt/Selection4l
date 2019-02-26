@@ -64,6 +64,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
     const bool smearOn = smearMuonID || smearElecID || smearElecReco || smearMuonPt || smearElecPt;
 
+    const bool doSameSign = systematics.EqualTo("sameSign");
+
 
 
     //
@@ -283,7 +285,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     TTree *inTree;
 
-    if (isSignal && YEAR_STR.EqualTo("2017") && !smearOn)
+    if (isSignal && !smearOn)
     {
         inFile->GetObject("tree_" + suffix, inTree);
 
@@ -437,6 +439,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //
 
         // Make sure data events aren't triggered twice (hmm...should be done at BLT level?)
+        // Update: I think this is just WRONG
 
         if (isData && suffix.Contains("muon"))
             elecTrig = kFALSE;
@@ -668,6 +671,17 @@ void RecoSelection( const TString suffix,           const TString id,
         {
             for (unsigned j = 0; j < nTightMuons; j++)
             {
+
+////////// ZZ4l CUT ///////////
+//              TLorentzVector dilep_p4 = elecs[i].p4 + muons[j].p4;
+//
+//              if ((elecs[i].q != muons[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
+//              {
+//                  failedDivCut = kTRUE;
+//                  goto exitloops;
+//              }
+////////// ZZ4l CUT ///////////
+
                 if (elecs[i].p4.DeltaR(muons[j].p4) < OF_DR_MIN)    // failed opp-flavor DeltaR
                 {
                     ghostBusted = kTRUE;
@@ -798,7 +812,15 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             if ((z1.Plus().q != 1) || (z1.Minus().q != -1)) // lepton charges are not +1 and -1
-                continue;
+            {
+                if (!doSameSign)
+                    continue;
+            }
+            else
+            {
+                if (doSameSign)
+                    continue;
+            }
 
             if (print)
                 cout << "Passed charge requirement" << endl;
@@ -859,10 +881,26 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             if ((z1.Plus().q != 1) || (z1.Minus().q != -1)) // lepton charges are not +1 and -1 
-                continue;
+            {
+                if (!doSameSign)
+                    continue;
+            }
+            else
+            {
+                if (doSameSign)
+                    continue;
+            }
 
             if ((z2.Plus().q != 1) || (z2.Minus().q != -1)) // (both extraneous for same-flavor)
-                continue;
+            {
+                if (!doSameSign)
+                    continue;
+            }
+            else
+            {
+                if (doSameSign)
+                    continue;
+            }
 
             if (print)
                 cout << "Passed charge requirements" << endl;
@@ -915,6 +953,10 @@ void RecoSelection( const TString suffix,           const TString id,
                 swap(z1, z2);
                 muonPairLeads = !muonPairLeads;
             }
+
+////////// ZZ4l CUT ///////////
+//          if ((z1.p4.M() < 40) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
+////////// ZZ4l CUT ///////////
 
             if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
                 continue;                                       // (z2's mass is bound by z1)
@@ -995,7 +1037,7 @@ void RecoSelection( const TString suffix,           const TString id,
         }
 
         // Get gen particle info
-        if (isFourLepton && isSignal && YEAR_STR.EqualTo("2017") && !smearOn)
+        if (isFourLepton && isSignal && !smearOn)
         {
             u_l1p4  = leps[0].u_p4;         u_l2p4  = leps[1].u_p4;
             u_l3p4  = leps[2].u_p4;         u_l4p4  = leps[3].u_p4;

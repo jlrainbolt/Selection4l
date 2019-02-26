@@ -55,13 +55,13 @@ void DrawMigration()
 
         //          name            quantity            title               bins    xmin    xmax
         // Z rest frame kinematics
-        make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  10,     4,      54),
+        make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  10,     5,      65),
         make_tuple( "b_l1p",        "b_l1v3.Mag()",     _p_(_l_(1)),        10,     25,     50),
 
 
         // Observables
 //      make_tuple( "psi",          "psi",              _psi,               20,     -5000,  5000),
-//      make_tuple( "sin_phi",      "sin_phi",          _sinphi,            20,     -1,     1),
+        make_tuple( "sin_phi",      "sin_phi",          _sinphi,            20,     -1,     1),
         make_tuple( "cos_theta_z1", "cos_theta_z1",     _costheta_(_Z1),    10,     -1,     1),
         make_tuple( "cos_theta_z2", "cos_theta_z2",     _costheta_(_Z2),    10,     -1,     1),
 //      make_tuple( "cos_zeta_z1",  "cos_zeta_z1",      _coszeta_(_Z1),     10,     -1,     1),
@@ -144,25 +144,17 @@ void DrawMigration()
             h_gen->GetXaxis()->SetTitle(xlabel);
             h_gen->Write();
 
+            TH1D *h_ratio = (TH1D*) h_reco->Clone(hname + "_ratio");
+            h_ratio->Divide(h_gen);
+            h_ratio->Write();
+
 
             TH2D *h_2d = new TH2D(hname + "_2d", "Migrations",
                     bins, xmin, xmax, bins, xmin, xmax);
             h_2d->Sumw2(kTRUE);
             tree->Draw("gen_"+quantity + ":" + quantity + ">>+" + hname + "_2d",
                     "isMatched*" + weight);
-/*
-            // Clean reco under/overflow bins
-            for (unsigned b = 0; b < bins + 1; b++)
-            {
-                h_2d->AddBinContent(h_2d->GetBin(1, b), h_2d->GetBinContent(0, b));
-                h_2d->SetBinContent(0, b, 0);
-                h_2d->SetBinError(0, b, 0);
 
-                h_2d->AddBinContent(h_2d->GetBin(bins, b), h_2d->GetBinContent(bins + 1, b));
-                h_2d->SetBinContent(bins + 1, b, 0);
-                h_2d->SetBinError(bins + 1, b, 0);
-            }
-*/
             h_2d->GetXaxis()->SetTitle("reco");
             h_2d->GetYaxis()->SetTitle("gen");
             h_2d->Write();

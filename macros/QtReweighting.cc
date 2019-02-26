@@ -11,8 +11,8 @@
 #include "TGraphAsymmErrors.h"
 
 // Custom
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -102,7 +102,7 @@ void QtReweighting()
 
     TH1D *dataGeV[N], *mcGeV[N];
 
-    for (unsigned i = 0; i < 1; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         // 1-GeV binning
         dataGeV[i]  = new TH1D(selection[i] + "_data_GeV",  "", B, xbins[0], xbins[M]);
@@ -143,7 +143,7 @@ void QtReweighting()
     TH1 *data[N], *mc[N];
     TH1D *ratio[N];
 
-    for (unsigned i = 0; i < 1; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         data[i] = dataGeV[i]->Rebin(M, selection[i] + "_data",  xbins);
         mc[i]   = mcGeV[i]->Rebin(  M, selection[i] + "_mc",    xbins);
@@ -170,7 +170,7 @@ void QtReweighting()
 
     float x[N][M];
 
-    for (unsigned i = 0; i < 1; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         for (unsigned j = 0; j < M; j++)
         {
@@ -198,7 +198,7 @@ void QtReweighting()
 
     float y[N][M], exl[N][M], exh[N][M], ey[N][M];
 
-    for (unsigned i = 0; i < 1; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         for (unsigned j = 0; j <= M; j++)
         {
@@ -215,7 +215,7 @@ void QtReweighting()
 
     TGraphAsymmErrors *graph[N];
 
-    for (unsigned i = 0; i < 1; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         graph[i] = new TGraphAsymmErrors(M, x[i], y[i], exl[i], exh[i], ey[i], ey[i]);
         graph[i]->SetName(selection[i] + "_weight");
@@ -229,7 +229,7 @@ void QtReweighting()
 
     TCanvas *c_graph[N], *c_data[N], *c_mc[N];
 
-    for (unsigned i = 0; i < 1; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         c_graph[i] = new TCanvas("c_weight_" + selection[i] + "_canvas", "", 100, 100);
         c_graph[i]->cd();
@@ -296,7 +296,7 @@ void QtReweighting()
     //  WRITE OUTPUT
     //
 
-    for (unsigned i = 0; i < 1; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         data[i]->Write();
         mc[i]->Write();

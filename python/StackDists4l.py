@@ -51,7 +51,8 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]#, "sin_phi_2"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]#, "sin_phi_2"]
+hnames = ["sin_phi_2"]
 
 H = len(hnames)
 
@@ -174,8 +175,8 @@ for sel in selection:
 ####
 
 
-for sel in selection:
-#for sel in ["4e"]:
+#for sel in selection:
+for sel in ["4l"]:
     if sel == "2e2m":
         continue
 
