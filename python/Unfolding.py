@@ -23,7 +23,8 @@ selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f8'), ("y", 'f8'), ("ex", 'f8'), ("ey", 'f8'), ("b", 'f8')])
 
-hnames = ["b_l1p"]
+hnames = ["b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps",
+            "angle_z1l2_z2"]
 H = len(hnames)
 
 year = sys.argv[1]
@@ -33,7 +34,7 @@ if year != YEAR_STR:
 
 
 ##
-##  INPUT fiLES
+##  INPUT FILES
 ##
 
 # Migration and MC matrices
@@ -178,7 +179,7 @@ for h in range(H):
 #   for sample in [data, gen, reco, mig, ps, axe]:
     for sample in [data, gen, reco, mig]:
         sample[h]['2m2e'].Add(sample[h]['2e2m'])
-        sample[h]['4l'] = sample[h]['2m2e'].Clone()
+        sample[h]['4l'] = sample[h]['2m2e'].Clone(hnames[h] + "_data")
         sample[h]['4l'].Add(sample[h]['4m'])
         sample[h]['4l'].Add(sample[h]['4e'])
 
@@ -213,6 +214,7 @@ for sel in selection:
 # Store results in histograms (for now)
 result = np.empty(H, dtype=T)
 resp, unf, cov = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
+
 
 
 for sel in ["4l"]:
@@ -250,16 +252,29 @@ for sel in ["4l"]:
                 v_mig[i][j]['y']    = mig[h][sel].GetBinContent(i, j)
                 v_mig[i][j]['ey']   = mig[h][sel].GetBinError(i, j)
 
-        v_data = v_data[:-1]
-        v_gen = v_gen[:-1]
-        v_reco = v_reco[:-1]
-        v_mig = v_mig[:-1, :-1]
-
 
 
         ##
         ##  CREATE MATRICES
         ##
+
+        # Slicing
+        if hnames[h] == "b_l1p":
+            s = slice(0, -1)
+        elif hnames[h] == "b_ttm":
+            s = slice(1, None)
+        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps"]:
+            s = slice(1, -1)
+        elif hnames[h] == "angle_z1leps":
+            s = slice(3, -1)
+        elif hnames[h] == "angle_z1l2_z2":
+            s = slice(1, -2)
+
+        v_data = v_data[s]
+        v_gen = v_gen[s]
+        v_reco = v_reco[s]
+        v_mig = v_mig[s, s]
+
 
         # Efficiencies (assume 1)
         v_eff       = np.zeros_like(v_gen, dtype=V)
@@ -293,33 +308,8 @@ for sel in ["4l"]:
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
                                     ts = 'chi2',                ts_stopping = 1 / len(v_data),
-#                                   max_iter = 4,
-#                                   max_iter = 100,             return_iterations = True,
                                     callbacks = [Logger()]
                                     )
-
-#       # Goodness-of-fit test in smeared space
-#       for i in range(results.shape[0]):
-#           dof = len(v_data)
-#           folded = np.dot(v_resp['y'], results.iloc[i]['unfolded'].T)
-#           f_cov = np.diag(folded)
-#           num = v_data['y'] - folded
-#           T = np.dot(num, np.dot(np.linalg.pinv(f_cov), num.T)) / dof
-#           print("Test statistic for iteration", i, "is", T)
-
-#       # Bottom-line test
-#       dof = len(v_data)
-#       cov_data = np.diag(v_data['ey'] ** 2)
-#       num = v_data['y'] - v_reco['y']
-#       chi2_smr = np.dot(num, np.dot(np.linalg.pinv(cov_data), num.T)) / dof
-#       print("Smeared chi square is", chi2_smr)
-
-#       dof = len(v_gen)
-#       for i in range(results.shape[0]):
-#           num = results.iloc[i]['unfolded'] - v_gen['y']
-#           v_cov = results.iloc[i]['covariance_matrix']
-#           chi2_unf = np.dot(num, np.dot(np.linalg.pinv(v_cov), num.T)) / dof
-#           print("Test statistic for iteration", i, "is", chi2_unf)
 
 
 
@@ -332,10 +322,12 @@ for sel in ["4l"]:
         v_result['y']   = results['unfolded']
         v_result['ey']  = np.sqrt(results['stat_err']**2, results['sys_err']**2)
 
+        o = s.start
+
         result[h][sel] = data[h][sel].Clone(hnames[h] + "_result");
         for i in range(len(v_result)):
-            result[h][sel].SetBinContent(i, v_result[i]['y'])
-            result[h][sel].SetBinError(i, v_result[i]['ey'])
+            result[h][sel].SetBinContent(i + o, v_result[i]['y'])
+            result[h][sel].SetBinError(i + o, v_result[i]['ey'])
 
 
         # Get bin edges for histograms (including under/overflow)
@@ -377,72 +369,7 @@ for sel in ["4l"]:
             for j in range(ybins):
                 cov[h][sel].SetBinContent(i + 1, j + 1, v_cov[i][j])
 
-
-
-        ##
-        ##  BOTTOM-LINE TEST
-        ##
-
-#       dof = len(v_data[1:-1])
-#       chi2_smr = np.sum(((v_data[1:-1]['y'] - v_reco[1:-1]['y']) / v_data[1:-1]['ey']) ** 2) / dof
-#       print("Smeared chi square is", chi2_smr)
-
-#       num = v_result[1:-1]['y'] - v_gen[1:-1]['y']
-#       chi2_unf = np.dot(num, np.dot(np.linalg.pinv(v_cov[1:-1,1:-1]), num.T)) / dof
-#       print("Unfolded chi square is", chi2_unf)
-        
-        dof = len(v_data)
-        cov_data = np.diag(v_data['ey'] ** 2)
-        num = v_data['y'] - v_reco['y']
-        chi2_smr = np.dot(num, np.dot(np.linalg.pinv(cov_data), num.T)) / dof
-        print("Smeared chi square is", chi2_smr)
-
-        dof = len(v_gen)
-        num = v_result['y'] - v_gen['y']
-        chi2_unf = np.dot(num, np.dot(np.linalg.pinv(v_cov), num.T)) / dof
-        print("Unfolded chi square is", chi2_unf)
-
-
-
-
-##
-##  DRAW
-##
-
-c = TCanvas("canvas", "", 800, 600)
-
-data[0]['4l'].SetLineColor(1)
-data[0]['4l'].SetLineWidth(2)
-data[0]['4l'].SetMarkerColor(1)
-data[0]['4l'].SetMarkerStyle(20)
-data[0]['4l'].SetMarkerSize(2)
-
-reco[0]['4l'].SetLineColor(8)
-reco[0]['4l'].SetLineWidth(2)
-
-gen[0]['4l'].SetLineColor(4)
-gen[0]['4l'].SetLineWidth(2)
-
-result[0]['4l'].SetLineColor(2)
-result[0]['4l'].SetLineWidth(2)
-result[0]['4l'].SetMarkerColor(2)
-result[0]['4l'].SetMarkerStyle(22)
-result[0]['4l'].SetMarkerSize(2)
-
-l = TLegend(0.78, 0.68, 0.98, 0.98)
-l.AddEntry(reco[0]['4l'], "Reco", "L")
-l.AddEntry(gen[0]['4l'], "Gen", "L")
-l.AddEntry(data[0]['4l'], "Data", "LP")
-l.AddEntry(result[0]['4l'], "Result", "LP")
-
-c.cd()
-result[0]['4l'].SetMinimum(0);
-result[0]['4l'].Draw("E1")
-reco[0]['4l'].Draw("SAME")
-gen[0]['4l'].Draw("SAME")
-data[0]['4l'].Draw("E1 SAME")
-result[0]['4l'].Draw("E1 SAME")
-l.Draw()
+        print("")
 
 
 
@@ -451,21 +378,65 @@ l.Draw()
 ##
 
 # Create file
-outName = "unfolding_py_" + YEAR_STR + ".root"
+outName = "unfolding_" + YEAR_STR + ".root"
 outFile = TFile(outName, "RECREATE")
-outFile.cd()
 
-mig[0]['4l'].Write()
-resp[0]['4l'].Write()
-unf[0]['4l'].Write()
-cov[0]['4l'].Write()
 
-gen[0]['4l'].Write()
-reco[0]['4l'].Write()
-data[0]['4l'].Write()
-result[0]['4l'].Write()
-c.Write()
+for h in range(H):
+    outFile.mkdir(hnames[h])
+    outFile.cd(hnames[h])
+
+    ##
+    ##  DRAW
+    ##
+
+    c = TCanvas(hnames[h] + "_canvas", "", 800, 600)
+
+    data[h]['4l'].SetLineColor(1)
+    data[h]['4l'].SetLineWidth(2)
+    data[h]['4l'].SetMarkerColor(1)
+    data[h]['4l'].SetMarkerStyle(20)
+    data[h]['4l'].SetMarkerSize(2)
+
+    reco[h]['4l'].SetLineColor(8)
+    reco[h]['4l'].SetLineWidth(2)
+
+    gen[h]['4l'].SetLineColor(4)
+    gen[h]['4l'].SetLineWidth(2)
+
+    result[h]['4l'].SetLineColor(2)
+    result[h]['4l'].SetLineWidth(2)
+    result[h]['4l'].SetMarkerColor(2)
+    result[h]['4l'].SetMarkerStyle(22)
+    result[h]['4l'].SetMarkerSize(2)
+
+    l = TLegend(0.78, 0.68, 0.98, 0.98)
+    l.AddEntry(reco[h]['4l'], "Reco", "L")
+    l.AddEntry(gen[h]['4l'], "Gen", "L")
+    l.AddEntry(data[h]['4l'], "Data", "LP")
+    l.AddEntry(result[h]['4l'], "Result", "LP")
+
+    c.cd()
+    result[h]['4l'].SetMinimum(0);
+    result[h]['4l'].Draw("E1")
+    reco[h]['4l'].Draw("SAME")
+    gen[h]['4l'].Draw("SAME")
+    data[h]['4l'].Draw("E1 SAME")
+    result[h]['4l'].Draw("E1 SAME")
+    l.Draw()
+
+    # Write histograms
+    mig[h]['4l'].Write()
+    resp[h]['4l'].Write()
+    unf[h]['4l'].Write()
+    cov[h]['4l'].Write()
+
+    gen[h]['4l'].Write()
+    reco[h]['4l'].Write()
+    data[h]['4l'].Write()
+    result[h]['4l'].Write()
+
+    c.Write()
 
 outFile.Close()
 print("Wrote output to", outName)
-
