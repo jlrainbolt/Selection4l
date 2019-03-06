@@ -79,6 +79,7 @@ void Facelift(TLegend *legend)
 {
     legend->SetTextFont(lHelveticaMediumR);
     legend->SetTextSize(lLarge);
+    legend->SetFillColor(kWhite);
 /*
     float LeftPosition = 0.5,       LeftMargin = 2. * lCanvasMargin - lLegendMargin;
     float RightPosition = 1,        RightMargin = -lLegendMargin;

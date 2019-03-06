@@ -112,11 +112,10 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     UShort_t            b_l1z,      b_l2z,      b_l3z,      b_l4z;
 
     // Observables
-    Float_t             psi,                    sin_phi;
+    Float_t             psi;
+    Float_t             phi,                    sin_phi,                cos_phi;
     Float_t             cos_theta_z1,           cos_theta_z2;
-    Float_t             cos_zeta_z1,            cos_zeta_z2;
-    Float_t             angle_z1leps,           angle_z2leps;
-    Float_t             angle_z1l2_z2;
+    Float_t             angle_z1leps,           angle_z2leps,           angle_z1l2_z2;
 
 
     for (unsigned i = 0; i < N; i++)
@@ -125,12 +124,10 @@ void GenAnalysis(const bool fidOnly = kFALSE)
         tree[i]->Branch("lumiSec",  &lumiSec);              tree[i]->Branch("channel",  &channel);
         tree[i]->Branch("weight",   &weight);               tree[i]->Branch("isFiducial", &isFiducial);
 
-        tree[i]->Branch("psi",              &psi);
-        tree[i]->Branch("sin_phi",          &sin_phi);
+        tree[i]->Branch("psi",              &psi);          tree[i]->Branch("phi",      &phi);
+        tree[i]->Branch("sin_phi",          &sin_phi);      tree[i]->Branch("cos_phi",  &cos_phi);
         tree[i]->Branch("cos_theta_z1",     &cos_theta_z1);
         tree[i]->Branch("cos_theta_z2",     &cos_theta_z2);
-        tree[i]->Branch("cos_zeta_z1",      &cos_zeta_z1);
-        tree[i]->Branch("cos_zeta_z2",      &cos_zeta_z2);
         tree[i]->Branch("angle_z1leps",     &angle_z1leps);
         tree[i]->Branch("angle_z2leps",     &angle_z2leps);
         tree[i]->Branch("angle_z1l2_z2",    &angle_z1l2_z2);
@@ -456,6 +453,8 @@ void GenAnalysis(const bool fidOnly = kFALSE)
         // Angle between decay planes
         TVector3    n_cross_n = n_z1.Cross(n_z2);
         sin_phi = n_cross_n.Dot(z1.b_v3.Unit());
+        cos_phi = n_z1.Dot(n_z2);
+        phi     = atan2(sin_phi, cos_phi);
 
         // Angles between paired leptons
         angle_z1leps = z1_plus.Angle(z1_minus);         angle_z2leps = z2_plus.Angle(z2_minus);
@@ -480,13 +479,6 @@ void GenAnalysis(const bool fidOnly = kFALSE)
 
         cos_theta_z1 = u_b1_z2.Dot(u_b1_z1_plus);
         cos_theta_z2 = u_b2_z1.Dot(u_b2_z2_plus);
-
-
-        // "zeta_zX": polarization angle for positive pair X lepton and X pair in Z CM frame
-        TVector3    u_z1 = z1.b_v3.Unit(),              u_z2 = z2.b_v3.Unit();
-
-        cos_zeta_z1 = u_z1.Dot(u_b1_z1_plus);
-        cos_zeta_z2 = u_z2.Dot(u_b2_z2_plus);
 
 
 

@@ -99,11 +99,10 @@ void BoostedAnalysis(const TString suffix)
 
 
     // Observables
-    Float_t             psi,                    sin_phi;
+    Float_t             psi;
+    Float_t             phi,                    sin_phi,                cos_phi;
     Float_t             cos_theta_z1,           cos_theta_z2;
-    Float_t             cos_zeta_z1,            cos_zeta_z2;
-    Float_t             angle_z1leps,           angle_z2leps;
-    Float_t             angle_z1l2_z2;
+    Float_t             angle_z1leps,           angle_z2leps,           angle_z1l2_z2;
 
 
     for (unsigned i = 0; i < N; i++)
@@ -116,12 +115,10 @@ void BoostedAnalysis(const TString suffix)
         tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
         tree[i]->Branch("channel",      &channel);
 
-        tree[i]->Branch("psi",              &psi);
-        tree[i]->Branch("sin_phi",          &sin_phi);
+        tree[i]->Branch("psi",              &psi);      tree[i]->Branch("phi",          &phi);
+        tree[i]->Branch("sin_phi",          &sin_phi);  tree[i]->Branch("cos_phi",      &cos_phi);
         tree[i]->Branch("cos_theta_z1",     &cos_theta_z1);
         tree[i]->Branch("cos_theta_z2",     &cos_theta_z2);
-        tree[i]->Branch("cos_zeta_z1",      &cos_zeta_z1);
-        tree[i]->Branch("cos_zeta_z2",      &cos_zeta_z2);
         tree[i]->Branch("angle_z1leps",     &angle_z1leps);
         tree[i]->Branch("angle_z2leps",     &angle_z2leps);
         tree[i]->Branch("angle_z1l2_z2",    &angle_z1l2_z2);
@@ -331,6 +328,9 @@ void BoostedAnalysis(const TString suffix)
             // Angle between decay planes
             TVector3    n_cross_n = n_z1.Cross(n_z2);
             sin_phi = n_cross_n.Dot(z1.b_v3.Unit());
+            cos_phi = n_z1.Dot(n_z2);
+            phi     = atan2(sin_phi, cos_phi);
+
 
             // Angles between paired leptons
             angle_z1leps = z1_plus.Angle(z1_minus);         angle_z2leps = z2_plus.Angle(z2_minus);
@@ -343,25 +343,18 @@ void BoostedAnalysis(const TString suffix)
             // Boosted lepton-pair angles
             TVector3    z1_boost = z1.p4.BoostVector(),     z2_boost = z2.p4.BoostVector();
             LeptonPair  b1_z1 = z1,     b1_z2 = z2,         b2_z1 = z1,     b2_z2 = z2;
+            TVector3    u_b1_z2 = b1_z2.b_v3.Unit(),        u_b2_z1 = b2_z1.b_v3.Unit();
 
             b1_z1.SetBoostedP4(z1_boost);                   b1_z2.SetBoostedP4(z1_boost);
             b2_z1.SetBoostedP4(z2_boost);                   b2_z2.SetBoostedP4(z2_boost);
 
 
             // "theta_zX": angle between positive pair X lepton and Y pair in X pair CM frame
-            TVector3    u_b1_z2 = b1_z2.b_v3.Unit(),        u_b2_z1 = b2_z1.b_v3.Unit();
             TVector3    u_b1_z1_plus = b1_z1.Plus().b_v3.Unit();
             TVector3    u_b2_z2_plus = b2_z2.Plus().b_v3.Unit();
 
             cos_theta_z1 = u_b1_z2.Dot(u_b1_z1_plus);
             cos_theta_z2 = u_b2_z1.Dot(u_b2_z2_plus);
-
-
-            // "zeta_zX": polarization angle for positive pair X lepton and X pair in Z CM frame
-            TVector3    u_z1 = z1.b_v3.Unit(),              u_z2 = z2.b_v3.Unit();
-
-            cos_zeta_z1 = u_z1.Dot(u_b1_z1_plus);
-            cos_zeta_z2 = u_z2.Dot(u_b2_z2_plus);
 
 
 

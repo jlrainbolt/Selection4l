@@ -10,8 +10,8 @@
 #include "TH1.h"
 
 // Custom
-//#include "Cuts2016.hh"
-#include "Cuts2017.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -22,7 +22,7 @@ using namespace std;
 **  Draws UNSCALED distributions for a "boosted_" sample
 */ 
 
-void DrawDists4l(const TString suffix, const TString year)
+void DrawPhaseSpace(const TString suffix, const TString year)
 {
     if (!year.EqualTo(YEAR_STR))
     {
@@ -65,31 +65,31 @@ void DrawDists4l(const TString suffix, const TString year)
         make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       20,     80,     100),
         make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       20,     0,      100),
 
-        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       16,     12,     92),
-        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       20,     0,      120),
+        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       22,     4,      92),
+        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       20,     0,      100),
 
-        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       16,     4,      36),
+        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       20,     4,      44),
         make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       20,     0,      60),
 
-        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       24,     0,      120),
+        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       20,     0,      120),
         make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     20,     -2.5,   2.5),
 
-        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       24,     0,      60),
+        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       20,     0,      60),
         make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     20,     -2.5,   2.5),
 
-        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       20,     1,      41),
+        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       20,     0,      40),
         make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     20,     -2.5,   2.5),
 
-        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       25,     0,      25),
+        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       20,     0,      20),
         make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     20,     -2.5,   2.5),
  
         // Z rest frame kinematics                                                
-        make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
+        make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   20,     4,      64),
                                 
-        make_tuple( "b_l1p",    "b_l1v3.Mag()",  _p_(_l_(1)),   _GeV,       10,     25,     50),
-        make_tuple( "b_l2p",    "b_l2v3.Mag()",  _p_(_l_(2)),   _GeV,       10,     15,     45),
-        make_tuple( "b_l3p",    "b_l3v3.Mag()",  _p_(_l_(3)),   _GeV,       10,     4,      24),
-        make_tuple( "b_l4p",    "b_l4v3.Mag()",  _p_(_l_(4)),   _GeV,       10,     0,      20),
+        make_tuple( "b_l1p",    "b_l1v3.Mag()",  _p_(_l_(1)),   _GeV,       20,     20,     50),
+        make_tuple( "b_l2p",    "b_l2v3.Mag()",  _p_(_l_(2)),   _GeV,       20,     10,     50),
+        make_tuple( "b_l3p",    "b_l3v3.Mag()",  _p_(_l_(3)),   _GeV,       20,     0,      25),
+        make_tuple( "b_l4p",    "b_l4v3.Mag()",  _p_(_l_(4)),   _GeV,       20,     0,      20),
                         
                         
         // Observables      
@@ -114,7 +114,7 @@ void DrawDists4l(const TString suffix, const TString year)
     //  INPUT FILE
     //
 
-    TString inName  = "boosted_" + suffix + ".root";
+    TString inName  = "boosted_phase_space.root";
     TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
@@ -151,13 +151,13 @@ void DrawDists4l(const TString suffix, const TString year)
     ////
 
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
 
         TTree *tree;
-        inFile->GetObject(selection[i] + "_" + suffix, tree);
+        inFile->GetObject(selection[i] + "_phase_space", tree);
 
         cout << selection[i] << " tree has " << tree->GetEntries() << " events." << flush;
 
@@ -186,6 +186,11 @@ void DrawDists4l(const TString suffix, const TString year)
                 weight = "weight";
                 bins = 2 * bins;
             }
+            else if (suffix.EqualTo("fiducial"))
+            {
+                weight = "isFiducial * weight";
+                bins = 2 * bins;
+            }
 
 
             // Create and draw histogram
@@ -200,15 +205,22 @@ void DrawDists4l(const TString suffix, const TString year)
             h->SetStats(0);
             h->Write();
 
-            if (suffix == "phase_space")
+            if ((suffix == "phase_space") || (suffix == "fiducial"))
             {
-                h->SetFillColor(lLightBlue);
-                h->SetLineColor(lLightBlue);
+                int color = (suffix == "phase_space") ? lLightBlue : lBlue;
+                h->SetFillColor(color);
+                h->SetLineColor(color);
+                h->SetMinimum(0);
+                h->GetYaxis()->SetTitle("");
+                Facelift(h);
 
                 TCanvas *c = new TCanvas("c_" + hname + "_" + suffix, "", 800, 800);
+                Facelift(c);
                 c->cd();
                 h->Draw("HIST");
                 c->Write();
+
+                c->SaveAs(".png");
             }
         }
 

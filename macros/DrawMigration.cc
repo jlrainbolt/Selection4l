@@ -11,7 +11,8 @@
 #include "TH2.h"
 
 // Custom
-#include "Cuts2017.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -55,7 +56,7 @@ void DrawMigration()
 
         //          name            quantity            title               bins    xmin    xmax
         // Z rest frame kinematics
-        make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  10,     5,      65),
+        make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  11,     5,      60),
         make_tuple( "b_l1p",        "b_l1v3.Mag()",     _p_(_l_(1)),        10,     25,     50),
 
 
@@ -152,7 +153,7 @@ void DrawMigration()
             TH2D *h_2d = new TH2D(hname + "_2d", "Migrations",
                     bins, xmin, xmax, bins, xmin, xmax);
             h_2d->Sumw2(kTRUE);
-            tree->Draw("gen_"+quantity + ":" + quantity + ">>+" + hname + "_2d",
+            tree->Draw("gen_" + quantity + ":" + quantity + ">>+" + hname + "_2d",
                     "isMatched*" + weight);
 
             h_2d->GetXaxis()->SetTitle("reco");

@@ -10,19 +10,19 @@
 #include "TH1.h"
 
 // Custom
-//#include "Cuts2016.hh"
-#include "Cuts2017.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
 
 using namespace std;
 
 
 /*
-**  DrawDists4l
+**  DrawBackground
 **
-**  Draws UNSCALED distributions for a "boosted_" sample
+**  Draws distributions for a "background_" sample
 */ 
 
-void DrawDists4l(const TString suffix, const TString year)
+void DrawBackground(const TString suffix, const TString year)
 {
     if (!year.EqualTo(YEAR_STR))
     {
@@ -34,11 +34,11 @@ void DrawDists4l(const TString suffix, const TString year)
     //  SAMPLE INFO
     //
 
-    const unsigned N = 5;
-    unsigned                   L4 = 0,  M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = {"4l",    "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {5,       6,      7,      8,      9};
-    TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e};
+    const unsigned N = 7;   // Channel indices
+    unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4, M3 = 5, E3 = 6;
+    TString selection[N]    = { "4l",   "4m",   "2m2e", "2e2m", "4e",   "3m1e", "1m3e"  };
+    unsigned chanIdx[N]     = { 10,     4,      6,      7,      9,      5,      8       };
+    TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e,     _l,     _l      };
 
 
 
@@ -46,7 +46,7 @@ void DrawDists4l(const TString suffix, const TString year)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "4l";
+    TString prefix  = "bkg";
     TString outName = prefix + "_" + year + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -59,30 +59,30 @@ void DrawDists4l(const TString suffix, const TString year)
     vector<tuple<TString, TString, TString, TString, int, float, float>> v = {
 
         //          name        quantity         axis label     unit        bins    xmin    xmax
-        make_tuple( "nPV",      "nPV",           _nPV,          _unit,      20,     0,      60),
+        make_tuple( "nPV",      "nPV",           _nPV,          _unit,      12,     0,      60),
 
         // Lab frame kinematics
-        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       20,     80,     100),
-        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       20,     0,      100),
+        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       12,     60,     120),
+        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       12,     0,      120),
 
-        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       16,     12,     92),
-        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       20,     0,      120),
+        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       12,     12,     102),
+        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       12,     0,      120),
 
-        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       16,     4,      36),
-        make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       20,     0,      60),
+        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      54),
+        make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       12,     0,      60),
 
-        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       24,     0,      120),
-        make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     20,     -2.5,   2.5),
+        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       10,     20,     120),
+        make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       24,     0,      60),
-        make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     20,     -2.5,   2.5),
+        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       10,     10,     60),
+        make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       20,     1,      41),
-        make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     20,     -2.5,   2.5),
+        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       12,     5,      35),
+        make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       25,     0,      25),
-        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     20,     -2.5,   2.5),
- 
+        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       10,     5,      25),
+        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5)//,
+/* 
         // Z rest frame kinematics                                                
         make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
                                 
@@ -94,18 +94,19 @@ void DrawDists4l(const TString suffix, const TString year)
                         
         // Observables      
         make_tuple( "psi",          "psi",          _psi,           "",     20,     -5000,  5000),
-        make_tuple( "phi",      "phi/3.141592654",  _phi,           _pirad, 20,     -1,     1),
-        make_tuple( "cos_phi",      "cos_phi",      _cosphi,        _units, 20,     -1,     1),
         make_tuple( "sin_phi",      "sin_phi",      _sinphi,        _units, 20,     -1,     1),
         make_tuple( "sin_phi_2",    "sin_phi",      _sinphi,        _units, 2,      -1,     1),
         make_tuple( "cos_theta_z1", "cos_theta_z1", _costheta_(_Z1),_units, 10,     -1,     1),
         make_tuple( "cos_theta_z2", "cos_theta_z2", _costheta_(_Z2),_units, 10,     -1,     1),
+        make_tuple( "cos_zeta_z1",  "cos_zeta_z1",  _coszeta_(_Z1), _units, 10,     -1,     1),
+        make_tuple( "cos_zeta_z2",  "cos_zeta_z2",  _coszeta_(_Z2), _units, 10,     -1,     1),
         make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
                                                     _alpha_(_Z1),   _pirad, 10,     0,      1),
         make_tuple( "angle_z2leps", "angle_z2leps/3.141592654",
                                                     _alpha_(_Z2),   _pirad, 10,     0,      1),
         make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.141592654",
-                                                    _beta,          _pirad, 10,     0,      1)
+                                                    _beta,          _units, 10,     0,      1)
+*/
     };
 
 
@@ -114,8 +115,8 @@ void DrawDists4l(const TString suffix, const TString year)
     //  INPUT FILE
     //
 
-    TString inName  = "boosted_" + suffix + ".root";
-    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
+    TString inName  = "background_" + suffix + ".root";
+    TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -175,18 +176,16 @@ void DrawDists4l(const TString suffix, const TString year)
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight/trigWeight/qtWeight";
+            TString weight = "(isSameSign || isDiffFlavor) * weight/trigWeight/qtWeight";
+//          TString weight = "weight/trigWeight/qtWeight";
 
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
-
-            if      (suffix.EqualTo("zjets_m-50"))
-                weight = "weight/trigWeight";
-            else if (suffix.EqualTo("phase_space"))
-            {
-                weight = "weight";
-                bins = 2 * bins;
-            }
-
+/*
+            if (tree->GetEntries() < 20)
+                bins = bins / 4;
+            else if (tree->GetEntries() < 100)
+                bins = bins / 2;
+*/
 
             // Create and draw histogram
             TH1D *h = new TH1D(hname + "_" + suffix, "", bins, xmin, xmax);
@@ -199,17 +198,6 @@ void DrawDists4l(const TString suffix, const TString year)
             h->Sumw2(kTRUE);
             h->SetStats(0);
             h->Write();
-
-            if (suffix == "phase_space")
-            {
-                h->SetFillColor(lLightBlue);
-                h->SetLineColor(lLightBlue);
-
-                TCanvas *c = new TCanvas("c_" + hname + "_" + suffix, "", 800, 800);
-                c->cd();
-                h->Draw("HIST");
-                c->Write();
-            }
         }
 
         cout << "done!" << endl;

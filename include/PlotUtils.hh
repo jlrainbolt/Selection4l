@@ -96,7 +96,8 @@ const TString   _and    = "\\mbox{,}";
 const TString   _sp     = "\\,";
 
 const TString   _psi    = "\\psi";
-const TString   _phi    = "\\phi";
+const TString   _phi    = "\\phi\\ (" + _pirad + ")";
+const TString   _cosphi = "\\cos\\phi";
 const TString   _sinphi = "\\sin\\phi";
 const TString   _beta   = "\\beta\\ (" + _pirad + ")";
 

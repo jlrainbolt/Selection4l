@@ -25,7 +25,7 @@ year = sys.argv[1]
 if year != YEAR_STR:
     print("Wrong year in header file")
 
-tag = "noQt"
+#tag = "noQt"
 
 
 ##
@@ -51,7 +51,7 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-hnames = ["z1m", "z1pt", "l1pt", "l2pt", "l1eta", "l2eta", "dphi", "z1y", "nPV"]
+hnames = ["z1m", "z1pt", "l1pt", "l2pt", "l1eta", "l2eta"]#, "dphi", "z1y", "nPV"]
 H = len(hnames)
 
 
@@ -119,7 +119,7 @@ total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
 for sel in selection:
     for h in range(H):
         for suff in MC_SUFF:
-            if suff == "zjets_m-50":
+            if suff == "zz_4l":
                 total[h][sel] = mc[suff][h][sel].Clone()
             else:
                 total[h][sel].Add(mc[suff][h][sel])
@@ -212,8 +212,8 @@ for sel in selection:
 
         if "eta" in hnames[h]:
             top_max = top_max * 1.7
-        elif "y" in hnames[h]:
-            top_max = top_max * 1.8
+#       elif "y" in hnames[h]:
+#           top_max = top_max * 1.8
         elif "pt" in hnames[h]:
             top_max = top_max * 1.3
 #       elif "phi" in hnames[h]:
@@ -321,6 +321,6 @@ for sel in selection:
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 
-#       fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
-        fig.savefig(year + "_" + tag + "_" + hnames[h] + "_" + sel + ".pdf")
+        fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
+#       fig.savefig(year + "_" + tag + "_" + hnames[h] + "_" + sel + ".pdf")
         plt.clf()

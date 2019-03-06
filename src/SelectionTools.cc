@@ -189,6 +189,80 @@ bool MakePairsMaxDiff(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2
 
 
 
+//
+//  MAXIMUM Z1 MASS
+//
+
+bool MakePairsMaxZ1(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2)
+{
+    if (leps.size() != 4)
+        return kFALSE;
+
+
+    unsigned A1, A2;        // indices of lepA1, lepA2
+    float m_zA = -1;        // mass of pair
+
+    // Look for opposite-sign, same-flavor pair
+    for (unsigned i = 0; i < leps.size(); i++)
+    {
+        for (unsigned j = i + 1; j < leps.size(); j++)
+        {
+            if  (
+                    (leps[i].q != leps[j].q) &&
+                    (abs(leps[i].pdg) == abs(leps[j].pdg))
+                )
+            {
+                LeptonPair tmp_zA(leps[i], leps[j]);
+                float m_tmp = tmp_zA.p4.M();
+
+                if (m_tmp > m_zA)
+                {
+                    m_zA = m_tmp;
+                    A1 = i;
+                    A2 = j;
+                }
+            }
+        }
+    }
+    if (m_zA < 0)
+        return kFALSE;
+
+
+    // Find remaining leptons
+    unsigned B1, B2;        // indices of lepB1, lepB2
+
+    for (unsigned i = 0; i < leps.size(); i++)
+    {
+        if ((i != A1) && (i != A2))
+        {
+            B1 = i;
+            break;
+        }
+    }
+    for (unsigned j = 0; j < leps.size(); j++)
+    {
+        if ((j != A1) && (j != A2) && (j != B1))
+        {
+            B2 = j;
+            break;
+        }
+    }
+
+
+    // Assign selected configuration
+    z1->SetMembers(leps[A1], leps[A2]);
+    z2->SetMembers(leps[B1], leps[B2]);
+
+
+    // Set mothers (can always be changed outside function)
+    z1->SetMothers(1);
+
+
+    return kTRUE;
+}
+
+
+
 
 
 ////

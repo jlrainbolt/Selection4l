@@ -7,8 +7,8 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-from Cuts2017 import *
-#from Cuts2016 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 
 
 
@@ -28,56 +28,35 @@ if year != YEAR_STR:
 
 
 ##
-##  DATA
+##  UNFOLDED DATA
 ##
 
-prefix = "4l"
+prefix = "unfolding"
 
-# Muon file
-muName = prefix + "_" + year + "_" + MU_SUFF + ".root"
-muFile = TFile(muName, "READ")
-print("Opened", muName)
+ufName = prefix + "_" + year + ".root"
+ufFile = TFile(ufName, "READ")
+print("Opened", ufName)
 
-# Electron file
-elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
-elFile = TFile(elName, "READ")
-print("Opened", elName)
-
-
-# Get keys
-#keyDir = muFile.GetDirectory("/4m", True, "GetDirectory")
-
-#hnames = []
-#for key in keyDir.GetListOfKeys():
-#    hname = key.GetName()
-#    hnames.append(hname.replace("_" + MU_SUFF, ""))
-#hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi", "sin_phi_2"]
 hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", 
             "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
-
 H = len(hnames)
 
 
 # Get histograms
-data = np.empty(H, dtype=T)
+data, pred = np.empty(H, dtype=T), np.empty(H, dtype=T)
 h = 0
 
-for sel in selection:
-    if sel == "4l":
-        continue
+for hname in hnames:
+    data[h]['4l'] = ufFile.Get(hname + "/" + hname + "_result")
+    data[h]['4l'].SetDirectory(0)
 
-    for hname in hnames:
-        if sel in ["4m", "2m2e"]:
-            data[h][sel] = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
-        elif sel in ["4e", "2e2m"]:
-            data[h][sel] = elFile.Get(sel + "/" + hname + "_" + EL_SUFF)
+    pred[h]['4l'] = ufFile.Get(hname + "/" + hname + "_reco")
+    pred[h]['4l'].SetDirectory(0)
 
-        data[h][sel].SetDirectory(0)
-        h = h + 1
-    h = 0
+    h = h + 1
+h = 0
 
-muFile.Close()
-elFile.Close()
+ufFile.Close()
 print("Got data histograms")
 print("")
 
@@ -86,6 +65,8 @@ print("")
 ##
 ##  ACC * EFF
 ##
+
+prefix = "4l"
 
 # Unscaled signal events
 zzName = prefix + "_" + year + "_zz_4l.root"
@@ -137,61 +118,16 @@ print("")
 
 
 ##
-##  MONTE CARLO
-##
-
-mc_arr = np.empty((N_MC, H), dtype=T)
-mc = {}
-h, j = 0, 0
-
-# Loop over all samples
-for suff in MC_SUFF_4L:
-    inName = prefix + "_" +year + "_" + suff + ".root"
-    inFile = TFile.Open(inName)
-    print("Opened", inName)
-
-    # Get histograms
-    for sel in selection:
-        if sel == "4l":
-            continue
-        elif sel in ["4m", "2m2e"]:
-            lumi = MUON_TRIG_LUMI
-        elif sel in ["4e", "2e2m"]:
-            lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
-
-        sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
-
-        for hname in hnames:
-            mc_arr[j][h][sel] = inFile.Get(sel + "/" + hname + "_" + suff)
-            mc_arr[j][h][sel].SetDirectory(0)
-            mc_arr[j][h][sel].Scale(sf)
-
-            h = h + 1
-        h = 0
-
-    mc[suff] = mc_arr[j]
-    j = j + 1
-    inFile.Close()
-
-
-
-##
 ##  ADD CHANNELS
 ##
 
-# Get 4l and 2m2e, rebin 4e
+# Get 4l and 2m2e
 for h in range(H):
-    for sample in [data, ps, axe]:
+    for sample in [ps, axe]:
         sample[h]['2m2e'].Add(sample[h]['2e2m'])
         sample[h]['4l'] = sample[h]['2m2e'].Clone()
         sample[h]['4l'].Add(sample[h]['4m'])
         sample[h]['4l'].Add(sample[h]['4e'])
-
-    for suff in MC_SUFF_4L:
-        mc[suff][h]['2m2e'].Add(mc[suff][h]['2e2m'])
-        mc[suff][h]['4l'] = mc[suff][h]['2m2e'].Clone()
-        mc[suff][h]['4l'].Add(mc[suff][h]['4m'])
-        mc[suff][h]['4l'].Add(mc[suff][h]['4e'])
 
 
 
@@ -199,38 +135,23 @@ for h in range(H):
 ##  SCALING
 ##
 
-for sel in selection:
-    if sel == "2e2m":
-        continue
+for sel in ["4l"]:
     for h in range(H):
         axe[h][sel].Divide(ps[h][sel])
-
         scale = CAP_K * GAMMA_Z
 
-        data[h][sel].Divide(axe[h][sel])
-        data[h][sel].Scale(scale)
-
-        for suff in MC_SUFF_4L:
-            mc[suff][h][sel].Divide(axe[h][sel])
-            mc[suff][h][sel].Scale(scale)
+        for sample in [data, pred]:
+            sample[h][sel].Divide(axe[h][sel])
+            sample[h][sel].Scale(scale)
 
 
-# Get total
-total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
+# Get ratio
+ratio = np.empty(H, dtype=T)
 
-for sel in selection:
-    if sel == "2e2m":
-        continue
-
+for sel in ["4l"]:
     for h in range(H):
-        for suff in MC_SUFF_4L:
-            if suff == MC_SUFF_4L[0]:
-                total[h][sel] = mc[suff][h][sel].Clone()
-            else:
-                total[h][sel].Add(mc[suff][h][sel])
-
         ratio[h][sel] = data[h][sel].Clone()
-        ratio[h][sel].Divide(total[h][sel])
+        ratio[h][sel].Divide(pred[h][sel])
 
 
 
@@ -270,20 +191,10 @@ for sel in ["4l"]:
             v_data[i]['ey'] = data[h][sel].GetBinError(i+1)
 
         # MC
-        v_mc_arr = np.zeros([N_MC, total[h][sel].GetNbinsX()], dtype=V)
-        v_mc = {}
-        j = 0
-        for suff in MC_SUFF_4L:
-            for i in range(len(v_mc_arr[0])):
-                v_mc_arr[j][i]['x'] = total[h][sel].GetBinLowEdge(i+1)
-                v_mc_arr[j][i]['y'] = mc[suff][h][sel].GetBinContent(i+1)
-
-            v_mc[suff] = v_mc_arr[j]
-            j = j + 1
-
-        # "Bottoms"
-        for j in range(N_MC - 1):
-            v_mc_arr[j]['b'] = np.sum(v_mc_arr[j+1:]['y'], axis=0)
+        v_pred = np.zeros(pred[h][sel].GetNbinsX(), dtype=V)
+        for i in range(len(v_pred)):
+            v_pred[i]['x'] = pred[h][sel].GetBinLowEdge(i+1)
+            v_pred[i]['y'] = pred[h][sel].GetBinContent(i+1)
 
         # Ratio
         v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
@@ -299,7 +210,7 @@ for sel in ["4l"]:
         ##  MAKE PLOTS
         ##
 
-        width = total[h][sel].GetBinWidth(1)
+        width = data[h][sel].GetBinWidth(1)
 
         fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
         fig.subplots_adjust(left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
@@ -313,11 +224,8 @@ for sel in ["4l"]:
                             markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                             )
 
-        p_mc = {}
-        for suff in MC_SUFF_4L:
-            p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
-                                bottom = v_mc[suff]['b'],   align = 'edge',     linewidth=0,
-                                color = COLOR[suff]
+        p_pred = ax_top.bar(        v_pred['x'],        v_pred['y'],        width,
+                                    align = 'edge',     linewidth=0,        color = COLOR['zz_4l']
                                 )
 
         top_min, top_max = ax_top.get_ylim()
@@ -356,7 +264,7 @@ for sel in ["4l"]:
                 loc='right', fontname = "Helvetica")
 
         # Shared x axis
-        xtitle = '$' + mc['zz_4l'][h][sel].GetXaxis().GetTitle() + '$'
+        xtitle = '$' + data[h][sel].GetXaxis().GetTitle() + '$'
         if "Delta" in xtitle:
             xtitle = xtitle.replace("Delta", "bigtriangleup")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
@@ -383,7 +291,7 @@ for sel in ["4l"]:
         ##
 
         # x axes
-        plt.xlim(v_mc['zz_4l']['x'][0], v_mc['zz_4l']['x'][-1] + width)
+        plt.xlim(v_pred['x'][0], v_pred['x'][-1] + width)
 
         major_step, minor_step = 2 * width, width
         if sel == "4e":
@@ -391,13 +299,13 @@ for sel in ["4l"]:
 
         for ax in [ax_bot.xaxis, ax_top.xaxis]:
             ax.set_ticks( np.arange(
-                            v_mc['zz_4l']['x'][0],
-                            v_mc['zz_4l']['x'][-1] + major_step,
+                            v_pred['x'][0],
+                            v_pred['x'][-1] + major_step,
                             step = major_step)
                             )
             ax.set_ticks( np.arange(
-                            v_mc['zz_4l']['x'][0],
-                            v_mc['zz_4l']['x'][-1] + minor_step,
+                            v_pred['x'][0],
+                            v_pred['x'][-1] + minor_step,
                             step = minor_step),
                         minor = True)
 
@@ -421,8 +329,8 @@ for sel in ["4l"]:
 
         if hnames[h] in ["angle_z1leps", "b_l1p"]:
             leg_loc = 'center left'
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
-            leg_loc = 'upper center'
+#       elif hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
+#           leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'
 
@@ -430,13 +338,8 @@ for sel in ["4l"]:
             leg_loc = 'upper right'
 
         ax_top.legend(
-                (   p_data,                         p_mc['zz_4l'],
-                    p_mc['zjets_m-50'],             p_mc['ttbar'],
-                    p_mc['ww_2l2nu'],               p_mc['ggH_zz_4l']
-                    ),
-                (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
-                    r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$', 
-                    r'VV',                          r'H'
+                (   p_data,     p_pred, ),
+                (   'Measured', 'Predicted',
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 

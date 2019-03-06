@@ -148,8 +148,8 @@ void DrawDists2l(const TString suffix, const TString year)
             TString weight = "weight/trigWeight/qtWeight";
 
 
-//          if (suffix.EqualTo("zjets_m-50"))
-//              weight = "weight/trigWeight";
+            if (suffix.EqualTo("zjets_m-50"))
+                weight = "weight/trigWeight";
 
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 

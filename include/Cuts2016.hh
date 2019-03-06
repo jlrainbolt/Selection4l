@@ -32,6 +32,9 @@ const float     MUON_MASS = 0.105658369,                        ELEC_MASS = 0.00
 
 const float     M_MIN = 80,             M_MAX = 100,            MLL_MIN = 4;
 
+// Cuts used for SS/OF background selection
+const float     M_MIN_BKG = 60,         M_MAX_BKG = 120;
+
 
 
 //
@@ -100,8 +103,8 @@ const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "elect
 // Cross sections from
 //      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
 //      https://twiki.cern.ch/twiki/bin/view/CMS/HiggsZZ4l2016#Samples_Cross_sections
-const float     NGEN_ZZ_4L      = 6762740,          XSEC_ZZ_4L      = 1.212;
-const float     NGEN_ZJETS_M50  = 80924255,         XSEC_ZJETS_M50  = 5765.4;
+const float     NGEN_ZZ_4L      = 6762740,          XSEC_ZZ_4L      = 1.256;    //1.212;
+const float     NGEN_ZJETS_M50  = 80924255,         XSEC_ZJETS_M50  = 6225.42;  //5765.4;
 const float     NGEN_GGH_ZZ_4L  = 999800,           XSEC_GGH_ZZ_4L  = 0.01212;
 const float     NGEN_VBFH_ZZ_4L = 499262,           XSEC_VBFH_ZZ_4L = 0.001034;
 const float     NGEN_TTBAR      = 12284545,         XSEC_TTBAR      = 831.76;
@@ -111,7 +114,7 @@ const float     NGEN_WZ_3LNU    = 7387013,          XSEC_WZ_3LNU    = 4.42965;
 const float     NGEN_ZZ_2L2Q    = 496436,           XSEC_ZZ_2L2Q    = 3.22;
 const float     NGEN_ZZ_2L2NU   = 48623080,         XSEC_ZZ_2L2NU   = 0.564;
 
-const unsigned  N_MC = 10,      ZZ = 0,     DY = 1;
+const unsigned  N_MC = 10,      ZZ = 0,     DY = 1,     TT = 4;
 const TString   MC_SUFF[N_MC] = {   "zz_4l",        "zjets_m-50",   "ggH_zz_4l",    "vbfH_zz_4l",
                                     "ttbar",        "ww_2l2nu",     "wz_2l2q",      "wz_3lnu",
                                     "zz_2l2q",      "zz_2l2nu"};

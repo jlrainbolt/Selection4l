@@ -5,11 +5,13 @@ import sys
 import numpy as np
 from pyunfold import iterative_unfold
 from pyunfold.callbacks import Logger
+from scipy.stats import chi2
 
 from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
-from Cuts2017 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 
 
 np.set_printoptions(precision=1, suppress=True)
@@ -107,6 +109,7 @@ for sel in selection:
         elif sel in ["4e", "2e2m"]:
             data[h][sel] = elFile.Get(sel + "/" + hname + "_" + EL_SUFF)
 
+        data[h][sel].SetName(hnames[h] + "_data")
         data[h][sel].SetDirectory(0)
         h = h + 1
     h = 0
@@ -179,7 +182,7 @@ for h in range(H):
 #   for sample in [data, gen, reco, mig, ps, axe]:
     for sample in [data, gen, reco, mig]:
         sample[h]['2m2e'].Add(sample[h]['2e2m'])
-        sample[h]['4l'] = sample[h]['2m2e'].Clone(hnames[h] + "_data")
+        sample[h]['4l'] = sample[h]['2m2e'].Clone()
         sample[h]['4l'].Add(sample[h]['4m'])
         sample[h]['4l'].Add(sample[h]['4e'])
 
@@ -214,8 +217,7 @@ for sel in selection:
 # Store results in histograms (for now)
 result = np.empty(H, dtype=T)
 resp, unf, cov = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
-
-
+var = np.empty(H, dtype=T)
 
 for sel in ["4l"]:
     for h in range(H):
@@ -288,6 +290,15 @@ for sel in ["4l"]:
         v_resp['y']     = v_mig['y'] * norm_factor
         v_resp['ey']    = v_mig['ey'] * norm_factor
 
+        # Test response matrix
+#       print("Reco:", v_reco['y'])
+#       print("Response * gen:", np.dot(v_resp['y'], v_gen['y'].T))
+
+#       v_eff['y'] = np.dot(v_reco['y'] / v_resp['y'], v_gen['y'].T)
+#       v_resp['y'] = v_resp['y'] * v_eff['y']
+#       print("Efficiencies:", v_eff['y'])
+
+
 
 
         ##
@@ -304,10 +315,11 @@ for sel in ["4l"]:
         ##  PERFORM UNFOLDING
         ##
 
+        chisq_nu = chi2.isf(0.99, len(v_resp['y'])) / len(v_resp['y'])
         results = iterative_unfold( data = v_data['y'],         data_err = v_data['ey'],
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
-                                    ts = 'chi2',                ts_stopping = 1 / len(v_data),
+                                    ts = 'chi2',                ts_stopping = chisq_nu,
                                     callbacks = [Logger()]
                                     )
 
@@ -325,25 +337,22 @@ for sel in ["4l"]:
         o = s.start
 
         result[h][sel] = data[h][sel].Clone(hnames[h] + "_result");
+        result[h][sel].SetYTitle("");
         for i in range(len(v_result)):
             result[h][sel].SetBinContent(i + o, v_result[i]['y'])
             result[h][sel].SetBinError(i + o, v_result[i]['ey'])
 
 
-        # Get bin edges for histograms (including under/overflow)
-        xbins, xwid = np.size(v_resp['y'], axis = 0), mig[h][sel].GetXaxis().GetBinWidth(1)
-        xmin = mig[h][sel].GetXaxis().GetBinLowEdge(1) - xwid
-        xmax = xmin + xbins * xwid
-
-        ybins, ywid = np.size(v_resp['y'], axis = 1), mig[h][sel].GetYaxis().GetBinWidth(1)
-        ymin = mig[h][sel].GetYaxis().GetBinLowEdge(1) - ywid
-        ymax = ymin + ybins * ywid
+        # Bin histograms in terms of indices
+        xbins, ybins = len(v_result), len(v_result)
+        xmin, ymin = o - 0.5, o - 0.5
+        xmax, ymax = xmin + xbins, ymin + ybins
 
 
         # Response matrix
         resp[h][sel] = TH2D(hnames[h] + "_response", "", xbins, xmin, xmax, ybins, ymin, ymax);
-        resp[h][sel].SetXTitle("P(reco)");
-        resp[h][sel].SetYTitle("gen");
+        resp[h][sel].SetXTitle("i (bin)");
+        resp[h][sel].SetYTitle("j (bin)");
         for i in range(xbins):
             for j in range(ybins):
                 resp[h][sel].SetBinContent(i + 1, j + 1, v_resp[i][j]['y'])
@@ -353,8 +362,8 @@ for sel in ["4l"]:
         v_unf   = results['unfolding_matrix']
 
         unf[h][sel] = TH2D(hnames[h] + "_unfolding", "", xbins, xmin, xmax, ybins, ymin, ymax);
-        unf[h][sel].SetXTitle("reco");
-        unf[h][sel].SetYTitle("gen");
+        unf[h][sel].SetXTitle("i (bin)");
+        unf[h][sel].SetYTitle("j (bin)");
         for i in range(xbins):
             for j in range(ybins):
                 unf[h][sel].SetBinContent(i + 1, j + 1, v_unf[i][j])
@@ -363,11 +372,19 @@ for sel in ["4l"]:
         v_cov   = results['covariance_matrix']
 
         cov[h][sel] = TH2D(hnames[h] + "_covariance", "", xbins, xmin, xmax, ybins, ymin, ymax);
-        cov[h][sel].SetXTitle("reco");
-        cov[h][sel].SetYTitle("gen");
+        cov[h][sel].SetXTitle("i (bin)");
+        cov[h][sel].SetYTitle("j (bin)");
         for i in range(xbins):
             for j in range(ybins):
                 cov[h][sel].SetBinContent(i + 1, j + 1, v_cov[i][j])
+
+        # Data covariance matrix
+        var[h][sel] = TH2D(hnames[h] + "_data_cov", "", xbins, xmin, xmax, ybins, ymin, ymax);
+        var[h][sel].SetXTitle("i (bin)");
+        var[h][sel].SetYTitle("j (bin)");
+        for i in range(xbins):
+            var[h][sel].SetBinContent(i + 1, i + 1, v_data[i]['y'])
+
 
         print("")
 
@@ -386,57 +403,73 @@ for h in range(H):
     outFile.mkdir(hnames[h])
     outFile.cd(hnames[h])
 
-    ##
-    ##  DRAW
-    ##
-
-    c = TCanvas(hnames[h] + "_canvas", "", 800, 600)
-
-    data[h]['4l'].SetLineColor(1)
-    data[h]['4l'].SetLineWidth(2)
-    data[h]['4l'].SetMarkerColor(1)
-    data[h]['4l'].SetMarkerStyle(20)
-    data[h]['4l'].SetMarkerSize(2)
-
-    reco[h]['4l'].SetLineColor(8)
-    reco[h]['4l'].SetLineWidth(2)
-
-    gen[h]['4l'].SetLineColor(4)
-    gen[h]['4l'].SetLineWidth(2)
-
-    result[h]['4l'].SetLineColor(2)
-    result[h]['4l'].SetLineWidth(2)
-    result[h]['4l'].SetMarkerColor(2)
-    result[h]['4l'].SetMarkerStyle(22)
-    result[h]['4l'].SetMarkerSize(2)
-
-    l = TLegend(0.78, 0.68, 0.98, 0.98)
-    l.AddEntry(reco[h]['4l'], "Reco", "L")
-    l.AddEntry(gen[h]['4l'], "Gen", "L")
-    l.AddEntry(data[h]['4l'], "Data", "LP")
-    l.AddEntry(result[h]['4l'], "Result", "LP")
-
-    c.cd()
-    result[h]['4l'].SetMinimum(0);
-    result[h]['4l'].Draw("E1")
-    reco[h]['4l'].Draw("SAME")
-    gen[h]['4l'].Draw("SAME")
-    data[h]['4l'].Draw("E1 SAME")
-    result[h]['4l'].Draw("E1 SAME")
-    l.Draw()
-
     # Write histograms
     mig[h]['4l'].Write()
     resp[h]['4l'].Write()
     unf[h]['4l'].Write()
     cov[h]['4l'].Write()
+    var[h]['4l'].Write()
 
     gen[h]['4l'].Write()
     reco[h]['4l'].Write()
     data[h]['4l'].Write()
     result[h]['4l'].Write()
 
-    c.Write()
+
+
+#   ##
+#   ##  DRAW
+#   ##
+
+#   # Data/MC comparison
+#   c_comp = TCanvas(hnames[h] + "_comparison", "", 1000, 1000)
+
+#   data[h]['4l'].SetLineColor(1)
+#   data[h]['4l'].SetLineWidth(2)
+#   data[h]['4l'].SetMarkerColor(1)
+#   data[h]['4l'].SetMarkerStyle(20)
+#   data[h]['4l'].SetMarkerSize(2)
+
+#   reco[h]['4l'].SetLineColor(8)
+#   reco[h]['4l'].SetLineWidth(2)
+
+#   gen[h]['4l'].SetLineColor(4)
+#   gen[h]['4l'].SetLineWidth(2)
+
+#   result[h]['4l'].SetLineColor(2)
+#   result[h]['4l'].SetLineWidth(2)
+#   result[h]['4l'].SetMarkerColor(2)
+#   result[h]['4l'].SetMarkerStyle(22)
+#   result[h]['4l'].SetMarkerSize(2)
+
+#   if hnames[h] in ["b_l1p", "angle_z1leps"]:
+#       l = TLegend(0.18, 0.68, 0.48, 0.98)
+#   elif hnames[h] in ["cos_theta_z1"]:
+#       l = TLegend(0.35, 0.68, 0.65, 0.98)
+#   else:
+#       l = TLegend(0.68, 0.68, 0.98, 0.98)
+#   l.AddEntry(reco[h]['4l'], "Reco MC", "L")
+#   l.AddEntry(gen[h]['4l'], "Gen MC", "L")
+#   l.AddEntry(data[h]['4l'], "Smeared data", "LP")
+#   l.AddEntry(result[h]['4l'], "Unfolded data", "LP")
+
+#   c_comp.cd()
+#   result[h]['4l'].SetMinimum(0);
+#   result[h]['4l'].Draw("E1")
+#   reco[h]['4l'].Draw("SAME")
+#   gen[h]['4l'].Draw("SAME")
+#   data[h]['4l'].Draw("E1 SAME")
+#   result[h]['4l'].Draw("E1 SAME")
+#   l.Draw()
+
+#   c_comp.Write()
+
+
+#   # Unfolded covariance matrix
+#   c_cov = TCanvas(hnames[h] + "_comparison", "", 1000, 800)
+#   c_cov.cd()
+#   cov.Draw("COLZ")
+
 
 outFile.Close()
 print("Wrote output to", outName)

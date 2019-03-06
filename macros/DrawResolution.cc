@@ -102,7 +102,7 @@ void DrawResolution()
     ////
     ////
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 0; i < 1; i++)
     {
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
@@ -142,10 +142,10 @@ void DrawResolution()
             h->Sumw2(kTRUE);
             h->Write();
 
-            TCanvas *canvas = new TCanvas(hname + "_" + selection[i] + "_canvas", "", 100, 100);
+            TCanvas *canvas = new TCanvas(YEAR_STR + "_" + hname + "_" + selection[i], "", 100, 100);
             canvas->cd();
             Facelift(canvas);
-            canvas->SetCanvasSize(lCanvasSize, 0.625*lCanvasSize);
+            canvas->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
             canvas->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
 
             h->SetFillColor(lColor[i]);

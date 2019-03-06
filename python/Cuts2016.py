@@ -42,8 +42,8 @@ MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 # Cross sections from
 #      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
 #      https://twiki.cern.ch/twiki/bin/view/ns
-NGEN_ZZ_4L,         XSEC_ZZ_4L          = 6762740,        1.212
-NGEN_ZJETS_M50,     XSEC_ZJETS_M50      = 80924255,       5765.4
+NGEN_ZZ_4L,         XSEC_ZZ_4L          = 6762740,        1.256     #1.212
+NGEN_ZJETS_M50,     XSEC_ZJETS_M50      = 80924255,       5765.4    #6225.4
 NGEN_GGH_ZZ_4L,     XSEC_GGH_ZZ_4L      = 999800,         0.01212
 NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     = 499262,         0.001034
 NGEN_TTBAR,         XSEC_TTBAR          = 12284545,       831.76

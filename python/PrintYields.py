@@ -5,8 +5,8 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
+#from Cuts2016 import *
 
 
 
@@ -183,8 +183,6 @@ for sel in selection:
         else:
             f.write("\t&\t&\t" + MC_TEX[suff] + r" & \num{" + fmt % np.squeeze(mc[suff][sel])
                     + r"} & $\pm$ & \num{" + fmt % np.squeeze(mc_unc[suff][sel]) + r"} \\" + "\n")
-        if YEAR_STR == "2017" and suff == "wz_3lnu":
-            f.write("\t" + r"\\" + "\n")
 
     f.write(r"\bottomrule" + "\n")
     f.write(r"\end{tabular}" + "\n")

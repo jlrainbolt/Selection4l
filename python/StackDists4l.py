@@ -51,8 +51,10 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-#hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]#, "sin_phi_2"]
-hnames = ["sin_phi_2"]
+hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]
+#hnames = ["sin_phi_2"]
+#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
+#            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 H = len(hnames)
 
@@ -175,8 +177,8 @@ for sel in selection:
 ####
 
 
-#for sel in selection:
-for sel in ["4l"]:
+#for sel in ["4l"]:
+for sel in selection:
     if sel == "2e2m":
         continue
 
@@ -354,9 +356,9 @@ for sel in ["4l"]:
         ##  LEGEND
         ##
 
-        if hnames[h] in ["zzm", "z1m"]:
+        if hnames[h] in ["zzm", "z1m", "angle_z1leps", "b_l1p", "cos_theta_z2"]:
             leg_loc = 'center left'
-        elif hnames[h] in ["sin_phi", "sin_phi_2"]:
+        elif hnames[h] in ["sin_phi", "sin_phi_2", "cos_theta_z1"]:
             leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'
@@ -367,11 +369,13 @@ for sel in ["4l"]:
         ax_top.legend(
                 (   p_data,                         p_mc['zz_4l'],
                     p_mc['zjets_m-50'],             p_mc['ttbar'],
-                    p_mc['ww_2l2nu'],               p_mc['ggH_zz_4l']
+                    p_mc['ww_2l2nu'],               p_mc['zzz_4l2nu'],
+                    p_mc['ggH_zz_4l']
                     ),
                 (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
-                    r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$', 
-                    r'VV',                          r'H'
+                    r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)', 
+                    r'VV',                          r'VVV',
+                    r'H'
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 

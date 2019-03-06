@@ -24,15 +24,19 @@
     cout << "Linked macros in ../macros" << endl;
 
 
-    // Load custom colorss
+    // Load custom colors
     gROOT->ProcessLine(".x LoadColors.cc");
 
-//  gStyle->SetOptStat(1111);
+/*
+    // Set plotting options
+//  gStyle->SetPaintTextFormat(".4f");
+
 
     // Load RooUnfold
     gInterpreter->AddIncludePath("~/RooUnfold-trunk/src");
     gSystem->Load("~/RooUnfold-trunk/libRooUnfold");
     cout << "Loaded RooUnfold libraries" << endl;
+*/
 
     cout << endl;
 }

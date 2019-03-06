@@ -21,8 +21,8 @@
 #include "SelectionTools.hh"
 
 // Cuts
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -64,7 +64,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     const bool smearOn = smearMuonID || smearElecID || smearElecReco || smearMuonPt || smearElecPt;
 
-    const bool doSameSign = systematics.EqualTo("sameSign");
+//  const bool doSameSign = systematics.EqualTo("sameSign");
 
 
 
@@ -115,6 +115,7 @@ void RecoSelection( const TString suffix,           const TString id,
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
     Float_t             trigWeight, idWeight,   recoWeight;
     UInt_t              channel;
+    Bool_t              failedSameSignDiv,      failedAnySignDiv;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
@@ -155,6 +156,12 @@ void RecoSelection( const TString suffix,           const TString id,
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
         tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
         tree[i]->Branch("channel",      &channel);
+
+        if (i >= L4)
+        {
+            tree[i]->Branch("failedSameSignDiv",   &failedSameSignDiv);
+            tree[i]->Branch("failedAnySignDiv",    &failedAnySignDiv);
+        }
 
         if (i >= L4) {  tree[i]->Branch("zzp4", &zzp4);}
                         tree[i]->Branch("z1p4", &z1p4);     tree[i]->Branch("z1pdg",    &z1pdg);
@@ -265,8 +272,7 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderArray    <TLorentzVector>    elecUncorrP4_   (reader,    "electronUncorrectedP4");
     TTreeReaderValue    <vector<Short_t>>   elecQ_          (reader,    "electronQ");
     TTreeReaderValue    <vector<Float_t>>   elecIso_        (reader,    "electronIsolation");
-//  TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTight");
-    TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTightIsoMVA");
+    TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTight");
     TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronIDSF");
     TTreeReaderValue    <vector<Float_t>>   elecRecoSF_     (reader,    "electronRecoSF");
     TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronFiredLeg1");
@@ -422,6 +428,8 @@ void RecoSelection( const TString suffix,           const TString id,
         //  EVENT INFO
         //
 
+        failedAnySignDiv    = kFALSE;               failedSameSignDiv   = kFALSE;
+
         // Quantities copied directly to output tree
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
         genWeight   = *genWeight_;      qtWeight    = 1;                ecalWeight  = *ecalWeight_;
@@ -438,21 +446,15 @@ void RecoSelection( const TString suffix,           const TString id,
         //  PRESELECTION
         //
 
-        // Make sure data events aren't triggered twice (hmm...should be done at BLT level?)
-        // Update: I think this is just WRONG
-
-        if (isData && suffix.Contains("muon"))
-            elecTrig = kFALSE;
-        if (isData && suffix.Contains("electron"))
+        if (muonTrig && suffix.Contains("electron"))  // don't trigger twice on data events
+        {
             muonTrig = kFALSE;
+            elecTrig = kFALSE;
+        }
+        if (suffix.Contains("muon"))
+            elecTrig = kFALSE;
 
-
-        // Sanity checks (these are both implemented at BLT level)
-
-        if (!muonTrig && !elecTrig)         // event does not pass trigger
-            continue;
-
-        if (nTightMuons < 2 && nTightElecs < 2) // not enough HZZ-identified leptons
+        if (nTightMuons < 2 && nTightElecs < 2)     // not enough HZZ-identified leptons
             continue;
 
 
@@ -631,10 +633,15 @@ void RecoSelection( const TString suffix,           const TString id,
             {
                 TLorentzVector dilep_p4 = muons[i].p4 + muons[j].p4;
 
-                if ((muons[i].q != muons[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
+                if (dilep_p4.M() < MLL_MIN) // failed divergence
                 {
-                    failedDivCut = kTRUE;
-                    goto exitloops;
+                    failedAnySignDiv = kTRUE;
+
+                    if (muons[i].q != muons[j].q)
+                    {
+                        failedDivCut = kTRUE;
+                        goto exitloops;
+                    }
                 }
                 if (muons[i].p4.DeltaR(muons[j].p4) < SF_DR_MIN)    // failed same-flavor DeltaR
                 {
@@ -652,10 +659,15 @@ void RecoSelection( const TString suffix,           const TString id,
             {
                 TLorentzVector dilep_p4 = elecs[i].p4 + elecs[j].p4;
 
-                if ((elecs[i].q != elecs[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
+                if (dilep_p4.M() < MLL_MIN) // failed divergence
                 {
-                    failedDivCut = kTRUE;
-                    goto exitloops;
+                    failedAnySignDiv = kTRUE;
+
+                    if (elecs[i].q != elecs[j].q)
+                    {
+                        failedDivCut = kTRUE;
+                        goto exitloops;
+                    }
                 }
                 if (elecs[i].p4.DeltaR(elecs[j].p4) < SF_DR_MIN)    // failed same-flavor DeltaR
                 {
@@ -671,17 +683,15 @@ void RecoSelection( const TString suffix,           const TString id,
         {
             for (unsigned j = 0; j < nTightMuons; j++)
             {
+                TLorentzVector dilep_p4 = elecs[i].p4 + muons[j].p4;
 
-////////// ZZ4l CUT ///////////
-//              TLorentzVector dilep_p4 = elecs[i].p4 + muons[j].p4;
-//
-//              if ((elecs[i].q != muons[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
-//              {
-//                  failedDivCut = kTRUE;
-//                  goto exitloops;
-//              }
-////////// ZZ4l CUT ///////////
+                if (dilep_p4.M() < MLL_MIN) // failed divergence
+                {
+                    failedAnySignDiv = kTRUE;
 
+                    if (elecs[i].q != muons[j].q)
+                        failedAnySignDiv = kTRUE;
+                }
                 if (elecs[i].p4.DeltaR(muons[j].p4) < OF_DR_MIN)    // failed opp-flavor DeltaR
                 {
                     ghostBusted = kTRUE;
@@ -718,34 +728,7 @@ void RecoSelection( const TString suffix,           const TString id,
         unsigned C;     // index for filling trees by channel
         LeptonPair z1, z2;
 
-        if (elecTrig)                       // higher-priority electron trigger (reevaluate?)
-        {
-            if      (nTightElecs == 2 && nTightMuons == 0)      // ee
-            {
-                C = EE;
-
-                z1.SetMembers(elecs[0], elecs[1]);
-            }
-            else if (nTightElecs == 2 && nTightMuons == 2)      // 2e2m
-            {
-                C = EM;
-
-                // Choose z1 as triggered pair (reevaluate?)
-                z1.SetMembers(elecs[0], elecs[1]); 
-                z2.SetMembers(muons[0], muons[1]);
-            }
-            else if (nTightElecs == 4 && nTightMuons == 0)      // 4e
-            {
-                C = E4;
-
-                // Choose (opposite-sign) pairs such that their mass difference is maximized
-                MakePairsMaxDiff(elecs, &z1, &z2);
-            } 
-            else
-                continue;
-        }
-
-        else if (muonTrig)                  // lower-priority muon trigger
+        if (muonTrig)                       // higher-priority muon trigger
         {
             if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
             {
@@ -768,6 +751,33 @@ void RecoSelection( const TString suffix,           const TString id,
                 // Choose (opposite-sign) pairs such that their mass difference is maximized
                 MakePairsMaxDiff(muons, &z1, &z2);
             }
+            else
+                continue;
+        }
+
+        else if (elecTrig)                  // lower-priority electron trigger
+        {
+            if      (nTightElecs == 2 && nTightMuons == 0)      // ee
+            {
+                C = EE;
+
+                z1.SetMembers(elecs[0], elecs[1]);
+            }
+            else if (nTightElecs == 2 && nTightMuons == 2)      // 2e2m
+            {
+                C = EM;
+
+                // Choose z1 as triggered pair (reevaluate?)
+                z1.SetMembers(elecs[0], elecs[1]); 
+                z2.SetMembers(muons[0], muons[1]);
+            }
+            else if (nTightElecs == 4 && nTightMuons == 0)      // 4e
+            {
+                C = E4;
+
+                // Choose (opposite-sign) pairs such that their mass difference is maximized
+                MakePairsMaxDiff(elecs, &z1, &z2);
+            } 
             else
                 continue;
         }
@@ -812,15 +822,7 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             if ((z1.Plus().q != 1) || (z1.Minus().q != -1)) // lepton charges are not +1 and -1
-            {
-                if (!doSameSign)
-                    continue;
-            }
-            else
-            {
-                if (doSameSign)
-                    continue;
-            }
+                continue;
 
             if (print)
                 cout << "Passed charge requirement" << endl;
@@ -881,26 +883,10 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             if ((z1.Plus().q != 1) || (z1.Minus().q != -1)) // lepton charges are not +1 and -1 
-            {
-                if (!doSameSign)
-                    continue;
-            }
-            else
-            {
-                if (doSameSign)
-                    continue;
-            }
+                continue;
 
             if ((z2.Plus().q != 1) || (z2.Minus().q != -1)) // (both extraneous for same-flavor)
-            {
-                if (!doSameSign)
-                    continue;
-            }
-            else
-            {
-                if (doSameSign)
-                    continue;
-            }
+                continue;
 
             if (print)
                 cout << "Passed charge requirements" << endl;
