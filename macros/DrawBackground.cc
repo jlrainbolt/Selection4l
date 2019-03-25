@@ -22,7 +22,7 @@ using namespace std;
 **  Draws distributions for a "background_" sample
 */ 
 
-void DrawBackground(const TString suffix, const TString year)
+void DrawBackground(const TString suffix, const TString year, const bool signalOnly = kFALSE)
 {
     if (!year.EqualTo(YEAR_STR))
     {
@@ -46,7 +46,7 @@ void DrawBackground(const TString suffix, const TString year)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "bkg";
+    TString prefix  = signalOnly ? "bkg" : "bkg_all";
     TString outName = prefix + "_" + year + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -59,28 +59,28 @@ void DrawBackground(const TString suffix, const TString year)
     vector<tuple<TString, TString, TString, TString, int, float, float>> v = {
 
         //          name        quantity         axis label     unit        bins    xmin    xmax
-        make_tuple( "nPV",      "nPV",           _nPV,          _unit,      12,     0,      60),
+        make_tuple( "nPV",      "nPV",           _nPV,          _unit,      10,     0,      60),
 
         // Lab frame kinematics
-        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       12,     60,     120),
-        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       12,     0,      120),
+        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       10,     80,     100),
+        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       10,     0,      100),
 
-        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       12,     12,     102),
-        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       12,     0,      120),
+        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       10,     12,     92),
+        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       10,     0,      100),
 
-        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      54),
-        make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       12,     0,      60),
+        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      34),
+        make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       10,     0,      60),
 
-        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       10,     20,     120),
+        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       10,     20,     100),
         make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       10,     10,     60),
+        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       10,     10,     50),
         make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       12,     5,      35),
+        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       10,     5,      35),
         make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       10,     5,      25),
+        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       10,     5,      20),
         make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5)//,
 /* 
         // Z rest frame kinematics                                                
@@ -176,16 +176,19 @@ void DrawBackground(const TString suffix, const TString year)
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "(isSameSign || isDiffFlavor) * weight/trigWeight/qtWeight";
-//          TString weight = "weight/trigWeight/qtWeight";
+            TString weight = " * weight/trigWeight/qtWeight";
+           
+            if (signalOnly)
+               weight.Prepend("(isSameSign) && (!isDiffFlavor) && (nLooseLeptons == 0)");
+            else
+//             weight.Prepend("(isSameSign || isDiffFlavor)");
+               weight.Prepend("(isSameSign) && (!isDiffFlavor) && (nLooseLeptons <= 1)");
 
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
-/*
-            if (tree->GetEntries() < 20)
-                bins = bins / 4;
-            else if (tree->GetEntries() < 100)
-                bins = bins / 2;
-*/
+
+            if (signalOnly)
+                bins = 4;
+
 
             // Create and draw histogram
             TH1D *h = new TH1D(hname + "_" + suffix, "", bins, xmin, xmax);

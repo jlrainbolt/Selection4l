@@ -32,6 +32,9 @@ const float     MUON_MASS = 0.105658369,                        ELEC_MASS = 0.00
 
 const float     M_MIN = 80,             M_MAX = 100,            MLL_MIN = 4;
 
+// Cuts used for SS/OF background selection
+const float     M_MIN_BKG = 60,         M_MAX_BKG = 120;
+
 
 
 //
@@ -103,8 +106,8 @@ const float     NGEN_ZZ_4L      = 6893887,          XSEC_ZZ_4L      = 1.256;    
 const float     NGEN_ZJETS_M50  = 123485957,        XSEC_ZJETS_M50  = 6225.43;  //5765.4
 const float     NGEN_GGH_ZZ_4L  = 955384,           XSEC_GGH_ZZ_4L  = 0.01212;
 const float     NGEN_VBFH_ZZ_4L = 984662,           XSEC_VBFH_ZZ_4L = 0.001034;
-const float     NGEN_TTBAR      = 57584555,         XSEC_TTBAR      = 831.76;
-const float     NGEN_TT_2L2NU   = 8926992,          XSEC_TT_2L2NU   = 87.31;
+const float     NGEN_TTBAR      = 57584555,         XSEC_TTBAR      = 831.76 * 0.5;
+const float     NGEN_TT_2L2NU   = 8926992,          XSEC_TT_2L2NU   = 87.31 * 0.5;
 const float     NGEN_TTZ_2L2NU  = 3570720,          XSEC_TTZ_2L2NU  = 0.2529;
 const float     NGEN_WW_2L2NU   = 1992522,          XSEC_WW_2L2NU   = 12.178;
 const float     NGEN_WZ_2L2Q    = 16664610,         XSEC_WZ_2L2Q    = 5.595;

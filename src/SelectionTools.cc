@@ -256,7 +256,7 @@ bool MakePairsMaxZ1(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2)
 
     // Set mothers (can always be changed outside function)
     z1->SetMothers(1);
-
+    z2->SetMothers(2);
 
     return kTRUE;
 }

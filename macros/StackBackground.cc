@@ -15,8 +15,8 @@
 #include "TMathText.h"
 
 // Custom
-#include "Cuts2016.hh"
-//#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -27,7 +27,7 @@ using namespace std;
 **  Draws ratio plots from background studies
 */ 
 
-void StackBackground()
+void StackBackground(const bool signalOnly = kFALSE)
 {
 
     //
@@ -45,7 +45,9 @@ void StackBackground()
     //  INPUT FILES
     //
 
-    TString muName = "bkg_" + YEAR_STR + "_" + MU_SUFF + ".root";
+    TString prefix = signalOnly ? "bkg" : "bkg_all";
+
+    TString muName = prefix + "_" + YEAR_STR + "_" + MU_SUFF + ".root";
     TFile   *muFile = TFile::Open(muName);
     cout << endl << endl << "Opened " << muName << endl;
 
@@ -64,7 +66,7 @@ void StackBackground()
 
     const unsigned H = hnames.size();
 
-    TString elName = "bkg_" + YEAR_STR + "_" + EL_SUFF + ".root";
+    TString elName = prefix + "_" + YEAR_STR + "_" + EL_SUFF + ".root";
     TFile   *elFile = TFile::Open(elName);
     cout << endl << "Opened " << elName << endl << endl;
 
@@ -103,7 +105,7 @@ void StackBackground()
 
     for (unsigned j = 0; j < N_MC; j++)
     {
-        TString mcName  = "bkg_" + YEAR_STR + "_" + MC_SUFF[j] + ".root";
+        TString mcName  = prefix + "_" + YEAR_STR + "_" + MC_SUFF[j] + ".root";
         TFile   *mcFile = TFile::Open(mcName);
         cout << "Opened " << mcName << endl;
 
@@ -222,13 +224,13 @@ void StackBackground()
     //  LEGEND
     //
 
-    TLegend *legend = new TLegend(0.05, 0.65, 0.3, 0.95);
+    TLegend *legend = new TLegend(0.05, 0.55, 0.3, 0.95);
 
-    TString lentry[5] = {_sp+_ZZ+_to+_4l, _sp+_Z+_to+_ll, _sp+_H, _sp+_ttbar, _sp+_V+_V};
-    Int_t lfill[5] = {lLightBlue, lYellow, lPurple, lGreen, lOrange};
+    TString lentry[6] = {_sp+_ZZ+_to+_4l, _sp+_Z+_to+_ll, _sp+_ttbar, _sp+_V+_V, _sp+_V+_V+_V, _sp+_H};
+    Int_t lfill[6] = {lLightBlue, lYellow, lGreen, lOrange, lBlue, lPurple};
 
     legend->AddEntry(data[0][0], "Data", "LP");
-    for (unsigned h = 0; h < 5; h++)
+    for (unsigned h = 0; h < 6; h++)
     {
         TH1D* hist = new TH1D(lentry[h], "", 1, 0, 1);
         hist->SetFillColor(lfill[h]);
@@ -243,13 +245,16 @@ void StackBackground()
     //  OUTPUT FILE
     //
 
-    TString outName = "bkg_overlays_" + YEAR_STR + ".root";
+    TString outName = prefix + "_overlays_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
     // Draw
     TCanvas *canvas[N][H];
     for (unsigned i = 0; i < N; i++)
     {
+        if (signalOnly && ((i == E3) || (i == M3)))
+            continue;
+
         if (i == EM)
             continue;
 

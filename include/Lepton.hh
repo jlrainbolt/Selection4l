@@ -24,6 +24,7 @@ struct Lepton
     int                 q;                  // Charge
     int                 pdg;                // PDG ID (signed)
     unsigned            mother;             // Mother Z index
+    bool                tight;              // Lepton passes tight HZZ ID
 
     // Reco quantities
     TLorentzVector      u_p4;               // 4-momentum before scale factor ("uncorrected")

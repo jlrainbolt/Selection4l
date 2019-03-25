@@ -84,7 +84,7 @@ mc = {}
 h, j = 0, 0
 
 # Loop over all samples
-for suff in MC_SUFF:
+for suff in MC_SUFF_2L:
     inName = prefix + "_" + year + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
@@ -118,8 +118,8 @@ total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 for sel in selection:
     for h in range(H):
-        for suff in MC_SUFF:
-            if suff == "zz_4l":
+        for suff in MC_SUFF_2L:
+            if suff == "zjets_m-50":
                 total[h][sel] = mc[suff][h][sel].Clone()
             else:
                 total[h][sel].Add(mc[suff][h][sel])
@@ -161,7 +161,7 @@ for sel in selection:
         v_mc_arr = np.zeros([N_MC, total[h][sel].GetNbinsX()], dtype=V)
         v_mc = {}
         j = 0
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_2L:
             for i in range(len(v_mc_arr[0])):
                 v_mc_arr[j][i]['x'] = total[h][sel].GetBinLowEdge(i+1)
                 v_mc_arr[j][i]['y'] = mc[suff][h][sel].GetBinContent(i+1)
@@ -202,7 +202,7 @@ for sel in selection:
                             )
 
         p_mc = {}
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_2L:
             p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
                                 bottom = v_mc[suff]['b'],   align = 'edge',     linewidth=0,
                                 color = COLOR[suff]
@@ -311,13 +311,15 @@ for sel in selection:
             leg_loc = 'upper right'
 
         ax_top.legend(
-                (   p_data,                         p_mc['zjets_m-50'],
-                    p_mc['zz_4l'],                  p_mc['ttbar'],
-                    p_mc['ww_2l2nu'],               p_mc['ggH_zz_4l']
+                (   p_data,                         p_mc['zz_4l'],
+                    p_mc['zjets_m-50'],             p_mc['ttbar'],
+                    p_mc['ww_2l2nu'],               p_mc['zzz_4l2nu'],
+                    p_mc['ggH_zz_4l']
                     ),
-                (   r'Data',                        r'$\mbox{Z}\to\ell^+\ell^-$',
-                    r'$\mbox{ZZ}\to4\ell$',         r'$\mbox{t}\bar{\mbox{t}}$', 
-                    r'VV',                          r'H'
+                (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
+                    r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)',
+                    r'VV',                          r'VVV',
+                    r'H'
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 

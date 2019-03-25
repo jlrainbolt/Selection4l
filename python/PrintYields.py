@@ -5,8 +5,8 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2017 import *
-#from Cuts2016 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 
 
 
@@ -62,6 +62,7 @@ elFile.Close()
 ##
 
 mc_arr, mc_unc_arr = np.zeros(N_MC, dtype=T), np.zeros(N_MC, dtype=T)
+sig, sig_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 mc, mc_unc = {}, {}
 row = 0
 
@@ -79,18 +80,36 @@ for suff in MC_SUFF:
             lumi = MUON_TRIG_LUMI
         elif sel in ["ee", "4e", "2e2m"]:
             lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+
+        if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"] and sel in ["4m", "2m2e", "2e2m", "4e"]:
+            continue
         
         sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
 
+        if suff == "zjets_m-50":
+            weight = "weight/trigWeight"
+        else:
+            weight = "weight/trigWeight/qtWeight"
+
+        cut = ""
+
         hist = TH1D("hist", "", 1, 0, 2)
         tree = inFile.Get(sel + "_" + suff)
-        if suff == "zjets_m-50":
-            tree.Draw("1>>hist", "weight/trigWeight", "goff")
-        else:
-            tree.Draw("1>>hist", "weight/trigWeight/qtWeight", "goff")
+
+        
+        # Get signal
+        if (suff == "zz_4l" and sel in ["4m", "2m2e", "2e2m", "4e"]) or (suff == "zjets_m-50" and sel in ["mumu", "ee"]):
+            tree.Draw("1>>hist", "!hasTauDecay * " + weight, "goff")
+            sig[sel] = sf * hist.Integral()
+            sig_unc[sel] = sf * np.sqrt(tree.GetEntries("!hasTauDecay"))
+            cut = "hasTauDecay"
+            weight = cut + " * " + weight
+
+            
+        tree.Draw("1>>hist", weight, "goff")
 
         mc_arr[row][sel] = sf * hist.Integral()
-        mc_unc_arr[row][sel] = sf * np.sqrt(tree.GetEntries())
+        mc_unc_arr[row][sel] = sf * np.sqrt(tree.GetEntries(cut))
 
         hist.Delete()
 
@@ -105,15 +124,16 @@ for suff in MC_SUFF:
 ##  ADD CHANNELS
 ##
 
-for sample in [data, mc_arr]:
+for sample in [data, mc_arr, sig]:
     sample['2m2e']  = sample['2m2e'] + sample['2e2m']
     sample['4l']    = sample['4m'] + sample['2m2e'] + sample['4e']
     sample['2e2m']  = 0
 
 # Handle uncertainty
-mc_unc_arr['2m2e']  = np.sqrt(mc_unc_arr['2m2e'] ** 2 + mc_unc_arr['2e2m'] ** 2)
-mc_unc_arr['4l']    = np.sqrt(mc_unc_arr['4m']**2 + mc_unc_arr['2m2e']**2 + mc_unc_arr['4e']**2)
-mc_unc_arr['2e2m']  = 0
+for sample_unc in [mc_unc_arr, sig_unc]:
+    sample_unc['2m2e']  = np.sqrt(sample_unc['2m2e'] ** 2 + sample_unc['2e2m'] ** 2)
+    sample_unc['4l']    = np.sqrt(sample_unc['4m']**2 + sample_unc['2m2e']**2 + sample_unc['4e']**2)
+    sample_unc['2e2m']  = 0
 
 
 
@@ -121,23 +141,21 @@ mc_unc_arr['2e2m']  = 0
 ##  ADD SAMPLES
 ##
 
-# Get events from signal process
-sig, sig_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
-for sel in ["4l", "4m", "2m2e", "4e"]:
-    sig[sel]        = mc['zz_4l'][sel]
-    sig_unc[sel]    = mc_unc['zz_4l'][sel]
+# Take average of ttbar (inclusive) and tt_2l2nu
 for sel in ["mumu", "ee"]:
-    sig[sel]        = mc['zjets_m-50'][sel]
-    sig_unc[sel]    = mc_unc['zjets_m-50'][sel]
+    mc['ttbar'][sel] = (mc['ttbar'][sel] + mc['tt_2l2nu'][sel])
+    mc_unc['ttbar'][sel] = np.sqrt(mc_unc['ttbar'][sel] ** 2 + mc_unc['tt_2l2nu'][sel] ** 2)
+    mc['tt_2l2nu'][sel] = 0
+    mc_unc['tt_2l2nu'][sel] = 0
 
 # Get total expected and background events
 exp, exp_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 bg, bg_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 for sel in selection:
-    exp[sel]        = np.sum(mc_arr[sel])
-    exp_unc[sel]    = np.sqrt(np.sum(mc_unc_arr[sel] ** 2))
-    bg[sel]         = exp[sel] - sig[sel]
-    bg_unc[sel]     = np.sqrt(np.sum(mc_unc_arr[sel] ** 2) - sig_unc[sel] ** 2)
+    exp[sel]        = np.sum(mc_arr[sel]) + sig[sel] + npt[sel]
+    exp_unc[sel]    = np.sqrt(np.sum(mc_unc_arr[sel] ** 2) + sig_unc[sel] ** 2 + npt_unc[sel] ** 2)
+    bg[sel]         = np.sum(mc_arr[sel]) + npt[sel]
+    bg_unc[sel]     = np.sqrt(np.sum(mc_unc_arr[sel] ** 2) + npt_unc[sel] ** 2)
 
 
 
@@ -175,14 +193,18 @@ for sel in selection:
             + r"} & $\pm$ & \num{" + fmt % np.squeeze(bg_unc[sel]) + r"} \\" + "\n")
     f.write(r"\addlinespace" + "\n")
 
+    if sel in ["4l", "4m", "2m2e", "4e"]:
+       f.write("\t&\t&\t" + r"Nonprompt & \num{" + fmt % npt[sel]
+               + r"} & $\pm$ & \num{" + fmt % npt_unc[sel] + r"} \\" + "\n")
+
     for suff in MC_SUFF:
-        if suff == "zjets_m-50" and sel in ["mumu", "ee"]:
-            continue
-        elif suff == "zz_4l" and sel in ["4l", "4m", "2m2e", "4e"]:
-            continue
-        else:
-            f.write("\t&\t&\t" + MC_TEX[suff] + r" & \num{" + fmt % np.squeeze(mc[suff][sel])
-                    + r"} & $\pm$ & \num{" + fmt % np.squeeze(mc_unc[suff][sel]) + r"} \\" + "\n")
+#       if suff == "zjets_m-50" and sel in ["mumu", "ee"]:
+#           continue
+       if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"]:
+           continue
+       else:
+           f.write("\t&\t&\t" + MC_TEX[suff] + r" & \num{" + fmt % np.squeeze(mc[suff][sel])
+                   + r"} & $\pm$ & \num{" + fmt % np.squeeze(mc_unc[suff][sel]) + r"} \\" + "\n")
 
     f.write(r"\bottomrule" + "\n")
     f.write(r"\end{tabular}" + "\n")

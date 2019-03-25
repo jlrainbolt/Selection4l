@@ -22,32 +22,38 @@ arguments   = "$(suffix) $INT(Step)"
 #   suffix = electron_2016
 #   queue 15
 
-    suffix = zjets_m-50
-    queue 20
+#   suffix = zjets_m-50
+#   queue 20
+
+#   suffix = zjets_m-10
+#   queue 1
 
     suffix = ttbar
     queue 1
 
-    suffix = ww_2l2nu
-    queue 1
+    suffix = tt_2l2nu
+    queue 6
 
-    suffix = wz_2l2q
-    queue 4
+#   suffix = ww_2l2nu
+#   queue 1
 
-    suffix = wz_3lnu
-    queue 1
+#   suffix = wz_2l2q
+#   queue 4
 
-    suffix = zz_2l2nu
-    queue 10
+#   suffix = wz_3lnu
+#   queue 1
 
-    suffix = zz_2l2q
-    queue 1
+#   suffix = zz_2l2nu
+#   queue 10
 
-    suffix = zz_4l
-    queue 2
+#   suffix = zz_2l2q
+#   queue 1
 
-    suffix = ggH_zz_4l
-    queue 1
+#   suffix = zz_4l
+#   queue 2
 
-    suffix = vbfH_zz_4l
-    queue 1
+#   suffix = ggH_zz_4l
+#   queue 1
+
+#   suffix = vbfH_zz_4l
+#   queue 1

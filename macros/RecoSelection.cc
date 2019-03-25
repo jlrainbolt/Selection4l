@@ -21,8 +21,8 @@
 #include "SelectionTools.hh"
 
 // Cuts
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -72,8 +72,9 @@ void RecoSelection( const TString suffix,           const TString id,
     //  SAMPLE INFO
     //
 
-    const bool isData   = suffix.Contains(YEAR_STR);
-    const bool isSignal = suffix.EqualTo("zz_4l");
+    const bool isData       = suffix.Contains(YEAR_STR);
+    const bool isSignal     = suffix.EqualTo("zz_4l");
+    const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
     const unsigned N = 8;   // Channel indices
     unsigned                   LL = 0, MM = 1, EE = 2, L4 = 3, M4 = 4, ME = 5, EM = 6, E4 = 7;
@@ -116,6 +117,7 @@ void RecoSelection( const TString suffix,           const TString id,
     Float_t             trigWeight, idWeight,   recoWeight;
     UInt_t              channel;
     Bool_t              failedSameSignDiv,      failedAnySignDiv;
+    Bool_t              hasTauDecay;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
@@ -159,9 +161,11 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if (i >= L4)
         {
-            tree[i]->Branch("failedSameSignDiv",   &failedSameSignDiv);
-            tree[i]->Branch("failedAnySignDiv",    &failedAnySignDiv);
+            tree[i]->Branch("failedSameSignDiv",    &failedSameSignDiv);
+            tree[i]->Branch("failedAnySignDiv",     &failedAnySignDiv);
         }
+        if (isSignal || isDrellYan)
+            tree[i]->Branch("hasTauDecay",          &hasTauDecay);
 
         if (i >= L4) {  tree[i]->Branch("zzp4", &zzp4);}
                         tree[i]->Branch("z1p4", &z1p4);     tree[i]->Branch("z1pdg",    &z1pdg);
@@ -291,10 +295,15 @@ void RecoSelection( const TString suffix,           const TString id,
 
     TTree *inTree;
 
-    if (isSignal && !smearOn)
+    if (isSignal || isDrellYan)
     {
         inFile->GetObject("tree_" + suffix, inTree);
 
+        inTree->SetBranchAddress(   "hasTauDecay",                  &hasTauDecay);
+    }
+
+    if (isSignal && !smearOn)
+    {
         inTree->SetBranchAddress(   "nFinalStateMuons",             &nFinalStateMuons);
         inTree->SetBranchAddress(   "nFinalStateElectrons",         &nFinalStateElectrons);
         inTree->SetBranchAddress(   "nFinalStateLeptons",           &nFinalStateLeptons);
@@ -1036,6 +1045,10 @@ void RecoSelection( const TString suffix,           const TString id,
             if (print)
                 cout << nHardProcLeptons  << " hard process leptons" << endl;
         }
+        if (isSignal || isDrellYan)
+            inTree->GetEntry(currentEntry);
+        else
+            hasTauDecay = kFALSE;
 
  
         // Histograms

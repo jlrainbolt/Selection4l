@@ -7,8 +7,8 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-from Cuts2017 import *
-#from Cuts2016 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 
 
 
@@ -16,6 +16,7 @@ from Cuts2017 import *
 ##  SAMPLE INFO
 ##
 
+doBkg = True
 selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
 
 T = np.dtype([(sel, object) for sel in selection])
@@ -32,6 +33,8 @@ if year != YEAR_STR:
 ##
 
 prefix = "4l"
+if doBkg:
+    prefix = "bkg"
 
 # Muon file
 muName = prefix + "_" + year + "_" + MU_SUFF + ".root"
@@ -51,10 +54,13 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]
-#hnames = ["sin_phi_2"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]
+hnames = ["sin_phi_2"]
 #hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
 #            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
+
+if doBkg:
+    hnames = ["zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
 
 H = len(hnames)
 
@@ -177,8 +183,8 @@ for sel in selection:
 ####
 
 
-#for sel in ["4l"]:
-for sel in selection:
+for sel in ["4l"]:
+#for sel in selection:
     if sel == "2e2m":
         continue
 
@@ -366,18 +372,33 @@ for sel in selection:
         if year == "2017" and hnames[h] == "zzm" and sel == "4e":
             leg_loc = 'upper right'
 
-        ax_top.legend(
-                (   p_data,                         p_mc['zz_4l'],
-                    p_mc['zjets_m-50'],             p_mc['ttbar'],
-                    p_mc['ww_2l2nu'],               p_mc['zzz_4l2nu'],
-                    p_mc['ggH_zz_4l']
-                    ),
-                (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
-                    r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)', 
-                    r'VV',                          r'VVV',
-                    r'H'
-                    ),
-                loc = leg_loc, numpoints = 1, frameon = False)
+        if year == "2017":
+            ax_top.legend(
+                    (   p_data,                         p_mc['zz_4l'],
+                        p_mc['zjets_m-50'],             p_mc['ttbar'],
+                        p_mc['ww_2l2nu'],               p_mc['zzz_4l2nu'],
+                        p_mc['ggH_zz_4l']
+                        ),
+                    (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
+                        r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)', 
+                        r'VV',                          r'VVV',
+                        r'H'
+                        ),
+                    loc = leg_loc, numpoints = 1, frameon = False)
+        else:
+            ax_top.legend(
+                    (   p_data,                         p_mc['zz_4l'],
+                        p_mc['zjets_m-50'],             p_mc['ttbar'],
+                        p_mc['ww_2l2nu'],               p_mc['ggH_zz_4l']
+                        ),
+                    (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
+                        r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)', 
+                        r'VV',                          r'H'
+                        ),
+                    loc = leg_loc, numpoints = 1, frameon = False)
 
-        fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
+        fig_name = year + "_" + hnames[h] + "_" + sel + ".pdf"
+        if doBkg:
+            fig_name = prefix + "_" + fig_name
+        fig.savefig(fig_name)
         plt.clf()
