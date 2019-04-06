@@ -10,8 +10,8 @@
 #include "TH1.h"
 
 // Custom
-#include "Cuts2016.hh"
-//#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2017.hh"
 
 using namespace std;
 

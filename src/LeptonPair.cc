@@ -191,17 +191,6 @@ void LeptonPair :: SetBoostedP4(const TVector3& beta, const TVector3& m_beta)
 
 bool LeptonPair :: BlindCharges(const float rng)
 {
-/*
-    if (rng > 0.5)
-    {
-        leptons.first.q     = -1;
-        leptons.second.q    *= -1;
-
-        return kTRUE;
-    }
-    else
-        return kFALSE;
-*/
     short l1q = 0, l2q = 0;
     if (rng > 0.5)
     {

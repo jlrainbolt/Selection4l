@@ -18,7 +18,7 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 F_NR = 0.04
 BF_LL = 0.033658 * 2
-CAP_K = 5.01561404e-10
+CAP_K = 5.15258169e-10
 GAMMA_Z = 2.4952e6
 
 mu_id = {   "4l":0.0047,    "4m":0.0068,    "2m2e":0.0035,  "4e":0.0006 }
@@ -27,8 +27,8 @@ el_reco = { "4l":0.0118,    "4m":0.0012,    "2m2e":0.0183,  "4e":0.0432 }
 mu_pt = {   "4l":0.0015,    "4m":0.0014,    "2m2e":0.0022,  "4e":0.0002 }
 el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
 
-npt     = { "4l":17.58,     "4m":9.59,      "2m2e":6.54,    "4e":1.45,  "mumu":0, "ee":0, "2e2m":0}
-npt_unc = { "4l":4.36,      "4m":3.16,      "2m2e":2.65,    "4e":1.42,  "mumu":0, "ee":0, "2e2m":0   }
+npt     = { "4l":17.58,     "4m":9.59,      "2m2e":6.54,    "4e":1.45,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
+npt_unc = { "4l":4.36,      "4m":3.16,      "2m2e":2.65,    "4e":1.42,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
 
 
 
@@ -38,7 +38,8 @@ npt_unc = { "4l":4.36,      "4m":3.16,      "2m2e":2.65,    "4e":1.42,  "mumu":0
 ##
 
 # Muon trigger lumi doesn't include 2017B
-MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 41.529, 41.529, 0.991
+MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 41.37, 41.37, 0.991
+SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
 # Event numbers from TotalEvents histogram in "selected" ntuples (bin1 - 2*bin10)
@@ -63,44 +64,39 @@ NGEN_ZZG_4L2NU,     XSEC_ZZG_4L2NU      =   1455362,        0.01398
 NGEN_GGH_ZZ_4L,     XSEC_GGH_ZZ_4L      =   955384,         0.01212
 NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     =   984662,         0.001034
 
-N_MC = 16   #17
-N_DY = 1
+N_MC = 16
+N_DY = 9
 
 MC_SUFF = [ "zz_4l",            "zjets_m-50",       #"zjets_m-10",
-            "ttbar",            "tt_2l2nu",
-            "ttz_2l2nu",        "ww_2l2nu",
+            "ttbar",            "tt_2l2nu",         "ttz_2l2nu",        "ww_2l2nu",
             "wz_2l2q",          "wz_3lnu",          "zz_2l2nu",         "zz_2l2q",
             "wwz_4l2nu",        "wzz_4l2nu",        "zzz_4l2nu",        "zzg_4l2nu",
             "ggH_zz_4l",        "vbfH_zz_4l",
             ]
 
 NGEN_   = [ NGEN_ZZ_4L,         NGEN_ZJETS_M50,     #NGEN_ZJETS_M10,
-            NGEN_TTBAR,         NGEN_TT_2L2NU,      
-            NGEN_TTZ_2L2NU,     NGEN_WW_2L2NU,
+            NGEN_TTBAR,         NGEN_TT_2L2NU,      NGEN_TTZ_2L2NU,     NGEN_WW_2L2NU,
             NGEN_WZ_2L2Q,       NGEN_WZ_3LNU,       NGEN_ZZ_2L2NU,      NGEN_ZZ_2L2Q,
             NGEN_WWZ_4L2NU,     NGEN_WZZ_4L2NU,     NGEN_ZZZ_4L2NU,     NGEN_ZZG_4L2NU,
             NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,
             ]
 
 XSEC_   = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,     #XSEC_ZJETS_M10,
-            XSEC_TTBAR,         XSEC_TT_2L2NU,
-            XSEC_TTZ_2L2NU,     XSEC_WW_2L2NU,
+            XSEC_TTBAR,         XSEC_TT_2L2NU,      XSEC_TTZ_2L2NU,     XSEC_WW_2L2NU,
             XSEC_WZ_2L2Q,       XSEC_WZ_3LNU,       XSEC_ZZ_2L2NU,      XSEC_ZZ_2L2Q,
             XSEC_WWZ_4L2NU,     XSEC_WZZ_4L2NU,     XSEC_ZZZ_4L2NU,     XSEC_ZZG_4L2NU,
             XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,
             ]
 
 COLOR_  = [ lLightBlue,         lYellow,            #lYellow,
-            lGreen,             lGreen,
-            lGreen,             lOrange,
+            lGreen,             lGreen,             lGreen,             lOrange,
             lOrange,            lOrange,            lOrange,            lOrange,
             lRed,               lRed,               lRed,               lRed,
             lPurple,            lPurple,
             ]
 
 MC_TEX_ = [ r"$\ZZtofL$",       r"$\ZtoLL$",  #r"$\ZtoLL$ $(10 < \mll < 50\GeV)$",
-            r"$\ttbar$",        r"$\TTtoLLNuNu$",
-            r"$\TTZtoLLNuNu$",  r"$\WWtoLLNuNu$",
+            r"$\ttbar$",        r"$\TTtoLLNuNu$",   r"$\TTZtoLLNuNu$",  r"$\WWtoLLNuNu$",
             r"$\WZtoLLQQ$",     r"$\WZtoLLLNu$",    r"$\ZZtoLLNuNu$",   r"$\ZZtoLLQQ$",
             r"$\WWZtofLtNu$",   r"$\WZZtofLtNu$",   r"$\ZZZtofLtNu$",   r"$\ZZGtofLtNu$",
             r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",

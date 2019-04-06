@@ -23,6 +23,7 @@
 // Cuts
 //#include "Cuts2017.hh"
 #include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -43,7 +44,7 @@ using namespace std;
 */
 
 void RecoSelection( const TString suffix,           const TString id,
-                    const TString systematics = "", const TString idH = "0")
+                    const TString systematics = "", const TString idH = "")
 {
 
 
@@ -62,9 +63,9 @@ void RecoSelection( const TString suffix,           const TString id,
     const bool smearMuonPt = systematics.EqualTo("muonPt");
     const bool smearElecPt = systematics.EqualTo("electronPt");
 
-    const bool smearOn = smearMuonID || smearElecID || smearElecReco || smearMuonPt || smearElecPt;
+    const bool allowUntriggered = systematics.EqualTo("triggerEff");
 
-//  const bool doSameSign = systematics.EqualTo("sameSign");
+    const bool systOn = allowUntriggered || smearMuonID || smearElecID || smearElecReco || smearMuonPt || smearElecPt;
 
 
 
@@ -73,7 +74,8 @@ void RecoSelection( const TString suffix,           const TString id,
     //
 
     const bool isData       = suffix.Contains(YEAR_STR);
-    const bool isSignal     = suffix.EqualTo("zz_4l");
+    const bool isSignal     = suffix.EqualTo("zz_4l") || suffix.EqualTo("zz_4m") 
+                                || suffix.EqualTo("zz_2m2e") || suffix.EqualTo("zz_4e");
     const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
     const unsigned N = 8;   // Channel indices
@@ -96,7 +98,7 @@ void RecoSelection( const TString suffix,           const TString id,
     //  FILE
     //
 
-    TString prefix  = smearOn ? systematics + idH : "selected";
+    TString prefix  = systOn ? systematics + idH : "selected";
     TString outName = prefix + "_" + suffix + "_" + id + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -117,7 +119,7 @@ void RecoSelection( const TString suffix,           const TString id,
     Float_t             trigWeight, idWeight,   recoWeight;
     UInt_t              channel;
     Bool_t              failedSameSignDiv,      failedAnySignDiv;
-    Bool_t              hasTauDecay;
+    Bool_t              muonTrig,   elecTrig,   hasTauDecay;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
@@ -159,6 +161,12 @@ void RecoSelection( const TString suffix,           const TString id,
         tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
         tree[i]->Branch("channel",      &channel);
 
+        if (allowUntriggered)
+        {
+            tree[i]->Branch("evtMuonTriggered",     &muonTrig);
+            tree[i]->Branch("evtElectronTriggered", &elecTrig);
+        }
+
         if (i >= L4)
         {
             tree[i]->Branch("failedSameSignDiv",    &failedSameSignDiv);
@@ -185,7 +193,7 @@ void RecoSelection( const TString suffix,           const TString id,
         }
 
 
-        if (isSignal && i >= L4)
+        if (isSignal && i >= L4 && !YEAR_STR.EqualTo("2012"))
         {
             tree[i]->Branch("nFinalStateMuons",         &nFinalStateMuons);
             tree[i]->Branch("nFinalStateElectrons",     &nFinalStateElectrons);
@@ -302,7 +310,7 @@ void RecoSelection( const TString suffix,           const TString id,
         inTree->SetBranchAddress(   "hasTauDecay",                  &hasTauDecay);
     }
 
-    if (isSignal && !smearOn)
+    if (isSignal && !systOn && !YEAR_STR.EqualTo("2012"))
     {
         inTree->SetBranchAddress(   "nFinalStateMuons",             &nFinalStateMuons);
         inTree->SetBranchAddress(   "nFinalStateElectrons",         &nFinalStateElectrons);
@@ -340,6 +348,8 @@ void RecoSelection( const TString suffix,           const TString id,
     //  DATA
     //
 
+    //FIXME for 8 TeV
+
     // Dilepton Qt reweighting
     TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
     TFile *graphFile = TFile::Open(graphName);
@@ -353,7 +363,7 @@ void RecoSelection( const TString suffix,           const TString id,
 /*
     // Systematics
     TH2 *hSystematics;
-    if (smearOn)
+    if (systOn)
     {
         TString histName = "../data/" + systematics + "_smear_" + YEAR_STR + ".root";
         TFile *histFile = TFile::Open(histName);
@@ -443,9 +453,9 @@ void RecoSelection( const TString suffix,           const TString id,
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
         genWeight   = *genWeight_;      qtWeight    = 1;                ecalWeight  = *ecalWeight_;
         puWeight    = *puWeight_;       nPV         = *nPV_;
+        muonTrig    = *muonTrig_,       elecTrig    = *elecTrig_;
 
         // Quantities used in analysis, but not written out
-        bool        muonTrig    = *muonTrig_,       elecTrig    = *elecTrig_;
         unsigned    nMuons      = *nMuons_,         nElecs      = *nElecs_;
         unsigned    nTightMuons = *nTightMuons_,    nTightElecs = *nTightElecs_;
 
@@ -455,7 +465,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //  PRESELECTION
         //
 
-        if (muonTrig && suffix.Contains("electron"))  // don't trigger twice on data events
+        if (muonTrig && suffix.Contains("electron"))    // don't trigger twice on data events
         {
             muonTrig = kFALSE;
             elecTrig = kFALSE;
@@ -463,7 +473,10 @@ void RecoSelection( const TString suffix,           const TString id,
         if (suffix.Contains("muon"))
             elecTrig = kFALSE;
 
-        if (nTightMuons < 2 && nTightElecs < 2)     // not enough HZZ-identified leptons
+        if (!muonTrig && !elecTrig && !allowUntriggered)       // event does not pass trigger
+            continue;
+
+        if (nTightMuons < 2 && nTightElecs < 2)         // not enough HZZ-identified leptons
             continue;
 
 
@@ -480,7 +493,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //
 /*
         // Get smudge factors from histograms and apply them before creating objects
-        if (smearOn)
+        if (systOn)
         {
             if      (smearMuonID)
             {
@@ -737,7 +750,48 @@ void RecoSelection( const TString suffix,           const TString id,
         unsigned C;     // index for filling trees by channel
         LeptonPair z1, z2;
 
-        if (muonTrig)                       // higher-priority muon trigger
+        if (allowUntriggered)                      // allow events that don't pass trigger
+        {
+            if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
+            {
+                C = MM;
+
+                z1.SetMembers(muons[0], muons[1]);
+            }
+            else if (nTightMuons == 0 && nTightElecs == 2)      // ee
+            {
+                C = EE;
+
+                z1.SetMembers(elecs[0], elecs[1]);
+            }
+            else if (nTightMuons == 4 && nTightElecs == 0)      // 4m
+            {
+                C = M4;
+
+                // Choose (opposite-sign) pairs such that their mass difference is maximized
+                MakePairsMaxDiff(muons, &z1, &z2);
+            }
+            else if (nTightMuons == 2 && nTightElecs == 2)      // 2m2e
+            {
+                C = ME;
+
+                // Choose z1 as triggered pair (reevaluate?)
+                z1.SetMembers(muons[0], muons[1]);
+                z2.SetMembers(elecs[0], elecs[1]);
+            }
+            else if (nTightMuons == 0 && nTightElecs == 4)      // 4m
+            {
+                C = E4;
+
+                // Choose (opposite-sign) pairs such that their mass difference is maximized
+                MakePairsMaxDiff(elecs, &z1, &z2);
+            }
+            else
+                continue;
+
+        }
+
+        else if (muonTrig)                  // higher-priority muon trigger
         {
             if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
             {
@@ -759,7 +813,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
                 // Choose (opposite-sign) pairs such that their mass difference is maximized
                 MakePairsMaxDiff(muons, &z1, &z2);
-            }
+            } 
             else
                 continue;
         }
@@ -858,7 +912,7 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             unsigned Q  = muonPairLeads;
-            if (!isData)
+            if (!isData && !YEAR_STR.EqualTo("2012"))
                 qtWeight = qtGraph[Q]->Eval(z1.p4.Pt());
 
             trigWeight  = GetTriggerWeight(z1.GetMembers());
@@ -908,7 +962,25 @@ void RecoSelection( const TString suffix,           const TString id,
             //  TRIGGER WEIGHT
             //
 
-            if (isMixedFlavor)  // z1 leptons are triggered
+            if (isMixedFlavor && allowUntriggered) // check z1 (muons) and z2 (elecs)
+            {
+                bool canTrigger = kFALSE;
+                if (
+                        (muons[0].p4.Pt() > MUON_PT1_MIN) &&
+                        (muons[1].p4.Pt() > MUON_PT2_MIN)
+                   )
+                    canTrigger = kTRUE;
+
+                if (
+                        (elecs[0].p4.Pt() > ELEC_PT1_MIN) &&
+                        (elecs[1].p4.Pt() > ELEC_PT2_MIN)
+                   )
+                    canTrigger = kTRUE;
+
+                if (!canTrigger)
+                    continue;
+            }
+            else if (isMixedFlavor)     // z1 leptons are triggered
             {
                 if (z1.First().p4.Pt() < LEP_PT1_MIN)
                     continue;
@@ -918,7 +990,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
                 trigWeight = GetTriggerWeight(z1.GetMembers());
             }
-            else                // triggered leptons could be in either pair
+            else                        // triggered leptons could be in either pair
             {
                 vector<Lepton> all_leps = z1.GetMembers();
                 vector<Lepton> z2_leps = z2.GetMembers();
@@ -949,10 +1021,6 @@ void RecoSelection( const TString suffix,           const TString id,
                 muonPairLeads = !muonPairLeads;
             }
 
-////////// ZZ4l CUT ///////////
-//          if ((z1.p4.M() < 40) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
-////////// ZZ4l CUT ///////////
-
             if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
                 continue;                                       // (z2's mass is bound by z1)
 
@@ -969,7 +1037,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
             TLorentzVector zzp4 = z1.p4 + z2.p4;
             unsigned Q  = muonPairLeads;
-            if (!isData)
+            if (!isData && !YEAR_STR.EqualTo("2012"))
                 qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
             idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
@@ -1032,7 +1100,7 @@ void RecoSelection( const TString suffix,           const TString id,
         }
 
         // Get gen particle info
-        if (isFourLepton && isSignal && !smearOn)
+        if (isFourLepton && isSignal && !systOn && !YEAR_STR.EqualTo("2012"))
         {
             u_l1p4  = leps[0].u_p4;         u_l2p4  = leps[1].u_p4;
             u_l3p4  = leps[2].u_p4;         u_l4p4  = leps[3].u_p4;
@@ -1048,6 +1116,9 @@ void RecoSelection( const TString suffix,           const TString id,
         if (isSignal || isDrellYan)
             inTree->GetEntry(currentEntry);
         else
+            hasTauDecay = kFALSE;
+
+        if (YEAR_STR.EqualTo("2012"))
             hasTauDecay = kFALSE;
 
  
@@ -1105,7 +1176,7 @@ void RecoSelection( const TString suffix,           const TString id,
     hTotalEvents->Write();
     hSelectedEvents->Write();
 /*
-    if (smearOn)
+    if (systOn)
         hSystematics->Write();
 */
     outFile->Purge();

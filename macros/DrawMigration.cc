@@ -11,8 +11,8 @@
 #include "TH2.h"
 
 // Custom
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -135,7 +135,7 @@ void DrawMigration()
 
             TH1D *h_reco = new TH1D(hname + "_reco", "", bins, xmin, xmax);
             h_reco->Sumw2(kTRUE);
-            tree->Draw(quantity + ">>+" + hname + "_reco", weight);
+            tree->Draw(quantity + ">>+" + hname + "_reco", "isMatched*" + weight);
             h_reco->GetXaxis()->SetTitle(xlabel);
             h_reco->Write();
 

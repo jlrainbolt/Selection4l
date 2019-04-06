@@ -1,0 +1,26 @@
+##
+##  Submit RecoSelection job to Condor
+##
+
+# User variable
+systematics = triggerEff
+
+executable  = execSyst.sh
+universe    = vanilla
+
+output      = reports/$(systematics)_$(suffix)_$INT(Step).out
+error       = reports/$(systematics)_$(suffix)_$INT(Step).err
+log         = reports/$(systematics)_$(suffix)_$INT(Step).log
+
+should_transfer_files   = YES
+initialdir              = output
+transfer_input_files    = source.tar.gz
+when_to_transfer_output = ON_EXIT
+
+arguments   = "$(suffix) $INT(Step) $(systematics)"
+
+#   suffix = zjets_m-50
+#   queue 20
+
+    suffix = zz_4l
+    queue 2

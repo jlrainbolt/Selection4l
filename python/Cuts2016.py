@@ -18,7 +18,7 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 F_NR = 0.04
 BF_LL = 0.033658 * 2
-CAP_K = 5.10487652e-10
+CAP_K = 5.1525817e-10
 GAMMA_Z = 2.4952e6
 
 mu_id = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
@@ -27,8 +27,8 @@ el_reco = { "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
 mu_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
 el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
 
-npt     = { "4l":14.22,     "4m":5.69,      "2m2e":7.46,    "4e":1.07, "mumu":0, "ee":0, "2e2m":0   }   
-npt_unc = { "4l":4.00,      "4m":2.45,      "2m2e":2.83,    "4e":1.42, "mumu":0, "ee":0, "2e2m":0   }
+npt_unc = { "4l":4.00,      "4m":2.45,      "2m2e":2.83,    "4e":1.42, "mumu":0, "ee":0, "2e2m":0,  "ll":0}
+npt     = { "4l":14.19,     "4m":5.68,      "2m2e":7.45,    "4e":1.06, "mumu":0, "ee":0, "2e2m":0,  "ll":0}   
 
 
 
@@ -37,7 +37,8 @@ npt_unc = { "4l":4.00,      "4m":2.45,      "2m2e":2.83,    "4e":1.42, "mumu":0,
 ##
 
 # Muon trigger lumi doesn't include 2017B
-MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 35.9, 35.9, 1
+MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 36.42, 36.42, 1
+SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
 # Event numbers from DAS, negative fractions from XSDB (FIXME?)
@@ -59,7 +60,7 @@ NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        = 496436,         3.22
 NGEN_ZZ_2L2NU,      XSEC_ZZ_2L2NU       = 48623080,       0.564
 
 N_MC = 11
-N_DY = 1
+N_DY = 6
 
 MC_SUFF = [ "zz_4l",            "zjets_m-50",     # "zjets_m-10",
             "ttbar",            "tt_2l2nu",       # "ttz_2l2nu",        
@@ -107,3 +108,5 @@ COLOR   = dict(zip(MC_SUFF, COLOR_))
 MC_TEX  = dict(zip(MC_SUFF, MC_TEX_))
 
 MC_SUFF_4L = MC_SUFF
+MC_SUFF_2L = list(MC_SUFF)
+MC_SUFF_2L[0], MC_SUFF_2L[1] = MC_SUFF[1], MC_SUFF[0]

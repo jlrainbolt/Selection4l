@@ -5,8 +5,9 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
+#from Cuts2016 import *
+#from Cuts2012 import *
 
 
 
@@ -81,7 +82,7 @@ for suff in MC_SUFF:
         elif sel in ["ee", "4e", "2e2m"]:
             lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
 
-        if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"] and sel in ["4m", "2m2e", "2e2m", "4e"]:
+        if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"] and sel in ["4m", "2m2e", "2e2m", "4e"] and YEAR_STR != "2012":
             continue
         
         sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
@@ -142,11 +143,12 @@ for sample_unc in [mc_unc_arr, sig_unc]:
 ##
 
 # Take average of ttbar (inclusive) and tt_2l2nu
-for sel in ["mumu", "ee"]:
-    mc['ttbar'][sel] = (mc['ttbar'][sel] + mc['tt_2l2nu'][sel])
-    mc_unc['ttbar'][sel] = np.sqrt(mc_unc['ttbar'][sel] ** 2 + mc_unc['tt_2l2nu'][sel] ** 2)
-    mc['tt_2l2nu'][sel] = 0
-    mc_unc['tt_2l2nu'][sel] = 0
+if YEAR_STR != "2012":
+    for sel in ["mumu", "ee"]:
+        mc['ttbar'][sel] = (mc['ttbar'][sel] + mc['tt_2l2nu'][sel])
+        mc_unc['ttbar'][sel] = np.sqrt(mc_unc['ttbar'][sel] ** 2 + mc_unc['tt_2l2nu'][sel] ** 2)
+        mc['tt_2l2nu'][sel] = 0
+        mc_unc['tt_2l2nu'][sel] = 0
 
 # Get total expected and background events
 exp, exp_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
@@ -200,7 +202,7 @@ for sel in selection:
     for suff in MC_SUFF:
 #       if suff == "zjets_m-50" and sel in ["mumu", "ee"]:
 #           continue
-       if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"]:
+       if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"] and YEAR_STR != "2012":
            continue
        else:
            f.write("\t&\t&\t" + MC_TEX[suff] + r" & \num{" + fmt % np.squeeze(mc[suff][sel])

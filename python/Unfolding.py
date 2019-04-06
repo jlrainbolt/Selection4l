@@ -10,8 +10,8 @@ from scipy.stats import chi2
 from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
+#from Cuts2016 import *
 
 
 np.set_printoptions(precision=1, suppress=True)
@@ -120,87 +120,110 @@ print("Got data histograms")
 print("")
 
 
-'''
+
 ##
-##  ACC * EFf
+##  BACKGROUND
 ##
 
-# Unscaled signal events
-zzName = prefix + "_" + year + "_zz_4l.root"
-zzFile = TFile(zzName, "READ")
-print("Opened", zzName)
+prefix = "bkg_all"
 
-axe = np.empty(H, dtype=T)
+# Muon file
+muName = prefix + "_" + YEAR_STR + "_" + MU_SUFF + ".root"
+muFile = TFile(muName, "READ")
+print("Opened", muName)
+
+# Electron file
+elName = prefix + "_" + YEAR_STR + "_" + EL_SUFF + ".root"
+elFile = TFile(elName, "READ")
+print("Opened", elName)
+
+# Get histograms
+bkg = np.empty(H, dtype=T)
 h = 0
-
-for sel in selection:
-    if sel == "4l":
-        continue
-
-        for hname in hnames:
-            axe[h][sel] = zzFile.Get(sel + "/" + hname + "_zz_4l")
-            axe[h][sel].SetDirectory(0)
-            axe[h][sel].SetNAME(hname + "_acc_x_eff")
-
-            h = h + 1
-        h = 0
-
-zzFile.Close()
-
-
-# Phase space eventS
-ps = np.empty(H, dtype=T)
-h = 0
-
-psName = prefix + "_" + year + "_phase_space.root"
-psFile = TFile(psName, "READ")
-print("Opened", psName)
 
 for sel in selection:
     if sel == "4l":
         continue
 
     for hname in hnames:
-        ps[h][sel] = psFile.Get(sel + "/" + hname + "_phase_space")
-        ps[h][sel].SetDirectory(0)
+        if sel in ["4m", "2m2e"]:
+            bkg[h][sel] = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
+        elif sel in ["4e", "2e2m"]:
+            bkg[h][sel] = elFile.Get(sel + "/" + hname + "_" + EL_SUFF)
 
+        bkg[h][sel].SetName(hnames[h] + "_bkg")
+        bkg[h][sel].SetDirectory(0)
         h = h + 1
     h = 0
 
-psFile.Close()
+muFile.Close()
+elFile.Close()
+print("Got nonprompt background histograms")
+print("")
 
-print("Got acc * eff histograms", "\n")
-'''
+
+# Monte Carlo
+prefix = "4l"
+h = 0
+
+# Loop over all samples
+for suff in MC_SUFF_4L:
+    if suff in ["zz_4l", "zjets_m-50", "tt_2l2nu", "ttbar"]:
+        continue
+
+    inName = prefix + "_" +year + "_" + suff + ".root"
+    inFile = TFile.Open(inName)
+    print("Opened", inName)
+
+    # Get histograms
+    for sel in selection:
+        if sel == "4l":
+            continue
+        elif sel in ["4m", "2m2e"]:
+            lumi = MUON_TRIG_LUMI
+        elif sel in ["4e", "2e2m"]:
+            lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+
+        sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
+
+        for hname in hnames:
+            hist = inFile.Get(sel + "/" + hname + "_" + suff)
+            hist.SetDirectory(0)
+            hist.Scale(sf)
+            bkg[h][sel].Add(hist)
+
+            h = h + 1
+        h = 0
+
+    inFile.Close()
+
+print("Got background MC histograms")
+print("")
+
 
 
 ##
 ##  ADD CHANNELS
 ##
 
-# Get 4l and 2m2e, rebin 4e
+# Get 4l and 2m2e
 for h in range(H):
-#   for sample in [data, gen, reco, mig, ps, axe]:
-    for sample in [data, gen, reco, mig]:
+    for sample in [data, gen, reco, mig, bkg]:
         sample[h]['2m2e'].Add(sample[h]['2e2m'])
         sample[h]['4l'] = sample[h]['2m2e'].Clone()
         sample[h]['4l'].Add(sample[h]['4m'])
         sample[h]['4l'].Add(sample[h]['4e'])
 
-
-'''
-##
-##  SCALING
-##
-
-for sel in selection:
-    if sel == "2e2m":
-        continue
-
+# Background subtraction
+for sel in ["4l"]:
     for h in range(H):
-        axe[h][sel].Divide(ps[h][sel])
+        sf = npt[sel] / bkg[h][sel].Integral()
+        bkg[h][sel].Scale(sf)
+        data[h][sel].Add(bkg[h][sel], -1)
 
-        for sample in [data, gen, reco, mig]:
-'''
+        err_sf = npt_unc[sel] / np.sqrt(bkg[h][sel].GetSumw2().GetSum())
+        for i in range(1, bkg[h][sel].GetNbinsX()):
+            bkg[h][sel].SetBinError(i, err_sf * bkg[h][sel].GetBinError(i))
 
 
 
@@ -230,7 +253,7 @@ for sel in ["4l"]:
         v_data = np.zeros(data[h][sel].GetNbinsX() + 2, dtype=V)
         for i in range(len(v_data)):
             v_data[i]['x']  = data[h][sel].GetBinCenter(i)
-            v_data[i]['y']  = data[h][sel].GetBinContent(i)
+            v_data[i]['y']  = np.maximum(data[h][sel].GetBinContent(i), 0)
             v_data[i]['ey'] = data[h][sel].GetBinError(i)
 
         # Gen MC
@@ -315,7 +338,7 @@ for sel in ["4l"]:
         ##  PERFORM UNFOLDING
         ##
 
-        chisq_nu = chi2.isf(0.99, len(v_resp['y'])) / len(v_resp['y'])
+        chisq_nu = chi2.isf(0.997, len(v_resp['y'])) / len(v_resp['y'])
         results = iterative_unfold( data = v_data['y'],         data_err = v_data['ey'],
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
@@ -413,6 +436,7 @@ for h in range(H):
     gen[h]['4l'].Write()
     reco[h]['4l'].Write()
     data[h]['4l'].Write()
+    bkg[h]['4l'].Write()
     result[h]['4l'].Write()
 
 

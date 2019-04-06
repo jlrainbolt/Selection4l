@@ -9,6 +9,7 @@ from ROOT import TFile, TH1, TKey
 from PlotUtils import *
 #from Cuts2017 import *
 from Cuts2016 import *
+#from Cuts2012 import *
 
 
 
@@ -16,7 +17,7 @@ from Cuts2016 import *
 ##  SAMPLE INFO
 ##
 
-doBkg = True
+doBkg = False
 selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
 
 T = np.dtype([(sel, object) for sel in selection])
@@ -34,7 +35,7 @@ if year != YEAR_STR:
 
 prefix = "4l"
 if doBkg:
-    prefix = "bkg"
+    prefix = "bkg_all"
 
 # Muon file
 muName = prefix + "_" + year + "_" + MU_SUFF + ".root"
@@ -54,10 +55,10 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-#hnames = ["zzm", "zzpt", "z1m", "z2m", "sin_phi"]
-hnames = ["sin_phi_2"]
-#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
-#            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
+#hnames = ["zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt"]
+#hnames = ["sin_phi", "sin_phi_2"]
+hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
+            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 if doBkg:
     hnames = ["zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
@@ -188,14 +189,7 @@ for sel in ["4l"]:
     if sel == "2e2m":
         continue
 
-    if (MUON_TRIG_LUMI == ELEC_TRIG_LUMI):
-        lumi = '%.1f' % MUON_TRIG_LUMI
-    elif sel == "4m":
-        lumi = '%.1f' % MUON_TRIG_LUMI
-    elif sel == "4e":
-        lumi = '%.1f' % ELEC_TRIG_LUMI
-    elif sel in ["4l", "2m2e"]:
-        lumi = '%.1f' % MUON_TRIG_LUMI + " + " + '%.1f' % ELEC_TRIG_LUMI
+    lumi = MUON_TRIG_LUMI
 
 
     print("Drawing", sel, "plots...")
@@ -298,11 +292,11 @@ for sel in ["4l"]:
         ax_top.text(    0.025,  0.95,
                 r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
                 verticalalignment = 'top', transform = ax_top.transAxes)
-        ax_top.set_title(r'\Large{' + lumi + '\,fb$^{-1}$ (13\,TeV, ' + YEAR_STR + ')}',
-                loc='right')
+        ax_top.set_title(r'\Large{' + '%.1f' % lumi + r'\,fb$^{-1}$ (' + '%i' % SQRT_S 
+                + r'\,TeV, ' + YEAR_STR + ')}', loc='right')
 
         # Top y axis
-        unit = '$' + mc['zz_4l'][h][sel].GetYaxis().GetTitle() + '$'
+        unit = '$' + mc['zjets_m-50'][h][sel].GetYaxis().GetTitle() + '$'
         ytitle = r"Events$/$" + '%g' % width + " " + unit
         ax_top.set_ylabel(ytitle, horizontalalignment='right')
         ax_top.yaxis.set_label_coords(-0.08, 1)
@@ -313,7 +307,7 @@ for sel in ["4l"]:
         ax_bot.yaxis.set_label_coords(-0.08, 0.5)
 
         # Shared x axis
-        xtitle = '$' + mc['zz_4l'][h][sel].GetXaxis().GetTitle() + '$'
+        xtitle = '$' + mc['zjets_m-50'][h][sel].GetXaxis().GetTitle() + '$'
         if "Delta" in xtitle:
             xtitle = xtitle.replace("Delta", "bigtriangleup")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
@@ -326,7 +320,7 @@ for sel in ["4l"]:
         ##
 
         # x axes
-        plt.xlim(v_mc['zz_4l']['x'][0], v_mc['zz_4l']['x'][-1] + width)
+        plt.xlim(v_mc['zjets_m-50']['x'][0], v_mc['zjets_m-50']['x'][-1] + width)
 
         major_step, minor_step = 2 * width, width
         if sel == "4e":
@@ -334,13 +328,13 @@ for sel in ["4l"]:
 
         for ax in [ax_bot.xaxis, ax_top.xaxis]:
             ax.set_ticks( np.arange(
-                            v_mc['zz_4l']['x'][0],
-                            v_mc['zz_4l']['x'][-1] + major_step,
+                            v_mc['zjets_m-50']['x'][0],
+                            v_mc['zjets_m-50']['x'][-1] + major_step,
                             step = major_step)
                             )
             ax.set_ticks( np.arange(
-                            v_mc['zz_4l']['x'][0],
-                            v_mc['zz_4l']['x'][-1] + minor_step,
+                            v_mc['zjets_m-50']['x'][0],
+                            v_mc['zjets_m-50']['x'][-1] + minor_step,
                             step = minor_step),
                         minor = True)
 
@@ -369,9 +363,6 @@ for sel in ["4l"]:
         else:
             leg_loc = 'upper right'
 
-        if year == "2017" and hnames[h] == "zzm" and sel == "4e":
-            leg_loc = 'upper right'
-
         if year == "2017":
             ax_top.legend(
                     (   p_data,                         p_mc['zz_4l'],
@@ -385,7 +376,7 @@ for sel in ["4l"]:
                         r'H'
                         ),
                     loc = leg_loc, numpoints = 1, frameon = False)
-        else:
+        elif year == "2016":
             ax_top.legend(
                     (   p_data,                         p_mc['zz_4l'],
                         p_mc['zjets_m-50'],             p_mc['ttbar'],
@@ -394,6 +385,17 @@ for sel in ["4l"]:
                     (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
                         r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)', 
                         r'VV',                          r'H'
+                        ),
+                    loc = leg_loc, numpoints = 1, frameon = False)
+        elif year == "2012":
+            ax_top.legend(
+                    (   p_data,                         p_mc['zz_4m'],
+                        p_mc['zjets_m-50'],             p_mc['ttbar'],
+                        p_mc['ww_2l2nu']
+                        ),
+                    (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
+                        r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)', 
+                        r'VV'
                         ),
                     loc = leg_loc, numpoints = 1, frameon = False)
 

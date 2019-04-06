@@ -9,6 +9,7 @@ from ROOT import TFile, TH1, TKey
 from PlotUtils import *
 from Cuts2017 import *
 #from Cuts2016 import *
+#from Cuts2012 import *
 
 
 
@@ -244,8 +245,8 @@ for sel in selection:
         ax_top.text(    0.025,  0.95,
                 r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
                 verticalalignment = 'top', transform = ax_top.transAxes)
-        ax_top.set_title(r'\Large{' + '%.1f' % lumi + '\,fb$^{-1}$ (13\,TeV, ' + YEAR_STR + ')}',
-                loc='right')
+        ax_top.set_title(r'\Large{' + '%.1f' % lumi + r'\,fb$^{-1}$ (' + '%i' % SQRT_S 
+                + r'\,TeV, ' + YEAR_STR + ')}', loc='right')
 
         # Top y axis
         unit = '$' + mc['zjets_m-50'][h][sel].GetYaxis().GetTitle() + '$'
@@ -310,18 +311,28 @@ for sel in selection:
         else:
             leg_loc = 'upper right'
 
-        ax_top.legend(
-                (   p_data,                         p_mc['zz_4l'],
-                    p_mc['zjets_m-50'],             p_mc['ttbar'],
-                    p_mc['ww_2l2nu'],               p_mc['zzz_4l2nu'],
-                    p_mc['ggH_zz_4l']
-                    ),
-                (   r'Data',                        r'$\mbox{ZZ}\to4\ell$',
-                    r'$\mbox{Z}\to\ell^+\ell^-$',   r'$\mbox{t}\bar{\mbox{t}}$(V)',
-                    r'VV',                          r'VVV',
-                    r'H'
-                    ),
-                loc = leg_loc, numpoints = 1, frameon = False)
+        if hnames[h] in ["l1eta", "l2eta"]:
+            leg_ncol = 2
+        else:
+            leg_ncol = 1
+
+        handles = [ p_data,     p_mc['zjets_m-50'],                 p_mc['zz_4l'],
+                                p_mc['ttbar'],                      p_mc['ww_2l2nu']
+                    ]
+        labels = [  r'Data',    r'$\mbox{Z}\to\ell^+\ell^-$',       r'$\mbox{ZZ}\to4\ell$',
+                                r'$\mbox{t}\bar{\mbox{t}}$(V)',     r'VV'
+                    ]
+
+        if year == "2016":
+            handles.append(p_mc['ggH_zz_4l'])
+            labels.append(r'H')
+        if year == "2017":
+            handles.append(p_mc['zzz_4l2nu'])
+            labels.append(r'VVV')
+            handles.append(p_mc['ggH_zz_4l'])
+            labels.append(r'H')
+            
+        ax_top.legend(handles, labels, loc = leg_loc, numpoints = 1, frameon = False, ncol = leg_ncol)
 
         fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
 #       fig.savefig(year + "_" + tag + "_" + hnames[h] + "_" + sel + ".pdf")

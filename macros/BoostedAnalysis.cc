@@ -21,7 +21,8 @@
 
 // Cuts
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -36,7 +37,7 @@ using namespace std;
 **  Also calculates event weights per source using scale factors from external histograms.
 */
 
-void BoostedAnalysis(const TString suffix)
+void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 {
 
     //
@@ -60,6 +61,8 @@ void BoostedAnalysis(const TString suffix)
     //
 
     TString prefix  = "boosted";
+    if (isBkg)
+        prefix = prefix + "_bkg";
     TString outName = prefix + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -155,6 +158,8 @@ void BoostedAnalysis(const TString suffix)
     //
 
     TString inName  = "selected_" + suffix + ".root";
+    if (isBkg)
+        inName = "background_" + suffix + ".root";
     TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
@@ -216,7 +221,12 @@ void BoostedAnalysis(const TString suffix)
         TTreeReaderValue    <TLorentzVector>        l4p4_           (reader,    "l4p4");
         TTreeReaderValue    <Short_t>               l4pdg_          (reader,    "l4pdg");
         TTreeReaderValue    <UShort_t>              l4z_            (reader,    "l4z");
-
+/*
+        // Background
+        TTreeReaderValue    <Bool_t>                isSameSign_     (reader,    "isSameSign");
+        TTreeReaderValue    <Bool_t>                isDiffFlavor_   (reader,    "isDiffFlavor");
+        TTreeReaderValue    <UShort_t>              nLooseLeps_     (reader,    "nLooseLeptons");
+*/
 
 
 
@@ -240,13 +250,23 @@ void BoostedAnalysis(const TString suffix)
             //
             //  EVENT INFO
             //                
-
+/*
+            if (isBkg)
+            {
+                if (*nLooseLeps_ > 1)
+                    continue;
+                if (!*isSameSign_)
+                    continue;
+                if (*isDiffFlavor_)
+                    continue;
+            }
+*/
             // Quantities copied directly to output tree
             runNum      = *runNum_;     evtNum      = *evtNum_;     lumiSec     = *lumiSec_;
             nPV         = *nPV_;        weight      = *weight_;     genWeight   = *genWeight_;
             qtWeight    = *qtWeight_;   puWeight    = *puWeight_;   ecalWeight  = *ecalWeight_;
             trigWeight  = *trigWeight_; idWeight    = *idWeight_;   recoWeight  = *recoWeight_;
-            channel     = *channel_;               
+            channel     = *channel_;
 
             zzp4        = *zzp4_;                  
             z1p4        = *z1p4_;       z1pdg       = *z1pdg_;
@@ -297,7 +317,9 @@ void BoostedAnalysis(const TString suffix)
 
 
             // Blinding
-            if (isData)
+            if      (isBkg)
+                z2.BlindCharges(rng->Rndm());       // Randomly assign z2 charges
+            else if (isData)
             {
                 z1.BlindCharges(rng->Rndm());       // 50% chance to flip z1 charges
                 z2.BlindCharges(rng->Rndm());       // 50% chance to flip z2 charges

@@ -10,8 +10,8 @@
 #include "TH1.h"
 
 // Custom
-#include "Cuts2016.hh"
-//#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -33,12 +33,18 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
     //
     //  SAMPLE INFO
     //
-
+/*
     const unsigned N = 7;   // Channel indices
     unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4, M3 = 5, E3 = 6;
     TString selection[N]    = { "4l",   "4m",   "2m2e", "2e2m", "4e",   "3m1e", "1m3e"  };
     unsigned chanIdx[N]     = { 10,     4,      6,      7,      9,      5,      8       };
     TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e,     _l,     _l      };
+*/
+    const unsigned N = 5;
+    unsigned                   L4 = 0,  M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
+    TString selection[N]    = {"4l",    "4m",   "2m2e", "2e2m", "4e"};
+    unsigned chanIdx[N]     = {5,       6,      7,      8,      9};
+    TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e};
 
 
 
@@ -81,8 +87,8 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
         make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     10,     -2.5,   2.5),
 
         make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       10,     5,      20),
-        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5)//,
-/* 
+        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5),
+ 
         // Z rest frame kinematics                                                
         make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
                                 
@@ -94,19 +100,18 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
                         
         // Observables      
         make_tuple( "psi",          "psi",          _psi,           "",     20,     -5000,  5000),
+        make_tuple( "phi",      "phi/3.141592654",  _phi,           _pirad, 20,     -1,     1),
+        make_tuple( "cos_phi",      "cos_phi",      _cosphi,        _units, 20,     -1,     1),
         make_tuple( "sin_phi",      "sin_phi",      _sinphi,        _units, 20,     -1,     1),
         make_tuple( "sin_phi_2",    "sin_phi",      _sinphi,        _units, 2,      -1,     1),
         make_tuple( "cos_theta_z1", "cos_theta_z1", _costheta_(_Z1),_units, 10,     -1,     1),
         make_tuple( "cos_theta_z2", "cos_theta_z2", _costheta_(_Z2),_units, 10,     -1,     1),
-        make_tuple( "cos_zeta_z1",  "cos_zeta_z1",  _coszeta_(_Z1), _units, 10,     -1,     1),
-        make_tuple( "cos_zeta_z2",  "cos_zeta_z2",  _coszeta_(_Z2), _units, 10,     -1,     1),
         make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
-                                                    _alpha_(_Z1),   _pirad, 10,     0,      1),
+                _alpha_(_Z1),   _pirad, 10,     0,      1),
         make_tuple( "angle_z2leps", "angle_z2leps/3.141592654",
-                                                    _alpha_(_Z2),   _pirad, 10,     0,      1),
+                _alpha_(_Z2),   _pirad, 10,     0,      1),
         make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.141592654",
-                                                    _beta,          _units, 10,     0,      1)
-*/
+                _beta,          _pirad, 10,     0,      1)
     };
 
 
@@ -115,8 +120,10 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
     //  INPUT FILE
     //
 
-    TString inName  = "background_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
+//  TString inName  = "background_" + suffix + ".root";
+//  TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
+    TString inName  = "boosted_bkg_" + suffix + ".root";
+    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -176,18 +183,15 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = " * weight/trigWeight/qtWeight";
+            TString weight = "weight/trigWeight/qtWeight";
            
-            if (signalOnly)
-               weight.Prepend("(isSameSign) && (!isDiffFlavor) && (nLooseLeptons == 0)");
-            else
-//             weight.Prepend("(isSameSign || isDiffFlavor)");
-               weight.Prepend("(isSameSign) && (!isDiffFlavor) && (nLooseLeptons <= 1)");
-
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 
             if (signalOnly)
+            {
+                weight.Prepend("(isSameSign) && (!isDiffFlavor) && (nLooseLeptons == 0) * ");
                 bins = 4;
+            }
 
 
             // Create and draw histogram

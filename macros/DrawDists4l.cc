@@ -12,6 +12,7 @@
 // Custom
 //#include "Cuts2016.hh"
 #include "Cuts2017.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -184,8 +185,11 @@ void DrawDists4l(const TString suffix, const TString year)
             else if (suffix.EqualTo("phase_space"))
             {
                 weight = "weight";
-                bins = 2 * bins;
+//              bins = 2 * bins;
             }
+
+            if (YEAR_STR.EqualTo("2012"))
+                    bins = bins / 2;
 
 
             // Create and draw histogram
@@ -200,16 +204,16 @@ void DrawDists4l(const TString suffix, const TString year)
             h->SetStats(0);
             h->Write();
 
-            if (suffix == "phase_space")
-            {
-                h->SetFillColor(lLightBlue);
-                h->SetLineColor(lLightBlue);
+//          if (suffix == "phase_space")
+//          {
+//              h->SetFillColor(lLightBlue);
+//              h->SetLineColor(lLightBlue);
 
-                TCanvas *c = new TCanvas("c_" + hname + "_" + suffix, "", 800, 800);
-                c->cd();
-                h->Draw("HIST");
-                c->Write();
-            }
+//              TCanvas *c = new TCanvas("c_" + hname + "_" + suffix, "", 800, 800);
+//              c->cd();
+//              h->Draw("HIST");
+//              c->Write();
+//          }
         }
 
         cout << "done!" << endl;

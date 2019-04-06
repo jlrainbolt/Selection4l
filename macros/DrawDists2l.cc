@@ -12,8 +12,9 @@
 #include "TError.h"
 
 // Custom
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -146,7 +147,6 @@ void DrawDists2l(const TString suffix, const TString year)
             int     bins;
             float   xmin,   xmax;
             TString weight = "weight/trigWeight/qtWeight";
-
 
             if (suffix.EqualTo("zjets_m-50"))
                 weight = "weight/trigWeight";

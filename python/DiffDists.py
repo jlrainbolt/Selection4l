@@ -7,8 +7,8 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-#from Cuts2017 import *
-from Cuts2016 import *
+from Cuts2017 import *
+#from Cuts2016 import *
 
 
 
@@ -85,6 +85,9 @@ for sel in selection:
         axe[h][sel].SetDirectory(0)
         axe[h][sel].SetName(hname + "_acc_x_eff")
 
+        if sel in ["4e", "2e2m"]:
+            axe[h][sel].Scale(ELEC_TRIG_SF)
+
         h = h + 1
     h = 0
 
@@ -106,6 +109,9 @@ for sel in selection:
     for hname in hnames:
         ps[h][sel] = psFile.Get(sel + "/" + hname + "_phase_space")
         ps[h][sel].SetDirectory(0)
+
+        if sel in ["4e", "2e2m"]:
+            ps[h][sel].Scale(ELEC_TRIG_SF)
 
         h = h + 1
     h = 0
@@ -193,8 +199,9 @@ for sel in ["4l"]:
         # MC
         v_pred = np.zeros(pred[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_pred)):
-            v_pred[i]['x'] = pred[h][sel].GetBinLowEdge(i+1)
-            v_pred[i]['y'] = pred[h][sel].GetBinContent(i+1)
+            v_pred[i]['x']  = pred[h][sel].GetBinLowEdge(i+1)
+            v_pred[i]['y']  = pred[h][sel].GetBinContent(i+1)
+            v_pred[i]['ey'] = pred[h][sel].GetBinContent(i+1)
 
         # Ratio
         v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
@@ -218,37 +225,38 @@ for sel in ["4l"]:
                             )
 
         # Top plots
+        p_pred = ax_top.errorbar(   v_data['x'],    v_pred['y'],    xerr = v_ratio['ex'], 
+                            linewidth = 0,  ecolor = lBlue,
+                            fmt = 'None',   capsize = lCapSize,
+                            elinewidth = 4 * lErrorLineWidth4l
+                            )
         p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = v_data['ey'], 
                             linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
                             marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
                             markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                             )
-
-        p_pred = ax_top.bar(        v_pred['x'],        v_pred['y'],        width,
-                                    align = 'edge',     linewidth=0,        color = COLOR['zz_4l']
-                                )
+#       p_pred = ax_top.bar(        v_pred['x'],        v_pred['y'],        width,
+#                                   align = 'edge',     linewidth=0,        color = COLOR['zz_4l']
+#                               )
 
         top_min, top_max = ax_top.get_ylim()
 
-        if hnames[h] in ["angle_z1l2_z2", "angle_z2leps", "b_ttm"]:
-            top_max = top_max * 1.2
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
+        if hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
             top_max = top_max * 1.5
+        else:
+            top_max = top_max * 1.2
         ax_top.set_ylim(0, top_max)
 
 
         # Ratio plot
+        ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
+        ax_bot.axhline(lRatioMid,   color = lBlue,     linewidth = 2 * lErrorLineWidth4l)
         ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],   xerr = v_ratio['ex'],   yerr = v_ratio['ey'], 
                     linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
                     marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
                     markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                     )
-
-        ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')
-        if sel == "4e":
-            ax_bot.set_ylim(0, 3)
-        else:
-            ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
+#       ax_bot.axhline(lRatioMid,   color = lRatioLineColor,    linestyle = ':')
 
 
 
@@ -343,5 +351,5 @@ for sel in ["4l"]:
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 
-        fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
+        fig.savefig(year + "_" + hnames[h] + "_ddr.pdf")
         plt.clf()
