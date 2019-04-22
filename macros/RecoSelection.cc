@@ -22,8 +22,8 @@
 
 // Cuts
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
-//#include "Cuts2012.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -193,7 +193,7 @@ void RecoSelection( const TString suffix,           const TString id,
         }
 
 
-        if (isSignal && i >= L4 && !YEAR_STR.EqualTo("2012"))
+        if (isSignal && i >= L4)
         {
             tree[i]->Branch("nFinalStateMuons",         &nFinalStateMuons);
             tree[i]->Branch("nFinalStateElectrons",     &nFinalStateElectrons);
@@ -310,7 +310,7 @@ void RecoSelection( const TString suffix,           const TString id,
         inTree->SetBranchAddress(   "hasTauDecay",                  &hasTauDecay);
     }
 
-    if (isSignal && !systOn && !YEAR_STR.EqualTo("2012"))
+    if (isSignal && !systOn)
     {
         inTree->SetBranchAddress(   "nFinalStateMuons",             &nFinalStateMuons);
         inTree->SetBranchAddress(   "nFinalStateElectrons",         &nFinalStateElectrons);
@@ -352,14 +352,15 @@ void RecoSelection( const TString suffix,           const TString id,
 
     // Dilepton Qt reweighting
     TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
-    TFile *graphFile = TFile::Open(graphName);
 
     TGraphAsymmErrors *qtGraph[2];
+/*
+    TFile *graphFile = TFile::Open(graphName);
     graphFile->GetObject(selection[EE] + "_weight", qtGraph[0]);    // ee: muonPairLeads = 0
     graphFile->GetObject(selection[MM] + "_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
 
     graphFile->Close();
-
+*/
 /*
     // Systematics
     TH2 *hSystematics;
@@ -1100,7 +1101,7 @@ void RecoSelection( const TString suffix,           const TString id,
         }
 
         // Get gen particle info
-        if (isFourLepton && isSignal && !systOn && !YEAR_STR.EqualTo("2012"))
+        if (isFourLepton && isSignal && !systOn)
         {
             u_l1p4  = leps[0].u_p4;         u_l2p4  = leps[1].u_p4;
             u_l3p4  = leps[2].u_p4;         u_l4p4  = leps[3].u_p4;
@@ -1116,9 +1117,6 @@ void RecoSelection( const TString suffix,           const TString id,
         if (isSignal || isDrellYan)
             inTree->GetEntry(currentEntry);
         else
-            hasTauDecay = kFALSE;
-
-        if (YEAR_STR.EqualTo("2012"))
             hasTauDecay = kFALSE;
 
  

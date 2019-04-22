@@ -10,8 +10,9 @@
 #include "TH1.h"
 
 // Custom
+//#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2017.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -68,13 +69,13 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
         make_tuple( "nPV",      "nPV",           _nPV,          _unit,      10,     0,      60),
 
         // Lab frame kinematics
-        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       10,     80,     100),
-        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       10,     0,      100),
+        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       20,     80,     100),
+        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       20,     0,      100),
 
-        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       10,     12,     92),
-        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       10,     0,      100),
+        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       16,     12,     92),
+        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       16,     0,      100),
 
-        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      34),
+        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      36),
         make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       10,     0,      60),
 
         make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       10,     20,     100),
@@ -87,8 +88,8 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
         make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     10,     -2.5,   2.5),
 
         make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       10,     5,      20),
-        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5),
- 
+        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5)//,
+/* 
         // Z rest frame kinematics                                                
         make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
                                 
@@ -112,6 +113,7 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
                 _alpha_(_Z2),   _pirad, 10,     0,      1),
         make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.141592654",
                 _beta,          _pirad, 10,     0,      1)
+*/
     };
 
 
@@ -120,10 +122,10 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
     //  INPUT FILE
     //
 
-//  TString inName  = "background_" + suffix + ".root";
-//  TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
-    TString inName  = "boosted_bkg_" + suffix + ".root";
-    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
+    TString inName  = "background_" + suffix + ".root";
+    TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
+//  TString inName  = "boosted_bkg_" + suffix + ".root";
+//  TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -189,9 +191,12 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
 
             if (signalOnly)
             {
-                weight.Prepend("(isSameSign) && (!isDiffFlavor) && (nLooseLeptons == 0) * ");
+                weight.Prepend("(nLooseLeptons == 0) * (!isDiffFlavor) * ");
                 bins = 4;
             }
+            else
+                weight.Prepend("(nLooseLeptons < 2) * (!isDiffFlavor) * ");
+
 
 
             // Create and draw histogram

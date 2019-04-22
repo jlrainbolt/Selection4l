@@ -22,7 +22,8 @@
 
 // Cuts
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -216,13 +217,16 @@ void BkgSelection(const TString suffix, const TString id)
 
     // Dilepton Qt reweighting
     TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
-    TFile *graphFile = TFile::Open(graphName);
-
     TGraphAsymmErrors *qtGraph[2];
-    graphFile->GetObject("ee_weight",   qtGraph[0]);    // ee: muonPairLeads = 0
-    graphFile->GetObject("mumu_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
+    if (!YEAR_STR.EqualTo("2012"))
+    {
+        TFile *graphFile = TFile::Open(graphName);
 
-    graphFile->Close();
+        graphFile->GetObject("ee_weight",   qtGraph[0]);    // ee: muonPairLeads = 0
+        graphFile->GetObject("mumu_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
+
+        graphFile->Close();
+    }
 
 
 
@@ -741,7 +745,7 @@ void BkgSelection(const TString suffix, const TString id)
 
         zzp4 = z1.p4 + z2.p4;
         unsigned Q  = muonPairLeads;
-        if (!isData)
+        if (!isData && !YEAR_STR.EqualTo("2012"))
             qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
         idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;

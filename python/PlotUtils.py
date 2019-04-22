@@ -32,8 +32,9 @@ from matplotlib import rc
 # Font/TeX setup
 # (https://3diagramsperpage.wordpress.com/2015/04/11/)
 rc('text', usetex=True)
+#mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}',]
 #mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{tgheros}',
-mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}',]
+#mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}',]
 #                                       r'\usepackage{sansmath}', r'\sansmath'] 
 
 # Figure size, aspect ratio

@@ -65,14 +65,17 @@ void DrawRatios()
     //
 
     // Get histograms
-    TH1 *data[H], *gen[H], *reco[H], *sel[H], *ps[H], *res[H];
+    TH1 *data[H], *gen[H], *reco[H], *sel[H], *ps[H], *res[H], *bkg[H];
 
     for (unsigned h = 0; h < H; h++)
     {
         inFile->GetObject(hnames[h] + "/" + hnames[h] + "_data", data[h]);
         data[h]->SetDirectory(0);
 
-        inFile->GetObject(hnames[h] + "/" + hnames[h] + "_bkg", res[h]);
+        inFile->GetObject(hnames[h] + "/" + hnames[h] + "_bkg", bkg[h]);
+        bkg[h]->SetDirectory(0);
+
+        inFile->GetObject(hnames[h] + "/" + hnames[h] + "_result", res[h]);
         res[h]->SetDirectory(0);
 
         inFile->GetObject(hnames[h] + "/" + hnames[h] + "_gen", gen[h]);
@@ -164,6 +167,7 @@ void DrawRatios()
 
         r_reco_gen->GetUpperPad()->cd();
         l_reco_gen->Draw();
+        c_reco_gen->SaveAs(".png");
 
         
         // Selected vs. phase space
@@ -173,12 +177,12 @@ void DrawRatios()
         Facelift(c_axe);
         c_axe->SetLogy();
 
-        ps[h]->SetMinimum(100);
+        ps[h]->SetMinimum(10);
         ps[h]->SetStats(0);
         ps[h]->SetLineColor(lPurple);
         ps[h]->SetLineWidth(4);
 
-        sel[h]->SetMinimum(100);
+        sel[h]->SetMinimum(10);
         sel[h]->SetMaximum(10 * ps[h]->GetMaximum());
         sel[h]->SetStats(0);
         sel[h]->SetLineColor(lBlue);
@@ -213,33 +217,86 @@ void DrawRatios()
 
         r_axe->GetUpperPad()->cd();
         l_axe->Draw();
+        c_axe->SaveAs(".png");
 
         
+        // Background vs. data
+
+        TCanvas *c_bkg_data = new TCanvas(YEAR_STR + "_" + hnames[h] + "_bkg_vs_data",
+                "", lCanvasSize, lCanvasSize);
+        Facelift(c_bkg_data);
+        c_bkg_data->SetLogy();
+
+        bkg[h]->SetMinimum(0.1);
+        bkg[h]->SetMaximum(10 * data[h]->GetMaximum());
+        bkg[h]->SetStats(0);
+        bkg[h]->SetLineColor(lGreen);
+        bkg[h]->SetLineWidth(2);
+        bkg[h]->SetMarkerColor(lGreen);
+        bkg[h]->SetMarkerStyle(22);
+        bkg[h]->SetMarkerSize(2);
+
+        data[h]->SetMinimum(0.1);
+        data[h]->SetMaximum(10 * data[h]->GetMaximum());
+        data[h]->SetStats(0);
+        data[h]->SetLineColor(kBlack);
+        data[h]->SetLineWidth(2);
+        data[h]->SetMarkerColor(kBlack);
+        data[h]->SetMarkerStyle(20);
+        data[h]->SetMarkerSize(2);
+
+        TRatioPlot *r_bkg_data = new TRatioPlot(bkg[h], data[h], "divsym");
+        r_bkg_data->SetH1DrawOpt("E1");
+        r_bkg_data->SetH2DrawOpt("E1");
+        r_bkg_data->SetSeparationMargin(0.01);
+
+        TLegend *l_bkg_data = new TLegend(LeftPosition + 3*lLegendMargin, BottomPosition - TopMargin,
+                TopPosition + TopMargin, TopPosition + TopMargin);
+        l_bkg_data->AddEntry(data[h], "Data", "LP");
+        l_bkg_data->AddEntry(bkg[h], "Background", "LP");
+        Facelift(l_bkg_data);
+
+        c_bkg_data->cd();
+        r_bkg_data->Draw();
+
+        Facelift(r_bkg_data->GetUpperRefYaxis());
+        r_bkg_data->GetUpperRefYaxis()->SetTitle(title);
+        r_bkg_data->GetUpperRefYaxis()->SetTitleOffset(lTitleOffsetY);
+        r_bkg_data->GetUpperPad()->SetLeftMargin(1.2 * lCanvasMargin);
+        r_bkg_data->GetUpperPad()->Modified();
+
+        Facelift(r_bkg_data->GetLowerRefXaxis());
+        Facelift(r_bkg_data->GetLowerRefYaxis());
+        r_bkg_data->GetLowerRefYaxis()->SetTitleOffset(lTitleOffsetY);
+        r_bkg_data->GetLowerRefGraph()->SetMinimum(0);
+        r_bkg_data->GetLowerRefGraph()->SetMaximum(0.3);
+        r_bkg_data->GetLowerRefYaxis()->SetTitle("Bkg/Data");
+        r_bkg_data->GetLowerPad()->SetBottomMargin(3 * lCanvasMargin);
+        r_bkg_data->GetLowerPad()->SetLeftMargin(1.2 * lCanvasMargin);
+        r_bkg_data->GetLowerPad()->Modified();
+
+        r_bkg_data->GetUpperPad()->cd();
+        l_bkg_data->Draw();
+        c_bkg_data->SaveAs(".png");
+
+
         // Folded vs. unfolded
 
-//      TCanvas *c_fol_unf = new TCanvas(YEAR_STR + "_" + hnames[h] + "_fol_unf",
-        TCanvas *c_fol_unf = new TCanvas(YEAR_STR + "_" + hnames[h] + "_bkg_data",
+        TCanvas *c_fol_unf = new TCanvas(YEAR_STR + "_" + hnames[h] + "_fol_unf",
                 "", lCanvasSize, lCanvasSize);
         Facelift(c_fol_unf);
-        c_fol_unf->SetLogy();
 
-//      res[h]->SetMinimum(0);
-        res[h]->SetMinimum(1);
-//      res[h]->SetMaximum(1.5 * data[h]->GetMaximum());
-        res[h]->SetMaximum(10 * data[h]->GetMaximum());
+        res[h]->SetMinimum(0);
+        res[h]->SetMaximum(1.5 * data[h]->GetMaximum());
         res[h]->SetStats(0);
-//      res[h]->SetLineColor(lOrange);
-        res[h]->SetLineColor(lGreen);
+        res[h]->SetLineColor(lOrange);
         res[h]->SetLineWidth(2);
-//      res[h]->SetMarkerColor(lOrange);
-        res[h]->SetMarkerColor(lGreen);
+        res[h]->SetMarkerColor(lOrange);
         res[h]->SetMarkerStyle(22);
         res[h]->SetMarkerSize(2);
 
-//      data[h]->SetMinimum(0);
-        data[h]->SetMinimum(1);
-//      data[h]->SetMaximum(1.5 * data[h]->GetMaximum());
-        data[h]->SetMaximum(10 * data[h]->GetMaximum());
+        data[h]->SetMinimum(0);
+        data[h]->SetMaximum(1.5 * data[h]->GetMaximum());
         data[h]->SetStats(0);
         data[h]->SetLineColor(kBlack);
         data[h]->SetLineWidth(2);
@@ -252,8 +309,7 @@ void DrawRatios()
         r_fol_unf->SetH2DrawOpt("E1");
         r_fol_unf->SetSeparationMargin(0.01);
 
-//      TLegend *l_fol_unf = new TLegend(LeftPosition + LeftMargin, BottomPosition - TopMargin,
-        TLegend *l_fol_unf = new TLegend(LeftPosition + 3*lLegendMargin, BottomPosition - TopMargin,
+        TLegend *l_fol_unf = new TLegend(LeftPosition + LeftMargin, BottomPosition - TopMargin,
                 TopPosition + TopMargin, TopPosition + TopMargin);
         l_fol_unf->AddEntry(data[h], "Data", "LP");
         l_fol_unf->AddEntry(res[h], "Background", "LP");
@@ -271,12 +327,9 @@ void DrawRatios()
         Facelift(r_fol_unf->GetLowerRefXaxis());
         Facelift(r_fol_unf->GetLowerRefYaxis());
         r_fol_unf->GetLowerRefYaxis()->SetTitleOffset(lTitleOffsetY);
-//      r_fol_unf->GetLowerRefGraph()->SetMinimum(0.5);
-//      r_fol_unf->GetLowerRefGraph()->SetMaximum(1.5);
-        r_fol_unf->GetLowerRefGraph()->SetMinimum(0);
-        r_fol_unf->GetLowerRefGraph()->SetMaximum(0.3);
-//      r_fol_unf->GetLowerRefGraph()->SetLineColor(lOrange);
-        r_fol_unf->GetLowerRefYaxis()->SetTitle("Bkg/Data");
+        r_fol_unf->GetLowerRefGraph()->SetMinimum(0.5);
+        r_fol_unf->GetLowerRefGraph()->SetMaximum(1.5);
+        r_fol_unf->GetLowerRefYaxis()->SetTitle("Unf./Data");
         r_fol_unf->GetLowerPad()->SetBottomMargin(3 * lCanvasMargin);
         r_fol_unf->GetLowerPad()->SetLeftMargin(1.2 * lCanvasMargin);
         r_fol_unf->GetLowerPad()->Modified();
@@ -289,6 +342,7 @@ void DrawRatios()
         outFile->mkdir(hnames[h]);
         outFile->cd(hnames[h]);
         c_reco_gen->Write();
+        c_bkg_data->Write();
         c_fol_unf->Write();
         c_axe->Write();
     }

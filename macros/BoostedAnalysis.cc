@@ -82,6 +82,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
     Float_t             trigWeight, idWeight,   recoWeight;
     UInt_t              channel;
+    Bool_t              hasTauDecay;
 
 
     // Lab frame objects
@@ -116,7 +117,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
         tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
         tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
-        tree[i]->Branch("channel",      &channel);
+        tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
 
         tree[i]->Branch("psi",              &psi);      tree[i]->Branch("phi",          &phi);
         tree[i]->Branch("sin_phi",          &sin_phi);  tree[i]->Branch("cos_phi",      &cos_phi);
@@ -204,6 +205,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
         TTreeReaderValue    <Float_t>               idWeight_       (reader,    "idWeight");
         TTreeReaderValue    <Float_t>               recoWeight_     (reader,    "recoWeight");
         TTreeReaderValue    <UInt_t>                channel_        (reader,    "channel");
+        TTreeReaderValue    <Bool_t>                hasTauDecay_    (reader,    "hasTauDecay");
         TTreeReaderValue    <TLorentzVector>        zzp4_           (reader,    "zzp4");
         TTreeReaderValue    <TLorentzVector>        z1p4_           (reader,    "z1p4");
         TTreeReaderValue    <Short_t>               z1pdg_          (reader,    "z1pdg");
@@ -221,12 +223,12 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
         TTreeReaderValue    <TLorentzVector>        l4p4_           (reader,    "l4p4");
         TTreeReaderValue    <Short_t>               l4pdg_          (reader,    "l4pdg");
         TTreeReaderValue    <UShort_t>              l4z_            (reader,    "l4z");
-/*
+
         // Background
-        TTreeReaderValue    <Bool_t>                isSameSign_     (reader,    "isSameSign");
-        TTreeReaderValue    <Bool_t>                isDiffFlavor_   (reader,    "isDiffFlavor");
-        TTreeReaderValue    <UShort_t>              nLooseLeps_     (reader,    "nLooseLeptons");
-*/
+//      TTreeReaderValue    <Bool_t>                isSameSign_     (reader,    "isSameSign");
+//      TTreeReaderValue    <Bool_t>                isDiffFlavor_   (reader,    "isDiffFlavor");
+//      TTreeReaderValue    <UShort_t>              nLooseLeps_     (reader,    "nLooseLeptons");
+
 
 
 
@@ -250,23 +252,23 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
             //
             //  EVENT INFO
             //                
-/*
-            if (isBkg)
-            {
-                if (*nLooseLeps_ > 1)
-                    continue;
-                if (!*isSameSign_)
-                    continue;
-                if (*isDiffFlavor_)
-                    continue;
-            }
-*/
+
+//          if (isBkg)
+//          {
+//              if (*nLooseLeps_ > 1)
+//                  continue;
+//              if (!*isSameSign_)
+//                  continue;
+//              if (*isDiffFlavor_)
+//                  continue;
+//          }
+
             // Quantities copied directly to output tree
             runNum      = *runNum_;     evtNum      = *evtNum_;     lumiSec     = *lumiSec_;
             nPV         = *nPV_;        weight      = *weight_;     genWeight   = *genWeight_;
             qtWeight    = *qtWeight_;   puWeight    = *puWeight_;   ecalWeight  = *ecalWeight_;
             trigWeight  = *trigWeight_; idWeight    = *idWeight_;   recoWeight  = *recoWeight_;
-            channel     = *channel_;
+            channel     = *channel_;    hasTauDecay = *hasTauDecay_;
 
             zzp4        = *zzp4_;                  
             z1p4        = *z1p4_;       z1pdg       = *z1pdg_;

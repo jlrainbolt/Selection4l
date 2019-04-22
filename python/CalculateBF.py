@@ -7,7 +7,8 @@ from ROOT import TFile, TTree, TH1D
 from secret_number import *
 
 #from Cuts2017 import *
-from Cuts2016 import *
+#from Cuts2016 import *
+from Cuts2012 import *
 
 
 
@@ -23,6 +24,9 @@ selDef      = { "mumu":"MM",    "ee":"EE",  "4l":"4L",  "4m":"4M",  "4e":"4E",  
 channel     = { "mumu":3,       "ee":4,     "4m":6,     "2m2e":7,   "2e2m":8,   "4e":9  }
 T = np.dtype([(sel, 'f4') for sel in selection])
 
+
+if (YEAR_STR == "2012"):
+    XSEC["zz_4l"] = 0.3305 / 0.31
 
 
 ##
@@ -103,11 +107,11 @@ for suff in MC_SUFF:
 
         # Get signal
         if (suff == "zz_4l" and sel in ["4m", "2m2e", "2e2m", "4e"]) or (suff == "zjets_m-50" and sel in ["mumu", "ee"]):
-                tree.Draw("1>>hist", "!hasTauDecay * " + weight, "goff")
-                sig[sel] = sf * hist.Integral()
-                sig_stat[sel] = sf * np.sqrt(tree.GetEntries("!hasTauDecay"))
-                cut = "hasTauDecay"
-                weight = cut + " * " + weight
+            tree.Draw("1>>hist", "!hasTauDecay * " + weight, "goff")
+            sig[sel] = sf * hist.Integral()
+            sig_stat[sel] = sf * np.sqrt(tree.GetEntries("!hasTauDecay"))
+            cut = "hasTauDecay"
+            weight = cut + " * " + weight
 
 
         tree.Draw("1>>hist", weight, "goff")
@@ -127,6 +131,8 @@ for suff in MC_SUFF:
 ##
 ##  PHASE SPACE
 ##
+if (YEAR_STR == "2012"):
+    XSEC["zz_4l"] = 0.3305 / 0.15
 
 inPath = EOS_PATH + "/BLT/" + YEAR_STR + "/"
 prefix, hname = "gen", "PhaseSpaceEvents"
@@ -173,6 +179,7 @@ for sel in selection:
         lumi = MUON_TRIG_LUMI
     elif sel in ["ee", "4e", "2e2m"]:
         lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+
     sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
 
     ps[sel] = sf * hist.GetBinContent(channel[sel])
@@ -302,7 +309,7 @@ print("")
 
 fileName = "BranchingFrac" + YEAR_STR + ".tex"
 f = open(fileName, "w")
-fmt = '%.2f'
+fmt = '%.3f'
 
 f.write(r"\begin{tabular}{l p{.5in} p{.75in} p{.75in}>{\leavevmode\color{purple}}p{.75in} c}"
         + "\n")

@@ -14,8 +14,8 @@
 #include "TMathText.h"
 
 // Custom
-#include "Cuts2016.hh"
-//#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -178,7 +178,7 @@ void DrawMatrices()
         c_var->SetMargin(0.6*lCanvasMargin, 1.1*lCanvasMargin, lCanvasMargin, lCanvasMargin);
 
         c_var->cd();
-        c_var->AddExec("t_var", "gStyle->SetPaintTextFormat(\"g\")");
+        c_var->AddExec("t_var", "gStyle->SetPaintTextFormat(\".2f\")");
         c_var->AddExec("p_var", "gStyle->SetPalette(kBird)");
         var[h]->SetTitle(title);
         var[h]->SetStats(0);

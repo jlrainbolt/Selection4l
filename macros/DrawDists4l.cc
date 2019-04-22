@@ -11,8 +11,8 @@
 
 // Custom
 //#include "Cuts2016.hh"
-#include "Cuts2017.hh"
-//#include "Cuts2012.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -187,9 +187,6 @@ void DrawDists4l(const TString suffix, const TString year)
                 weight = "weight";
 //              bins = 2 * bins;
             }
-
-            if (YEAR_STR.EqualTo("2012"))
-                    bins = bins / 2;
 
 
             // Create and draw histogram

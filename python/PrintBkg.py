@@ -6,10 +6,11 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 
 #from Cuts2017 import *
-from Cuts2016 import *
+#from Cuts2016 import *
+from Cuts2012 import *
 
 signalOnly = True
-tightOnly = False
+tightOnly = True
 
 if signalOnly:
     weight = "(isSameSign) && (!isDiffFlavor)"
@@ -142,11 +143,12 @@ mc_unc_arr['2e2m']  = 0
 ##
 
 # Take average of ttbar (inclusive) and tt_2l2nu
-for sel in selection:
-    mc['ttbar'][sel] = (mc['ttbar'][sel] + mc['tt_2l2nu'][sel])
-    mc_unc['ttbar'][sel] = np.sqrt(mc_unc['ttbar'][sel] ** 2 + mc_unc['tt_2l2nu'][sel] ** 2)
-    mc['tt_2l2nu'][sel] = 0
-    mc_unc['tt_2l2nu'][sel] = 0
+if (YEAR_STR != "2012"):
+    for sel in selection:
+        mc['ttbar'][sel] = (mc['ttbar'][sel] + mc['tt_2l2nu'][sel])
+        mc_unc['ttbar'][sel] = np.sqrt(mc_unc['ttbar'][sel] ** 2 + mc_unc['tt_2l2nu'][sel] ** 2)
+        mc['tt_2l2nu'][sel] = 0
+        mc_unc['tt_2l2nu'][sel] = 0
 
 # Get total expected and background events
 exp, exp_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)

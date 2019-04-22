@@ -5,9 +5,9 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2017 import *
+#from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -82,7 +82,7 @@ for suff in MC_SUFF:
         elif sel in ["ee", "4e", "2e2m"]:
             lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
 
-        if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"] and sel in ["4m", "2m2e", "2e2m", "4e"] and YEAR_STR != "2012":
+        if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"] and sel in ["4m", "2m2e", "2e2m", "4e"]:
             continue
         
         sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
@@ -202,7 +202,7 @@ for sel in selection:
     for suff in MC_SUFF:
 #       if suff == "zjets_m-50" and sel in ["mumu", "ee"]:
 #           continue
-       if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"] and YEAR_STR != "2012":
+       if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"]:
            continue
        else:
            f.write("\t&\t&\t" + MC_TEX[suff] + r" & \num{" + fmt % np.squeeze(mc[suff][sel])
