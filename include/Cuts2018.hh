@@ -1,5 +1,5 @@
-#ifndef CUTS2017_HH
-#define CUTS2017_HH
+#ifndef CUTS2018_HH
+#define CUTS2018_HH
 
 
 // ROOT
@@ -11,11 +11,11 @@
 //  BASICS
 //
 
-const TString   YEAR_STR = "2017";
+const TString   YEAR_STR = "2018";
 const TString   EOS_PATH = "root://cmseos.fnal.gov//store/user/jrainbol";
 const TString   HOME_PATH = "/uscms/home/jrainbol/nobackup";
 
-const unsigned  RNG_SEED = 2017;
+const unsigned  RNG_SEED = 2018;
 
 
 //
@@ -80,13 +80,13 @@ const float     MATCH_DR_MAX = 0.02;
 //  SYSTEMATICS
 //
 
-const float     MUON_PT_SHIFT = 0.002,  ELEC_PT_SHIFT = 0.005;
+//const float     MUON_PT_SHIFT = 0.002,  ELEC_PT_SHIFT = 0.005;
 
-const unsigned  N_HISTS = 100;
+//const unsigned  N_HISTS = 100;
                             //  ll          mumu        ee
-const float     AXE_2L[3] = {   0.320909,   0.376059,   0.265793};
+//const float     AXE_2L[3] = {   0.320909,   0.376059,   0.265793};
                             //  4l          4m          2m2e        4e
-const float     AXE_4L[4] = {   0.043777,   0.0868125,  0.0335567,  0.0204522};
+//const float     AXE_4L[4] = {   0.043777,   0.0868125,  0.0335567,  0.0204522};
 
 
 
@@ -94,16 +94,13 @@ const float     AXE_4L[4] = {   0.043777,   0.0868125,  0.0335567,  0.0204522};
 //  SAMPLES
 //
 
-const float     MUON_TRIG_LUMI = 41.37,             ELEC_TRIG_LUMI = 41.37;
+const float     MUON_TRIG_LUMI = 58.83,             ELEC_TRIG_LUMI = 58.83;
 const float                                         ELEC_TRIG_SF = 0.991;
 const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
 
-// Event numbers from TotalEvents histogram in "selected" ntuples (bin1 - 2*bin10)
-//
-// Cross sections from
-//      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
-const float     NGEN_ZZ_4L      = 6893887,          XSEC_ZZ_4L      = 1.256;    //1.212
-const float     NGEN_ZJETS_M50  = 123485957,        XSEC_ZJETS_M50  = 6225.43;  //5765.4
+// WRONG event numbers
+const float     NGEN_ZZ_4L      = 6622242,          XSEC_ZZ_4L      = 1.256;    //1.212
+const float     NGEN_ZJETS_M50  = 100114403,        XSEC_ZJETS_M50  = 6225.43;  //5765.4
 const float     NGEN_GGH_ZZ_4L  = 955384,           XSEC_GGH_ZZ_4L  = 0.01212;
 const float     NGEN_VBFH_ZZ_4L = 984662,           XSEC_VBFH_ZZ_4L = 0.001034;
 const float     NGEN_TTBAR      = 57584555,         XSEC_TTBAR      = 831.76 * 0.5;
@@ -141,4 +138,4 @@ const int       COLOR[N_MC] = { lLightBlue,     lYellow,        lPurple,        
                                 lBlue,          lBlue,          lBlue,          lBlue
                                 };
 
-#endif // CUTS2017_HH
+#endif // CUTS2018_HH

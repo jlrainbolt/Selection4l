@@ -16,8 +16,9 @@
 #include "TMathText.h"
 
 // Cuts
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -54,9 +55,9 @@ void StackDists2l(const TString tag, bool useLog = kFALSE)
     cout << "Opened " << muName << endl;
 
     // Electron file
-    TString elName = prefix + "_" + EL_SUFF + ".root";
-    TFile *elFile = TFile::Open(elName);
-    cout << "Opened " << elName << endl;
+//  TString elName = prefix + "_" + EL_SUFF + ".root";
+//  TFile *elFile = TFile::Open(elName);
+//  cout << "Opened " << elName << endl;
 
 
     // Get histogram names
@@ -82,8 +83,8 @@ void StackDists2l(const TString tag, bool useLog = kFALSE)
         {
             if      (i == MM)
                 muFile->GetObject(selection[i] + "/" + hname[h] + "_" + MU_SUFF, hist);
-            else if (i == EE)
-                elFile->GetObject(selection[i] + "/" + hname[h] + "_" + EL_SUFF, hist);
+//          else if (i == EE)
+//              elFile->GetObject(selection[i] + "/" + hname[h] + "_" + EL_SUFF, hist);
 
             hist->SetDirectory(0);
 

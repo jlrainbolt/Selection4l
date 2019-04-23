@@ -21,9 +21,10 @@
 #include "SelectionTools.hh"
 
 // Cuts
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -74,9 +75,13 @@ void RecoSelection( const TString suffix,           const TString id,
     //
 
     const bool isData       = suffix.Contains(YEAR_STR);
+/*
     const bool isSignal     = suffix.EqualTo("zz_4l") || suffix.EqualTo("zz_4m") 
                                 || suffix.EqualTo("zz_2m2e") || suffix.EqualTo("zz_4e");
     const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
+*/
+    const bool isDrellYan = kFALSE;
+    const bool isSignal = kFALSE;
 
     const unsigned N = 8;   // Channel indices
     unsigned                   LL = 0, MM = 1, EE = 2, L4 = 3, M4 = 4, ME = 5, EM = 6, E4 = 7;
@@ -348,7 +353,7 @@ void RecoSelection( const TString suffix,           const TString id,
     //  DATA
     //
 
-    //FIXME for 8 TeV
+    //FIXME for 8 TeV, 2018
 
     // Dilepton Qt reweighting
     TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
@@ -913,7 +918,7 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             unsigned Q  = muonPairLeads;
-            if (!isData && !YEAR_STR.EqualTo("2012"))
+            if (!isData && !YEAR_STR.EqualTo("2012") && !YEAR_STR.EqualTo("2018"))
                 qtWeight = qtGraph[Q]->Eval(z1.p4.Pt());
 
             trigWeight  = GetTriggerWeight(z1.GetMembers());
@@ -1038,7 +1043,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
             TLorentzVector zzp4 = z1.p4 + z2.p4;
             unsigned Q  = muonPairLeads;
-            if (!isData && !YEAR_STR.EqualTo("2012"))
+            if (!isData && !YEAR_STR.EqualTo("2012") && !YEAR_STR.EqualTo("2018"))
                 qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
             idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;

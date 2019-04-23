@@ -7,7 +7,8 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-from Cuts2017 import *
+from Cuts2018 import *
+#from Cuts2017 import *
 #from Cuts2016 import *
 #from Cuts2012 import *
 
@@ -17,7 +18,8 @@ from Cuts2017 import *
 ##  SAMPLE INFO
 ##
 
-selection = ["mumu", "ee"]
+#selection = ["mumu", "ee"]
+selection = ["mumu"]
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
@@ -41,9 +43,9 @@ muFile = TFile(muName, "READ")
 print("Opened", muName)
 
 # Electron file
-elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
-elFile = TFile(elName, "READ")
-print("Opened", elName)
+#elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
+#elFile = TFile(elName, "READ")
+#print("Opened", elName)
 
 
 # Get keys
@@ -62,7 +64,7 @@ h = 0
 
 for hname in hnames:
     data[h]['mumu'] = muFile.Get("mumu/" + hname + "_" + MU_SUFF)
-    data[h]['ee']   = elFile.Get("ee/" + hname + "_" + EL_SUFF)
+#   data[h]['ee']   = elFile.Get("ee/" + hname + "_" + EL_SUFF)
 
     for sel in selection:
         data[h][sel].SetDirectory(0)
@@ -70,7 +72,7 @@ for hname in hnames:
     h = h + 1
 
 muFile.Close()
-elFile.Close()
+#elFile.Close()
 print("Got data histograms")
 print("")
 
@@ -317,10 +319,10 @@ for sel in selection:
             leg_ncol = 1
 
         handles = [ p_data,     p_mc['zjets_m-50'],                 p_mc['zz_4l'],
-                                p_mc['ttbar'],                      p_mc['ww_2l2nu']
+#                               p_mc['ttbar'],                      p_mc['ww_2l2nu']
                     ]
         labels = [  r'Data',    r'$\mbox{Z}\to\ell^+\ell^-$',       r'$\mbox{ZZ}\to4\ell$',
-                                r'$\mbox{t}\bar{\mbox{t}}$(V)',     r'VV'
+#                               r'$\mbox{t}\bar{\mbox{t}}$(V)',     r'VV'
                     ]
 
         if year == "2016":

@@ -94,7 +94,7 @@ const float     AXE_4L[4] = {   0.043777,   0.0868125,  0.0335567,  0.0204522};
 //  SAMPLES
 //
 
-const float     MUON_TRIG_LUMI = 35.9,                          ELEC_TRIG_LUMI = 35.9;
+const float     MUON_TRIG_LUMI = 36.42,                         ELEC_TRIG_LUMI = 36.42;
 const float                                                     ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "electron_" + YEAR_STR;
 
