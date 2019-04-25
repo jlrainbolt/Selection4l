@@ -14,6 +14,7 @@
 const TString   YEAR_STR = "2017";
 const TString   EOS_PATH = "root://cmseos.fnal.gov//store/user/jrainbol";
 const TString   HOME_PATH = "/uscms/home/jrainbol/nobackup";
+const TString   BLT_PATH = HOME_PATH + "/lacey_legacy/CMSSW_10_2_13/src/BLT";
 
 const unsigned  RNG_SEED = 2017;
 
@@ -120,6 +121,8 @@ const float     NGEN_ZZZ_4L2NU  = 1673322,          XSEC_ZZZ_4L2NU  = 0.01398;
 const float     NGEN_ZZG_4L2NU  = 1455362,          XSEC_ZZG_4L2NU  = 0.01398;
 
 const unsigned  N_MC = 16,      ZZ = 0,     DY = 1;
+const unsigned  N_DY = 15;
+
 const TString   MC_SUFF[N_MC] = {   "zz_4l",        "zjets_m-50",   "ggH_zz_4l",    "vbfH_zz_4l",
                                     "ttbar",        "tt_2l2nu",     "ttz_2l2nu",    "ww_2l2nu",
                                     "wz_2l2q",      "wz_3lnu",      "zz_2l2nu",     "zz_2l2q",
