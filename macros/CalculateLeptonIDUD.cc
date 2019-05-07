@@ -18,7 +18,7 @@ using namespace std;
 
 
 
-void CalculateLeptonID(const TString flavor, const TString type, const TString suff = "")
+void CalculateLeptonIDUD(const TString flavor, const TString type, const TString suff = "")
 {
 
 
@@ -39,32 +39,21 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     //  CONTAINERS
     //
 
-    const unsigned  N = 100;    // Number of Gaussian iterations
+    const unsigned  N4L = 4,            N2L = 3;    // Number of final state trees
+    TString sel_4l[N4L+1]   = { "4l",   "4m",   "2m2e", "2e2m", "4e"};
+    TString sel_2l[N2L]     = { "ll",   "mumu", "ee"};
 
-    const unsigned  M4L = 4,            M2L = 2;    // Number of final state trees
-    TString sel_4l[M4L+1]   = { "4l",   "4m",   "2m2e", "2e2m", "4e"};
-    TString sel_2l[M2L]     = { "mumu", "ee"};
+    float   sel_4l_gen[N4L],    sel_4l_nom[N4L],    sel_4l_up[N4L],     sel_4l_dn[N4L];
+    float   sel_2l_gen[N2L],    sel_2l_nom[N2L],    sel_2l_up[N2L],     sel_2l_dn[N2L];
 
-    float   sel_4l_gen[M4L],        sel_2l_gen[M2L];
-    float   sel_4l_nom[M4L],        sel_2l_nom[M2L];
-    float   sel_4l_var[M4L][N],     sel_2l_var[M2L][N];
-
-    for (unsigned i = 0; i < M4L; i++)
+    for (unsigned i = 0; i < N4L; i++)
     {
-        sel_4l_nom[i] = 0;
-        sel_4l_gen[i] = 0;
-
-        for (unsigned j = 0; j < N; j++)
-            sel_4l_var[i][j] = 0;
+        sel_4l_nom[i] = 0;  sel_4l_gen[i] = 0;  sel_4l_up[i] = 0;   sel_4l_dn[i] = 0;
     }
 
-    for (unsigned i = 0; i < M2L; i++)
+    for (unsigned i = 0; i < N2L; i++)
     {
-        sel_2l_nom[i] = 0;
-        sel_2l_gen[i] = 0;
-
-        for (unsigned j = 0; j < N; j++)
-            sel_2l_var[i][j] = 0;
+        sel_2l_nom[i] = 0;  sel_2l_gen[i] = 0;  sel_2l_up[i] = 0;   sel_2l_dn[i] = 0;
     }
 
 
@@ -79,7 +68,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     else
         idName = flavor + "_" + type + "_smear_" + YEAR_STR + "_" + suff + ".root";
 
-    TH2     *h_nom, *h_smr[N];
+    TH2     *h_nom, *h_err;
 
     TString inPath  = BLT_PATH + "/BLTAnalysis/data/" + idName;
     TFile   *idFile = TFile::Open(inPath);
@@ -87,19 +76,14 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     cout << "Opened " << inPath << endl;
 
     idFile->GetObject("FINAL", h_nom);
+    idFile->GetObject("ERROR", h_err);
     h_nom->SetDirectory(0);
+    h_err->SetDirectory(0);
 
     const float PT_MIN = h_nom->GetYaxis()->GetXmin();
     const float PT_MAX = h_nom->GetYaxis()->GetXmax();
 
     cout << "Limits: " << PT_MIN << ", " << PT_MAX << endl << endl;
-
-    for (unsigned j = 0; j < N; j++)
-    {
-        TString id = TString::Format("%i", j);
-        idFile->GetObject("SMEAR" + id, h_smr[j]);
-        h_smr[j]->SetDirectory(0);
-    }
 
     idFile->Close();
     cout << "Closed " << inPath << endl;
@@ -117,7 +101,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
 
     unsigned i = 0;
 
-    for (unsigned i_ = 0; i_ < M4L+1; i_++)
+    for (unsigned i_ = 0; i_ < N4L+1; i_++)
     {
         TTreeReader reader(sel_4l[i_] + "_zz_4l", zzFile);
 
@@ -176,32 +160,26 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
             }
 
 
-            // Nominal weight
+            // Calculate event weight variations
 
             float genWeight = *genWeight_;
-            sel_4l_gen[i] += genWeight;
-
-            float nomWeight = genWeight;
+            float nomWeight = genWeight,    upWeight = genWeight,     dnWeight = genWeight;
 
             for (unsigned l = 0; l < bins.size(); l++)
-                nomWeight *= h_nom->GetBinContent(bins[l]);
-
-            sel_4l_nom[i] += nomWeight;
-
-
-            // Variations
-
-            for (unsigned j = 0; j < N; j++)
             {
-                float varWeight = genWeight;
+                float sf = h_nom->GetBinContent(bins[l]);
+                float err = h_err->GetBinContent(bins[l]);
 
-                for (unsigned l = 0; l < bins.size(); l++)
-                    varWeight *= h_smr[j]->GetBinContent(bins[l]);
-
-                sel_4l_var[i][j] += varWeight;
+                nomWeight *= sf;
+                upWeight *= sf + err;
+                dnWeight *= sf - err;
             }
+
+            sel_4l_gen[i] += genWeight;     sel_4l_nom[i] += nomWeight;
+            sel_4l_up[i] += upWeight;       sel_4l_dn[i] += dnWeight;
         }
 
+        // This adds "2m2e" and "2e2m"
         if (!sel_4l[i_].EqualTo("2m2e"))
             i++;
     }
@@ -219,11 +197,11 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/selected_zjets_m-50.root";
     TFile   *dyFile = TFile::Open(inPath);
 
-    float mod = 100;
+    const float MOD = 100;
 
     cout << "Opened " << inPath << endl;
 
-    for (unsigned i = 0; i < M2L; i++)
+    for (unsigned i = 1; i < N2L; i++)
     {
         TTreeReader reader(sel_2l[i] + "_zjets_m-50", dyFile);
 
@@ -237,7 +215,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
 
         // Event loop
 
-        int nEvents = reader.GetEntries(kTRUE) / mod;
+        int nEvents = reader.GetEntries(kTRUE) / MOD;
 
         cout << endl;
         cout << "Running over " << nEvents << " total " << sel_2l[i] << " events" << endl;
@@ -252,13 +230,10 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
             }
 
 
-            // Gen weight
+            // Nominal weight
 
             float genWeight = *genWeight_;
-            sel_2l_gen[i] += genWeight;
-
-            float nomWeight = genWeight;
-
+            float nomWeight = genWeight,    upWeight = genWeight,     dnWeight = genWeight;
 
             if (abs(*l1pdg_) == PDG)
             {
@@ -282,30 +257,24 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
                 }
 
 
-                // Nominal
+                // Calculate event weight variations
+
                 for (unsigned l = 0; l < bins.size(); l++)
-                    nomWeight *= h_nom->GetBinContent(bins[l]);
-
-
-                // Variations
-
-                for (unsigned j = 0; j < N; j++)
                 {
-                    float varWeight = genWeight;
+                    float sf = h_nom->GetBinContent(bins[l]);
+                    float err = h_err->GetBinContent(bins[l]);
 
-                    for (unsigned l = 0; l < bins.size(); l++)
-                        varWeight *= h_smr[j]->GetBinContent(bins[l]);
-
-                    sel_2l_var[i][j] += varWeight;
+                    nomWeight *= sf;
+                    upWeight *= sf + err;
+                    dnWeight *= sf - err;
                 }
             }
-            else
-            {
-                for (unsigned j = 0; j < N; j++)
-                    sel_2l_var[i][j] += nomWeight;
-            }
 
-            sel_2l_nom[i] += nomWeight;
+            sel_2l_gen[i] += genWeight;     sel_2l_nom[i] += nomWeight;
+            sel_2l_up[i] += upWeight;       sel_2l_dn[i] += dnWeight;
+
+            sel_2l_gen[0] += genWeight;     sel_2l_nom[0] += nomWeight;
+            sel_2l_up[0] += upWeight;       sel_2l_dn[0] += dnWeight;
         }
     }
     dyFile->Close();
@@ -319,42 +288,40 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
 
     cout << setprecision(16) << endl;
 
-//  float   sf_4l = XSEC[ZZ] / NGEN[ZZ],        sf_2l = XSEC[DY] / NGEN[DY] * mod;
-
     cout << "%\t" << "Efficiency" << "\t\t\t" << "4l" << "\t\t\t" << "4m";
     cout << "\t\t\t" << "2m2e" << "\t\t\t" << "4e" << endl << endl;
 
     cout << "eff_4l_nom = [" << endl;
-    for (unsigned i = 0; i < M4L; i++)
+    for (unsigned i = 0; i < N4L; i++)
         cout << "\t" << sel_4l_gen[i] / sel_4l_nom[i];
     cout << endl << "\t" << "];" << endl << endl;
 
-    cout << "eff_4l_var = [" << endl;
-    for (unsigned j = 0; j < N; j++)
-    {
-        for (unsigned i = 0; i < M4L; i++)
-            cout << "\t" << sel_4l_gen[i] / sel_4l_var[i][j];
-        cout << endl;
-    }
-    cout << "\t" << "];" << endl << endl << endl;
+    cout << "eff_4l_up = [" << endl;
+    for (unsigned i = 0; i < N4L; i++)
+        cout << "\t" << sel_4l_gen[i] / sel_4l_up[i];
+    cout << endl << "\t" << "];" << endl << endl;
+
+    cout << "eff_4l_dn = [" << endl;
+    for (unsigned i = 0; i < N4L; i++)
+        cout << "\t" << sel_4l_gen[i] / sel_4l_dn[i];
+    cout << endl << "\t" << "];" << endl << endl;
 
 
-    cout << "%\t" << "Efficiency" << "\t\t\t" << "mumu" << "\t\t\t" << "ee" << endl << endl;
+    cout << "%\t" << "Efficiency" << "\t\t\t" << "ll" << "\t\t\t";
+    cout << "mumu" << "\t\t\t" << "ee" << endl << endl;
 
     cout << "eff_2l_nom = [" << endl;
-    cout << "\t" << (sel_2l_gen[0] + sel_2l_gen[1]) / (sel_2l_nom[0] + sel_2l_nom[1]);
-    for (unsigned i = 0; i < M2L; i++)
+    for (unsigned i = 0; i < N2L; i++)
         cout << "\t" << sel_2l_gen[i] / sel_2l_nom[i];
     cout << endl << "\t" << "];" << endl << endl;
 
-    cout << "eff_2l_var = [" << endl;
-    for (unsigned j = 0; j < N; j++)
-    {
-        cout << "\t" << (sel_2l_gen[0] + sel_2l_gen[1]) / (sel_2l_var[0][j] + sel_2l_var[1][j]);
+    cout << "eff_2l_up = [" << endl;
+    for (unsigned i = 0; i < N2L; i++)
+        cout << "\t" << sel_2l_gen[i] / sel_2l_up[i];
+    cout << endl << "\t" << "];" << endl << endl;
 
-        for (unsigned i = 0; i < M2L; i++)
-            cout << "\t" << sel_2l_gen[i] / sel_2l_var[i][j];
-        cout << endl;
-    }
-    cout << "\t" << "];" << endl;
+    cout << "eff_2l_dn = [" << endl;
+    for (unsigned i = 0; i < N2L; i++)
+        cout << "\t" << sel_2l_gen[i] / sel_2l_dn[i];
+    cout << endl << "\t" << "];" << endl << endl;
 }

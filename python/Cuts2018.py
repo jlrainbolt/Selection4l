@@ -16,19 +16,19 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 ##  SYSTEMATICS
 ##
 
-#F_NR = 0.04
-#BF_LL = 0.033658 * 2
+F_NR = 0.04
+BF_LL = 0.033658 * 2
 #CAP_K = 4.64972283e-10
-#GAMMA_Z = 2.4952e6
+GAMMA_Z = 2.4952e6
 
-#mu_id = {   "4l":0.0047,    "4m":0.0068,    "2m2e":0.0035,  "4e":0.0006 }
-#el_id = {   "4l":0.0051,    "4m":0.0015,    "2m2e":0.0083,  "4e":0.0183 }
-#el_reco = { "4l":0.0118,    "4m":0.0012,    "2m2e":0.0183,  "4e":0.0432 }
-#mu_pt = {   "4l":0.0015,    "4m":0.0014,    "2m2e":0.0022,  "4e":0.0002 }
-#el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+mu_id = {   "4l":0.0047,    "4m":0.0068,    "2m2e":0.0035,  "4e":0.0006 }
+el_id = {   "4l":0.0051,    "4m":0.0015,    "2m2e":0.0083,  "4e":0.0183 }
+el_reco = { "4l":0.0118,    "4m":0.0012,    "2m2e":0.0183,  "4e":0.0432 }
+mu_pt = {   "4l":0.0015,    "4m":0.0014,    "2m2e":0.0022,  "4e":0.0002 }
+el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
 
-#npt     = { "4l":17.58,     "4m":9.59,      "2m2e":6.54,    "4e":1.45,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
-#npt_unc = { "4l":4.36,      "4m":3.16,      "2m2e":2.65,    "4e":1.42,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
+npt     = { "4l":34.51,     "4m":22.10,     "2m2e":13.33,   "4e":0.91,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
+npt_unc = { "4l":6.09,      "4m":4.80,      "2m2e":3.74,    "4e":1.02,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
 
 
 
@@ -39,65 +39,64 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 # Muon trigger lumi doesn't include 2018B
 MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 58.83, 58.83, 1
+LUMI_UNC = .0025;
 SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
 # Event numbers from TotalEvents histogram in "selected" ntuples (bin1 - 2*bin10)
-# OUTDATED
 NGEN_ZZ_4L,         XSEC_ZZ_4L          =   6622242,        1.256      #1.212
 NGEN_ZJETS_M50,     XSEC_ZJETS_M50      =   100114403,      5765.4    #6225.43
-NGEN_ZJETS_M10,     XSEC_ZJETS_M10      =   39505301,       71310
-NGEN_TTBAR,         XSEC_TTBAR          =   57584555,       831.76 / 2
-NGEN_TT_2L2NU,      XSEC_TT_2L2NU       =   8926992,        87.31 / 2
-NGEN_TTZ_2L2NU,     XSEC_TTZ_2L2NU      =   3570720,        0.2529
-NGEN_WW_2L2NU,      XSEC_WW_2L2NU       =   1992522,        12.178
-NGEN_WZ_2L2Q,       XSEC_WZ_2L2Q        =   16664610,       5.595
-NGEN_WZ_3LNU,       XSEC_WZ_3LNU        =   6887413,        4.42965
-NGEN_ZZ_2L2NU,      XSEC_ZZ_2L2NU       =   8733658,        0.564
-NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        =   17768294,       3.22
-NGEN_WWZ_4L2NU,     XSEC_WWZ_4L2NU      =   1707572,        0.1651
-NGEN_WZZ_4L2NU,     XSEC_WZZ_4L2NU      =   1690058,        0.05565
-NGEN_ZZZ_4L2NU,     XSEC_ZZZ_4L2NU      =   1673322,        0.01398
-NGEN_ZZG_4L2NU,     XSEC_ZZG_4L2NU      =   1455362,        0.01398
-NGEN_GGH_ZZ_4L,     XSEC_GGH_ZZ_4L      =   955384,         0.01212
-NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     =   984662,         0.001034
+NGEN_TTBAR,         XSEC_TTBAR          =   53887126,       831.76 / 2
+NGEN_TT_2L2NU,      XSEC_TT_2L2NU       =   63791484,       87.31 / 2
+NGEN_TTZ_2L2NU,     XSEC_TTZ_2L2NU      =   6274046,        0.2529
+NGEN_WW_2L2NU,      XSEC_WW_2L2NU       =   7729266,        12.178
+NGEN_WZ_2L2Q,       XSEC_WZ_2L2Q        =   17048434,       5.595
+NGEN_WZ_3LNU,       XSEC_WZ_3LNU        =   6739437,        4.42965
+NGEN_ZZ_2L2NU,      XSEC_ZZ_2L2NU       =   8371752,        0.564
+NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        =   17815223,       3.22
+NGEN_WWZ_4L2NU,     XSEC_WWZ_4L2NU      =   1692397,        0.1651
+NGEN_WZZ_4L2NU,     XSEC_WZZ_4L2NU      =   1722646,        0.05565
+NGEN_ZZZ_4L2NU,     XSEC_ZZZ_4L2NU      =   1639163,        0.01398
+NGEN_ZZG_4L2NU,     XSEC_ZZG_4L2NU      =   1527024,        0.01398
+NGEN_GGH_ZZ_4L,     XSEC_GGH_ZZ_4L      =   948128,         0.01212
+NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     =   499348,         0.001034
 
-N_MC = 2 #16
-#N_DY = 9
+N_MC = 16
+N_DY = 10
 
 MC_SUFF = [ "zz_4l",            "zjets_m-50",
-#           "ttbar",            "tt_2l2nu",         "ttz_2l2nu",        "ww_2l2nu",
-#           "wz_2l2q",          "wz_3lnu",          "zz_2l2nu",         "zz_2l2q",
-#           "wwz_4l2nu",        "wzz_4l2nu",        "zzz_4l2nu",        "zzg_4l2nu",
-#           "ggH_zz_4l",        "vbfH_zz_4l",
+            "ttbar",            "tt_2l2nu",         "ttz_2l2nu",        "ww_2l2nu",
+            "wz_2l2q",          "wz_3lnu",          "zz_2l2nu",         "zz_2l2q",
+            "wwz_4l2nu",        "wzz_4l2nu",        "zzz_4l2nu",        "zzg_4l2nu",
+            "ggH_zz_4l",        "vbfH_zz_4l",
             ]
 
 NGEN_   = [ NGEN_ZZ_4L,         NGEN_ZJETS_M50,
-#           NGEN_TTBAR,         NGEN_TT_2L2NU,      NGEN_TTZ_2L2NU,     NGEN_WW_2L2NU,
-#           NGEN_WZ_2L2Q,       NGEN_WZ_3LNU,       NGEN_ZZ_2L2NU,      NGEN_ZZ_2L2Q,
-#           NGEN_WWZ_4L2NU,     NGEN_WZZ_4L2NU,     NGEN_ZZZ_4L2NU,     NGEN_ZZG_4L2NU,
-#           NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,
+            NGEN_TTBAR,         NGEN_TT_2L2NU,      NGEN_TTZ_2L2NU,     NGEN_WW_2L2NU,
+            NGEN_WZ_2L2Q,       NGEN_WZ_3LNU,       NGEN_ZZ_2L2NU,      NGEN_ZZ_2L2Q,
+            NGEN_WWZ_4L2NU,     NGEN_WZZ_4L2NU,     NGEN_ZZZ_4L2NU,     NGEN_ZZG_4L2NU,
+            NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,
             ]
 
 XSEC_   = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,
-#           XSEC_TTBAR,         XSEC_TT_2L2NU,      XSEC_TTZ_2L2NU,     XSEC_WW_2L2NU,
-#           XSEC_WZ_2L2Q,       XSEC_WZ_3LNU,       XSEC_ZZ_2L2NU,      XSEC_ZZ_2L2Q,
-#           XSEC_WWZ_4L2NU,     XSEC_WZZ_4L2NU,     XSEC_ZZZ_4L2NU,     XSEC_ZZG_4L2NU,
-#           XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,
+            XSEC_TTBAR,         XSEC_TT_2L2NU,      XSEC_TTZ_2L2NU,     XSEC_WW_2L2NU,
+            XSEC_WZ_2L2Q,       XSEC_WZ_3LNU,       XSEC_ZZ_2L2NU,      XSEC_ZZ_2L2Q,
+            XSEC_WWZ_4L2NU,     XSEC_WZZ_4L2NU,     XSEC_ZZZ_4L2NU,     XSEC_ZZG_4L2NU,
+            XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,
             ]
 
 COLOR_  = [ lLightBlue,         lYellow,
-#           lGreen,             lGreen,             lGreen,             lOrange,
-#           lOrange,            lOrange,            lOrange,            lOrange,
-#           lRed,               lRed,               lRed,               lRed,
-#           lPurple,            lPurple,
+            lGreen,             lGreen,             lGreen,             lOrange,
+            lOrange,            lOrange,            lOrange,            lOrange,
+            lRed,               lRed,               lRed,               lRed,
+            lPurple,            lPurple,
             ]
 
 MC_TEX_ = [ r"$\ZZtofL$",       r"$\ZtoLL$",
-#           r"$\ttbar$",        r"$\TTtoLLNuNu$",   r"$\TTZtoLLNuNu$",  r"$\WWtoLLNuNu$",
-#           r"$\WZtoLLQQ$",     r"$\WZtoLLLNu$",    r"$\ZZtoLLNuNu$",   r"$\ZZtoLLQQ$",
-#           r"$\WWZtofLtNu$",   r"$\WZZtofLtNu$",   r"$\ZZZtofLtNu$",   r"$\ZZGtofLtNu$",
-#           r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",
+            r"$\ttbar$",        r"$\TTtoLLNuNu$",   r"$\TTZtoLLNuNu$",  r"$\WWtoLLNuNu$",
+            r"$\WZtoLLQQ$",     r"$\WZtoLLLNu$",    r"$\ZZtoLLNuNu$",   r"$\ZZtoLLQQ$",
+            r"$\WWZtofLtNu$",   r"$\WZZtofLtNu$",   r"$\ZZZtofLtNu$",   r"$\ZZGtofLtNu$",
+            r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",
             ]
 
 NGEN    = dict(zip(MC_SUFF, NGEN_))

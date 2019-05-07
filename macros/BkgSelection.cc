@@ -21,9 +21,10 @@
 #include "SelectionTools.hh"
 
 // Cuts
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -61,7 +62,8 @@ void BkgSelection(const TString suffix, const TString id)
     //  SAMPLE INFO
     //
 
-    const bool isData   = suffix.Contains(YEAR_STR);
+    const bool isData       = suffix.Contains(YEAR_STR);
+    const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
     const unsigned N = 7;   // Channel indices
     unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4, M3 = 5, E3 = 6;
@@ -218,15 +220,12 @@ void BkgSelection(const TString suffix, const TString id)
     // Dilepton Qt reweighting
     TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
     TGraphAsymmErrors *qtGraph[2];
-    if (!YEAR_STR.EqualTo("2012"))
-    {
-        TFile *graphFile = TFile::Open(graphName);
+    TFile *graphFile = TFile::Open(graphName);
 
-        graphFile->GetObject("ee_weight",   qtGraph[0]);    // ee: muonPairLeads = 0
-        graphFile->GetObject("mumu_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
+    graphFile->GetObject("ee_weight",   qtGraph[0]);    // ee: muonPairLeads = 0
+    graphFile->GetObject("mumu_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
 
-        graphFile->Close();
-    }
+    graphFile->Close();
 
 
 
@@ -745,7 +744,7 @@ void BkgSelection(const TString suffix, const TString id)
 
         zzp4 = z1.p4 + z2.p4;
         unsigned Q  = muonPairLeads;
-        if (!isData && !YEAR_STR.EqualTo("2012"))
+        if (isDrellYan)
             qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
         idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;

@@ -10,9 +10,10 @@
 #include "TH1.h"
 
 // Custom
-//#include "Cuts2016.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -67,22 +68,22 @@ void DrawDists4l(const TString suffix, const TString year)
         make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       20,     0,      100),
 
         make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       16,     12,     92),
-        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       20,     0,      120),
+        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       16,     0,      100),
 
-        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       16,     4,      36),
-        make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       20,     0,      60),
+        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      36),
+        make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       10,     0,      60),
 
-        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       24,     0,      120),
-        make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     20,     -2.5,   2.5),
+        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       20,     0,      100),
+        make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       24,     0,      60),
-        make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     20,     -2.5,   2.5),
+        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       20,     0,      100),
+        make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       20,     1,      41),
-        make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     20,     -2.5,   2.5),
+        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       20,     0,      100),
+        make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       25,     0,      25),
-        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     20,     -2.5,   2.5),
+        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       20,     0,      100),
+        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5),
  
         // Z rest frame kinematics                                                
         make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
@@ -115,6 +116,7 @@ void DrawDists4l(const TString suffix, const TString year)
     //  INPUT FILE
     //
 
+//  TString inName  = "boosted_bkg_" + suffix + ".root";
     TString inName  = "boosted_" + suffix + ".root";
     TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);

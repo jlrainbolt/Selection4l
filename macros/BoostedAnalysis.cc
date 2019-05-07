@@ -20,9 +20,10 @@
 #include "LeptonPair.hh"
 
 // Cuts
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -44,7 +45,10 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     //  SAMPLE INFO
     //
 
-    const bool isData = suffix.Contains(YEAR_STR);
+    const bool isData       = suffix.Contains(YEAR_STR);
+    const bool isSignal     = suffix.EqualTo("zz_4l") || suffix.EqualTo("zz_4m") 
+                                || suffix.EqualTo("zz_2m2e") || suffix.EqualTo("zz_4e");
+    const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
     const unsigned N = 5;
     unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
@@ -117,7 +121,9 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
         tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
         tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
-        tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
+        tree[i]->Branch("channel",      &channel);
+        if (isSignal || isDrellYan)
+            tree[i]->Branch("hasTauDecay",  &hasTauDecay);
 
         tree[i]->Branch("psi",              &psi);      tree[i]->Branch("phi",          &phi);
         tree[i]->Branch("sin_phi",          &sin_phi);  tree[i]->Branch("cos_phi",      &cos_phi);
@@ -268,7 +274,8 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
             nPV         = *nPV_;        weight      = *weight_;     genWeight   = *genWeight_;
             qtWeight    = *qtWeight_;   puWeight    = *puWeight_;   ecalWeight  = *ecalWeight_;
             trigWeight  = *trigWeight_; idWeight    = *idWeight_;   recoWeight  = *recoWeight_;
-            channel     = *channel_;    hasTauDecay = *hasTauDecay_;
+            channel     = *channel_;
+            hasTauDecay = *hasTauDecay_;
 
             zzp4        = *zzp4_;                  
             z1p4        = *z1p4_;       z1pdg       = *z1pdg_;

@@ -7,7 +7,7 @@ import numpy as np
 from ROOT import TFile, TH1
 
 from PlotUtils import *
-from Cuts2012 import *
+from Cuts2018 import *
 
 
 
@@ -181,11 +181,11 @@ for h in range(H):
         data[h]['4l'].Rebin(2)
         data[h]['4m'].Rebin(2)
         data[h]['2m2e'].Rebin(2)
-    elif hnames[h] == "zzpt":
-        data[h]['4e'].Rebin(2)
-        data[h]['4l'].Rebin(2)
-        data[h]['4m'].Rebin(2)
-        data[h]['2m2e'].Rebin(2)
+#   elif hnames[h] == "zzpt":
+#       data[h]['4e'].Rebin(2)
+#       data[h]['4l'].Rebin(2)
+#       data[h]['4m'].Rebin(2)
+#       data[h]['2m2e'].Rebin(2)
 
     for suff in MC_SUFF:
         if suff in ["ttbar", "tt_2l2nu"]:
@@ -340,9 +340,17 @@ for sel in selection:
         ##
 
         # Titles
-        ax_top.text(    0.025,  0.95,
-                r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-                verticalalignment = 'top', transform = ax_top.transAxes)
+#       ax_top.text(    0.025,  0.95,
+#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
+#               verticalalignment = 'top', transform = ax_top.transAxes)
+        ax_top.text(0.025,  0.95,   "CMS",
+                size = "xx-large",  weight = "bold",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
+        ax_top.text(0.025,  0.875,  "Work in Progress",
+                size = "x-large",   style = "italic",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.set_title(r'\Large{' + '%.1f' % MUON_TRIG_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S
                 + r'\,TeV, ' + YEAR_STR + ')}', loc='right')
 
@@ -438,14 +446,14 @@ for sel in selection:
         ax_top.legend(
                 (   p_data,
                     p_mc['zz_4l'],          p_mc['zjets_m-50'], p_mc['ww_2l2nu'],
-#                   p_mc['zzz_4l2nu'],
-#                   p_mc['ggH_zz_4l'],  
+                    p_mc['zzz_4l2nu'],
+                    p_mc['ggH_zz_4l'],  
                     p_mc['ttz_2l2nu']
                     ),
                 (   r'Data',
                     r'$\mbox{Z}\to4\ell$',  r'Nonprompt',       r'VV',
-#                   r'VVV',
-#                   r'H',
+                    r'VVV',
+                    r'H',
                     r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$' 
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False#, bbox_to_anchor = bbox

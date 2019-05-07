@@ -45,7 +45,7 @@ using namespace std;
 */
 
 void RecoSelection( const TString suffix,           const TString id,
-                    const TString systematics = "", const TString idH = "")
+                    const TString systematics = "", const TString var = "")
 {
 
 
@@ -58,15 +58,17 @@ void RecoSelection( const TString suffix,           const TString id,
     int  printEvery = 30000;
 
     // Systematics toggle
-    const bool smearMuonID = systematics.EqualTo("muonID");
-    const bool smearElecID = systematics.EqualTo("electronID");
-    const bool smearElecReco = systematics.EqualTo("electronReco");
     const bool smearMuonPt = systematics.EqualTo("muonPt");
     const bool smearElecPt = systematics.EqualTo("electronPt");
-
     const bool allowUntriggered = systematics.EqualTo("triggerEff");
 
-    const bool systOn = allowUntriggered || smearMuonID || smearElecID || smearElecReco || smearMuonPt || smearElecPt;
+    const bool systOn = allowUntriggered || smearMuonPt || smearElecPt;
+
+    if ((smearMuonPt || smearElecPt) && !var.EqualTo("Up") && !var.EqualTo("Down"))
+    {
+        cout << "Incorrect value for \"var\"" << endl;
+        return;
+    }
 
 
 
@@ -75,13 +77,9 @@ void RecoSelection( const TString suffix,           const TString id,
     //
 
     const bool isData       = suffix.Contains(YEAR_STR);
-/*
-    const bool isSignal     = suffix.EqualTo("zz_4l") || suffix.EqualTo("zz_4m") 
-                                || suffix.EqualTo("zz_2m2e") || suffix.EqualTo("zz_4e");
+
+    const bool isSignal     = suffix.EqualTo("zz_4l");
     const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
-*/
-    const bool isDrellYan = kFALSE;
-    const bool isSignal = kFALSE;
 
     const unsigned N = 8;   // Channel indices
     unsigned                   LL = 0, MM = 1, EE = 2, L4 = 3, M4 = 4, ME = 5, EM = 6, E4 = 7;
@@ -103,7 +101,7 @@ void RecoSelection( const TString suffix,           const TString id,
     //  FILE
     //
 
-    TString prefix  = systOn ? systematics + idH : "selected";
+    TString prefix  = systOn ? systematics + var : "selected";
     TString outName = prefix + "_" + suffix + "_" + id + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -122,9 +120,9 @@ void RecoSelection( const TString suffix,           const TString id,
     UShort_t            nPV;
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
     Float_t             trigWeight, idWeight,   recoWeight;
-    UInt_t              channel;
-    Bool_t              failedSameSignDiv,      failedAnySignDiv;
     Bool_t              muonTrig,   elecTrig,   hasTauDecay;
+    Float_t             nPU,        ecalWeightUp,   ecalWeightDown;
+    UInt_t              channel;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
@@ -172,13 +170,13 @@ void RecoSelection( const TString suffix,           const TString id,
             tree[i]->Branch("evtElectronTriggered", &elecTrig);
         }
 
-        if (i >= L4)
-        {
-            tree[i]->Branch("failedSameSignDiv",    &failedSameSignDiv);
-            tree[i]->Branch("failedAnySignDiv",     &failedAnySignDiv);
-        }
         if (isSignal || isDrellYan)
+        {
             tree[i]->Branch("hasTauDecay",          &hasTauDecay);
+            tree[i]->Branch("nPU",                  &nPU);
+            tree[i]->Branch("ecalWeightUp",         &ecalWeightUp);
+            tree[i]->Branch("ecalWeightDown",       &ecalWeightDown);
+        }
 
         if (i >= L4) {  tree[i]->Branch("zzp4", &zzp4);}
                         tree[i]->Branch("z1p4", &z1p4);     tree[i]->Branch("z1pdg",    &z1pdg);
@@ -274,6 +272,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     TTreeReaderArray    <TLorentzVector>    muonP4_         (reader,    "muonP4");
     TTreeReaderArray    <TLorentzVector>    muonUncorrP4_   (reader,    "muonUncorrectedP4");
+    TTreeReaderValue    <vector<Float_t>>   muonEnergySF_   (reader,    "muonEnergySF" + var);
     TTreeReaderValue    <vector<Short_t>>   muonQ_          (reader,    "muonQ");
     TTreeReaderValue    <vector<Float_t>>   muonIso_        (reader,    "muonIsolation");
     TTreeReaderValue    <vector<Bool_t>>    muonIsTight_    (reader,    "muonIsTight");
@@ -287,6 +286,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     TTreeReaderArray    <TLorentzVector>    elecP4_         (reader,    "electronP4");
     TTreeReaderArray    <TLorentzVector>    elecUncorrP4_   (reader,    "electronUncorrectedP4");
+    TTreeReaderValue    <vector<Float_t>>   elecEnergySF_   (reader,    "electronEnergySF" + var);
     TTreeReaderValue    <vector<Short_t>>   elecQ_          (reader,    "electronQ");
     TTreeReaderValue    <vector<Float_t>>   elecIso_        (reader,    "electronIsolation");
     TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTight");
@@ -313,6 +313,9 @@ void RecoSelection( const TString suffix,           const TString id,
         inFile->GetObject("tree_" + suffix, inTree);
 
         inTree->SetBranchAddress(   "hasTauDecay",                  &hasTauDecay);
+        inTree->SetBranchAddress(   "nPU",                          &nPU);
+        inTree->SetBranchAddress(   "ECALWeightUp",                 &ecalWeightUp);
+        inTree->SetBranchAddress(   "ECALWeightDown",               &ecalWeightDown);
     }
 
     if (isSignal && !systOn)
@@ -353,33 +356,17 @@ void RecoSelection( const TString suffix,           const TString id,
     //  DATA
     //
 
-    //FIXME for 8 TeV, 2018
-
     // Dilepton Qt reweighting
     TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
 
     TGraphAsymmErrors *qtGraph[2];
-/*
+
     TFile *graphFile = TFile::Open(graphName);
     graphFile->GetObject(selection[EE] + "_weight", qtGraph[0]);    // ee: muonPairLeads = 0
     graphFile->GetObject(selection[MM] + "_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
 
     graphFile->Close();
-*/
-/*
-    // Systematics
-    TH2 *hSystematics;
-    if (systOn)
-    {
-        TString histName = "../data/" + systematics + "_smear_" + YEAR_STR + ".root";
-        TFile *histFile = TFile::Open(histName);
 
-        cout << "Opened " << histName << endl;
-
-        histFile->GetObject("SMEAR" + idH, hSystematics);
-        hSystematics->SetDirectory(0);
-    }
-*/
 
 
     //
@@ -453,8 +440,6 @@ void RecoSelection( const TString suffix,           const TString id,
         //  EVENT INFO
         //
 
-        failedAnySignDiv    = kFALSE;               failedSameSignDiv   = kFALSE;
-
         // Quantities copied directly to output tree
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
         genWeight   = *genWeight_;      qtWeight    = 1;                ecalWeight  = *ecalWeight_;
@@ -494,51 +479,6 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
 
-        //
-        //  SYSTEMATICS
-        //
-/*
-        // Get smudge factors from histograms and apply them before creating objects
-        if (systOn)
-        {
-            if      (smearMuonID)
-            {
-                for (unsigned i = 0; i < nMuons; i++)
-                {
-                    TLorentzVector p4 = muonP4_.At(i);
-                    int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
-                    (*muonIDSF_)[i] += hSystematics->GetBinContent(bin);
-                }
-            }
-            else if (smearElecID || smearElecReco) 
-            {
-                for (unsigned i = 0; i < nElecs; i++)
-                {
-                    TLorentzVector p4 = elecP4_.At(i);
-                    int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
-                    (*elecIDSF_)[i] += hSystematics->GetBinContent(bin);
-                }
-            }
-            else if (smearMuonPt)
-            {
-                inTree->GetEntry(currentEntry);
-
-                for (unsigned i = 0; i < nMuons; i++)
-                {
-                    TLorentzVector p4 = muonP4_.At(i);
-                    int bin = hSystematics->FindBin(p4.Eta(), p4.Pt());
-                    (*muonEnergySF_)[i] *= 1 + hSystematics->GetBinContent(bin);
-                }
-            }
-            else if (smearElecPt)
-            {
-                for (unsigned i = 0; i < nElecs; i++)
-                    (*elecEnergySF_)[i] *= 1 + ELEC_PT_SHIFT;
-            }
-        }
-*/
-
-
 
 
         ////
@@ -572,6 +512,16 @@ void RecoSelection( const TString suffix,           const TString id,
             muon.te_data    = make_pair((*muonEffL1Data_)[i],   (*muonEffL2Data_)[i]);
             muon.te_mc      = make_pair((*muonEffL1MC_)[i],     (*muonEffL2MC_)[i]);
 
+
+            // Correct energy (if necessary)
+
+            if (smearMuonPt)
+            {
+                float corrPt = muon.u_p4.Pt() * (*muonEnergySF_)[i];
+                muon.p4.SetPtEtaPhiM(corrPt, muon.u_p4.Eta(), muon.u_p4.Phi(), muon.u_p4.M());
+            }
+
+
             muons.push_back(muon);
         }
 
@@ -599,6 +549,11 @@ void RecoSelection( const TString suffix,           const TString id,
             elec.fired      = make_pair((*elecFiredLeg1_)[i],   (*elecFiredLeg2_)[i]);
             elec.te_data    = make_pair((*elecEffL1Data_)[i],   (*elecEffL2Data_)[i]);
             elec.te_mc      = make_pair((*elecEffL1MC_)[i],     (*elecEffL2MC_)[i]);
+
+
+            // Correct energy (if necessary)
+            if (smearElecPt)
+                elec.p4 = elec.u_p4 * (*elecEnergySF_)[i];
 
             elecs.push_back(elec);
         }
@@ -661,15 +616,10 @@ void RecoSelection( const TString suffix,           const TString id,
             {
                 TLorentzVector dilep_p4 = muons[i].p4 + muons[j].p4;
 
-                if (dilep_p4.M() < MLL_MIN) // failed divergence
+                if ((muons[i].q != muons[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
                 {
-                    failedAnySignDiv = kTRUE;
-
-                    if (muons[i].q != muons[j].q)
-                    {
-                        failedDivCut = kTRUE;
-                        goto exitloops;
-                    }
+                    failedDivCut = kTRUE;
+                    goto exitloops;
                 }
                 if (muons[i].p4.DeltaR(muons[j].p4) < SF_DR_MIN)    // failed same-flavor DeltaR
                 {
@@ -687,15 +637,10 @@ void RecoSelection( const TString suffix,           const TString id,
             {
                 TLorentzVector dilep_p4 = elecs[i].p4 + elecs[j].p4;
 
-                if (dilep_p4.M() < MLL_MIN) // failed divergence
+                if ((elecs[i].q != elecs[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
                 {
-                    failedAnySignDiv = kTRUE;
-
-                    if (elecs[i].q != elecs[j].q)
-                    {
-                        failedDivCut = kTRUE;
-                        goto exitloops;
-                    }
+                    failedDivCut = kTRUE;
+                    goto exitloops;
                 }
                 if (elecs[i].p4.DeltaR(elecs[j].p4) < SF_DR_MIN)    // failed same-flavor DeltaR
                 {
@@ -713,13 +658,6 @@ void RecoSelection( const TString suffix,           const TString id,
             {
                 TLorentzVector dilep_p4 = elecs[i].p4 + muons[j].p4;
 
-                if (dilep_p4.M() < MLL_MIN) // failed divergence
-                {
-                    failedAnySignDiv = kTRUE;
-
-                    if (elecs[i].q != muons[j].q)
-                        failedAnySignDiv = kTRUE;
-                }
                 if (elecs[i].p4.DeltaR(muons[j].p4) < OF_DR_MIN)    // failed opp-flavor DeltaR
                 {
                     ghostBusted = kTRUE;
@@ -918,7 +856,7 @@ void RecoSelection( const TString suffix,           const TString id,
             //
 
             unsigned Q  = muonPairLeads;
-            if (!isData && !YEAR_STR.EqualTo("2012") && !YEAR_STR.EqualTo("2018"))
+            if (isDrellYan)
                 qtWeight = qtGraph[Q]->Eval(z1.p4.Pt());
 
             trigWeight  = GetTriggerWeight(z1.GetMembers());
@@ -1043,7 +981,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
             TLorentzVector zzp4 = z1.p4 + z2.p4;
             unsigned Q  = muonPairLeads;
-            if (!isData && !YEAR_STR.EqualTo("2012") && !YEAR_STR.EqualTo("2018"))
+            if (isDrellYan)
                 qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
             idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
@@ -1121,8 +1059,6 @@ void RecoSelection( const TString suffix,           const TString id,
         }
         if (isSignal || isDrellYan)
             inTree->GetEntry(currentEntry);
-        else
-            hasTauDecay = kFALSE;
 
  
         // Histograms
@@ -1178,10 +1114,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     hTotalEvents->Write();
     hSelectedEvents->Write();
-/*
-    if (systOn)
-        hSystematics->Write();
-*/
+
     outFile->Purge();
     outFile->Close();
     inFile->Close();

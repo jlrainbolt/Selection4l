@@ -7,10 +7,10 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -18,8 +18,7 @@ from Cuts2018 import *
 ##  SAMPLE INFO
 ##
 
-#selection = ["mumu", "ee"]
-selection = ["mumu"]
+selection = ["mumu", "ee"]
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
@@ -43,9 +42,9 @@ muFile = TFile(muName, "READ")
 print("Opened", muName)
 
 # Electron file
-#elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
-#elFile = TFile(elName, "READ")
-#print("Opened", elName)
+elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
+elFile = TFile(elName, "READ")
+print("Opened", elName)
 
 
 # Get keys
@@ -54,7 +53,7 @@ print("Opened", muName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-hnames = ["z1m", "z1pt", "l1pt", "l2pt", "l1eta", "l2eta"]#, "dphi", "z1y", "nPV"]
+hnames = ["z1m", "z1pt", "l1pt", "l2pt", "l1eta", "l2eta", "dphi"]
 H = len(hnames)
 
 
@@ -64,7 +63,7 @@ h = 0
 
 for hname in hnames:
     data[h]['mumu'] = muFile.Get("mumu/" + hname + "_" + MU_SUFF)
-#   data[h]['ee']   = elFile.Get("ee/" + hname + "_" + EL_SUFF)
+    data[h]['ee']   = elFile.Get("ee/" + hname + "_" + EL_SUFF)
 
     for sel in selection:
         data[h][sel].SetDirectory(0)
@@ -72,7 +71,7 @@ for hname in hnames:
     h = h + 1
 
 muFile.Close()
-#elFile.Close()
+elFile.Close()
 print("Got data histograms")
 print("")
 
@@ -244,9 +243,18 @@ for sel in selection:
         ##
 
         # Titles
-        ax_top.text(    0.025,  0.95,
-                r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-                verticalalignment = 'top', transform = ax_top.transAxes)
+#       ax_top.text(    0.025,  0.95,
+#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
+#               verticalalignment = 'top', transform = ax_top.transAxes)
+        ax_top.text(0.025,  0.95,   "CMS",
+                size = "xx-large",  weight = "bold",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
+        ax_top.text(0.025,  0.875,  "Work in Progress",
+                size = "x-large",   style = "italic",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
+
         ax_top.set_title(r'\Large{' + '%.1f' % lumi + r'\,fb$^{-1}$ (' + '%i' % SQRT_S 
                 + r'\,TeV, ' + YEAR_STR + ')}', loc='right')
 
@@ -263,8 +271,6 @@ for sel in selection:
 
         # Shared x axis
         xtitle = '$' + mc['zjets_m-50'][h][sel].GetXaxis().GetTitle() + '$'
-        if "Delta" in xtitle:
-            xtitle = xtitle.replace("Delta", "triangle")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 
@@ -319,16 +325,16 @@ for sel in selection:
             leg_ncol = 1
 
         handles = [ p_data,     p_mc['zjets_m-50'],                 p_mc['zz_4l'],
-#                               p_mc['ttbar'],                      p_mc['ww_2l2nu']
+                                p_mc['ttbar'],                      p_mc['ww_2l2nu'],
                     ]
         labels = [  r'Data',    r'$\mbox{Z}\to\ell^+\ell^-$',       r'$\mbox{ZZ}\to4\ell$',
-#                               r'$\mbox{t}\bar{\mbox{t}}$(V)',     r'VV'
+                                r'$\mbox{t}\bar{\mbox{t}}$(V)',     r'VV',
                     ]
 
         if year == "2016":
             handles.append(p_mc['ggH_zz_4l'])
             labels.append(r'H')
-        if year == "2017":
+        if year in ["2017", "2018"]:
             handles.append(p_mc['zzz_4l2nu'])
             labels.append(r'VVV')
             handles.append(p_mc['ggH_zz_4l'])

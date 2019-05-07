@@ -7,9 +7,10 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
+from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 
@@ -55,10 +56,10 @@ print("Opened", elName)
 #for key in keyDir.GetListOfKeys():
 #    hname = key.GetName()
 #    hnames.append(hname.replace("_" + MU_SUFF, ""))
-#hnames = ["zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt"]
+hnames = ["zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt"]
 #hnames = ["sin_phi", "sin_phi_2"]
-hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
-            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
+#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
+#            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 if doBkg:
     hnames = ["zzm", "zzpt", "z1m", "z1pt", "z2m", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]

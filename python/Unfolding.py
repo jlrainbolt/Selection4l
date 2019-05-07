@@ -10,7 +10,8 @@ from scipy.stats import chi2
 from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
-from Cuts2017 import *
+from Cuts2018 import *
+#from Cuts2017 import *
 #from Cuts2016 import *
 
 

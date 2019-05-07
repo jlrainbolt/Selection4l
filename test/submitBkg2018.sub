@@ -1,0 +1,71 @@
+##
+##  Submit RecoSelection job to Condor
+##
+
+executable  = execBkg.sh
+universe    = vanilla
+
+output      = reports/background_$(suffix)_$INT(Step).out
+error       = reports/background_$(suffix)_$INT(Step).err
+log         = reports/background_$(suffix)_$INT(Step).log
+
+should_transfer_files   = YES
+initialdir              = output
+transfer_input_files    = source.tar.gz
+when_to_transfer_output = ON_EXIT
+
+arguments   = "$(suffix) $INT(Step)"
+
+    suffix = muon_2018
+    queue 25
+
+    suffix = electron_2018
+    queue 15
+
+    suffix = zjets_m-50
+    queue 9
+
+    suffix = ttbar
+    queue 2
+
+    suffix = tt_2l2nu
+    queue 5
+
+    suffix = ttz_2l2nu
+    queue 1
+
+    suffix = ww_2l2nu
+    queue 1
+
+    suffix = wz_2l2q
+    queue 2
+
+    suffix = wz_3lnu
+    queue 1
+
+    suffix = zz_2l2nu
+    queue 1
+
+    suffix = zz_2l2q
+    queue 2
+
+    suffix = zz_4l
+    queue 2
+
+    suffix = ggH_zz_4l
+    queue 1
+
+    suffix = vbfH_zz_4l
+    queue 1
+
+    suffix = wwz_4l2nu
+    queue 1
+
+    suffix = wzz_4l2nu
+    queue 1
+
+    suffix = zzz_4l2nu
+    queue 1
+
+    suffix = zzg_4l2nu
+    queue 1

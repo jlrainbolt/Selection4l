@@ -21,10 +21,10 @@ T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
 
 
-#hnames = ["b_ttm", "b_l1p", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
-hnames = ["cos_theta_z1", "cos_theta_z2"]
+hnames = ["b_ttm", "b_l1p", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2"]
 H = len(hnames)
 
+YEAR_STR = "2017"
 
 
 ##
@@ -309,28 +309,45 @@ for sel in ["4l"]:
         ##
 
         # Titles
-        ax_top.text(    0.025,  0.95,
-                r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-                verticalalignment = 'top', transform = ax_top.transAxes, fontname = "Helvetica")
+#       ax_top.text(    0.025,  0.95,
+#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
+#               verticalalignment = 'top', transform = ax_top.transAxes)
+        ax_top.text(0.025,  0.95,   "CMS",
+                size = "xx-large",  weight = "bold",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
+        ax_top.text(0.025,  0.875,  "Work in Progress",
+                size = "x-large",   style = "italic",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.set_title(r'\Large{77.8\,fb$^{-1}$ (13\,TeV, 2016--17)}', loc='right')
 
         # Shared x axis
-        xtitle = '$' + data[h][sel].GetXaxis().GetTitle()
-        xtitle = xtitle.replace(r"\ (", "$ (")
-        xtitle = xtitle.replace(r"\pi \mbox{ rad}", r"$\pi$ rad")
-        xtitle = xtitle.replace("mbox{Z", "mathrm{Z")
+        if hnames[h] == "b_l1p":
+            xtitle = r"$p_{\ell_{1}}$ (GeV)"
+            ytitle = r"$d\Gamma/dp_{\ell_{1}}$ (keV$/$GeV)"
+        elif hnames[h] == "b_ttm":
+            xtitle = r"$m_{\ell_{2,3,4}}$ (GeV)"
+            ytitle = r"$d\Gamma/dm_{\ell_{2,3,4}}$ (keV$/$GeV)"
+        elif hnames[h] == "angle_z1l2_z2":
+            xtitle = r"$\beta$ ($\pi$ rad)"
+            ytitle = r"$d\Gamma/d\beta$ (keV$/\pi$ rad)"
+        elif hnames[h] == "angle_z1leps":
+            xtitle = r"$\alpha_{\mathrm{Z}_{1}}$ ($\pi$ rad)"
+            ytitle = r"$d\Gamma/d\alpha_{\mathrm{Z}_{1}}$ (keV$/\pi$ rad)"
+        elif hnames[h] == "angle_z2leps":
+            xtitle = r"$\alpha_{\mathrm{Z}_{2}}$ ($\pi$ rad)"
+            ytitle = r"$d\Gamma/d\alpha_{\mathrm{Z}_{2}}$ (keV$/\pi$ rad)"
+        elif hnames[h] == "cos_theta_z1":
+            xtitle = r"$\cos\theta_{\mathrm{Z}_{1}}$"
+            ytitle = r"$d\Gamma/d\cos\theta_{\mathrm{Z}_{1}}$ (keV$/$unit)"
+        elif hnames[h] == "cos_theta_z2":
+            xtitle = r"$\cos\theta_{\mathrm{Z}_{2}}$"
+            ytitle = r"$d\Gamma/d\cos\theta_{\mathrm{Z}_{2}}$ (keV$/$unit)"
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 
         # Top y axis
-        ytitle = r'$d\Gamma / d$' + xtitle
-        ytitle = ytitle.replace("(", "(keV$/$" + '%g' % width + r"\ ")
-        ytitle = ytitle.replace("$$", "")
-        ytitle = ytitle.replace(r"\ $", "$")
-        ytitle = ytitle.replace(r"\ ", " ")
-        if hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
-            ytitle = ytitle + r"$ (keV$/$ " + '%g' % width + " units)"
-        ytitle = ytitle.replace("\\\\\\\\", "\\")
         ax_top.set_ylabel(ytitle, horizontalalignment='right')
         if hnames[h] in ["b_ttm", "b_l1p", "angle_z1leps", "angle_z2leps", "cos_theta_z1", "cos_theta_z2"]:
             ax_top.yaxis.set_label_coords(-0.065, 1)
@@ -397,7 +414,7 @@ for sel in ["4l"]:
 
         ax_top.legend(
                 (   p_data,     p_pred, ),
-                (   'Measured', 'Predicted',
+                (   'Measured', 'POWHEG',
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 

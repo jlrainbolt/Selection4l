@@ -39,7 +39,7 @@ elFile = TFile(elName, "READ")
 print("Opened", elName)
 
 
-# Get histograms for 2017
+# Get histograms for 2018
 #hnames = ["zzm"]
 hnames = ["sin_phi"]
 #hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
@@ -68,8 +68,8 @@ muFile.Close()
 elFile.Close()
 
 
-# Add 2016 & 2012
-for year in ["2016", "2012"]:
+# Add 2012, 2016, & 2017
+for year in ["2017", "2016", "2012"]:
     # Muon file
     muName = prefix + "_" + year + "_muon_" + year + ".root"
     muFile = TFile(muName, "READ")
@@ -129,9 +129,9 @@ for suff in MC_SUFF:
         if sel == "4l":
             continue
         elif sel in ["4m", "2m2e"]:
-            lumi = MUON_TRIG_LUMI_2017
+            lumi = MUON_TRIG_LUMI_2018
         elif sel in ["4e", "2e2m"]:
-            lumi = ELEC_TRIG_LUMI_2017 * ELEC_TRIG_SF_2017
+            lumi = ELEC_TRIG_LUMI_2018 * ELEC_TRIG_SF_2018
 
         sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
 
@@ -142,6 +142,34 @@ for suff in MC_SUFF:
 
             h = h + 1
         h = 0
+
+    # Get 2017
+    year = "2017"
+    inName = prefix + "_" + year + "_" + suff + ".root"
+    inFile = TFile.Open(inName)
+    print("Opened", inName)
+
+    # Get histograms
+    for sel in selection:
+        if sel == "4l":
+            continue
+        elif sel in ["4m", "2m2e"]:
+            lumi = MUON_TRIG_LUMI_2017
+        elif sel in ["4e", "2e2m"]:
+            lumi = ELEC_TRIG_LUMI_2017 * ELEC_TRIG_SF_2017
+
+        sf = lumi * 1000 * XSEC_2017[suff] / NGEN_2017[suff]
+
+        for hname in hnames:
+            hist = inFile.Get(sel + "/" + hname + "_" + suff)
+            hist.SetDirectory(0)
+            hist.Scale(sf)
+
+            mc_arr[j][h][sel].Add(hist)
+
+            h = h + 1
+        h = 0
+
 
     if suff in MC_SUFF_2012:
         year = "2012"
@@ -224,7 +252,7 @@ elFile = TFile(elName, "READ")
 print("Opened", elName)
 
 
-# Get histograms for 2017
+# Get histograms for 2018
 h = 0
 for sel in selection:
     if sel == "4l":
@@ -237,7 +265,7 @@ for sel in selection:
             mc['zjets_m-50'][h][sel] = elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR)
 
         mc['zjets_m-50'][h][sel].SetDirectory(0)
-        sf = npt_2017[sel] / mc['zjets_m-50'][h][sel].Integral()
+        sf = npt_2018[sel] / mc['zjets_m-50'][h][sel].Integral()
         mc['zjets_m-50'][h][sel].Scale(sf)
 
         h = h + 1
@@ -247,8 +275,8 @@ muFile.Close()
 elFile.Close()
 
 
-# Add 2016 & 2012
-for year in ["2016", "2012"]:
+# Add 2012, 2016, & 2017
+for year in ["2017", "2016", "2012"]:
     # Muon file
     muName = prefix + "_" + year + "_muon_" + year + ".root"
     muFile = TFile(muName, "READ")
@@ -277,6 +305,8 @@ for year in ["2016", "2012"]:
                 sf = npt_2012[sel] / hist.Integral()
             elif year == "2016":
                 sf = npt_2016[sel] / hist.Integral()
+            elif year == "2017":
+                sf = npt_2017[sel] / hist.Integral()
 
             hist.Scale(sf)
             mc['zjets_m-50'][h][sel].Add(hist)
@@ -418,13 +448,22 @@ for sel in selection:
 
         if hnames[h] == "zzm":
             if sel == "4l":
-                top_max = 200
+                top_max = 325
             elif sel == "4m":
-                top_max = 120
+                top_max = 225
             elif sel == "2m2e":
-                top_max = 70
+                top_max = 100
             elif sel == "4e":
-                top_max = 40
+                top_max = 55
+        elif hnames[h] == "sin_phi":
+            if sel == "4l":
+                top_max = 450
+            elif sel == "4m":
+                top_max = 250
+            elif sel == "2m2e":
+                top_max = 160
+            elif sel == "4e":
+                top_max = 65
 
         ax_top.set_ylim(0, top_max)
 
@@ -449,11 +488,18 @@ for sel in selection:
         ##
 
         # Titles
-        ax_top.text(    0.025,  0.95,
-                r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-                verticalalignment = 'top', transform = ax_top.transAxes)
-#       ax_top.set_title(r'\Large{19.7\,fb$^{-1}$ (8\,TeV) $+$ 77.8\,fb$^{-1}$ (13\,TeV, 2016--17)', loc='right')
-        ax_top.set_title(r'\Large{19.7\,fb$^{-1}$ (8\,TeV) $+$ 77.8\,fb$^{-1}$ (13\,TeV)', loc='right')
+#       ax_top.text(    0.025,  0.95,
+#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
+#               verticalalignment = 'top', transform = ax_top.transAxes)
+        ax_top.text(0.025,  0.95,   "CMS",
+                size = "xx-large",  weight = "bold",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
+        ax_top.text(0.025,  0.875,  "Work in Progress",
+                size = "x-large",   style = "italic",
+#               fontproperties = helvet_bold,
+                verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
+        ax_top.set_title(r'\Large{19.7\,fb$^{-1}$ (8\,TeV) $+$ 137\,fb$^{-1}$ (13\,TeV)', loc='right')
 
         # Top y axis
         unit = '$' + mc['zz_4l'][h][sel].GetYaxis().GetTitle() + '$'
@@ -499,7 +545,7 @@ for sel in selection:
         plt.xlim(v_mc['zz_4l']['x'][0], v_mc['zz_4l']['x'][-1] + width)
 
         major_step, minor_step = 2 * width, width
-        if sel == "4e":
+        if sel == "4e" and hnames[h] == "zzm":
             major_step = width
 
         for ax in [ax_bot.xaxis, ax_top.xaxis]:
@@ -544,7 +590,7 @@ for sel in selection:
                     r'$\mbox{Z}\to4\ell$',  r'Nonprompt',       r'VV',
                     r'VVV',                 r'H',               r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$' 
                     ),
-                loc = leg_loc, numpoints = 1, frameon = False#, bbox_to_anchor = bbox
+                loc = leg_loc, numpoints = 1, frameon = False, bbox_to_anchor = bbox
             )
 
         fig_name = "comb_" + hnames[h] + "_" + sel + ".pdf"

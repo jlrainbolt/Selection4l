@@ -9,7 +9,8 @@
 #include "TTreeReaderValue.h"
 
 // Cuts
-#include "Cuts2017.hh"
+#include "Cuts2018.hh"
+//#include "Cuts2017.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -119,13 +120,15 @@ void CalculateScales()
 
         for (unsigned j = 0; j < P; j++)
         {
-            gen_4l_pdf[j] += (*pdfWeight_)[j];
+            unsigned j_ = j + 1;
+
+            gen_4l_pdf[j] += (*pdfWeight_)[j_];
 
             if (*isFiducial_)
-                fid_4l_pdf[j] += (*pdfWeight_)[j];
+                fid_4l_pdf[j] += (*pdfWeight_)[j_];
 
             if (reader.GetCurrentEntry() == 0)
-                id_pdf[j] = (*pdfID_)[j];
+                id_pdf[j] = (*pdfID_)[j_];
         }
     }
     zzFile->Close();
@@ -210,10 +213,12 @@ void CalculateScales()
 
         for (unsigned j = 0; j < P; j++)
         {
-            gen_2l_pdf[j] += (*pdfWeight_)[j];
+            unsigned j_ = j + 1;
+
+            gen_2l_pdf[j] += (*pdfWeight_)[j_];
 
             if (*isFiducial_)
-                fid_2l_pdf[j] += (*pdfWeight_)[j];
+                fid_2l_pdf[j] += (*pdfWeight_)[j_];
         }
     }
     dyFile->Close();

@@ -11,8 +11,10 @@
 #include "TGraphAsymmErrors.h"
 
 // Custom
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 #include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -79,11 +81,11 @@ void QtReweighting()
 
     // Binning
 
-    const unsigned  P = 10;
-    float   binwidth[P] = { 1,  2,  5,  10, 20, 50, 100,200,400,1000};
-    int     nbins[P]    = { 10, 5,  4,  2,  2,  2,  2,  1,  1,  1   };
+    const unsigned  P = 8;
+    float   binwidth[P] = { 1,  2,  5,  10, 20, 50, 800,1000};
+    int     nbins[P]    = { 10, 5,  4,  2,  2,  2,  1,  1   };
 
-    const unsigned  M = 29;
+    const unsigned  M = 26;
     double xval = 0, xbins[M+1];
     unsigned k = 0;             // counter for bin index
     for (unsigned i = 0; i < P; i++)    // loop over widths
@@ -174,22 +176,28 @@ void QtReweighting()
     {
         for (unsigned j = 0; j < M; j++)
         {
-            float binContent = data[i]->GetBinContent(j+1) + mc[i]->GetBinContent(j+1);
             int binWidth = ratio[i]->GetBinWidth(j+1); 
 
-            int k = mcGeV[i]->FindBin(mc[i]->GetBinLowEdge(j+1) + 0.5);
+//          if (binWidth < 2)
+                x[i][j] = ratio[i]->GetBinCenter(j+1);
+//          else
+//          {
+                float binContent = data[i]->GetBinContent(j+1) + mc[i]->GetBinContent(j+1);
 
-            // Find 1 GeV bin where center lies
-            for (unsigned l = 0; l <= binWidth; l++)
-            {
-                float tempContent = dataGeV[i]->Integral(k, k+l) + mcGeV[i]->Integral(k, k+l);
+                int k = mcGeV[i]->FindBin(mc[i]->GetBinLowEdge(j+1) + 0.5);
 
-                if (tempContent >= 0.5 * binContent)
+                // Find 1 GeV bin where center lies
+                for (unsigned l = 0; l < binWidth; l++)
                 {
-                    x[i][j] = dataGeV[i]->GetBinCenter(k+l);
-                    break;
+                    float tempContent = dataGeV[i]->Integral(k, k+l) + mcGeV[i]->Integral(k, k+l);
+
+                    if (tempContent >= 0.5 * binContent)
+                    {
+                        x[i][j] = dataGeV[i]->GetBinCenter(k+l);
+                        break;
+                    }
                 }
-            }
+//          }
         }
     }
 
@@ -200,7 +208,7 @@ void QtReweighting()
 
     for (unsigned i = 0; i < N; i++)
     {
-        for (unsigned j = 0; j <= M; j++)
+        for (unsigned j = 0; j < M; j++)
         {
             y[i][j] = ratio[i]->GetBinContent(j+1);
             ey[i][j] = ratio[i]->GetBinError(j+1);
@@ -240,6 +248,7 @@ void QtReweighting()
         c_graph[i]->SetLogx();
         graph[i]->Draw("APL");
         graph[i]->GetYaxis()->SetRangeUser(0.7, 1.3);
+        graph[i]->GetXaxis()->SetRangeUser(0.1, 1000);
 
         graph[i]->SetTitle("");
         graph[i]->GetXaxis()->SetTitle(_pT_(lepChan[i]));

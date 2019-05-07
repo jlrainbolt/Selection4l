@@ -32,15 +32,24 @@ from matplotlib import rc
 # Font/TeX setup
 # (https://3diagramsperpage.wordpress.com/2015/04/11/)
 rc('text', usetex=True)
-#mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{amsmath}',]
-#mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{tgheros}',
+mpl.rcParams["font.family"] = "serif"
+mpl.rcParams["font.serif"] = "Palatino"
+mpl.rcParams["font.sans-serif"] = "Helvetica"
+#mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{palatino}']
 #mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}',]
 #                                       r'\usepackage{sansmath}', r'\sansmath'] 
+
+# Tick marks
+mpl.rcParams["xtick.top"], mpl.rcParams["ytick.right"] = True, True
+mpl.rcParams["xtick.direction"], mpl.rcParams["ytick.direction"] = "in", "in"
+mpl.rcParams["xtick.labelsize"], mpl.rcParams["ytick.labelsize"] = "large", "large"
 
 # Figure size, aspect ratio
 mpl.rcParams["figure.figsize"] = [6, 6]
 mpl.rcParams["axes.labelsize"], mpl.rcParams["axes.titlesize"] = "xx-large", "xx-large"
-mpl.rcParams["xtick.labelsize"], mpl.rcParams["ytick.labelsize"] = "large", "large"
+
+# Legend
+mpl.rcParams["legend.fontsize"] = "large"
 
 
 

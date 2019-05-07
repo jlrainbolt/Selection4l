@@ -104,7 +104,7 @@ const TString   _beta   = "\\beta\\ (" + _pirad + ")";
 
 TString _PWZto( const TString   chan)   {return "\\Gamma_{" + _Z + _to + chan + "}";}
 TString _BFZto( const TString   chan)   {return "\\mathcal{B}(\\" + _Z + _to + chan + ")";}
-TString _pT_(   const TString   x)      {return "p_{\\mbox{T}}^{" + x + "}\\ (" + _GeV + ")";}
+TString _pT_(   const TString   x)      {return "p_{\\mbox{T}}^{" + x + "} (" + _GeV + ")";}
 TString _p_(    const TString   x)      {return "p_{" + x + "}\\ (" + _GeV + ")";}
 TString _l_(    const TString   x)      {return _l + "_{" + x + "}";}
 TString _y_(    const TString   x)      {return "y_{" + x + "}";}
