@@ -10,8 +10,9 @@
 #include "TH1.h"
 
 // Custom
+#include "Cuts2018.hh"
+//#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -59,8 +60,6 @@ void DrawPhaseSpace(const TString suffix, const TString year)
     vector<tuple<TString, TString, TString, TString, int, float, float>> v = {
 
         //          name        quantity         axis label     unit        bins    xmin    xmax
-        make_tuple( "nPV",      "nPV",           _nPV,          _unit,      20,     0,      60),
-
         // Lab frame kinematics
         make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       20,     80,     100),
         make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       20,     0,      100),
@@ -204,7 +203,7 @@ void DrawPhaseSpace(const TString suffix, const TString year)
             h->Sumw2(kTRUE);
             h->SetStats(0);
             h->Write();
-
+/*
             if ((suffix == "phase_space") || (suffix == "fiducial"))
             {
                 int color = (suffix == "phase_space") ? lLightBlue : lBlue;
@@ -222,6 +221,7 @@ void DrawPhaseSpace(const TString suffix, const TString year)
 
                 c->SaveAs(".png");
             }
+*/
         }
 
         cout << "done!" << endl;

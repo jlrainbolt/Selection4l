@@ -5,8 +5,8 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
-#from Cuts2017 import *
+#from Cuts2018 import *
+from Cuts2017 import *
 #from Cuts2016 import *
 #from Cuts2012 import *
 
@@ -22,6 +22,9 @@ selTeX      = { "mumu":r"\MM",  "ee":r"\EE",
                 }
 selDef      = { "mumu":"MM",    "ee":"EE",  "4l":"4L",  "4m":"4M",  "4e":"4E",  "2m2e":"2M2E"   }
 T = np.dtype([(sel, 'f4') for sel in selection])
+
+lumiUp = False
+lumiDown = True
 
 
 ##
@@ -82,6 +85,11 @@ for suff in MC_SUFF:
             lumi = MUON_TRIG_LUMI
         elif sel in ["ee", "4e", "2e2m"]:
             lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+
+        if lumiUp:
+            lumi = lumi * (1 + LUMI_UNC)
+        elif lumiDown:
+            lumi = lumi * (1 - LUMI_UNC)
 
         if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"] and sel in ["4m", "2m2e", "2e2m", "4e"]:
             continue
@@ -152,6 +160,11 @@ if YEAR_STR != "2012":
         mc_unc['tt_2l2nu'][sel] = 0
 
 # Get total expected and background events
+if lumiUp:
+    npt = npt_lumiUp
+elif lumiDown:
+    npt = npt_lumiDn
+
 exp, exp_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 bg, bg_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 for sel in selection:
@@ -175,6 +188,10 @@ for sel in selection:
         continue
 
     fileName = "Yield" + selDef[sel] + YEAR_STR + ".tex"
+    if lumiUp:
+        fileName = "Yield" + selDef[sel] + YEAR_STR + "_lumiUp.tex"
+    elif lumiDown:
+        fileName = "Yield" + selDef[sel] + YEAR_STR + "_lumiDown.tex"
     f = open(fileName, "w")
 
 

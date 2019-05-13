@@ -20,9 +20,10 @@
 #include "LeptonPair.hh"
 
 // Cuts
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -178,9 +179,9 @@ void GenAnalysis(const bool fidOnly = kFALSE)
 
     TTreeReader reader("tree_zz_4l", inFile);
 
-    TTreeReaderValue    <Int_t>                 runNum_     (reader,    "runNumber");
-    TTreeReaderValue    <Int_t>                 evtNum_     (reader,    "evtNumber.eventNumber");
-    TTreeReaderValue    <Int_t>                 lumiSec_    (reader,    "lumiSection");
+    TTreeReaderValue    <UInt_t>                runNum_     (reader,    "runNumber");
+    TTreeReaderValue    <UInt_t>                evtNum_     (reader,    "evtNumber");
+    TTreeReaderValue    <UInt_t>                lumiSec_    (reader,    "lumiSection");
     TTreeReaderValue    <Float_t>               genWeight_  (reader,    "genWeight");
     TTreeReaderValue    <UShort_t>              channel_    (reader,    "decayChannel");
     TTreeReaderValue    <UShort_t>              nMuons_     (reader,    "nHardProcMuons");

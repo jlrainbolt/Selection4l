@@ -24,8 +24,6 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 hnames = ["b_ttm", "b_l1p", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2"]
 H = len(hnames)
 
-YEAR_STR = "2017"
-
 
 ##
 ##  UNFOLDED DATA
@@ -37,7 +35,7 @@ ufName = prefix + "_" + YEAR_STR + ".root"
 ufFile = TFile(ufName, "READ")
 print("Opened", ufName)
 
-# Get histograms for 2017
+# Get histograms for 2018
 data, pred = np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 h = 0
@@ -52,8 +50,8 @@ for hname in hnames:
 ufFile.Close()
 
 
-# Get histograms for 2016
-for year in ["2016"]:
+# Get histograms for 2017, 2016
+for year in ["2017", "2016"]:
     ufName = prefix + "_" + year + ".root"
     ufFile = TFile(ufName, "READ")
     print("Opened", ufName)
@@ -104,7 +102,7 @@ for sel in selection:
 zzFile.Close()
 
 
-for year in ["2016"]:
+for year in ["2017", "2016"]:
     zzName = prefix + "_" + year + "_zz_4l.root"
     zzFile = TFile(zzName, "READ")
     print("Opened", zzName)
@@ -145,7 +143,7 @@ for sel in selection:
 psFile.Close()
 
 
-for year in ["2016"]:
+for year in ["2017", "2016"]:
     psName = prefix + "_" + year + "_phase_space.root"
     psFile = TFile(psName, "READ")
     print("Opened", psName)
@@ -320,7 +318,7 @@ for sel in ["4l"]:
                 size = "x-large",   style = "italic",
 #               fontproperties = helvet_bold,
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
-        ax_top.set_title(r'\Large{77.8\,fb$^{-1}$ (13\,TeV, 2016--17)}', loc='right')
+        ax_top.set_title(r'\Large{137\,fb$^{-1}$ (13\,TeV)}', loc='right')
 
         # Shared x axis
         if hnames[h] == "b_l1p":

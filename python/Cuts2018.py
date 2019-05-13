@@ -18,7 +18,7 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 F_NR = 0.04
 BF_LL = 0.033658 * 2
-#CAP_K = 4.64972283e-10
+CAP_K = 3.3016956e-10
 GAMMA_Z = 2.4952e6
 
 mu_id = {   "4l":0.0047,    "4m":0.0068,    "2m2e":0.0035,  "4e":0.0006 }
@@ -39,7 +39,7 @@ npt_unc = { "4l":6.09,      "4m":4.80,      "2m2e":3.74,    "4e":1.02,  "mumu":0
 
 # Muon trigger lumi doesn't include 2018B
 MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 58.83, 58.83, 1
-LUMI_UNC = .0025;
+LUMI_UNC = .025;
 SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 

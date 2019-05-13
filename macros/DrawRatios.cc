@@ -11,11 +11,12 @@
 #include "TCanvas.h"
 #include "TLegend.h"
 #include "TRatioPlot.h"
-#include "TMathText.h"
+//#include "TMathText.h"
 
 // Custom
-//#include "Cuts2016.hh"
-#include "Cuts2017.hh"
+//#include "Cuts2018.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
@@ -111,9 +112,29 @@ void DrawRatios()
     {
         TString title = data[h]->GetYaxis()->GetTitle();
         TString width; width.Form("%g", data[h]->GetBinWidth(1));
-        title.Prepend("\\mbox{Events/}" + width + "\\ ");
+        title.Prepend("Events/" + width + "");
+        title.ReplaceAll("\\mbox{", " ");
+        title.ReplaceAll("}", "");
+
+        TString xtitle = data[h]->GetXaxis()->GetTitle();
+        xtitle.ReplaceAll("\\ ", " ");
+        xtitle.ReplaceAll("\\ell", "l");
+        xtitle.ReplaceAll("\\cos", "cos ");
+        xtitle.ReplaceAll("\\mbox{", "");
+        xtitle.ReplaceAll("})", ")");
+        xtitle.ReplaceAll("}_", "_");
+        xtitle.ReplaceAll("  ", " ");
+
+        data[h]->SetXTitle(xtitle);
+        bkg[h]->SetXTitle(xtitle);
+        res[h]->SetXTitle(xtitle);
+        gen[h]->SetXTitle(xtitle);
+        reco[h]->SetXTitle(xtitle);
+        sel[h]->SetXTitle(xtitle);
+        ps[h]->SetXTitle(xtitle);
 
         
+
         // Reco vs. gen
 
         TCanvas *c_reco_gen = new TCanvas(YEAR_STR + "_" + hnames[h] + "_reco_vs_gen",
@@ -153,7 +174,6 @@ void DrawRatios()
         Facelift(r_reco_gen->GetUpperRefYaxis());
         r_reco_gen->GetUpperRefYaxis()->SetTitle(title);
         r_reco_gen->GetUpperRefYaxis()->SetTitleOffset(lTitleOffsetY);
-        r_reco_gen->GetUpperPad()->SetLeftMargin(1.2 * lCanvasMargin);
         r_reco_gen->GetUpperPad()->Modified();
 
         Facelift(r_reco_gen->GetLowerRefXaxis());
@@ -161,13 +181,13 @@ void DrawRatios()
         r_reco_gen->GetLowerRefGraph()->SetMinimum(0.8);
         r_reco_gen->GetLowerRefGraph()->SetMaximum(1.2);
         r_reco_gen->GetLowerRefYaxis()->SetTitle("Reco/Gen");
-        r_reco_gen->GetLowerPad()->SetBottomMargin(3 * lCanvasMargin);
-        r_reco_gen->GetLowerPad()->SetLeftMargin(1.2 * lCanvasMargin);
+        r_reco_gen->SetLowBottomMargin(3 * lCanvasMargin);
+        r_reco_gen->SetLeftMargin(1.2 * lCanvasMargin);
         r_reco_gen->GetLowerPad()->Modified();
 
         r_reco_gen->GetUpperPad()->cd();
         l_reco_gen->Draw();
-        c_reco_gen->SaveAs(".png");
+        c_reco_gen->SaveAs(".pdf");
 
         
         // Selected vs. phase space
@@ -193,9 +213,9 @@ void DrawRatios()
         r_axe->SetH2DrawOpt("E");
         r_axe->SetSeparationMargin(0.01);
 
-        TLegend *l_axe = new TLegend(LeftPosition + 2*lLegendMargin, BottomPosition - TopMargin,
+        TLegend *l_axe = new TLegend(LeftPosition + 3*lLegendMargin, BottomPosition - TopMargin,
                 TopPosition + TopMargin, TopPosition + TopMargin);
-        l_axe->AddEntry(ps[h], "Phase Space", "L");
+        l_axe->AddEntry(ps[h], "Generated", "L");
         l_axe->AddEntry(sel[h], "Selected", "L");
         Facelift(l_axe);
 
@@ -205,19 +225,18 @@ void DrawRatios()
         Facelift(r_axe->GetUpperRefYaxis());
         r_axe->GetUpperRefYaxis()->SetTitle(title);
         r_axe->GetUpperRefYaxis()->SetTitleOffset(lTitleOffsetY);
-        r_axe->GetUpperPad()->SetLeftMargin(1.2 * lCanvasMargin);
         r_axe->GetUpperPad()->Modified();
 
         Facelift(r_axe->GetLowerRefXaxis());
         Facelift(r_axe->GetLowerRefYaxis());
-        r_axe->GetLowerRefYaxis()->SetTitle("(A \\times \\epsilon)");
-        r_axe->GetLowerPad()->SetBottomMargin(3 * lCanvasMargin);
-        r_axe->GetLowerPad()->SetLeftMargin(1.2 * lCanvasMargin);
+        r_axe->GetLowerRefYaxis()->SetTitle("(A \\times \\varepsilon)");
+        r_axe->SetLowBottomMargin(3 * lCanvasMargin);
+        r_axe->SetLeftMargin(1.2 * lCanvasMargin);
         r_axe->GetLowerPad()->Modified();
 
         r_axe->GetUpperPad()->cd();
         l_axe->Draw();
-        c_axe->SaveAs(".png");
+        c_axe->SaveAs(".pdf");
 
         
         // Background vs. data
@@ -271,13 +290,13 @@ void DrawRatios()
         r_bkg_data->GetLowerRefGraph()->SetMinimum(0);
         r_bkg_data->GetLowerRefGraph()->SetMaximum(0.3);
         r_bkg_data->GetLowerRefYaxis()->SetTitle("Bkg/Data");
-        r_bkg_data->GetLowerPad()->SetBottomMargin(3 * lCanvasMargin);
-        r_bkg_data->GetLowerPad()->SetLeftMargin(1.2 * lCanvasMargin);
+        r_bkg_data->SetLowBottomMargin(3 * lCanvasMargin);
+        r_bkg_data->SetLeftMargin(1.2 * lCanvasMargin);
         r_bkg_data->GetLowerPad()->Modified();
 
         r_bkg_data->GetUpperPad()->cd();
         l_bkg_data->Draw();
-        c_bkg_data->SaveAs(".png");
+        c_bkg_data->SaveAs(".pdf");
 
 
         // Folded vs. unfolded
@@ -330,8 +349,8 @@ void DrawRatios()
         r_fol_unf->GetLowerRefGraph()->SetMinimum(0.5);
         r_fol_unf->GetLowerRefGraph()->SetMaximum(1.5);
         r_fol_unf->GetLowerRefYaxis()->SetTitle("Unf./Data");
-        r_fol_unf->GetLowerPad()->SetBottomMargin(3 * lCanvasMargin);
-        r_fol_unf->GetLowerPad()->SetLeftMargin(1.2 * lCanvasMargin);
+        r_fol_unf->SetLowBottomMargin(3 * lCanvasMargin);
+        r_fol_unf->SetLeftMargin(1.2 * lCanvasMargin);
         r_fol_unf->GetLowerPad()->Modified();
 
         r_fol_unf->GetUpperPad()->cd();

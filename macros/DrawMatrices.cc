@@ -11,11 +11,12 @@
 #include "TH2.h"
 #include "TCanvas.h"
 #include "TExec.h"
-#include "TMathText.h"
+//#include "TMathText.h"
 
 // Custom
+#include "Cuts2018.hh"
+//#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2017.hh"
 
 using namespace std;
 
@@ -91,6 +92,7 @@ void DrawMatrices()
     // Draw
     for (unsigned h = 0; h < H; h++)
     {
+/*
         TString title = data[h]->GetXaxis()->GetTitle();
         TString width; width.Form("%g", data[h]->GetBinWidth(1));
         if (title.Contains("("))
@@ -101,10 +103,11 @@ void DrawMatrices()
         }
         else
             title.Append("\\ (" + width + "\\mbox{ unit bins})"); 
-
+*/
 
 
         // Response matrix
+        TString title = "Response matrix";
         TCanvas *c_resp = new TCanvas(YEAR_STR + "_" + hnames[h] + "_response", "", 
                 lCanvasSize, lCanvasSize);
         c_resp->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
@@ -135,10 +138,11 @@ void DrawMatrices()
         resp[h]->DrawClone("TEXT SAME");
 
         c_resp->AutoExec();
-        c_resp->SaveAs(".png");
+        c_resp->SaveAs(".pdf");
 
 
         // Covariance matrix
+        title = "Unfolded covariance matrix";
         TCanvas *c_cov = new TCanvas(YEAR_STR + "_" + hnames[h] + "_covariance", "", 
                 lCanvasSize, lCanvasSize);
         c_cov->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
@@ -150,7 +154,7 @@ void DrawMatrices()
         cov[h]->SetTitle(title);
         cov[h]->SetStats(0);
         cov[h]->SetMarkerSize(2);
-        cov[h]->SetZTitle("\\sigma^{2}_{ij} \\mbox{ (Events/bin)}^{2}");
+        cov[h]->SetZTitle("\\sigma^{2}_{ij} (Events/bin)^{2}");
         cov[h]->SetTitleSize(0.05, "xyz");
         cov[h]->SetTickLength(0, "xy");
         cov[h]->SetNdivisions(resp[h]->GetNbinsX(), "x");
@@ -168,10 +172,11 @@ void DrawMatrices()
         cov[h]->DrawClone("TEXT SAME");
 
         c_cov->AutoExec();
-        c_cov->SaveAs(".png");
+        c_cov->SaveAs(".pdf");
 
 
         // Data "covariance" (variance) matrix
+        title = "Data covariance matrix";
         TCanvas *c_var = new TCanvas(YEAR_STR + "_" + hnames[h] + "_data_cov", "", 
                 lCanvasSize, lCanvasSize);
         c_var->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
@@ -183,7 +188,7 @@ void DrawMatrices()
         var[h]->SetTitle(title);
         var[h]->SetStats(0);
         var[h]->SetMarkerSize(2);
-        var[h]->SetZTitle("\\sigma^{2}_{ij} \\mbox{ (Events/bin)}^{2}");
+        var[h]->SetZTitle("\\sigma^{2}_{ij} (Events/bin)^{2}");
         var[h]->SetTitleSize(0.05, "xyz");
         var[h]->SetTickLength(0, "xy");
         var[h]->SetNdivisions(resp[h]->GetNbinsX(), "x");
@@ -201,7 +206,7 @@ void DrawMatrices()
         var[h]->DrawClone("TEXT SAME");
 
         c_var->AutoExec();
-        c_var->SaveAs(".png");
+        c_var->SaveAs(".pdf");
 
 
         // Write to file

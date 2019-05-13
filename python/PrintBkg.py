@@ -5,13 +5,16 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
-#from Cuts2017 import *
+#from Cuts2018 import *
+from Cuts2017 import *
 #from Cuts2016 import *
 #from Cuts2012 import *
 
 signalOnly = True
-tightOnly = False
+tightOnly = True
+
+lumiUp = False
+lumiDown = True
 
 if signalOnly:
     weight = "(isSameSign) && (!isDiffFlavor)"
@@ -94,6 +97,11 @@ for suff in MC_SUFF:
             lumi = MUON_TRIG_LUMI
         elif sel in ["ee", "4e", "2e2m", "1m3e"]:
             lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+
+        if lumiUp:
+            lumi = lumi * (1 + LUMI_UNC)
+        elif lumiDown:
+            lumi = lumi * (1 - LUMI_UNC)
         
         sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
 
@@ -188,14 +196,21 @@ for sel in selection:
 ##  WRITE TEX FILES
 ##
 
+prefix = "Background" + YEAR_STR
+
 if signalOnly:
     selection   = ["4l", "4m", "2m2e", "4e"]
-    fileName = "Background" + YEAR_STR + ".tex"
+    fileName = prefix + ".tex"
 else:
     selection   = ["4l", "4m", "3m1e", "2m2e", "1m3e", "4e"]    # removed 2e2m
-    fileName = "Background" + YEAR_STR + "_all.tex"
+    fileName = prefix + "_all.tex"
 if not tightOnly:
-    fileName = "Background" + YEAR_STR + "_loose.tex"
+    fileName = prefix + "_loose.tex"
+if lumiUp:
+    fileName = prefix + "_lumiUp.tex"
+elif lumiDown:
+    fileName = prefix + "_lumiDown.tex"
+
 fmt = '%.2f'
 
 f = open(fileName, "w")

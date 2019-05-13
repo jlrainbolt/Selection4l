@@ -30,6 +30,9 @@ el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
 npt     = { "4l":17.58,     "4m":9.59,      "2m2e":6.54,    "4e":1.45,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
 npt_unc = { "4l":4.36,      "4m":3.16,      "2m2e":2.65,    "4e":1.42,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
 
+npt_lumiUp  = { "4l":17.55,     "4m":9.58,      "2m2e":6.53,    "4e":1.44,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
+npt_lumiDn  = { "4l":17.62,     "4m":9.60,      "2m2e":6.55,    "4e":1.46,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
+
 
 
 
@@ -39,7 +42,7 @@ npt_unc = { "4l":4.36,      "4m":3.16,      "2m2e":2.65,    "4e":1.42,  "mumu":0
 
 # Muon trigger lumi doesn't include 2017B
 MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 41.37, 41.37, 0.991
-LUMI_UNC = .0023;
+LUMI_UNC = .023;
 SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
