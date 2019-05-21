@@ -21,10 +21,10 @@
 #include "SelectionTools.hh"
 
 // Cuts
-#include "Cuts2018.hh"
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-//#include "Cuts2012.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -121,7 +121,7 @@ void RecoSelection( const TString suffix,           const TString id,
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
     Float_t             trigWeight, idWeight,   recoWeight;
     Bool_t              muonTrig,   elecTrig,   hasTauDecay;
-    Float_t             nPU,        ecalWeightUp,   ecalWeightDown;
+    Float_t             nPU,        nPUUp,      nPUDown,    ecalWeightUp,   ecalWeightDown;
     UInt_t              channel;
 
     // Pairs
@@ -162,7 +162,7 @@ void RecoSelection( const TString suffix,           const TString id,
         tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
         tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
-        tree[i]->Branch("channel",      &channel);
+        tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
 
         if (allowUntriggered)
         {
@@ -172,10 +172,17 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if (isSignal || isDrellYan)
         {
-            tree[i]->Branch("hasTauDecay",          &hasTauDecay);
             tree[i]->Branch("nPU",                  &nPU);
-            tree[i]->Branch("ecalWeightUp",         &ecalWeightUp);
-            tree[i]->Branch("ecalWeightDown",       &ecalWeightDown);
+            if (YEAR_STR.EqualTo("2012"))
+            {
+                tree[i]->Branch("nPUUp",                &nPUUp);
+                tree[i]->Branch("nPUDown",              &nPUDown);
+            }
+            else
+            {
+                tree[i]->Branch("ecalWeightUp",         &ecalWeightUp);
+                tree[i]->Branch("ecalWeightDown",       &ecalWeightDown);
+            }
         }
 
         if (i >= L4) {  tree[i]->Branch("zzp4", &zzp4);}
@@ -314,8 +321,16 @@ void RecoSelection( const TString suffix,           const TString id,
 
         inTree->SetBranchAddress(   "hasTauDecay",                  &hasTauDecay);
         inTree->SetBranchAddress(   "nPU",                          &nPU);
-        inTree->SetBranchAddress(   "ECALWeightUp",                 &ecalWeightUp);
-        inTree->SetBranchAddress(   "ECALWeightDown",               &ecalWeightDown);
+        if (YEAR_STR.EqualTo("2012"))
+        {
+            inTree->SetBranchAddress(   "nPUUp",                        &nPUUp);
+            inTree->SetBranchAddress(   "nPUDown",                      &nPUDown);
+        }
+        else
+        {
+            inTree->SetBranchAddress(   "ECALWeightUp",                 &ecalWeightUp);
+            inTree->SetBranchAddress(   "ECALWeightDown",               &ecalWeightDown);
+        }
     }
 
     if (isSignal && !systOn)
@@ -737,6 +752,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
         else if (muonTrig)                  // higher-priority muon trigger
         {
+            ecalWeight = 1;     // don't use the ECAL weight?
+
             if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
             {
                 C = MM;

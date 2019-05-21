@@ -9,7 +9,8 @@ from ROOT import TFile, TH1
 from PlotUtils import *
 #from Cuts2018 import *
 #from Cuts2017 import *
-from Cuts2016 import *
+#from Cuts2016 import *
+from Cuts2012 import *
 
 
 
@@ -41,8 +42,8 @@ elFile = TFile(elName, "READ")
 print("Opened", elName)
 
 
-# Get histograms for 2017
-#hnames = ["zzm", "zzpt"] #, "z1m", "z2m"]
+# Get histograms
+#hnames = ["zzm", "zzpt"]#, "z1m", "z2m", "z1pt", "z2pt"]
 #hnames = ["sin_phi"]
 hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
             "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
@@ -178,12 +179,7 @@ for h in range(H):
 
     data[h]['4e'].Rebin(2)
 
-    if (YEAR_STR == "2012"):
-        data[h]['4e'].Rebin(2)
-        data[h]['4l'].Rebin(2)
-        data[h]['4m'].Rebin(2)
-        data[h]['2m2e'].Rebin(2)
-#   elif hnames[h] == "zzpt":
+#   if (YEAR_STR == "2012"):
 #       data[h]['4e'].Rebin(2)
 #       data[h]['4l'].Rebin(2)
 #       data[h]['4m'].Rebin(2)
@@ -199,11 +195,11 @@ for h in range(H):
 
         mc[suff][h]['4e'].Rebin(2)
 
-        if (YEAR_STR == "2012"):
-            mc[suff][h]['4e'].Rebin(2)
-            mc[suff][h]['4l'].Rebin(2)
-            mc[suff][h]['4m'].Rebin(2)
-            mc[suff][h]['2m2e'].Rebin(2)
+#       if (YEAR_STR == "2012"):
+#           mc[suff][h]['4e'].Rebin(2)
+#           mc[suff][h]['4l'].Rebin(2)
+#           mc[suff][h]['4m'].Rebin(2)
+#           mc[suff][h]['2m2e'].Rebin(2)
 
 
 # Get total
@@ -316,7 +312,9 @@ for sel in ["4l"]:
 
         top_min, top_max = ax_top.get_ylim()
 
-        if hnames[h] != "zzm":
+        if hnames[h] == "zzm":
+            top_max = 1.2 * top_max
+        else:
             top_max = 1.3 * top_max
 
         ax_top.set_ylim(0, top_max)
@@ -448,14 +446,14 @@ for sel in ["4l"]:
         ax_top.legend(
                 (   p_data,
                     p_mc['zz_4l'],          p_mc['zjets_m-50'], p_mc['ww_2l2nu'],
-                    p_mc['zzz_4l2nu'],
-                    p_mc['ggH_zz_4l'],  
+#                   p_mc['zzz_4l2nu'],
+#                   p_mc['ggH_zz_4l'],  
                     p_mc['ttz_2l2nu']
                     ),
                 (   r'Data',
                     r'$\mbox{Z}\to4\ell$',  r'Nonprompt',       r'VV',
-                    r'VVV',
-                    r'H',
+#                   r'VVV',
+#                   r'H',
                     r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$' 
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False#, bbox_to_anchor = bbox

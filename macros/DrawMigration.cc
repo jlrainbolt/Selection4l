@@ -11,9 +11,10 @@
 #include "TH2.h"
 
 // Custom
-#include "Cuts2018.hh"
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -62,12 +63,9 @@ void DrawMigration()
 
 
         // Observables
-//      make_tuple( "psi",          "psi",              _psi,               20,     -5000,  5000),
         make_tuple( "sin_phi",      "sin_phi",          _sinphi,            20,     -1,     1),
         make_tuple( "cos_theta_z1", "cos_theta_z1",     _costheta_(_Z1),    10,     -1,     1),
         make_tuple( "cos_theta_z2", "cos_theta_z2",     _costheta_(_Z2),    10,     -1,     1),
-//      make_tuple( "cos_zeta_z1",  "cos_zeta_z1",      _coszeta_(_Z1),     10,     -1,     1),
-//      make_tuple( "cos_zeta_z2",  "cos_zeta_z2",      _coszeta_(_Z2),     10,     -1,     1),
         make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
                                                         _alpha_(_Z1),       10,     0,      1),
         make_tuple( "angle_z2leps", "angle_z2leps/3.141592654",

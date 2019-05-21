@@ -14,6 +14,7 @@
 const TString   YEAR_STR = "2012";
 const TString   EOS_PATH = "root://cmseos.fnal.gov//store/user/jrainbol";
 const TString   HOME_PATH = "/uscms/home/jrainbol/nobackup";
+const TString   BLT_PATH = HOME_PATH + "/lacey_8TeV/CMSSW_10_2_13/src/BLT";
 
 const unsigned  RNG_SEED = 2012;
 
@@ -77,7 +78,7 @@ const float     MATCH_DR_MAX = 0.02;
 //  SAMPLES
 //
 
-const float     MUON_TRIG_LUMI = 19.7,              ELEC_TRIG_LUMI = 19.7;
+const float     MUON_TRIG_LUMI = 19.71,             ELEC_TRIG_LUMI = 19.71;
 const float                                         ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
 
@@ -85,7 +86,8 @@ const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR
 //
 // Cross sections from
 //      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
-const float     NGEN_ZZ         = 9799908,          XSEC_ZZ         = 17.0;
+const float     NGEN_ZZ_4L      = 1499064 + 1499093 + 1497445 + 823922 + 823911 + 824466;
+const float     XSEC_ZZ_4L      = 3 * 0.1767 + 3 * 0.07691;
 const float     NGEN_ZJETS_M50  = 30459503,         XSEC_ZJETS_M50  = 3531.9;
 const float     NGEN_ZJETS_M10  = 33648307,         XSEC_ZJETS_M10  = 11050;
 const float     NGEN_TTBAR      = 12011428,         XSEC_TTBAR      = 25.81;
@@ -101,11 +103,11 @@ const TString   MC_SUFF[N_MC] = {   "zz",           "zjets_m-50",   // "zjets_m-
                                     "ttbar",        "ttz_2l2nu",    "ww_2l2nu",
                                     "wz_2l2q",      "wz_3lnu",      "zz_2l2nu",     "zz_2l2q"
                                 };
-const float     NGEN[N_MC] = {  NGEN_ZZ,        NGEN_ZJETS_M50, // NGEN_ZJETS_M10,
+const float     NGEN[N_MC] = {  NGEN_ZZ_4L,     NGEN_ZJETS_M50, // NGEN_ZJETS_M10,
                                 NGEN_TTBAR,     NGEN_TTZ_2L2NU, NGEN_WW_2L2NU,
                                 NGEN_WZ_2L2Q,   NGEN_WZ_3LNU,   NGEN_ZZ_2L2NU,  NGEN_ZZ_2L2Q
                                 };
-const float     XSEC[N_MC] = {  XSEC_ZZ,        XSEC_ZJETS_M50, // XSEC_ZJETS_M10,
+const float     XSEC[N_MC] = {  XSEC_ZZ_4L,     XSEC_ZJETS_M50, // XSEC_ZJETS_M10,
                                 XSEC_TTBAR,     XSEC_TTZ_2L2NU, XSEC_WW_2L2NU,
                                 XSEC_WZ_2L2Q,   XSEC_WZ_3LNU,   XSEC_ZZ_2L2NU,  XSEC_ZZ_2L2Q
                                 };

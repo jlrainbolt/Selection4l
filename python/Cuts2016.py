@@ -17,15 +17,19 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 ##
 
 F_NR = 0.04
-BF_LL = 0.033658 * 2
-CAP_K = 5.15258169e-10
+BF_LL = 0.033658
+CAP_K = 5.085509e-10
 GAMMA_Z = 2.4952e6
 
-mu_id = {   "4l":0.0047,    "4m":0.0068,    "2m2e":0.0035,  "4e":0.0006 }
-el_id = {   "4l":0.0051,    "4m":0.0015,    "2m2e":0.0083,  "4e":0.0183 }
-el_reco = { "4l":0.0118,    "4m":0.0012,    "2m2e":0.0183,  "4e":0.0432 }
-mu_pt = {   "4l":0.0015,    "4m":0.0014,    "2m2e":0.0022,  "4e":0.0002 }
-el_pt = {   "4l":0,         "4m":0,         "2m2e":0,       "4e":0 }
+mu_id = {   "4l":0.0484,    "4m":0.0676,    "2m2e":0.0350,      "4e":0          }
+el_id = {   "4l":0.0219,    "4m":0,         "2m2e":0.0371,      "4e":0.0804     }
+el_reco = { "4l":0.0093,    "4m":0,         "2m2e":0.0156,      "4e":0.0361     }
+mu_pt = {   "4l":0.000042,  "4m":0.000071,  "2m2e":0.000042,    "4e":0          }
+el_pt = {   "4l":0.001017,  "4m":0,         "2m2e":0.002930,    "4e":0.000169   }
+ecal =  {   "4l":0.000799,  "4m":0,         "2m2e":0.000536,    "4e":0.001595   }
+qcd = 0.008592
+pdf = 0.001185
+pileup = 0.008885
 
 npt_unc = { "4l":4.00,      "4m":2.45,      "2m2e":2.83,    "4e":1.42, "mumu":0, "ee":0, "2e2m":0,  "ll":0}
 npt     = { "4l":14.19,     "4m":5.68,      "2m2e":7.45,    "4e":1.06, "mumu":0, "ee":0, "2e2m":0,  "ll":0}   
@@ -47,8 +51,8 @@ MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 # Cross sections from
 #      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
 #      https://twiki.cern.ch/twiki/bin/view/ns
-NGEN_ZZ_4L,         XSEC_ZZ_4L          = 6762740,        1.256     #1.212
-NGEN_ZJETS_M50,     XSEC_ZJETS_M50      = 80924255,       5765.4    #6225.4
+NGEN_ZZ_4L,         XSEC_ZZ_4L          = 5932142,        1.256     #1.212
+NGEN_ZJETS_M50,     XSEC_ZJETS_M50      = 74513923,       5765.4    #6225.4
 NGEN_ZJETS_M10,     XSEC_ZJETS_M10      = 29374008,       18610
 NGEN_GGH_ZZ_4L,     XSEC_GGH_ZZ_4L      = 999800,         0.01212
 NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     = 499262,         0.001034
@@ -61,7 +65,7 @@ NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        = 496436,         3.22
 NGEN_ZZ_2L2NU,      XSEC_ZZ_2L2NU       = 48623080,       0.564
 
 N_MC = 11
-N_DY = 6
+N_DY = 10
 
 MC_SUFF = [ "zz_4l",            "zjets_m-50",     # "zjets_m-10",
             "ttbar",            "tt_2l2nu",       # "ttz_2l2nu",        

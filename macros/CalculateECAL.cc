@@ -9,8 +9,8 @@
 #include "TTreeReaderValue.h"
 
 // Cuts
+//#include "Cuts2016.hh"
 #include "Cuts2017.hh"
-//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -25,7 +25,7 @@ void CalculateECAL()
     //
 
     const unsigned N = 2;    // Number of l+l- trees
-    TString sel_2l[N] = {"mumu", "ee"};
+    TString sel_2l[2] = {"mumu", "ee"};
 
     float   sel_4l_gen = 0, sel_4l_nom = 0, sel_4l_up = 0,  sel_4l_dn = 0;
     float   sel_2l_gen = 0, sel_2l_nom = 0, sel_2l_up = 0,  sel_2l_dn = 0;
@@ -43,7 +43,9 @@ void CalculateECAL()
 
     TTreeReader reader("4l_zz_4l", zzFile);
 
+    TTreeReaderValue    <UInt_t>    channel_        (reader,    "channel");
     TTreeReaderValue    <Float_t>   genWeight_      (reader,    "genWeight");
+    TTreeReaderValue    <Float_t>   qtWeight_       (reader,    "qtWeight");
     TTreeReaderValue    <Float_t>   ecalWeight_     (reader,    "ecalWeight");
     TTreeReaderValue    <Float_t>   ecalWeightUp_   (reader,    "ecalWeightUp");
     TTreeReaderValue    <Float_t>   ecalWeightDown_ (reader,    "ecalWeightDown");
@@ -60,11 +62,22 @@ void CalculateECAL()
 
     while (reader.Next())
     {
+        unsigned channel = *channel_;
         float genWeight = *genWeight_;
+
+//      if ((channel == 6) || (channel == 9))
+//          genWeight = 0;
 
         float nomWeight = genWeight * *ecalWeight_;
         float upWeight = genWeight * *ecalWeightUp_;
         float dnWeight = genWeight * *ecalWeightDown_;
+
+        if ((channel == 6) || (channel == 7))
+        {
+            nomWeight = genWeight;
+            upWeight = genWeight;
+            dnWeight = genWeight;
+        }
 
         sel_4l_gen += genWeight;    sel_4l_nom += nomWeight;
         sel_4l_up += upWeight;      sel_4l_dn += dnWeight;
@@ -106,11 +119,22 @@ void CalculateECAL()
 
         while (reader.Next() && (reader.GetCurrentEntry() < nEvents))
         {
-            float genWeight = *genWeight_;
+            unsigned channel = *channel_;
+            float genWeight = (*genWeight_) * (*qtWeight_);
+
+//          if (channel != 3)
+//              genWeight = 0;
 
             float nomWeight = genWeight * *ecalWeight_;
             float upWeight = genWeight * *ecalWeightUp_;
             float dnWeight = genWeight * *ecalWeightDown_;
+
+            if (channel == 3)
+            {
+                nomWeight = genWeight;
+                upWeight = genWeight;
+                dnWeight = genWeight;
+            }
 
             sel_2l_gen += genWeight;    sel_2l_nom += nomWeight;
             sel_2l_up += upWeight;      sel_2l_dn += dnWeight;

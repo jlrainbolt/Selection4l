@@ -6,10 +6,10 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 from secret_number import *
 
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -18,16 +18,11 @@ from Cuts2018 import *
 ##
 
 selection   = [ "ll", "mumu", "ee", "4l", "4m", "2m2e", "2e2m", "4e"]
-selTeX      = { "mumu":r"\MM",  "ee":r"\EE",
-                "4l":r"4\Pell", "4m":r"4\PGm",  "4e":r"4\Pe",   "2m2e":r"2\PGm 2\Pe"
-                }
+selTeX      = { "mumu":r"\MM",  "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "4e":r"\fE", "2m2e":r"\tMtE" }
 selDef      = { "mumu":"MM",    "ee":"EE",  "4l":"4L",  "4m":"4M",  "4e":"4E",  "2m2e":"2M2E"   }
 channel     = { "mumu":3,       "ee":4,     "4m":6,     "2m2e":7,   "2e2m":8,   "4e":9  }
 T = np.dtype([(sel, 'f4') for sel in selection])
 
-
-if (YEAR_STR == "2012"):
-    XSEC["zz_4l"] = 0.3305 / 0.31
 
 
 ##
@@ -108,9 +103,12 @@ for suff in MC_SUFF:
 
         # Get signal
         if (suff == "zz_4l" and sel in ["4m", "2m2e", "2e2m", "4e"]) or (suff == "zjets_m-50" and sel in ["mumu", "ee"]):
-            tree.Draw("1>>hist", "!hasTauDecay * " + weight, "goff")
-            sig[sel] = sf * hist.Integral()
-            sig_stat[sel] = sf * np.sqrt(tree.GetEntries("!hasTauDecay"))
+            if YEAR_STR == "2012":
+                tree.Draw("1>>hist", "!hasTauDecay", "goff")
+            else:
+                tree.Draw("1>>hist", "!hasTauDecay * genWeight", "goff")
+            sig[sel] = hist.Integral()
+            sig_stat[sel] = np.sqrt(tree.GetEntries("!hasTauDecay"))
             cut = "hasTauDecay"
             weight = cut + " * " + weight
 
@@ -132,8 +130,6 @@ for suff in MC_SUFF:
 ##
 ##  PHASE SPACE
 ##
-if (YEAR_STR == "2012"):
-    XSEC["zz_4l"] = 0.3305 / 0.15
 
 inPath = EOS_PATH + "/BLT/" + YEAR_STR + "/"
 prefix, hname = "gen", "PhaseSpaceEvents"
@@ -176,15 +172,13 @@ for sel in selection:
         suff = "zz_4l"
         hist = zzHist
 
-    if sel in ["mumu", "4m", "2m2e"]:
-        lumi = MUON_TRIG_LUMI
-    elif sel in ["ee", "4e", "2e2m"]:
-        lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
+    if sel in ["ee", "4e", "2e2m"]:
+        sf = ELEC_TRIG_SF
+    else:
+        sf = 1
 
-    sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
-
-    ps[sel] = sf * hist.GetBinContent(channel[sel])
-    ps_stat[sel] = sf * hist.GetBinError(channel[sel])
+    ps[sel] = hist.GetBinContent(channel[sel]) / sf
+    ps_stat[sel] = hist.GetBinError(channel[sel]) / sf
 
 dyHist.Delete()
 zzHist.Delete()
@@ -273,25 +267,41 @@ print("")
 ##  CALCULATE
 ##
 
-ll_factor = (1 - F_NR) * BF_LL * axe['ll'] / (data['ll'] - bg['ll'])
+factor = np.zeros(1, dtype=T)
+for sel in ["mumu", "ee", "ll"]:
+    factor[sel] = (1 - F_NR) * BF_LL * axe[sel] / (diff[sel])
+    if sel == "ll":
+        factor[sel] = 2 * factor[sel]
+
 print("Constant for diff dists")
-print(ll_factor)
+print(factor["ll"])
 print("")
 
 bf, bf_stat = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
-bf_syst, bg_stat = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
-prec = np.zeros(1, dtype=T)
+bf_syst = np.zeros(1, dtype=T)
+pr_stat, pr_syst = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 
 for sel in ["4l", "4m", "2m2e", "4e"]:
-    factor = 1000000 * (1 + read_secret_number()) * ll_factor / axe[sel]
-    bf[sel] = diff[sel] * factor
-    bf_stat[sel] = diff_stat[sel] * factor
-    bg_stat[sel] = bg_unc[sel] * factor
+    if sel == "4m":
+        ll = "mumu"
+    elif sel == "4e":
+        ll == "ee"
+    else:
+        ll = "ll"
 
-    for src in [mu_id, el_id, el_reco, mu_pt, el_pt]:
-        bf_syst[sel] = bf_syst[sel] + bf[sel] * src[sel]
+    f = 1000000 * (1 + read_secret_number()) * factor[ll] / axe[sel]
+    bf[sel] = diff[sel] * f
+    bf_stat[sel] = diff_stat[sel] * f
+    bf_syst[sel] = (bg_unc[sel] * f) ** 2
 
-    prec[sel] = 1 / diff_stat[sel] * 100
+    for src in [mu_id, el_id, el_reco, mu_pt, el_pt, ecal]:
+        bf_syst[sel] = bf_syst[sel] + (bf[sel] * src[sel]) ** 2
+    for src in [qcd, pdf, pileup]:
+        bf_syst[sel] = bf_syst[sel] + (bf[sel] * src) ** 2
+    bf_syst[sel] = np.sqrt(bf_syst[sel])
+
+    pr_stat[sel] = 1 / diff_stat[sel] * 100
+    pr_syst[sel] = bf_syst[sel] / bf[sel] * 100
 
 print("Branching fractions")
 print(bf)
@@ -299,6 +309,10 @@ print("")
 
 print("Statistical uncertainty")
 print(bf_stat)
+print("")
+
+print("Systematic uncertainty")
+print(bf_syst)
 print("")
 print("")
 
@@ -312,26 +326,14 @@ fileName = "BranchingFrac" + YEAR_STR + ".tex"
 f = open(fileName, "w")
 fmt = '%.3f'
 
-f.write(r"\begin{tabular}{l p{.5in} p{.75in} p{.75in}>{\leavevmode\color{purple}}p{.75in} c}"
-        + "\n")
-f.write(r"\toprule" + "\n")
-f.write("\t" + r"& \multicolumn{4}{c}{$\BF$ ($\times 10^{-6}$)}"
-        + r" & \multirow{2}{1in}[-1ex]{Statistical Precision (\%)} \\" + "\n")
-f.write(r"\cmidrule{2-5}" + "\n")
-f.write(r"Channel & & (stat.) & (syst.) & (MC stat.) \\" + "\n")
-f.write(r"\midrule" + "\n")
-
 for sel in ["4l", "4m", "2m2e", "4e"]:
     f.write("$" + selTeX[sel] + r"$ & " + fmt % np.squeeze(bf[sel])
             + r" & $\pm$ " + fmt % np.squeeze(bf_stat[sel])
             + r" & $\pm$ " + fmt % np.squeeze(bf_syst[sel])
-            + r" & $\pm$ " + fmt % np.squeeze(bg_stat[sel])
-            + r" & " + '%.1f' % np.squeeze(prec[sel]) + r" \\" + "\n")
+            + r" & " + '%.2f' % np.squeeze(pr_stat[sel])
+            + r" & " + '%.2f' % np.squeeze(pr_syst[sel]) + r" \\" + "\n")
     if sel == "4l":
         f.write(r"\addlinespace" + "\n")
-
-f.write(r"\bottomrule" + "\n")
-f.write(r"\end{tabular}" + "\n")
 
 f.close()
 print("Wrote table to", fileName)

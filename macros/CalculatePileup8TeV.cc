@@ -10,15 +10,13 @@
 #include "TTreeReaderValue.h"
 
 // Cuts
-#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
 
 
-void CalculatePileup()
+void CalculatePileup8TeV()
 {
 
 
@@ -38,20 +36,16 @@ void CalculatePileup()
     //  HISTOGRAMS
     //
 
-    TH1 *h_nom, *h_up, *h_dn;
+    TH1 *h_pu;
 
-    TString inName  = "pu_weights_" + YEAR_STR + ".root";
+    TString inName  = "PUWeights_" + YEAR_STR + ".root";
     TString inPath  = BLT_PATH + "/BLTAnalysis/data/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << "Opened " << inPath << endl;
 
-    inFile->GetObject("weights", h_nom);
-    inFile->GetObject("weights_varUp", h_up);
-    inFile->GetObject("weights_varDn", h_dn);
-    h_nom->SetDirectory(0);
-    h_up->SetDirectory(0);
-    h_dn->SetDirectory(0);
+    inFile->GetObject("pileup", h_pu);
+    h_pu->SetDirectory(0);
 
     inFile->Close();
     cout << "Closed " << inPath << endl;
@@ -72,6 +66,8 @@ void CalculatePileup()
     TTreeReaderValue    <Float_t>               genWeight_      (reader,    "genWeight");
     TTreeReaderValue    <Float_t>               qtWeight_       (reader,    "qtWeight");
     TTreeReaderValue    <Float_t>               nPU_            (reader,    "nPU");
+    TTreeReaderValue    <Float_t>               nPUUp_          (reader,    "nPUUp");
+    TTreeReaderValue    <Float_t>               nPUDown_        (reader,    "nPUDown");
 
     cout << "Loaded branches" << endl;
 
@@ -85,11 +81,11 @@ void CalculatePileup()
 
     while (reader.Next())
     {
-        float nPU = *nPU_,  genWeight = *genWeight_;
+        float nPU = *nPU_,  nPUUp = *nPUUp_,    nPUDown = *nPUDown_,    genWeight = *genWeight_;
 
-        float nomWeight = genWeight * h_nom->GetBinContent(h_nom->FindBin(nPU));
-        float upWeight = genWeight * h_up->GetBinContent(h_up->FindBin(nPU));
-        float dnWeight = genWeight * h_dn->GetBinContent(h_dn->FindBin(nPU));
+        float nomWeight = genWeight * h_pu->GetBinContent(h_pu->FindBin(nPU));
+        float upWeight = genWeight * h_pu->GetBinContent(h_pu->FindBin(nPUUp));
+        float dnWeight = genWeight * h_pu->GetBinContent(h_pu->FindBin(nPUDown));
 
 //      if (fabs(dnWeight) < fabs(upWeight))
 //          swap(upWeight, dnWeight);
@@ -150,11 +146,13 @@ void CalculatePileup()
 
         while (reader.Next() && (reader.GetCurrentEntry() < nEvents))
         {
-            float nPU = *nPU_,  genWeight = (*genWeight_) * (*qtWeight_);
+            float nPU = *nPU_,  nPUUp = *nPUUp_,    nPUDown = *nPUDown_;
+            float genWeight = (*genWeight_) * (*qtWeight_);
 
-            float nomWeight = genWeight * h_nom->GetBinContent(h_nom->FindBin(nPU));
-            float upWeight = genWeight * h_up->GetBinContent(h_up->FindBin(nPU));
-            float dnWeight = genWeight * h_dn->GetBinContent(h_dn->FindBin(nPU));
+
+            float nomWeight = genWeight * h_pu->GetBinContent(h_pu->FindBin(nPU));
+            float upWeight = genWeight * h_pu->GetBinContent(h_pu->FindBin(nPUUp));
+            float dnWeight = genWeight * h_pu->GetBinContent(h_pu->FindBin(nPUDown));
 
             sel_2l_gen += genWeight;    sel_2l_nom += nomWeight;
             sel_2l_up += upWeight;      sel_2l_dn += dnWeight;

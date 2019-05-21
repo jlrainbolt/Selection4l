@@ -6,8 +6,8 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 
 #from Cuts2018 import *
-from Cuts2017 import *
-#from Cuts2016 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 #from Cuts2012 import *
 
 
@@ -24,7 +24,7 @@ selDef      = { "mumu":"MM",    "ee":"EE",  "4l":"4L",  "4m":"4M",  "4e":"4E",  
 T = np.dtype([(sel, 'f4') for sel in selection])
 
 lumiUp = False
-lumiDown = True
+lumiDown = False
 
 
 ##

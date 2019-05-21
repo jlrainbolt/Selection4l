@@ -50,8 +50,8 @@ for hname in hnames:
 ufFile.Close()
 
 
-# Get histograms for 2017, 2016
-for year in ["2017", "2016"]:
+# Get histograms for 2017, 2016, 2012
+for year in ["2017", "2016", "2012"]:
     ufName = prefix + "_" + year + ".root"
     ufFile = TFile(ufName, "READ")
     print("Opened", ufName)
@@ -102,7 +102,7 @@ for sel in selection:
 zzFile.Close()
 
 
-for year in ["2017", "2016"]:
+for year in ["2017", "2016", "2012"]:
     zzName = prefix + "_" + year + "_zz_4l.root"
     zzFile = TFile(zzName, "READ")
     print("Opened", zzName)
@@ -143,7 +143,7 @@ for sel in selection:
 psFile.Close()
 
 
-for year in ["2017", "2016"]:
+for year in ["2017", "2016", "2012"]:
     psName = prefix + "_" + year + "_phase_space.root"
     psFile = TFile(psName, "READ")
     print("Opened", psName)
@@ -318,7 +318,7 @@ for sel in ["4l"]:
                 size = "x-large",   style = "italic",
 #               fontproperties = helvet_bold,
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
-        ax_top.set_title(r'\Large{137\,fb$^{-1}$ (13\,TeV)}', loc='right')
+        ax_top.set_title(r'\Large{19.7\,fb$^{-1}$ (8\,TeV) $+$ 137\,fb$^{-1}$ (13\,TeV)}', loc='right')
 
         # Shared x axis
         if hnames[h] == "b_l1p":

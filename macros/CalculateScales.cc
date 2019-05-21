@@ -25,7 +25,7 @@ void CalculateScales()
     //  CONTAINERS
     //
 
-    const unsigned  Q = 6,      P = 100;    // QCD, PDF
+    const unsigned  Q = 8,      P = 100;    // QCD, PDF
     unsigned        id_qcd[Q],  id_pdf[P];
 
     float   fid_4l_nom = 0,     gen_4l_nom = 0,     fid_2l_nom = 0,     gen_2l_nom = 0;
@@ -62,10 +62,13 @@ void CalculateScales()
     TTreeReader reader("tree_zz_4l", zzFile);
 
     TTreeReaderValue    <Bool_t>                isFiducial_     (reader,    "isFiducial");
+    TTreeReaderValue    <Float_t>               genWeight_      (reader,    "genWeight");
     TTreeReaderValue    <vector<UShort_t>>      qcdID_          (reader,    "qcdID");
     TTreeReaderValue    <vector<Float_t>>       qcdWeight_      (reader,    "qcdWeight");
     TTreeReaderValue    <vector<UShort_t>>      pdfID_          (reader,    "pdfID");
     TTreeReaderValue    <vector<Float_t>>       pdfWeight_      (reader,    "pdfWeight");
+    TTreeReaderValue    <TLorentzVector>        lepsP4_         (reader,    "hardProcLeptonsP4");
+    TTreeReaderValue    <UShort_t>              channel_        (reader,    "decayChannel");
 
     cout << "Loaded branches" << endl;
 
@@ -86,28 +89,32 @@ void CalculateScales()
             cout << endl;
         }
 
+        float genWeight = (*genWeight_);
+
 
         // Nominal weight
 
-        gen_4l_nom += (*qcdWeight_)[0];
+        gen_4l_nom += genWeight;
 
         if (*isFiducial_)
-            fid_4l_nom += (*qcdWeight_)[0];
+            fid_4l_nom += genWeight;
 
 
         // QCD scales
 
+        float lheWeight = (*qcdWeight_)[0];
         unsigned i = 0;
         for (unsigned i_ = 1; i_ < (*qcdID_).size(); i_++)
         {
             // Skip 0.5, 2 combos   (https://twiki.cern.ch/twiki/bin/view/CMS/LHEReaderCMSSW)
-            if ((i_ == 5) || (i_ == 7))
-                continue;
+//          if ((i_ == 5) || (i_ == 7))
+//              continue;
 
-            gen_4l_qcd[i] += (*qcdWeight_)[i_];
+            float qcdWeight = genWeight * (*qcdWeight_)[i_] / lheWeight;
+            gen_4l_qcd[i] += qcdWeight;
 
             if (*isFiducial_)
-                fid_4l_qcd[i] += (*qcdWeight_)[i_];
+                fid_4l_qcd[i] += qcdWeight;
 
             if (reader.GetCurrentEntry() == 0)
                 id_qcd[i] = (*qcdID_)[i_];
@@ -122,10 +129,11 @@ void CalculateScales()
         {
             unsigned j_ = j + 1;
 
-            gen_4l_pdf[j] += (*pdfWeight_)[j_];
+            float pdfWeight = genWeight * (*pdfWeight_)[j_] / lheWeight;
+            gen_4l_pdf[j] += pdfWeight;
 
             if (*isFiducial_)
-                fid_4l_pdf[j] += (*pdfWeight_)[j_];
+                fid_4l_pdf[j] += pdfWeight;
 
             if (reader.GetCurrentEntry() == 0)
                 id_pdf[j] = (*pdfID_)[j_];
@@ -152,6 +160,18 @@ void CalculateScales()
     }
     reader.SetTree(dyTree);
 */
+
+    // Qt reweighting
+
+    TString graphName = "../data/qt_weights_" + YEAR_STR + ".root";
+
+    TGraphAsymmErrors *qtGraph[2];
+
+    TFile *graphFile = TFile::Open(graphName);
+    graphFile->GetObject("mumu_weight", qtGraph[0]);    // ee: muonPairLeads = 0
+    graphFile->GetObject("ee_weight", qtGraph[1]);    // mumu: muonPairLeads = 1
+
+    graphFile->Close();
 
     // Open one file
 
@@ -182,28 +202,38 @@ void CalculateScales()
             cout << endl;
         }
 
+//      cout << *genWeight_ << ", " << (*qcdWeight_)[0] << endl;
+
+        float genWeight = *genWeight_;
+
+        if      ((*channel_) == 3)  // mumu
+            genWeight *= qtGraph[0]->Eval((*lepsP4_).Pt());
+        else if ((*channel_) == 4)  // ee
+            genWeight *= qtGraph[1]->Eval((*lepsP4_).Pt());
 
 
         // Nominal weight
-        gen_2l_nom += (*qcdWeight_)[0];
+        gen_2l_nom += genWeight;
 
         if (*isFiducial_)
-            fid_2l_nom += (*qcdWeight_)[0];
+            fid_2l_nom += genWeight;
 
 
         // QCD scales
 
+        float lheWeight = (*qcdWeight_)[0];
         unsigned i = 0;
         for (unsigned i_ = 1; i_ < (*qcdID_).size(); i_++)
         {
             // Skip 0.5, 2 combos   (https://twiki.cern.ch/twiki/bin/view/CMS/LHEReaderCMSSW)
-            if ((i_ == 5) || (i_ == 7))
-                continue;
+//          if ((i_ == 5) || (i_ == 7))
+//              continue;
 
-            gen_2l_qcd[i] += (*qcdWeight_)[i_];
+            float qcdWeight = genWeight * (*qcdWeight_)[i_] / lheWeight;
+            gen_2l_qcd[i] += qcdWeight;
 
             if (*isFiducial_)
-                fid_2l_qcd[i] += (*qcdWeight_)[i_];
+                fid_2l_qcd[i] += qcdWeight;
             
             i++;
         }
@@ -215,10 +245,11 @@ void CalculateScales()
         {
             unsigned j_ = j + 1;
 
-            gen_2l_pdf[j] += (*pdfWeight_)[j_];
+            float pdfWeight = genWeight * (*pdfWeight_)[j_] / lheWeight;
+            gen_2l_pdf[j] += pdfWeight;
 
             if (*isFiducial_)
-                fid_2l_pdf[j] += (*pdfWeight_)[j_];
+                fid_2l_pdf[j] += pdfWeight;
         }
     }
     dyFile->Close();

@@ -40,8 +40,8 @@ print("Opened", elName)
 
 
 # Get histograms for 2018
-#hnames = ["zzm"]
-hnames = ["sin_phi"]
+hnames = ["zzm"]
+#hnames = ["sin_phi"]
 #hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
 #            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
@@ -590,7 +590,7 @@ for sel in selection:
                     r'$\mbox{Z}\to4\ell$',  r'Nonprompt',       r'VV',
                     r'VVV',                 r'H',               r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$' 
                     ),
-                loc = leg_loc, numpoints = 1, frameon = False, bbox_to_anchor = bbox
+                loc = leg_loc, numpoints = 1, frameon = False#, bbox_to_anchor = bbox
             )
 
         fig_name = "comb_" + hnames[h] + "_" + sel + ".pdf"

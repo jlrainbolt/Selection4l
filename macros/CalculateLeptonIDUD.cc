@@ -11,7 +11,8 @@
 #include "TLorentzVector.h"
 
 // Cuts
-#include "Cuts2017.hh"
+#include "Cuts2018.hh"
+//#include "Cuts2017.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -154,7 +155,7 @@ void CalculateLeptonIDUD(const TString flavor, const TString type, const TString
 
                 // in any case, don't include leptons below pt range
                 else if (pt < PT_MIN)
-                    continue;
+                    pt = 1.01 * PT_MIN;
 
                 bins.push_back(h_nom->FindBin(p4[l].Eta(), pt));
             }
@@ -206,6 +207,7 @@ void CalculateLeptonIDUD(const TString flavor, const TString type, const TString
         TTreeReader reader(sel_2l[i] + "_zjets_m-50", dyFile);
 
         TTreeReaderValue    <Float_t>               genWeight_      (reader,    "genWeight");
+        TTreeReaderValue    <Float_t>               qtWeight_       (reader,    "qtWeight");
         TTreeReaderValue    <TLorentzVector>        l1p4_           (reader,    "l1p4");
         TTreeReaderValue    <Short_t>               l1pdg_          (reader,    "l1pdg");
         TTreeReaderValue    <TLorentzVector>        l2p4_           (reader,    "l2p4");
@@ -232,7 +234,7 @@ void CalculateLeptonIDUD(const TString flavor, const TString type, const TString
 
             // Nominal weight
 
-            float genWeight = *genWeight_;
+            float genWeight = (*genWeight_) * (*qtWeight_);
             float nomWeight = genWeight,    upWeight = genWeight,     dnWeight = genWeight;
 
             if (abs(*l1pdg_) == PDG)

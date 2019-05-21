@@ -83,9 +83,11 @@ void QtReweighting()
 
     const unsigned  P = 8;
     float   binwidth[P] = { 1,  2,  5,  10, 20, 50, 800,1000};
-    int     nbins[P]    = { 10, 5,  4,  2,  2,  2,  1,  1   };
+//  int     nbins[P]    = { 10, 5,  4,  2,  2,  2,  1,  1   };
+    int     nbins[P]    = { 10, 5,  4,  2,  2,  0,  0,  2   };  // for 2016
 
-    const unsigned  M = 26;
+    const unsigned  M = 24;     // for 2016
+//  const unsigned  M = 26;
     double xval = 0, xbins[M+1];
     unsigned k = 0;             // counter for bin index
     for (unsigned i = 0; i < P; i++)    // loop over widths
