@@ -76,7 +76,17 @@ double sig_func(double x, double mean, double amp1, double rms1, double del1,
 // Background is a quadratic function
 double bkg_func(double x, double b0, double b1, double b2)
 {
-    return b2 * pow(x, 2) + b1 * x + b0;
+//  double midpoint = M_MIN_TNP + (M_MAX_TNP - M_MIN_TNP) / 2;
+//  x -= midpoint;
+
+//  return b2 * pow(x, 2) + b1 * x + b0;
+
+    x -= M_MIN_TNP;
+    return b2 * TMath::Exp(-b1 * x) + b0;
+}
+double bkg_func(double *V, double *par)     // overloaded version for hist fitter
+{
+    return bkg_func(V[0], par[0], par[1], par[2]);
 }
 
 // Fit the total
@@ -132,7 +142,7 @@ void HistogramFit(double ptMin, double ptMax)
     double  mean_0 = 91;
     double  rms1_0 = 0.5,   del1_0 = 0,     amp1_0 = passed->GetEntries();
     double  rms2_0 = 1,     del2_0 = 0,     amp2_0 = 0;
-    double  b2_0 = 0,       b1_0 = 0,       b0_0 = 0.01 * passed->GetEntries();
+    double  b2_0 = 1,       b1_0 = 1,       b0_0 = 0.01 * passed->GetEntries();
 
 
     // Passed
@@ -150,10 +160,10 @@ void HistogramFit(double ptMin, double ptMax)
     func->SetParameters(mean_0, amp1_0, rms1_0, del1_0, amp2_0, rms2_0, del2_0, b0_0, b1_0, b2_0);
     func->SetParLimits(amp1, 0, amp1_0);
 
-    if (ptMin > 25)
-        func->SetParLimits(amp2, 0, amp1_0);
-    else
+//  if ((ptMin < 30) || (ptMin > 50))
         func->SetParLimits(amp2, 0, 1e-7);
+//  else
+//      func->SetParLimits(amp2, 0, amp1_0);
 
     failed->Fit(func, "QBM", "", M_MIN_TNP, M_MAX_TNP);
     double F  = func->GetParameter(amp1) + func->GetParameter(amp2);
@@ -176,24 +186,57 @@ void PlotHistograms(TString histName)
 //  gStyle->SetOptFit(11);  
 //  gStyle->SetStatFontSize(0.04);
 
+    // Draw background
+    TF1 *func = new TF1("bkg", bkg_func, M_MIN_TNP, M_MAX_TNP, 3);
+    func->SetNpx(1000);
+    func->SetLineStyle(kDashed);
+    func->SetLineColor(kBlue);
+    func->SetParNames(  "b_0",  "b_1",  "b_2");
+
+    // Retrieve fit function and parameters
+    TF1 *h_func = passed->GetFunction("fit");
+    double b0 = h_func->GetParameter(h_func->GetParNumber("b_0"));
+    double b1 = h_func->GetParameter(h_func->GetParNumber("b_1"));
+    double b2 = h_func->GetParameter(h_func->GetParNumber("b_2"));
+    func->SetParameters(b0, b1, b2);
+
     TCanvas *CP = new TCanvas("passed_" + histName, "", 800, 500);
     CP->SetGridx(1);
     CP->SetGridy(1);
     CP->AddExec("stat", "gStyle->SetOptStat(10)");
-    CP->AddExec("fit", "gStyle->SetOptFit(11)");
+    CP->AddExec("fit", "gStyle->SetOptFit(1111)");
     passed->SetMinimum(0);
+    passed->SetLineColor(kBlack);
+    passed->SetLineWidth(2);
+    passed->SetMarkerStyle(20);
+    passed->SetMarkerSize(1);
     passed->Draw("E");
+    func->Draw("SAME");
     CP->AutoExec();
 //  CP->Print(fitType + "_" + ptRange + "_passed.pdf");
     CP->Write();
+
+
+    // Failed
+
+    h_func = failed->GetFunction("fit");
+    b0 = h_func->GetParameter(h_func->GetParNumber("b_0"));
+    b1 = h_func->GetParameter(h_func->GetParNumber("b_1"));
+    b2 = h_func->GetParameter(h_func->GetParNumber("b_2"));
+    func->SetParameters(b0, b1, b2);
 
     TCanvas *CF = new TCanvas("failed_" + histName, "", 800, 500);
     CF->SetGridx(1);
     CF->SetGridy(1);
     CP->AddExec("stat", "gStyle->SetOptStat(10)");
-    CP->AddExec("fit", "gStyle->SetOptFit(11)");
+    CP->AddExec("fit", "gStyle->SetOptFit(1111)");
     failed->SetMinimum(0);
+    failed->SetLineColor(kBlack);
+    failed->SetLineWidth(2);
+    failed->SetMarkerStyle(20);
+    failed->SetMarkerSize(1);
     failed->Draw("E");
+    func->Draw("SAME");
     CF->AutoExec();
 //  CF->Print(fitType + "_" + ptRange + "_failed.pdf");
     CF->Write();
