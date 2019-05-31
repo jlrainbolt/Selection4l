@@ -61,6 +61,16 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 
 
 //
+//  TRIGGER REQUIREMENTS
+//
+
+const float     MUON_SINGLE_PT = 24,    ELEC_SINGLE_PT = 27;
+const float     MUON_LEG1_PT = 17,      ELEC_LEG1_PT = 23;
+const float     MUON_LEG2_PT = 8,       ELEC_LEG2_PT = 12;
+
+
+
+//
 //  LEPTON ID
 //
 

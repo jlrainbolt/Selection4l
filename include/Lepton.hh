@@ -30,8 +30,8 @@ struct Lepton
     TLorentzVector      u_p4;               // 4-momentum before scale factor ("uncorrected")
     float               iso;                // Relative isolation
     pair<float, float>  id_sf;              // Scale factors for ID/reco
-    pair<bool, bool>    fired;              // Fired trigger leg1/leg2
-    pair<float, float>  te_data,    te_mc;  // Trigger efficiency leg1/leg2
+    pair<bool, bool>    di_hlt;             // Fired trigger leg1/leg2
+    bool                si_hlt;             // Fired single-lepton trigger
 
     // Boosted quantities
     TLorentzVector      b_p4;               // boosted 4-momentum

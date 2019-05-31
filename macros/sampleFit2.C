@@ -20,7 +20,7 @@ double quad_sum(double a, double b) { return sqrt(a * a + b * b); }
 //  PARAMETERS
 //
 
-TString selection = "mumu";
+TString selection = "ee";
 
 TFile *inFile, *outFile;
 TH1 *passed, *failed;
@@ -76,13 +76,13 @@ double sig_func(double x, double mean, double amp1, double rms1, double del1,
 // Background is a quadratic function
 double bkg_func(double x, double b0, double b1, double b2)
 {
-//  double midpoint = M_MIN_TNP + (M_MAX_TNP - M_MIN_TNP) / 2;
-//  x -= midpoint;
+    double midpoint = M_MIN_TNP + (M_MAX_TNP - M_MIN_TNP) / 2;
+    x -= midpoint;
 
-//  return b2 * pow(x, 2) + b1 * x + b0;
+    return b2 * pow(x, 2) + b1 * x + b0;
 
-    x -= M_MIN_TNP;
-    return b2 * TMath::Exp(-b1 * x) + b0;
+//  x -= M_MIN_TNP;
+//  return b2 * TMath::Exp(-b1 * x) + b0;
 }
 double bkg_func(double *V, double *par)     // overloaded version for hist fitter
 {
@@ -249,7 +249,8 @@ void PlotHistograms(TString histName)
 void sampleFit2()
 {
     // Open file
-    TString prefix = "mumu", suffix = "muon_2017", tag = "iso35";
+//  TString prefix = "mumu", suffix = "muon_2017", tag = "iso35";
+    TString prefix = "ee", suffix = "electron_2017", tag = "noIso";
     TString inName = prefix + "_" + tag + "_" + suffix + ".root";
     TString inPath = EOS_PATH + "/TagAndProbe/" + YEAR_STR + "/";
 
@@ -275,7 +276,8 @@ void sampleFit2()
             ptString.Form("pt(%g,%g)", ptMin, ptMax);
         else
             ptString.Form("pt(%g+)", ptMin);
-        TString histName = ptString + "_eta(-2.4,2.4)";
+//      TString histName = ptString + "_eta(-2.4,2.4)";
+        TString histName = ptString + "_eta(-2.5,2.5)";
 
         cout << fixed << setprecision(0) << ptMin << "\t" << ptMax << "\t" << flush;
 

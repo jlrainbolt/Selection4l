@@ -271,7 +271,7 @@ bool MakePairsMaxZ1(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2)
 ////
 ////
 
-
+/*
 float GetTriggerWeight(const vector<Lepton> &leps)
 {
     pair<float, float> data(1, 1), mc(1, 1);
@@ -300,3 +300,4 @@ float GetTriggerWeight(const vector<Lepton> &leps)
     else
         return 1;
 }
+*/

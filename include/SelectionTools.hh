@@ -34,7 +34,7 @@ bool MakePairsMaxZ1(const vector<Lepton>&, LeptonPair*, LeptonPair*);
 //  SCALE FACTORS
 //
 
-float GetTriggerWeight(const vector<Lepton>&);
+//float GetTriggerWeight(const vector<Lepton>&);
 
 
 

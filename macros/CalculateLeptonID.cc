@@ -11,6 +11,7 @@
 #include "TLorentzVector.h"
 
 // Cuts
+//#include "Cuts2018.hh"
 #include "Cuts2017.hh"
 //#include "Cuts2012.hh"
 
@@ -178,7 +179,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
 
             // Nominal weight
 
-            float genWeight = *genWeight_;
+            float genWeight = (*genWeight_);
             sel_4l_gen[i] += genWeight;
 
             float nomWeight = genWeight;
@@ -228,6 +229,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
         TTreeReader reader(sel_2l[i] + "_zjets_m-50", dyFile);
 
         TTreeReaderValue    <Float_t>               genWeight_      (reader,    "genWeight");
+        TTreeReaderValue    <Float_t>               qtWeight_       (reader,    "qtWeight");
         TTreeReaderValue    <TLorentzVector>        l1p4_           (reader,    "l1p4");
         TTreeReaderValue    <Short_t>               l1pdg_          (reader,    "l1pdg");
         TTreeReaderValue    <TLorentzVector>        l2p4_           (reader,    "l2p4");
@@ -254,7 +256,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
 
             // Gen weight
 
-            float genWeight = *genWeight_;
+            float genWeight = (*genWeight_) * (*qtWeight_);
             sel_2l_gen[i] += genWeight;
 
             float nomWeight = genWeight;
@@ -318,8 +320,6 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     //
 
     cout << setprecision(16) << endl;
-
-//  float   sf_4l = XSEC[ZZ] / NGEN[ZZ],        sf_2l = XSEC[DY] / NGEN[DY] * mod;
 
     cout << "%\t" << "Efficiency" << "\t\t\t" << "4l" << "\t\t\t" << "4m";
     cout << "\t\t\t" << "2m2e" << "\t\t\t" << "4e" << endl << endl;

@@ -40,8 +40,6 @@ using namespace std;
 **  Reads from post-BLT analyzer (MultileptonAnalyzer) ntuples.  Output is split into ll (mumu, ee)
 **  and 4l (4m, 2m2e, 2e2m, 4e) channels.  Only information relevant to each (ll, 4l) channel is 
 **  included.  Copies over gen-level particle information for signal (zz_4l) events.
-**
-**  Integrates systematics analysis using histogeams in /data directory.
 */
 
 void BkgSelection(const TString suffix, const TString id)
@@ -65,10 +63,10 @@ void BkgSelection(const TString suffix, const TString id)
     const bool isData       = suffix.Contains(YEAR_STR);
     const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
-    const unsigned N = 7;   // Channel indices
-    unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4, M3 = 5, E3 = 6;
-    TString selection[N]    = { "4l",   "4m",   "2m2e", "2e2m", "4e",   "3m1e", "1m3e"  };
-    unsigned chanIdx[N]     = { 10,     4,      6,      7,      9,      5,      8       };
+    const unsigned N = 4;   // Channel indices
+    unsigned                   L4 = 0, M4 = 1, ME = 2, E4 = 3;
+    TString selection[N]    = {"4l",   "4m",   "2m2e", "4e"};
+    unsigned chanIdx[N]     = {5,      6,      7,      9};
 
 
 
@@ -102,11 +100,10 @@ void BkgSelection(const TString suffix, const TString id)
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
     UShort_t            nPV,        nLooseLeps, nLooseMuons,    nLooseElecs;
-    Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
-    Float_t             trigWeight, idWeight,   recoWeight;
+    Float_t             weight,     genWeight,  qtWeight,   puWeight;
+    Float_t             ecalWeight, trigWeight, idWeight;
     UInt_t              channel;
-    Bool_t              failedSameSignDiv,      failedAnySignDiv;
-    Bool_t              isSameSign, isDiffFlavor;
+    Bool_t              hasTauDecay;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
@@ -126,16 +123,12 @@ void BkgSelection(const TString suffix, const TString id)
         tree[i]->Branch("weight",       &weight);       tree[i]->Branch("genWeight",    &genWeight);
         tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
-        tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
-        tree[i]->Branch("channel",      &channel);
+        tree[i]->Branch("idWeight",     &idWeight);
+        tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
         
         tree[i]->Branch("nLooseLeptons",        &nLooseLeps);
         tree[i]->Branch("nLooseMuons",          &nLooseMuons);
         tree[i]->Branch("nLooseElectrons",      &nLooseElecs);
-        tree[i]->Branch("failedSameSignDiv",    &failedSameSignDiv);
-        tree[i]->Branch("failedAnySignDiv",     &failedAnySignDiv);
-        tree[i]->Branch("isSameSign",           &isSameSign);
-        tree[i]->Branch("isDiffFlavor",         &isDiffFlavor);
     
         tree[i]->Branch("zzp4",         &zzp4);
         tree[i]->Branch("z1p4",         &z1p4);         tree[i]->Branch("z1pdg",        &z1pdg);
@@ -166,7 +159,7 @@ void BkgSelection(const TString suffix, const TString id)
     //
 
     TString inName  = suffix + "_" + id + ".root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/";
     TFile   *inFile = TFile::Open(inPath + inName);
 
     cout << endl << endl << "Opened " << inPath + inName << endl;
@@ -186,9 +179,15 @@ void BkgSelection(const TString suffix, const TString id)
     TTreeReaderValue    <Float_t>           ecalWeight_     (reader,    "ECALWeight");
     TTreeReaderValue    <Float_t>           puWeight_       (reader,    "PUWeight");
     TTreeReaderValue    <UShort_t>          nPV_            (reader,    "nPV");
+    TTreeReaderValue    <Bool_t>            hasTauDecay_    (reader,    "hasTauDecay");
 
     TTreeReaderValue    <Bool_t>            muonTrig_       (reader,    "evtMuonTriggered");
+    TTreeReaderValue    <Bool_t>            diMuTrig_       (reader,    "evtDoubleMuTriggered");
+    TTreeReaderValue    <Bool_t>            siMuTrig_       (reader,    "evtSingleMuTriggered");
     TTreeReaderValue    <Bool_t>            elecTrig_       (reader,    "evtElectronTriggered");
+    TTreeReaderValue    <Bool_t>            diElTrig_       (reader,    "evtDoubleElTriggered");
+    TTreeReaderValue    <Bool_t>            siElTrig_       (reader,    "evtSingleElTriggered");
+
     TTreeReaderValue    <UShort_t>          nMuons_         (reader,    "nLooseMuons");
     TTreeReaderValue    <UShort_t>          nElecs_         (reader,    "nLooseElectrons");
     TTreeReaderValue    <UShort_t>          nTightMuons_    (reader,    "nTightMuons");
@@ -200,6 +199,9 @@ void BkgSelection(const TString suffix, const TString id)
     TTreeReaderValue    <vector<Bool_t>>    muonIsLoose_    (reader,    "muonIsLoose");
     TTreeReaderValue    <vector<Bool_t>>    muonIsTight_    (reader,    "muonIsTight");
     TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonIDSF");
+    TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg1_  (reader,    "muonFiredLeg1");
+    TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg2_  (reader,    "muonFiredLeg2");
+    TTreeReaderValue    <vector<Bool_t>>    muonFiredSing_  (reader,    "muonFiredSingle");
 
     TTreeReaderArray    <TLorentzVector>    elecP4_         (reader,    "electronP4");
     TTreeReaderValue    <vector<Short_t>>   elecQ_          (reader,    "electronQ");
@@ -208,6 +210,9 @@ void BkgSelection(const TString suffix, const TString id)
     TTreeReaderValue    <vector<Bool_t>>    elecIsTight_    (reader,    "electronIsTight");
     TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronIDSF");
     TTreeReaderValue    <vector<Float_t>>   elecRecoSF_     (reader,    "electronRecoSF");
+    TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronFiredLeg1");
+    TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg2_  (reader,    "electronFiredLeg2");
+    TTreeReaderValue    <vector<Bool_t>>    elecFiredSing_  (reader,    "electronFiredSingle");
 
     cout << "Loaded branches" << endl;
 
@@ -296,16 +301,19 @@ void BkgSelection(const TString suffix, const TString id)
         //  EVENT INFO
         //
 
-        failedAnySignDiv    = kFALSE;               failedSameSignDiv   = kFALSE;
-        nLooseMuons = 0;                nLooseElecs = 0;                nLooseLeps  = 0;
-
-        // Quantities copied directly to output tree
+        // Copied directly to output tree
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
-        genWeight   = *genWeight_;      qtWeight    = 1;                ecalWeight  = *ecalWeight_;
-        trigWeight  = 1;                puWeight    = *puWeight_;       nPV         = *nPV_;
+        genWeight   = *genWeight_;      ecalWeight  = *ecalWeight_;     puWeight    = *puWeight_;
+        nPV         = *nPV_;
 
-        // Quantities used in analysis, but not written out
+        // Needing initialization
+        nLooseMuons = 0;                nLooseElecs = 0;                nLooseLeps  = 0;
+        trigWeight  = 1;                qtWeight    = 1;                idWeight    = 1;
+
+        // Used in analysis, but not written out
         bool        muonTrig    = *muonTrig_,       elecTrig    = *elecTrig_;
+        bool        diMuTrig    = *diMuTrig_,       siMuTrig    = *siMuTrig_;
+        bool        diElTrig    = *diElTrig_;       siElTrig    = *siElTrig_;
         unsigned    nMuons      = *nMuons_,         nElecs      = *nElecs_;
         unsigned    nTightMuons = *nTightMuons_,    nTightElecs = *nTightElecs_;
 
@@ -315,13 +323,8 @@ void BkgSelection(const TString suffix, const TString id)
         //  PRESELECTION
         //
 
-        if (muonTrig && suffix.Contains("electron"))    // don't trigger twice on data events
-        {
-            muonTrig = kFALSE;
-            elecTrig = kFALSE;
-        }
-        if (suffix.Contains("muon"))
-            elecTrig = kFALSE;
+        if (!muonTrig && !elecTrig && !allowUntriggered)    // event does not pass trigger
+            continue;
 
         if (nTightMuons < 2 && nTightElecs < 2)         // not enough HZZ-identified leptons
             continue;
@@ -364,6 +367,8 @@ void BkgSelection(const TString suffix, const TString id)
             muon.iso        = (*muonIso_)[i] / muon.p4.Pt();    // actually rel iso
             muon.id_sf      = make_pair((*muonIDSF_)[i],        1);
             muon.tight      = (*muonIsTight_)[i];
+            muon.di_hlt     = make_pair((*muonFiredLeg1_)[i],   (*muonFiredLeg2_)[i]);
+            muon.si_hlt     = (*muonFiredSing_)[i];
 
             muons.push_back(muon);
 
@@ -394,6 +399,8 @@ void BkgSelection(const TString suffix, const TString id)
             elec.iso        = (*elecIso_)[i] / elec.p4.Pt();    // actually rel iso
             elec.id_sf      = make_pair((*elecIDSF_)[i],        (*elecRecoSF_)[i]);
             elec.tight      = (*elecIsTight_)[i];
+            elec.di_hlt     = make_pair((*elecFiredLeg1_)[i],   (*elecFiredLeg2_)[i]);
+            elec.si_hlt     = (*elecFiredSing_)[i];
 
             elecs.push_back(elec);
 
@@ -443,15 +450,62 @@ void BkgSelection(const TString suffix, const TString id)
         all_leps.insert(all_leps.end(), elecs.begin(), elecs.end());
 
 
+
+        //
+        //  TRIGGER MATCHING
+        //
+
+        if (muonTrig)
+        {
+            bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
+
+            for (unsigned i = 0; i < nTightMuons; i++)
+            {
+                if (muons[i].di_hlt.first && (muons[i].p4.Pt() > MUON_LEG1_PT))
+                    matchedLeg1 = kTRUE;
+                if (muons[i].di_hlt.second && (muons[i].p4.Pt() > MUON_LEG2_PT))
+                    matchedLeg2 = kTRUE;
+                if (muons[i].si_hlt && (muons[i].p4.Pt() > MUON_SINGLE_PT))
+                    matchedSingle = kTRUE;
+            }
+
+            diMuTrig = matchedLeg1 && matchedLeg2;
+            siMuTrig = matchedSingle;
+        }
+
+        if (elecTrig)
+        {
+            bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
+
+            for (unsigned i = 0; i < nTightElecs; i++)
+            {
+                if (elecs[i].di_hlt.first && (elecs[i].p4.Pt() > ELEC_LEG1_PT))
+                    matchedLeg1 = kTRUE;
+                if (elecs[i].di_hlt.second && (elecs[i].p4.Pt() > ELEC_LEG2_PT))
+                    matchedLeg2 = kTRUE;
+                if (elecs[i].si_hlt && (elecs[i].p4.Pt() > ELEC_SINGLE_PT))
+                    matchedSingle = kTRUE;
+            }
+
+            diElTrig = matchedLeg1 && matchedLeg2;
+            siElTrig = matchedSingle;
+        }
+
+        muonTrig = diMuTrig || siMuTrig;
+        elecTrig = diElTrig || siElTrig;
+
+        if (!muonTrig && !elecTrig)
+            continue;
+
+
+
         //
         //  MASS WINDOW
         //
 
         TLorentzVector tmp_p4 = TotalP4(all_leps);
 
-        // total mass below/above Z window (extended for background)
-//      if ((tmp_p4.M() < M_MIN_BKG) || (tmp_p4.M() > M_MAX_BKG))
-        if ((tmp_p4.M() < M_MIN) || (tmp_p4.M() > M_MAX))
+        if ((tmp_p4.M() < M_MIN) || (tmp_p4.M() > M_MAX))   // total mass below/above Z window
             continue;
 
         if (print)
@@ -472,21 +526,16 @@ void BkgSelection(const TString suffix, const TString id)
         // "exitloops" at the end of the following three outer loops
 
         // Muons
-        for (unsigned j = 1; j < nMuons; j++)
+        for (unsigned j = 1; j < nTightMuons; j++)
         {
             for (unsigned i = 0; i < j; i++)
             {
                 TLorentzVector dilep_p4 = muons[i].p4 + muons[j].p4;
 
-                if (dilep_p4.M() < MLL_MIN) // failed divergence
+                if ((muons[i].q != muons[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
                 {
-                    failedAnySignDiv = kTRUE;
-
-                    if (muons[i].q != muons[j].q)
-                    {
-                        failedDivCut = kTRUE;
-                        goto exitloops;
-                    }
+                    failedDivCut = kTRUE;
+                    goto exitloops;
                 }
                 if (muons[i].p4.DeltaR(muons[j].p4) < SF_DR_MIN)    // failed same-flavor DeltaR
                 {
@@ -498,21 +547,16 @@ void BkgSelection(const TString suffix, const TString id)
 
 
         // Electrons
-        for (unsigned j = 1; j < nElecs; j++)
+        for (unsigned j = 1; j < nTightElecs; j++)
         {
             for (unsigned i = 0; i < j; i++)
             {
                 TLorentzVector dilep_p4 = elecs[i].p4 + elecs[j].p4;
 
-                if (dilep_p4.M() < MLL_MIN) // failed divergence
+                if ((elecs[i].q != elecs[j].q) && (dilep_p4.M() < MLL_MIN)) // failed divergence
                 {
-                    failedAnySignDiv = kTRUE;
-
-                    if (elecs[i].q != elecs[j].q)
-                    {
-                        failedDivCut = kTRUE;
-                        goto exitloops;
-                    }
+                    failedDivCut = kTRUE;
+                    goto exitloops;
                 }
                 if (elecs[i].p4.DeltaR(elecs[j].p4) < SF_DR_MIN)    // failed same-flavor DeltaR
                 {
@@ -524,19 +568,12 @@ void BkgSelection(const TString suffix, const TString id)
 
 
         // Apply (larger) minimum DeltaR cut to opposite-flavor leptons
-        for (unsigned i = 0; i < nElecs; i++)
+        for (unsigned i = 0; i < nTightElecs; i++)
         {
-            for (unsigned j = 0; j < nMuons; j++)
+            for (unsigned j = 0; j < nTightMuons; j++)
             {
                 TLorentzVector dilep_p4 = elecs[i].p4 + muons[j].p4;
 
-                if (dilep_p4.M() < MLL_MIN) // failed divergence
-                {
-                    failedAnySignDiv = kTRUE;
-
-                    if (elecs[i].q != muons[j].q)
-                        failedAnySignDiv = kTRUE;
-                }
                 if (elecs[i].p4.DeltaR(muons[j].p4) < OF_DR_MIN)    // failed opp-flavor DeltaR
                 {
                     ghostBusted = kTRUE;
@@ -574,65 +611,28 @@ void BkgSelection(const TString suffix, const TString id)
         LeptonPair z1, z2;
         bool madePairs = kFALSE;
 
-        if (muonTrig)                       // higher-priority muon trigger
+        if      (nMuons == 4 && nElecs == 0)            // 4m
         {
-            if      (nMuons == 2 && nElecs == 2)      // 2m2e
-            {
-                C = ME;
-
-                // Choose z1 as triggered pair (reevaluate?)
-                z1.SetMembers(muons[0], muons[1]);
-                z2.SetMembers(elecs[0], elecs[1]);
-
-                madePairs = kTRUE;
-            }
-            else if (nMuons == 3 && nElecs == 1)      // 3m1e
-            {
-                C = M3;
-
-                // Choose z1 as most massive opposite-sign pair
-                madePairs = MakePairsMaxZ1(all_leps, &z1, &z2);
-            }
-            else if (nMuons == 4 && nElecs == 0)      // 4m
-            {
-                C = M4;
-
-                // Choose z1 as most massive opposite-sign pair
-                madePairs = MakePairsMaxZ1(muons, &z1, &z2);
-            }
-            else
-                continue;
+            C = M4;
+            madePairs = MakePairsMaxZ1(muons, &z1, &z2);
         }
-
-        else if (elecTrig)                  // lower-priority electron trigger
+        else if (nMuons == 2 && nElecs == 2)            // 2m2e
         {
-            if      (nElecs == 2 && nMuons == 2)      // 2e2m
-            {
-                C = EM;
+            C = ME;
+            z1.SetMembers(muons[0], muons[1]);
+            z2.SetMembers(elecs[0], elecs[1]);
 
-                // Choose z1 as triggered pair (reevaluate?)
-                z1.SetMembers(elecs[0], elecs[1]); 
-                z2.SetMembers(muons[0], muons[1]);
-
-                madePairs = kTRUE;
-            }
-            else if (nElecs == 3 && nMuons == 1)      // 3m1e
-            {
-                C = E3;
-
-                // Choose z1 as most massive opposite-sign pair
-                madePairs = MakePairsMaxZ1(all_leps, &z1, &z2);
-            }
-            else if (nElecs == 4 && nMuons == 0)      // 4e
-            {
-                C = E4;
-
-                // Choose z1 as most massive opposite-sign pair
-                madePairs = MakePairsMaxZ1(elecs, &z1, &z2);
-            } 
-            else
-                continue;
+            if (z1.p4.M() < z2.p4.M())
+                swap(z1, z2);
+            madePairs = kTRUE;
         }
+        else if (nMuons == 0 && nElecs == 4)            // 4e
+        {
+            C = E4;
+            madePairs = MakePairsMaxZ1(all_leps, &z1, &z2);
+        }
+        else
+            continue;
 
         if (!madePairs)     // no existing SFOS pair?
             continue;
@@ -641,21 +641,7 @@ void BkgSelection(const TString suffix, const TString id)
         if (print)
             cout << "Passed pair requirement for " << selection[C] << endl;
 
-
-
-        //
-        //  SET CUTS
-        //
-
-        // false => elecPairLeads
-        bool muonPairLeads = (C == ME) || (C == M3) || (C == M4);
-
-        const float LEP_PT1_MIN     = muonPairLeads ? MUON_PT1_MIN  : ELEC_PT1_MIN;
-        const float LEP_PT2_MIN     = muonPairLeads ? MUON_PT2_MIN  : ELEC_PT2_MIN;
-
-        const bool  isMixedFlavor   = (C == ME) || (C == EM);
-                    isDiffFlavor    = (C == M3) || (C == E3);
-
+        const bool  muonPairLeads   = z1.pdg == 13;
 
 
 
@@ -677,51 +663,6 @@ void BkgSelection(const TString suffix, const TString id)
 
 
         //
-        //  PT REQUIREMENTS
-        //
-
-        vector<Lepton> trig_leps = muonPairLeads? muons : elecs;    // triggered flavor
-
-        if (trig_leps[0].p4.Pt() < LEP_PT1_MIN)     // no lepton passes Pt1 threshold
-            continue;
-
-        if (trig_leps[1].p4.Pt() < LEP_PT2_MIN)     // no lepton passes Pt2 threshold
-            continue;
-
-        if (print)
-            cout << "Passed Pt requirement" << endl;
-
-
-
-        //
-        //  Z1, Z2 MASS REQUIREMENTS
-        //
-
-        if (z1.p4.M() < z2.p4.M())                  // pairs are swapped
-        {
-            if (isMixedFlavor)                      // okay to swap for mixed flavor
-            {                                       // (masses weren't tested earlier)
-                swap(z1, z2);
-                muonPairLeads = !muonPairLeads;
-            }
-            else                                    // pairs should have been chosen by mass
-                continue;
-        }
-
-        if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
-            continue;
-
-        if (z2.p4.M() < MLL_MIN)                            // z2 failed pair mass requirement
-            continue;
-
-        z1.SetMothers(1);                                   // bookkeeping
-
-        if (print)
-            cout << "Passed z1, z2 mass requirements" << endl;
-
-
-
-        //
         //  CHARGE REQUIREMENTS
         //
 
@@ -735,6 +676,43 @@ void BkgSelection(const TString suffix, const TString id)
 
         if (print)
             cout << "Passed charge requirements" << endl;
+
+
+
+        //
+        //  Z1, Z2 MASS REQUIREMENTS
+        //
+
+        if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
+            continue;
+
+        if (z2.p4.M() < MLL_MIN)                            // z2 failed pair mass requirement
+            continue;
+
+        z1.SetMothers(1);       z2.SetMothers(2);           // bookkeeping
+
+        if (print)
+            cout << "Passed z1, z2 mass requirements" << endl;
+
+
+
+        //
+        //  PT REQUIREMENTS
+        //
+
+        vector<Lepton> all_leps = z1.GetMembers();
+        vector<Lepton> z2_leps = z2.GetMembers();
+        all_leps.insert(all_leps.end(), z2_leps.begin(), z2_leps.end());
+        sort(all_leps.begin(), all_leps.end(), DecreasingPt);
+
+        if (all_leps[0].p4.Pt() < FID_PT1_MIN)  // no lepton passes Pt1 threshold
+            continue;
+
+        if (all_leps[1].p4.Pt() < FID_PT2_MIN)  // no lepton passes Pt2 threshold
+            continue;
+
+        if (print)
+            cout << "Passed Pt requirement" << endl;
 
 
 
@@ -772,6 +750,20 @@ void BkgSelection(const TString suffix, const TString id)
 
         // Event has been selected!
 
+        // Adjust trigger weights
+        if (!isData)
+        {
+            if      (muonTrig)
+            {
+                trigWeight = 1;
+                ecalWeight = 1;
+            }
+            else if (elecTrig)
+                trigWeight = ELEC_TRIG_SF;
+            else // untriggered
+                ecalWeight = 1;
+        }
+        weight = genWeight * puWeight * ecalWeight * trigWeight * qtWeight * idWeight;
 
         // Assemble leptons
         vector<Lepton> leps = z1.GetMembers();
@@ -782,7 +774,6 @@ void BkgSelection(const TString suffix, const TString id)
 
 
         // Set branch variables
-        weight  = genWeight * qtWeight * ecalWeight * puWeight * trigWeight * idWeight * recoWeight;
         channel = chanIdx[C];
 
         z1p4    = z1.p4;                z1pdg   = z1.pdg;

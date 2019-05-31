@@ -6,10 +6,10 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 from secret_number import *
 
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 
@@ -104,7 +104,7 @@ for suff in MC_SUFF:
         # Get signal
         if (suff == "zz_4l" and sel in ["4m", "2m2e", "2e2m", "4e"]) or (suff == "zjets_m-50" and sel in ["mumu", "ee"]):
             if YEAR_STR == "2012":
-                tree.Draw("1>>hist", "!hasTauDecay", "goff")
+                tree.Draw("1>>hist", "", "goff")
             else:
                 tree.Draw("1>>hist", "!hasTauDecay * genWeight", "goff")
             sig[sel] = hist.Integral()
@@ -270,8 +270,9 @@ print("")
 factor = np.zeros(1, dtype=T)
 for sel in ["mumu", "ee", "ll"]:
     factor[sel] = (1 - F_NR) * BF_LL * axe[sel] / (diff[sel])
-    if sel == "ll":
-        factor[sel] = 2 * factor[sel]
+
+factor["ll"] = 2 * (1 - F_NR) * BF_LL / (diff["mumu"] / axe["mumu"] + diff["ee"] / axe["ee"])
+#factor["ll"] = 2 * factor["ll"]
 
 print("Constant for diff dists")
 print(factor["ll"])
@@ -289,10 +290,16 @@ for sel in ["4l", "4m", "2m2e", "4e"]:
     else:
         ll = "ll"
 
-    f = 1000000 * (1 + read_secret_number()) * factor[ll] / axe[sel]
-    bf[sel] = diff[sel] * f
-    bf_stat[sel] = diff_stat[sel] * f
-    bf_syst[sel] = (bg_unc[sel] * f) ** 2
+    f = 1000000 * (1 + read_secret_number()) * factor[ll]
+    if sel == "4l":
+        bf[sel] = f * (diff["4m"] / axe["4m"] + diff["2m2e"] / axe["2m2e"] + diff["4e"] / axe["4e"])
+#       bf_syst[sel] = f * bg_unc[sel] / axe[sel]
+    else:
+        bf[sel] = f * diff[sel] / axe[sel]
+#       bf_syst[sel] = f * (bg_unc["4m"] / axe["4m"] + bg_unc["2m2e"] / axe["2m2e"] + bg_unc["4e"] / axe["4e"])
+
+    bf_stat[sel] = f * diff_stat[sel] / axe[sel]
+    bf_syst[sel] = (f * bg_unc[sel] / axe[sel]) ** 2
 
     for src in [mu_id, el_id, el_reco, mu_pt, el_pt, ecal]:
         bf_syst[sel] = bf_syst[sel] + (bf[sel] * src[sel]) ** 2
@@ -326,12 +333,18 @@ fileName = "BranchingFrac" + YEAR_STR + ".tex"
 f = open(fileName, "w")
 fmt = '%.3f'
 
+f.write(YEAR_STR + " & ")
+
 for sel in ["4l", "4m", "2m2e", "4e"]:
+    if sel != "4l":
+        f.write("\t")
+
     f.write("$" + selTeX[sel] + r"$ & " + fmt % np.squeeze(bf[sel])
-            + r" & $\pm$ " + fmt % np.squeeze(bf_stat[sel])
-            + r" & $\pm$ " + fmt % np.squeeze(bf_syst[sel])
-            + r" & " + '%.2f' % np.squeeze(pr_stat[sel])
+            + r" & " + fmt % np.squeeze(bf_stat[sel])
+            + r" & " + fmt % np.squeeze(bf_syst[sel])
+            + r" && " + '%.2f' % np.squeeze(pr_stat[sel])
             + r" & " + '%.2f' % np.squeeze(pr_syst[sel]) + r" \\" + "\n")
+
     if sel == "4l":
         f.write(r"\addlinespace" + "\n")
 

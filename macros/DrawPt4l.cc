@@ -60,8 +60,10 @@ void DrawPt4l(const TString suffix, const TString year)
     //  INPUT FILE
     //
 
-    TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
+//  TString inName  = "selected_" + suffix + ".root";
+    TString inName  = "boosted_" + suffix + ".root";
+//  TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
+    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -93,7 +95,8 @@ void DrawPt4l(const TString suffix, const TString year)
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
 
-        TString evtWeight = "(weight/trigWeight/qtWeight) * ";
+//      TString evtWeight = "(weight/trigWeight/qtWeight) * ";
+        TString evtWeight = "weight * isFiducial * ";
 
         for (unsigned j = 0; j < 4; j++)
         {

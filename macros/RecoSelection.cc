@@ -23,8 +23,8 @@
 // Cuts
 //#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -41,7 +41,7 @@ using namespace std;
 **  and 4l (4m, 2m2e, 2e2m, 4e) channels.  Only information relevant to each (ll, 4l) channel is 
 **  included.  Copies over gen-level particle information for signal (zz_4l) events.
 **
-**  Integrates systematics analysis using histogeams in /data directory.
+**  Integrates systematics analysis using extra branches.
 */
 
 void RecoSelection( const TString suffix,           const TString id,
@@ -81,10 +81,10 @@ void RecoSelection( const TString suffix,           const TString id,
     const bool isSignal     = suffix.EqualTo("zz_4l");
     const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
-    const unsigned N = 8;   // Channel indices
-    unsigned                   LL = 0, MM = 1, EE = 2, L4 = 3, M4 = 4, ME = 5, EM = 6, E4 = 7;
-    TString selection[N]    = {"ll",   "mumu", "ee",   "4l",   "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {2,      3,      4,      5,      6,      7,      8,      9};
+    const unsigned N = 6;   // Channel indices
+    unsigned                   MM = 0, EE = 1, L4 = 2, M4 = 3, ME = 4, E4 = 5;
+    TString selection[N]    = {"mumu", "ee",   "4l",   "4m",   "2m2e", "4e"};
+    unsigned chanIdx[N]     = {3,      4,      5,      6,      7,      9};
 
 
 
@@ -118,15 +118,16 @@ void RecoSelection( const TString suffix,           const TString id,
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
     UShort_t            nPV;
-    Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
-    Float_t             trigWeight, idWeight,   recoWeight;
-    Bool_t              muonTrig,   elecTrig,   hasTauDecay;
+    Float_t             weight,     genWeight,  qtWeight,   puWeight;
+    Float_t             ecalWeight, trigWeight, idWeight;
     Float_t             nPU,        nPUUp,      nPUDown,    ecalWeightUp,   ecalWeightDown;
-    UInt_t              channel;
+    UShort_t            channel;
+    Bool_t              hasTauDecay;
+    Bool_t              muonTrig,   siMuTrig,   diMuTrig,   elecTrig,   siElTrig,   diElTrig;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
-    Short_t             z1pdg,      z2pdg;
+    UShort_t            z1pdg,      z2pdg;
 
     // Leptons
     TLorentzVector      l1p4,       l2p4,       l3p4,       l4p4;
@@ -136,20 +137,13 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
     // Gen-level info (only written for signal)
-    UShort_t            nHardProcMuons,             nHardProcElectrons,         nHardProcLeptons;
-    UShort_t            nFinalStateMuons,           nFinalStateElectrons,       nFinalStateLeptons;
+    UShort_t            nDressedMuons,          nDressedElectrons,      nDressedLeptons;
+    TClonesArray        *dressedMuonP4          = new TClonesArray("TLorentzVector");
+    TClonesArray        *dressedElectronP4      = new TClonesArray("TLorentzVector");
+    TLorentzVector      *dressedLeptonsP4 = 0;
 
-    TClonesArray        *hardProcMuonP4         =   new TClonesArray("TLorentzVector");
-    TClonesArray        *hardProcElectronP4     =   new TClonesArray("TLorentzVector");
-    vector<Short_t>     *hardProcMuonQ          = 0,        *hardProcElectronQ          = 0;
-    vector<UShort_t>    *hardProcMuonZIndex     = 0,        *hardProcElectronZIndex     = 0;
-    TLorentzVector      *hardProcLeptonsP4      = 0;
-
-    TClonesArray        *finalStateMuonP4       =   new TClonesArray("TLorentzVector");
-    TClonesArray        *finalStateElectronP4   =   new TClonesArray("TLorentzVector");
-    vector<Short_t>     *finalStateMuonQ        = 0,        *finalStateElectronQ        = 0;
-    vector<UShort_t>    *finalStateMuonZIndex   = 0,        *finalStateElectronZIndex   = 0;
-    TLorentzVector      *finalStateLeptonsP4    = 0;
+    vector<Short_t>     *dressedMuonQ = 0,          *dressedElectronQ = 0;
+    vector<UShort_t>    *dressedMuonZIndex = 0,     *dressedElectronZIndex = 0;
 
     TLorentzVector      u_l1p4,     u_l2p4,     u_l3p4,     u_l4p4;
 
@@ -161,27 +155,28 @@ void RecoSelection( const TString suffix,           const TString id,
         tree[i]->Branch("weight",       &weight);       tree[i]->Branch("genWeight",    &genWeight);
         tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
-        tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
+        tree[i]->Branch("idWeight",     &idWeight);
         tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
 
-        if (allowUntriggered)
+        if (isData || isSignal || isDrellYan)
         {
-            tree[i]->Branch("evtMuonTriggered",     &muonTrig);
-            tree[i]->Branch("evtElectronTriggered", &elecTrig);
+            tree[i]->Branch("muonTrig",     &muonTrig); tree[i]->Branch("doubleMuTrig", &diMuTrig);
+            tree[i]->Branch("singleMuTrig", &siMuTrig); tree[i]->Branch("electronTrig", &elecTrig);
+            tree[i]->Branch("doubleElTrig", &diElTrig); tree[i]->Branch("singleElTrig", &siElTrig);
         }
 
         if (isSignal || isDrellYan)
         {
-            tree[i]->Branch("nPU",                  &nPU);
-            if (YEAR_STR.EqualTo("2012"))
+            tree[i]->Branch("nPU",          &nPU);
+
+            if      (YEAR_STR.EqualTo("2012"))
             {
-                tree[i]->Branch("nPUUp",                &nPUUp);
-                tree[i]->Branch("nPUDown",              &nPUDown);
+                tree[i]->Branch("nPUUp",    &nPUUp);    tree[i]->Branch("nPUDown",  &nPUDown);
             }
-            else
+            else if (YEAR_STR.EqualTo("2016") || YEAR_STR.EqualTo("2017"))
             {
-                tree[i]->Branch("ecalWeightUp",         &ecalWeightUp);
-                tree[i]->Branch("ecalWeightDown",       &ecalWeightDown);
+                tree[i]->Branch("ecalWeightUp",     &ecalWeightUp);
+                tree[i]->Branch("ecalWeightDown",   &ecalWeightDown);
             }
         }
 
@@ -205,28 +200,17 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if (isSignal && i >= L4)
         {
-            tree[i]->Branch("nFinalStateMuons",         &nFinalStateMuons);
-            tree[i]->Branch("nFinalStateElectrons",     &nFinalStateElectrons);
-            tree[i]->Branch("nFinalStateLeptons",       &nFinalStateLeptons);
-            tree[i]->Branch("nHardProcMuons",           &nHardProcMuons);
-            tree[i]->Branch("nHardProcElectrons",       &nHardProcElectrons);
-            tree[i]->Branch("nHardProcLeptons",         &nHardProcLeptons);
+            tree[i]->Branch("nDressedMuons",            &nDressedMuons);
+            tree[i]->Branch("nDressedElectrons",        &nDressedElectrons);
+            tree[i]->Branch("nDressedLeptons",          &nDressedLeptons);
 
-            tree[i]->Branch("hardProcMuonP4",           &hardProcMuonP4,            32000,      1);
-            tree[i]->Branch("hardProcMuonQ",            &hardProcMuonQ);
-            tree[i]->Branch("hardProcMuonZIndex",       &hardProcMuonZIndex);
-            tree[i]->Branch("hardProcElectronP4",       &hardProcElectronP4,        32000,      1);
-            tree[i]->Branch("hardProcElectronQ",        &hardProcElectronQ);
-            tree[i]->Branch("hardProcElectronZIndex",   &hardProcElectronZIndex);
-            tree[i]->Branch("hardProcLeptonsP4",        &hardProcLeptonsP4);
-
-            tree[i]->Branch("finalStateMuonP4",         &finalStateMuonP4,          32000,      1);
-            tree[i]->Branch("finalStateMuonQ",          &finalStateMuonQ);
-            tree[i]->Branch("finalStateMuonZIndex",     &finalStateMuonZIndex);
-            tree[i]->Branch("finalStateElectronP4",     &finalStateElectronP4,      32000,      1);
-            tree[i]->Branch("finalStateElectronQ",      &finalStateElectronQ);
-            tree[i]->Branch("finalStateElectronZIndex", &finalStateElectronZIndex);
-            tree[i]->Branch("finalStateLeptonsP4",      &finalStateLeptonsP4);
+            tree[i]->Branch("dressedMuonP4",            &dressedMuonP4,         32000,      1);
+            tree[i]->Branch("dressedMuonQ",             &dressedMuonQ);
+            tree[i]->Branch("dressedMuonZIndex",        &dressedMuonZIndex);
+            tree[i]->Branch("dressedElectronP4",        &dressedElectronP4,     32000,      1);
+            tree[i]->Branch("dressedElectronQ",         &dressedElectronQ);
+            tree[i]->Branch("dressedElectronZIndex",    &dressedElectronZIndex);
+            tree[i]->Branch("dressedLeptonsP4",         &dressedLeptonsP4);
 
             tree[i]->Branch("uncorr_l1p4",  &u_l1p4);   tree[i]->Branch("uncorr_l2p4",  &u_l2p4);
             tree[i]->Branch("uncorr_l3p4",  &u_l3p4);   tree[i]->Branch("uncorr_l4p4",  &u_l4p4);
@@ -249,7 +233,7 @@ void RecoSelection( const TString suffix,           const TString id,
     //
 
     TString inName  = suffix + "_" + id + ".root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/";
     TFile   *inFile = TFile::Open(inPath + inName);
 
     cout << endl << endl << "Opened " << inPath + inName << endl;
@@ -269,9 +253,15 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderValue    <Float_t>           ecalWeight_     (reader,    "ECALWeight");
     TTreeReaderValue    <Float_t>           puWeight_       (reader,    "PUWeight");
     TTreeReaderValue    <UShort_t>          nPV_            (reader,    "nPV");
+    TTreeReaderValue    <Bool_t>            hasTauDecay_    (reader,    "hasTauDecay");
 
     TTreeReaderValue    <Bool_t>            muonTrig_       (reader,    "evtMuonTriggered");
+    TTreeReaderValue    <Bool_t>            diMuTrig_       (reader,    "evtDoubleMuTriggered");
+    TTreeReaderValue    <Bool_t>            siMuTrig_       (reader,    "evtSingleMuTriggered");
     TTreeReaderValue    <Bool_t>            elecTrig_       (reader,    "evtElectronTriggered");
+    TTreeReaderValue    <Bool_t>            diElTrig_       (reader,    "evtDoubleElTriggered");
+    TTreeReaderValue    <Bool_t>            siElTrig_       (reader,    "evtSingleElTriggered");
+
     TTreeReaderValue    <UShort_t>          nMuons_         (reader,    "nLooseMuons");
     TTreeReaderValue    <UShort_t>          nElecs_         (reader,    "nLooseElectrons");
     TTreeReaderValue    <UShort_t>          nTightMuons_    (reader,    "nTightMuons");
@@ -285,11 +275,8 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderValue    <vector<Bool_t>>    muonIsTight_    (reader,    "muonIsTight");
     TTreeReaderValue    <vector<Float_t>>   muonIDSF_       (reader,    "muonIDSF");
     TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg1_  (reader,    "muonFiredLeg1");
-    TTreeReaderValue    <vector<Float_t>>   muonEffL1Data_  (reader,    "muonTrigEffLeg1Data");
-    TTreeReaderValue    <vector<Float_t>>   muonEffL1MC_    (reader,    "muonTrigEffLeg1MC");
     TTreeReaderValue    <vector<Bool_t>>    muonFiredLeg2_  (reader,    "muonFiredLeg2");
-    TTreeReaderValue    <vector<Float_t>>   muonEffL2Data_  (reader,    "muonTrigEffLeg2Data");
-    TTreeReaderValue    <vector<Float_t>>   muonEffL2MC_    (reader,    "muonTrigEffLeg2MC");
+    TTreeReaderValue    <vector<Bool_t>>    muonFiredSing_  (reader,    "muonFiredSingle");
 
     TTreeReaderArray    <TLorentzVector>    elecP4_         (reader,    "electronP4");
     TTreeReaderArray    <TLorentzVector>    elecUncorrP4_   (reader,    "electronUncorrectedP4");
@@ -300,11 +287,8 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderValue    <vector<Float_t>>   elecIDSF_       (reader,    "electronIDSF");
     TTreeReaderValue    <vector<Float_t>>   elecRecoSF_     (reader,    "electronRecoSF");
     TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg1_  (reader,    "electronFiredLeg1");
-    TTreeReaderValue    <vector<Float_t>>   elecEffL1Data_  (reader,    "electronTrigEffLeg1Data");
-    TTreeReaderValue    <vector<Float_t>>   elecEffL1MC_    (reader,    "electronTrigEffLeg1MC");
     TTreeReaderValue    <vector<Bool_t>>    elecFiredLeg2_  (reader,    "electronFiredLeg2");
-    TTreeReaderValue    <vector<Float_t>>   elecEffL2Data_  (reader,    "electronTrigEffLeg2Data");
-    TTreeReaderValue    <vector<Float_t>>   elecEffL2MC_    (reader,    "electronTrigEffLeg2MC");
+    TTreeReaderValue    <vector<Bool_t>>    elecFiredSing_  (reader,    "electronFiredSingle");
 
     cout << "Loaded branches" << endl;
 
@@ -319,48 +303,36 @@ void RecoSelection( const TString suffix,           const TString id,
     {
         inFile->GetObject("tree_" + suffix, inTree);
 
-        inTree->SetBranchAddress(   "hasTauDecay",                  &hasTauDecay);
-        inTree->SetBranchAddress(   "nPU",                          &nPU);
-        if (YEAR_STR.EqualTo("2012"))
+        inTree->SetBranchAddress(   "nPU",  &nPU);
+
+        if      (YEAR_STR.EqualTo("2012"))
         {
-            inTree->SetBranchAddress(   "nPUUp",                        &nPUUp);
-            inTree->SetBranchAddress(   "nPUDown",                      &nPUDown);
+            inTree->SetBranchAddress(   "nPUUp",            &nPUUp);
+            inTree->SetBranchAddress(   "nPUDown",          &nPUDown);
         }
-        else
+        else if (YEAR_STR.EqualTo("2016") || YEAR_STR.EqualTo("2017"))
         {
-            inTree->SetBranchAddress(   "ECALWeightUp",                 &ecalWeightUp);
-            inTree->SetBranchAddress(   "ECALWeightDown",               &ecalWeightDown);
+            inTree->SetBranchAddress(   "ECALWeightUp",     &ecalWeightUp);
+            inTree->SetBranchAddress(   "ECALWeightDown",   &ecalWeightDown);
         }
     }
 
     if (isSignal && !systOn)
     {
-        inTree->SetBranchAddress(   "nFinalStateMuons",             &nFinalStateMuons);
-        inTree->SetBranchAddress(   "nFinalStateElectrons",         &nFinalStateElectrons);
-        inTree->SetBranchAddress(   "nFinalStateLeptons",           &nFinalStateLeptons);
-        inTree->SetBranchAddress(   "nHardProcMuons",               &nHardProcMuons);
-        inTree->SetBranchAddress(   "nHardProcElectrons",           &nHardProcElectrons);
-        inTree->SetBranchAddress(   "nHardProcLeptons",             &nHardProcLeptons);
+        inTree->SetBranchAddress(   "nDressedMuons",            &nDressedMuons);
+        inTree->SetBranchAddress(   "nDressedElectrons",        &nDressedElectrons);
+        inTree->SetBranchAddress(   "nDressedLeptons",          &nDressedLeptons);
+        inTree->SetBranchAddress(   "dressedLeptonsP4",         &dressedLeptonsP4);
 
-        inTree->GetBranch(          "hardProcMuonP4")               ->SetAutoDelete(kFALSE);
-        inTree->SetBranchAddress(   "hardProcMuonP4",               &hardProcMuonP4);
-        inTree->SetBranchAddress(   "hardProcMuonQ",                &hardProcMuonQ);
-        inTree->SetBranchAddress(   "hardProcMuonZIndex",           &hardProcMuonZIndex);
-        inTree->GetBranch(          "hardProcElectronP4")           ->SetAutoDelete(kFALSE);
-        inTree->SetBranchAddress(   "hardProcElectronP4",           &hardProcElectronP4);
-        inTree->SetBranchAddress(   "hardProcElectronQ",            &hardProcElectronQ);
-        inTree->SetBranchAddress(   "hardProcElectronZIndex",       &hardProcElectronZIndex);
-        inTree->SetBranchAddress(   "hardProcLeptonsP4",            &hardProcLeptonsP4);
+        inTree->GetBranch(          "dressedMuonP4")    ->SetAutoDelete(kFALSE);
+        inTree->SetBranchAddress(   "dressedMuonP4",            &dressedMuonP4);
+        inTree->SetBranchAddress(   "dressedMuonQ",             &dressedMuonQ);
+        inTree->SetBranchAddress(   "dressedMuonZIndex",        &dressedMuonZIndex);
 
-        inTree->GetBranch(          "finalStateMuonP4")             ->SetAutoDelete(kFALSE);
-        inTree->SetBranchAddress(   "finalStateMuonP4",             &finalStateMuonP4);
-        inTree->SetBranchAddress(   "finalStateMuonQ",              &finalStateMuonQ);
-        inTree->SetBranchAddress(   "finalStateMuonZIndex",         &finalStateMuonZIndex);
-        inTree->GetBranch(          "finalStateElectronP4")         ->SetAutoDelete(kFALSE);
-        inTree->SetBranchAddress(   "finalStateElectronP4",         &finalStateElectronP4);
-        inTree->SetBranchAddress(   "finalStateElectronQ",          &finalStateElectronQ);
-        inTree->SetBranchAddress(   "finalStateElectronZIndex",     &finalStateElectronZIndex);
-        inTree->SetBranchAddress(   "finalStateLeptonsP4",          &finalStateLeptonsP4);
+        inTree->GetBranch(          "dressedElectronP4")->SetAutoDelete(kFALSE);
+        inTree->SetBranchAddress(   "dressedElectronP4",        &dressedElectronP4);
+        inTree->SetBranchAddress(   "dressedElectronQ",         &dressedElectronQ);
+        inTree->SetBranchAddress(   "dressedElectronZIndex",    &dressedElectronZIndex);
 
         cout << "Loaded gen branches" << endl;
     }
@@ -397,10 +369,6 @@ void RecoSelection( const TString suffix,           const TString id,
     hSelectedEvents = new TH1D("SelectedEvents_" + suffix, "SelectedEvents", 10, 0.5, 10.5);
     hSelectedEvents->SetDirectory(outFile);
     hSelectedEvents->Sumw2();
-
-    // First bin of SelectedEvents is number of generated events
-    hSelectedEvents->SetBinContent(1,
-                        hTotalEvents->GetBinContent(1) - 2 * hTotalEvents->GetBinContent(10));
 
 
 
@@ -455,15 +423,19 @@ void RecoSelection( const TString suffix,           const TString id,
         //  EVENT INFO
         //
 
-        // Quantities copied directly to output tree
+        // Copied directly to output tree
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
-        genWeight   = *genWeight_;      qtWeight    = 1;                ecalWeight  = *ecalWeight_;
-        puWeight    = *puWeight_;       nPV         = *nPV_;
-        muonTrig    = *muonTrig_,       elecTrig    = *elecTrig_;
+        genWeight   = *genWeight_;      ecalWeight  = *ecalWeight_;     puWeight    = *puWeight_;
+        nPV         = *nPV_;
+        muonTrig    = *muonTrig_;       diMuTrig    = *diMuTrig_;       siMuTrig    = *siMuTrig_;
+        elecTrig    = *elecTrig_;       diElTrig    = *diElTrig_;       siElTrig    = *siElTrig_;
 
-        // Quantities used in analysis, but not written out
-        unsigned    nMuons      = *nMuons_,         nElecs      = *nElecs_;
-        unsigned    nTightMuons = *nTightMuons_,    nTightElecs = *nTightElecs_;
+        // Needing initialization
+        trigWeight  = 1;                qtWeight    = 1;                idWeight    = 1;
+
+        // Used in analysis, but not written out
+        unsigned    nMuons      = *nMuons_,             nElecs      = *nElecs_;
+        unsigned    nTightMuons = *nTightMuons_,        nTightElecs = *nTightElecs_;
 
 
 
@@ -471,18 +443,10 @@ void RecoSelection( const TString suffix,           const TString id,
         //  PRESELECTION
         //
 
-        if (muonTrig && suffix.Contains("electron"))    // don't trigger twice on data events
-        {
-            muonTrig = kFALSE;
-            elecTrig = kFALSE;
-        }
-        if (suffix.Contains("muon"))
-            elecTrig = kFALSE;
-
-        if (!muonTrig && !elecTrig && !allowUntriggered)       // event does not pass trigger
+        if (!muonTrig && !elecTrig && !allowUntriggered)    // event does not pass trigger
             continue;
 
-        if (nTightMuons < 2 && nTightElecs < 2)         // not enough HZZ-identified leptons
+        if (nTightMuons < 2 && nTightElecs < 2)             // not enough tight leptons
             continue;
 
 
@@ -523,9 +487,8 @@ void RecoSelection( const TString suffix,           const TString id,
             muon.pdg        = -13 * muon.q;
             muon.iso        = (*muonIso_)[i] / muon.p4.Pt();    // actually rel iso
             muon.id_sf      = make_pair((*muonIDSF_)[i],        1);
-            muon.fired      = make_pair((*muonFiredLeg1_)[i],   (*muonFiredLeg2_)[i]);
-            muon.te_data    = make_pair((*muonEffL1Data_)[i],   (*muonEffL2Data_)[i]);
-            muon.te_mc      = make_pair((*muonEffL1MC_)[i],     (*muonEffL2MC_)[i]);
+            muon.di_hlt     = make_pair((*muonFiredLeg1_)[i],   (*muonFiredLeg2_)[i]);
+            muon.si_hlt     = (*muonFiredSing_)[i];
 
 
             // Correct energy (if necessary)
@@ -561,9 +524,8 @@ void RecoSelection( const TString suffix,           const TString id,
             elec.pdg        = -11 * elec.q;
             elec.iso        = (*elecIso_)[i] / elec.p4.Pt();    // actually rel iso
             elec.id_sf      = make_pair((*elecIDSF_)[i],        (*elecRecoSF_)[i]);
-            elec.fired      = make_pair((*elecFiredLeg1_)[i],   (*elecFiredLeg2_)[i]);
-            elec.te_data    = make_pair((*elecEffL1Data_)[i],   (*elecEffL2Data_)[i]);
-            elec.te_mc      = make_pair((*elecEffL1MC_)[i],     (*elecEffL2MC_)[i]);
+            elec.di_hlt     = make_pair((*elecFiredLeg1_)[i],   (*elecFiredLeg2_)[i]);
+            elec.si_hlt     = (*elecFiredSing_)[i];
 
 
             // Correct energy (if necessary)
@@ -595,6 +557,54 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if (print)
             cout << "Passed lepton count requirement (" << nTightLeps << " leps)" << endl;
+
+
+
+        //
+        //  TRIGGER MATCHING
+        //
+
+        if (muonTrig)
+        {
+            bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
+
+            for (unsigned i = 0; i < nTightMuons; i++)
+            {
+                if (muons[i].di_hlt.first && (muons[i].p4.Pt() > MUON_LEG1_PT))
+                    matchedLeg1 = kTRUE;
+                if (muons[i].di_hlt.second && (muons[i].p4.Pt() > MUON_LEG2_PT))
+                    matchedLeg2 = kTRUE;
+                if (muons[i].si_hlt && (muons[i].p4.Pt() > MUON_SINGLE_PT))
+                    matchedSingle = kTRUE;
+            }
+
+            diMuTrig = matchedLeg1 && matchedLeg2;
+            siMuTrig = matchedSingle;
+        }
+
+        if (elecTrig)
+        {
+            bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
+
+            for (unsigned i = 0; i < nTightElecs; i++)
+            {
+                if (elecs[i].di_hlt.first && (elecs[i].p4.Pt() > ELEC_LEG1_PT))
+                    matchedLeg1 = kTRUE;
+                if (elecs[i].di_hlt.second && (elecs[i].p4.Pt() > ELEC_LEG2_PT))
+                    matchedLeg2 = kTRUE;
+                if (elecs[i].si_hlt && (elecs[i].p4.Pt() > ELEC_SINGLE_PT))
+                    matchedSingle = kTRUE;
+            }
+
+            diElTrig = matchedLeg1 && matchedLeg2;
+            siElTrig = matchedSingle;
+        }
+
+        muonTrig = diMuTrig || siMuTrig;
+        elecTrig = diElTrig || siElTrig;
+
+        if (!muonTrig && !elecTrig)
+            continue;
 
 
 
@@ -709,124 +719,45 @@ void RecoSelection( const TString suffix,           const TString id,
         unsigned C;     // index for filling trees by channel
         LeptonPair z1, z2;
 
-        if (allowUntriggered)                      // allow events that don't pass trigger
+        if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
         {
-            if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
-            {
-                C = MM;
-
-                z1.SetMembers(muons[0], muons[1]);
-            }
-            else if (nTightMuons == 0 && nTightElecs == 2)      // ee
-            {
-                C = EE;
-
-                z1.SetMembers(elecs[0], elecs[1]);
-            }
-            else if (nTightMuons == 4 && nTightElecs == 0)      // 4m
-            {
-                C = M4;
-
-                // Choose (opposite-sign) pairs such that their mass difference is maximized
-                MakePairsMaxDiff(muons, &z1, &z2);
-            }
-            else if (nTightMuons == 2 && nTightElecs == 2)      // 2m2e
-            {
-                C = ME;
-
-                // Choose z1 as triggered pair (reevaluate?)
-                z1.SetMembers(muons[0], muons[1]);
-                z2.SetMembers(elecs[0], elecs[1]);
-            }
-            else if (nTightMuons == 0 && nTightElecs == 4)      // 4m
-            {
-                C = E4;
-
-                // Choose (opposite-sign) pairs such that their mass difference is maximized
-                MakePairsMaxDiff(elecs, &z1, &z2);
-            }
-            else
-                continue;
-
+            C = MM;
+            z1.SetMembers(muons[0], muons[1]);
         }
-
-        else if (muonTrig)                  // higher-priority muon trigger
+        else if (nTightMuons == 0 && nTightElecs == 2)      // ee
         {
-            ecalWeight = 1;     // don't use the ECAL weight?
-
-            if      (nTightMuons == 2 && nTightElecs == 0)      // mumu
-            {
-                C = MM;
-
-                z1.SetMembers(muons[0], muons[1]);
-            }
-            else if (nTightMuons == 2 && nTightElecs == 2)      // 2m2e
-            {
-                C = ME;
-
-                // Choose z1 as triggered pair (reevaluate?)
-                z1.SetMembers(muons[0], muons[1]);
-                z2.SetMembers(elecs[0], elecs[1]);
-            }
-            else if (nTightMuons == 4 && nTightElecs == 0)      // 4m
-            {
-                C = M4;
-
-                // Choose (opposite-sign) pairs such that their mass difference is maximized
-                MakePairsMaxDiff(muons, &z1, &z2);
-            } 
-            else
-                continue;
+            C = EE;
+            z1.SetMembers(elecs[0], elecs[1]);
         }
-
-        else if (elecTrig)                  // lower-priority electron trigger
+        else if (nTightMuons == 4 && nTightElecs == 0)      // 4m
         {
-            if      (nTightElecs == 2 && nTightMuons == 0)      // ee
-            {
-                C = EE;
-
-                z1.SetMembers(elecs[0], elecs[1]);
-            }
-            else if (nTightElecs == 2 && nTightMuons == 2)      // 2e2m
-            {
-                C = EM;
-
-                // Choose z1 as triggered pair (reevaluate?)
-                z1.SetMembers(elecs[0], elecs[1]); 
-                z2.SetMembers(muons[0], muons[1]);
-            }
-            else if (nTightElecs == 4 && nTightMuons == 0)      // 4e
-            {
-                C = E4;
-
-                // Choose (opposite-sign) pairs such that their mass difference is maximized
-                MakePairsMaxDiff(elecs, &z1, &z2);
-            } 
-            else
-                continue;
+            C = M4;
+            MakePairsMaxDiff(muons, &z1, &z2);
         }
+        else if (nTightMuons == 2 && nTightElecs == 2)      // 2m2e
+        {
+            C = ME;
+            z1.SetMembers(muons[0], muons[1]);
+            z2.SetMembers(elecs[0], elecs[1]);
+
+            if (z1.p4.M() < z2.p4.M())
+                swap(z1, z2);
+        }
+        else if (nTightMuons == 0 && nTightElecs == 4)      // 4e
+        {
+            C = E4;
+            MakePairsMaxDiff(elecs, &z1, &z2);
+        }
+        else
+            continue;
 
 
         if (print)
             cout << "Passed pair requirement for " << selection[C] << endl;
 
-
-
-        //
-        //  SET CUTS
-        //
-
-        // false => elecPairLeads
-        bool muonPairLeads = ((C == MM) || (C == ME) || (C == M4));
-
-        const float LEP_PT1_MIN     = muonPairLeads ? MUON_PT1_MIN  : ELEC_PT1_MIN;
-        const float LEP_PT2_MIN     = muonPairLeads ? MUON_PT2_MIN  : ELEC_PT2_MIN;
-
-
-        const bool  isDilepton      = ((C == MM) || (C == EE));
-        const bool  isFourLepton    = ((C == M4) || (C == ME) || (C == EM) || (C == E4));
-        const bool  isMixedFlavor   = ((C == ME) || (C == EM));
-
+        const bool  muonPairLeads   = z1.pdg == 13;
+        const bool  isDilepton      = (C == MM) || (C == EE);
+        const bool  isFourLepton    = (C == M4) || (C == ME) || (C == E4);
 
 
 
@@ -857,10 +788,10 @@ void RecoSelection( const TString suffix,           const TString id,
             //  PT REQUIREMENTS
             //
 
-            if (z1.First().p4.Pt() < LEP_PT1_MIN)           // leading lepton Pt too low
+            if (z1.First().p4.Pt() < FID_PT1_MIN)           // leading lepton Pt too low
                 continue;
 
-            if (z1.Second().p4.Pt() < LEP_PT2_MIN)          // trailing lepton Pt too low
+            if (z1.Second().p4.Pt() < FID_PT2_MIN)          // trailing lepton Pt too low
                 continue;
 
             if (print)
@@ -876,9 +807,8 @@ void RecoSelection( const TString suffix,           const TString id,
             if (isDrellYan)
                 qtWeight = qtGraph[Q]->Eval(z1.p4.Pt());
 
-            trigWeight  = GetTriggerWeight(z1.GetMembers());
-            idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
-            recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
+            idWeight    *= z1.First().id_sf.first * z1.Second().id_sf.first;
+            idWeight    *= z1.First().id_sf.second * z1.Second().id_sf.second;
 
 
             hTotalEvents->Fill(9);
@@ -918,69 +848,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
             //
-            //  PT REQUIREMENTS
-            //  &
-            //  TRIGGER WEIGHT
-            //
-
-            if (isMixedFlavor && allowUntriggered) // check z1 (muons) and z2 (elecs)
-            {
-                bool canTrigger = kFALSE;
-                if (
-                        (muons[0].p4.Pt() > MUON_PT1_MIN) &&
-                        (muons[1].p4.Pt() > MUON_PT2_MIN)
-                   )
-                    canTrigger = kTRUE;
-
-                if (
-                        (elecs[0].p4.Pt() > ELEC_PT1_MIN) &&
-                        (elecs[1].p4.Pt() > ELEC_PT2_MIN)
-                   )
-                    canTrigger = kTRUE;
-
-                if (!canTrigger)
-                    continue;
-            }
-            else if (isMixedFlavor)     // z1 leptons are triggered
-            {
-                if (z1.First().p4.Pt() < LEP_PT1_MIN)
-                    continue;
-
-                if (z1.Second().p4.Pt() < LEP_PT2_MIN)
-                    continue;
-
-                trigWeight = GetTriggerWeight(z1.GetMembers());
-            }
-            else                        // triggered leptons could be in either pair
-            {
-                vector<Lepton> all_leps = z1.GetMembers();
-                vector<Lepton> z2_leps = z2.GetMembers();
-                all_leps.insert(all_leps.end(), z2_leps.begin(), z2_leps.end());
-                sort(all_leps.begin(), all_leps.end(), DecreasingPt);
-
-                if (all_leps[0].p4.Pt() < LEP_PT1_MIN)  // no lepton passes Pt1 threshold
-                    continue;
-
-                if (all_leps[1].p4.Pt() < LEP_PT2_MIN)  // no lepton passes Pt2 threshold
-                    continue;
-
-                trigWeight = GetTriggerWeight(all_leps);
-            }
-
-            if (print)
-                cout << "Passed Pt requirement" << endl;
-
-
-
-            //
             //  Z1, Z2 MASS REQUIREMENTS
             //
-
-            if (z1.p4.M() < z2.p4.M())                          // mixed-flavor pairs are swapped
-            {
-                swap(z1, z2);
-                muonPairLeads = !muonPairLeads;
-            }
 
             if ((z1.p4.M() < Z1_M_MIN) || (z1.p4.M() > Z_M_MAX))// z1 failed pair mass requirements
                 continue;                                       // (z2's mass is bound by z1)
@@ -993,6 +862,26 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
             //
+            //  PT REQUIREMENTS
+            //
+
+            vector<Lepton> all_leps = z1.GetMembers();
+            vector<Lepton> z2_leps = z2.GetMembers();
+            all_leps.insert(all_leps.end(), z2_leps.begin(), z2_leps.end());
+            sort(all_leps.begin(), all_leps.end(), DecreasingPt);
+
+            if (all_leps[0].p4.Pt() < FID_PT1_MIN)  // no lepton passes Pt1 threshold
+                continue;
+
+            if (all_leps[1].p4.Pt() < FID_PT2_MIN)  // no lepton passes Pt2 threshold
+                continue;
+
+            if (print)
+                cout << "Passed Pt requirement" << endl;
+
+
+
+            //
             //  EVENT WEIGHT
             //
 
@@ -1001,10 +890,10 @@ void RecoSelection( const TString suffix,           const TString id,
             if (isDrellYan)
                 qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
-            idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
-            idWeight   *= z2.First().id_sf.first * z2.Second().id_sf.first;
-            recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
-            recoWeight *= z2.First().id_sf.second * z2.Second().id_sf.second;
+            idWeight    *= z1.First().id_sf.first * z1.Second().id_sf.first;
+            idWeight    *= z2.First().id_sf.first * z2.Second().id_sf.first;
+            idWeight    *= z1.First().id_sf.second * z1.Second().id_sf.second;
+            idWeight    *= z2.First().id_sf.second * z2.Second().id_sf.second;
 
 
             hTotalEvents->Fill(9);
@@ -1028,6 +917,21 @@ void RecoSelection( const TString suffix,           const TString id,
 
         // Event has been selected!
 
+        // Adjust trigger weights
+        if (!isData)
+        {
+            if      (muonTrig)
+            {
+                trigWeight = 1;
+                ecalWeight = 1;
+            }
+            else if (elecTrig)
+                trigWeight = ELEC_TRIG_SF;
+            else // untriggered
+                ecalWeight = 1;
+        }
+        weight = genWeight * puWeight * ecalWeight * trigWeight * qtWeight * idWeight;
+
 
         // Assemble leptons
         vector<Lepton> leps = z1.GetMembers();
@@ -1042,7 +946,6 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
         // Set branch variables
-        weight  = genWeight * qtWeight * ecalWeight * puWeight * trigWeight * idWeight * recoWeight;
         channel = chanIdx[C];
 
         z1p4    = z1.p4;                z1pdg   = z1.pdg;
@@ -1066,30 +969,27 @@ void RecoSelection( const TString suffix,           const TString id,
             u_l1p4  = leps[0].u_p4;         u_l2p4  = leps[1].u_p4;
             u_l3p4  = leps[2].u_p4;         u_l4p4  = leps[3].u_p4;
 
-            hardProcMuonP4->Delete();       finalStateMuonP4->Delete();
-            hardProcElectronP4->Delete();   finalStateElectronP4->Delete();
+            dressedMuonP4->Delete();        dressedElectronP4->Delete();
 
             inTree->GetEntry(currentEntry);
 
             if (print)
-                cout << nHardProcLeptons  << " hard process leptons" << endl;
+                cout << nDressedLeptons  << " dressed leptons" << endl;
         }
-        if (isSignal || isDrellYan)
-            inTree->GetEntry(currentEntry);
 
  
-        // Histograms
-        unsigned D = (C > L4) ? L4 : LL;    // Index for ll, 4l channel
+        // Fill trees and histograms
 
-        hSelectedEvents->Fill(chanIdx[C], weight);
-        hSelectedEvents->Fill(chanIdx[D], weight);
-
-
-        // Trees
         tree[C]->Fill();
+        hSelectedEvents->Fill(chanIdx[C], weight);
 
-        if (C > L4)                         // don't write ll tree because it's HUGE and useless
-            tree[D]->Fill();
+        if (C > L4)
+        {
+            tree[L4]->Fill();
+            hSelectedEvents->Fill(chanIdx[L4], weight);
+        }
+
+        hSelectedEvents->Fill(1, weight);
 
 
         count++;
@@ -1108,10 +1008,10 @@ void RecoSelection( const TString suffix,           const TString id,
     cout << "Yields (unweighted):" << endl << endl;
     for (unsigned i = 0; i < N; i++)
     {
-        if (i != LL && i != L4)
-            cout << "\t\t";
         if (i == L4)
             cout << endl;
+        else
+            cout << "\t\t";
 
         cout << selection[i] << ":\t";
         cout << tree[i]->GetEntries() << endl;
