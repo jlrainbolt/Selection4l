@@ -22,8 +22,8 @@
 // Cuts
 //#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -65,10 +65,10 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     //
 
     const unsigned N = 5;
-    unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = { "4l",   "4m",   "2m2e", "2e2m", "4e"    };
-    TString selection2l[N]  = { "",     "mumu", "mumu", "ee",   "ee"    };
-    unsigned chanIdx[N]     = { 5,      6,      7,      8,      9       };
+    unsigned                    L4 = 0, M4 = 1, ME = 2, E4 = 3;     // Indices
+    TString selection[N]    = { "4l",   "4m",   "2m2e", "4e"    };
+    TString selection2l[N]  = { "",     "mumu", "mumu", "ee"    };
+    unsigned chanIdx[N]     = { 5,      6,      7,      9       };
 
 
 
@@ -165,8 +165,7 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     //  INPUT FILE
     //
 
-    TString inName  = "genHardProc_zz_4l.root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "/gen_zz_4l_0.root";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/gen_zz_4l_0.root";
     TFile   *inFile = TFile::Open(inPath);
 
     cout << "Opened " << inPath << endl;
@@ -184,15 +183,16 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     TTreeReaderValue    <UInt_t>                lumiSec_    (reader,    "lumiSection");
     TTreeReaderValue    <Float_t>               genWeight_  (reader,    "genWeight");
     TTreeReaderValue    <UShort_t>              channel_    (reader,    "decayChannel");
-    TTreeReaderValue    <UShort_t>              nMuons_     (reader,    "nHardProcMuons");
-    TTreeReaderValue    <UShort_t>              nElecs_     (reader,    "nHardProcElectrons");
-    TTreeReaderArray    <TLorentzVector>        muonP4_     (reader,    "hardProcMuonP4");
-    TTreeReaderValue    <vector<Short_t>>       muonQ_      (reader,    "hardProcMuonQ");
-    TTreeReaderValue    <vector<UShort_t>>      muonZ_      (reader,    "hardProcMuonZIndex");
-    TTreeReaderArray    <TLorentzVector>        elecP4_     (reader,    "hardProcElectronP4");
-    TTreeReaderValue    <vector<Short_t>>       elecQ_      (reader,    "hardProcElectronQ");
-    TTreeReaderValue    <vector<UShort_t>>      elecZ_      (reader,    "hardProcElectronZIndex");
-    TTreeReaderValue    <TLorentzVector>        lepsP4_     (reader,    "hardProcLeptonsP4");
+    TTreeReaderValue    <Bool_t>                isFiducial_ (reader,    "isFiducial");
+    TTreeReaderValue    <UShort_t>              nMuons_     (reader,    "nMuons");
+    TTreeReaderValue    <UShort_t>              nElecs_     (reader,    "nElectrons");
+    TTreeReaderArray    <TLorentzVector>        muonP4_     (reader,    "muonP4");
+    TTreeReaderValue    <vector<Short_t>>       muonQ_      (reader,    "muonQ");
+    TTreeReaderValue    <vector<UShort_t>>      muonZ_      (reader,    "muonZIndex");
+    TTreeReaderArray    <TLorentzVector>        elecP4_     (reader,    "electronP4");
+    TTreeReaderValue    <vector<Short_t>>       elecQ_      (reader,    "electronQ");
+    TTreeReaderValue    <vector<UShort_t>>      elecZ_      (reader,    "electronZIndex");
+    TTreeReaderValue    <TLorentzVector>        lepsP4_     (reader,    "leptonsP4");
 
     cout << "Loaded branches" << endl;
 
@@ -208,11 +208,10 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + suffix);
     hPhaseSpaceEvents->SetDirectory(outFile);
     hPhaseSpaceEvents->Sumw2();
-    // forgot to write bin 1 in BLT analyzer :(
-    hPhaseSpaceEvents->SetBinContent(chanIdx[L4], hPhaseSpaceEvents->GetBinContent(chanIdx[M4])
-                                                + hPhaseSpaceEvents->GetBinContent(chanIdx[ME])
-                                                + hPhaseSpaceEvents->GetBinContent(chanIdx[EM])
-                                                + hPhaseSpaceEvents->GetBinContent(chanIdx[E4]));
+    // Add 2m2e and 2e2m together
+    hPhaseSpaceEvents->SetBinContent(7, hPhaseSpaceEvents->GetBinContent(7) 
+                                                + hPhaseSpaceEvents->GetBinContent(8));
+    hPhaseSpaceEvents->SetBinContent(8, 0);
 
     hFiducialEvents = new TH1D("FiducialEvents_" + suffix, "FiducialEvents", 10, 0.5, 10.5);
     hFiducialEvents->SetDirectory(outFile);
@@ -274,7 +273,8 @@ void GenAnalysis(const bool fidOnly = kFALSE)
 
         // Quantities copied directly to output tree
         runNum  = *runNum_;         evtNum  = *evtNum_;         lumiSec = *lumiSec_;
-        weight  = *genWeight_;      channel = *channel_;        zzp4    = *lepsP4_;
+        weight  = *genWeight_;      channel = *channel_;        isFiducial = *isFiducial_;
+        zzp4    = *lepsP4_;
 
         // Quantities used in analysis, but not written out
         unsigned    nMuons  = *nMuons_,         nElecs  = *nElecs_;
@@ -357,9 +357,9 @@ void GenAnalysis(const bool fidOnly = kFALSE)
             z1.SetMembers(muons[0], muons[1]);
             z2.SetMembers(elecs[0], elecs[1]);
         }
-        else if (channel == 8)                      // 2e2m
+        else if (channel == 8)                      // 2e2m (save as 2m2e)
         {
-            C = EM;
+            C = ME;
             z1.SetMembers(elecs[0], elecs[1]);
             z2.SetMembers(muons[0], muons[1]);
         }
@@ -390,7 +390,7 @@ void GenAnalysis(const bool fidOnly = kFALSE)
         }
 
 
-
+/*
         //
         //  FIDUCIAL CHECK
         //
@@ -417,7 +417,7 @@ void GenAnalysis(const bool fidOnly = kFALSE)
             if (fabs(leps[i].p4.Eta()) > FID_ETA_MAX)
                 isFiducial = kFALSE;
         }
-
+*/
 
         hFiducialEvents->Fill(1, weight);
 

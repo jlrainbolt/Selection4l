@@ -33,9 +33,6 @@ const float     MUON_MASS = 0.105658369,                        ELEC_MASS = 0.00
 
 const float     M_MIN = 80,             M_MAX = 100,            MLL_MIN = 4;
 
-// Cuts used for SS/OF background selection
-const float     M_MIN_BKG = 60,         M_MAX_BKG = 120;
-
 
 
 //
@@ -109,23 +106,20 @@ const float     MUON_TRIG_LUMI = 36.42,                         ELEC_TRIG_LUMI =
 const float                                                     ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "electron_" + YEAR_STR;
 
-// Event numbers from DAS, negative fractions from XSDB (FIXME?)
-//
-// Cross sections from
-//      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
-//      https://twiki.cern.ch/twiki/bin/view/CMS/HiggsZZ4l2016#Samples_Cross_sections
-const float     NGEN_ZZ_4L      = 6762740,          XSEC_ZZ_4L      = 1.256;    //1.212;
+// FIXME
+const float     NGEN_ZZ_4L      = 6669988,          XSEC_ZZ_4L      = 1.256;    //1.212;
 const float     NGEN_ZJETS_M50  = 80924255,         XSEC_ZJETS_M50  = 6225.42;  //5765.4;
 const float     NGEN_ZJETS_M10  = 29374008,         XSEC_ZJETS_M10  = 18610;
 const float     NGEN_GGH_ZZ_4L  = 999800,           XSEC_GGH_ZZ_4L  = 0.01212;
 const float     NGEN_VBFH_ZZ_4L = 499262,           XSEC_VBFH_ZZ_4L = 0.001034;
 const float     NGEN_TTBAR      = 15173839,         XSEC_TTBAR      = 831.76 * 0.5;
-const float     NGEN_TT_2L2NU   = 65899840,         XSEC_TT_2L2NU   = 87.31 * 0.5;
-const float     NGEN_WW_2L2NU   = 1832358,          XSEC_WW_2L2NU   = 12.178;
+const float     NGEN_TT_2L2NU   = 79140880,         XSEC_TT_2L2NU   = 87.31 * 0.5;
+const float     NGEN_TTZ_2L2NU  = 2654179,          XSEC_TTZ_2L2NU  = 0.2529;
+const float     NGEN_WW_2L2NU   = 1999000,          XSEC_WW_2L2NU   = 12.178;
 const float     NGEN_WZ_2L2Q    = 15879472,         XSEC_WZ_2L2Q    = 5.595;
 const float     NGEN_WZ_3LNU    = 7387013,          XSEC_WZ_3LNU    = 4.42965;
 const float     NGEN_ZZ_2L2Q    = 496436,           XSEC_ZZ_2L2Q    = 3.22;
-const float     NGEN_ZZ_2L2NU   = 48623080,         XSEC_ZZ_2L2NU   = 0.564;
+const float     NGEN_ZZ_2L2NU   = 48655100,         XSEC_ZZ_2L2NU   = 0.564;
 
 const unsigned  N_MC = 11,      ZZ = 0,     DY = 1,     TT = 4;
 const TString   MC_SUFF[N_MC] = {   "zz_4l",        "zjets_m-50",   "zjets_m-10",

@@ -30,3 +30,6 @@ docker*
 # tar
 *.tar
 *.gz
+
+# Save data ntuples
+!data/**

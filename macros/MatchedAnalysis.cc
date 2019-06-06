@@ -22,8 +22,8 @@
 // Cuts
 //#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -53,10 +53,10 @@ void MatchedAnalysis()
     //  SAMPLE INFO
     //
 
-    const unsigned N = 5;
-    unsigned                   L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = {"4l",   "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {5,      6,      7,      8,      9};
+    const unsigned N = 4;
+    unsigned                   L4 = 0, M4 = 1, ME = 2, E4 = 3;     // Indices
+    TString selection[N]    = {"4l",   "4m",   "2m2e", "4e"};
+    unsigned chanIdx[N]     = {5,      6,      7,      9};
 
 
 
@@ -79,12 +79,12 @@ void MatchedAnalysis()
     //
 
     // Event info
-    Bool_t              isMatched;
+    Bool_t              isMatched,  hasTauDecay;
     Int_t               runNum,     evtNum,     lumiSec;
-    UShort_t            nPV;
+    UShort_t            nPV,        channel;
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
-    Float_t             trigWeight, idWeight,   recoWeight;
-    UInt_t              channel;
+    Float_t             trigWeight, idWeight;
+    Bool_t              muonTrig,   siMuTrig,   diMuTrig,   elecTrig,   siElTrig,   diElTrig;
 
 
     // Lab frame objects
@@ -109,13 +109,13 @@ void MatchedAnalysis()
     UShort_t            b_l1z,          b_l2z,          b_l3z,          b_l4z;
 
     // Observables
-    Float_t     psi,            gen_psi,                sin_phi,        gen_sin_phi;
-    Float_t     cos_theta_z1,   gen_cos_theta_z1,       cos_theta_z2,   gen_cos_theta_z2;
-    Float_t     cos_zeta_z1,    gen_cos_zeta_z1,        cos_zeta_z2,    gen_cos_zeta_z2;
-    Float_t     angle_z1leps,   gen_angle_z1leps,       angle_z2leps,   gen_angle_z2leps;
-    Float_t     angle_z1l2_z2,  gen_angle_z1l2_z2;
-
-    // Matched quantities
+    Float_t             psi,            gen_psi,        phi,            gen_phi;
+    Float_t             sin_phi,        gen_sin_phi,    cos_phi,        gen_cos_phi;
+    Float_t             cos_theta_z1,   gen_cos_theta_z1;
+    Float_t             cos_theta_z2,   gen_cos_theta_z2;
+    Float_t             angle_z1leps,   gen_angle_z1leps;
+    Float_t             angle_z2leps,   gen_angle_z2leps;
+    Float_t             angle_z1l2_z2,  gen_angle_z1l2_z2;
 
 
     for (unsigned i = 0; i < N; i++)
@@ -127,19 +127,17 @@ void MatchedAnalysis()
         tree[i]->Branch("weight",       &weight);       tree[i]->Branch("genWeight",    &genWeight);
         tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
-        tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
-        tree[i]->Branch("channel",      &channel);
+        tree[i]->Branch("idWeight",     &idWeight);
+        tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
 
         tree[i]->Branch("psi",      &psi);          tree[i]->Branch("gen_psi",      &gen_psi);                       
+        tree[i]->Branch("phi",      &phi);          tree[i]->Branch("gen_phi",      &gen_phi);                       
         tree[i]->Branch("sin_phi",  &sin_phi);      tree[i]->Branch("gen_sin_phi",  &gen_sin_phi);
+        tree[i]->Branch("cos_phi",  &cos_phi);      tree[i]->Branch("gen_cos_phi",  &gen_cos_phi);
         tree[i]->Branch("cos_theta_z1",     &cos_theta_z1);
         tree[i]->Branch("gen_cos_theta_z1", &gen_cos_theta_z1);             
         tree[i]->Branch("cos_theta_z2",     &cos_theta_z2);
         tree[i]->Branch("gen_cos_theta_z2", &gen_cos_theta_z2);
-        tree[i]->Branch("cos_zeta_z1",      &cos_zeta_z1);
-        tree[i]->Branch("gen_cos_zeta_z1",  &gen_cos_zeta_z1);             
-        tree[i]->Branch("cos_zeta_z2",      &cos_zeta_z2);
-        tree[i]->Branch("gen_cos_zeta_z2",  &gen_cos_zeta_z2);
         tree[i]->Branch("angle_z1leps",     &angle_z1leps);
         tree[i]->Branch("gen_angle_z1leps", &gen_angle_z1leps);
         tree[i]->Branch("angle_z2leps",     &angle_z2leps);
@@ -186,7 +184,7 @@ void MatchedAnalysis()
     //
 
     TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;
@@ -218,44 +216,45 @@ void MatchedAnalysis()
     {
         TTreeReader reader(selection[i] + "_" + suffix, inFile);
 
-        TTreeReaderValue    <Int_t>                 runNum_         (reader,    "runNum");
-        TTreeReaderValue    <Int_t>                 evtNum_         (reader,    "evtNum");
-        TTreeReaderValue    <Int_t>                 lumiSec_        (reader,    "lumiSec");
-        TTreeReaderValue    <UShort_t>              nPV_            (reader,    "nPV");
-        TTreeReaderValue    <Float_t>               weight_         (reader,    "weight");
-        TTreeReaderValue    <Float_t>               genWeight_      (reader,    "genWeight");
-        TTreeReaderValue    <Float_t>               qtWeight_       (reader,    "qtWeight");
-        TTreeReaderValue    <Float_t>               puWeight_       (reader,    "puWeight");
-        TTreeReaderValue    <Float_t>               ecalWeight_     (reader,    "ecalWeight");
-        TTreeReaderValue    <Float_t>               trigWeight_     (reader,    "trigWeight");
-        TTreeReaderValue    <Float_t>               idWeight_       (reader,    "idWeight");
-        TTreeReaderValue    <Float_t>               recoWeight_     (reader,    "recoWeight");
-        TTreeReaderValue    <UInt_t>                channel_        (reader,    "channel");
-        TTreeReaderValue    <TLorentzVector>        zzp4_           (reader,    "zzp4");
-        TTreeReaderValue    <TLorentzVector>        z1p4_           (reader,    "z1p4");
-        TTreeReaderValue    <Short_t>               z1pdg_          (reader,    "z1pdg");
-        TTreeReaderValue    <TLorentzVector>        z2p4_           (reader,    "z2p4");
-        TTreeReaderValue    <Short_t>               z2pdg_          (reader,    "z2pdg");
-        TTreeReaderValue    <TLorentzVector>        l1p4_           (reader,    "l1p4");
-        TTreeReaderValue    <Short_t>               l1pdg_          (reader,    "l1pdg");
-        TTreeReaderValue    <UShort_t>              l1z_            (reader,    "l1z");
-        TTreeReaderValue    <TLorentzVector>        l2p4_           (reader,    "l2p4");
-        TTreeReaderValue    <Short_t>               l2pdg_          (reader,    "l2pdg");
-        TTreeReaderValue    <UShort_t>              l2z_            (reader,    "l2z");
-        TTreeReaderValue    <TLorentzVector>        l3p4_           (reader,    "l3p4");
-        TTreeReaderValue    <Short_t>               l3pdg_          (reader,    "l3pdg");
-        TTreeReaderValue    <UShort_t>              l3z_            (reader,    "l3z");
-        TTreeReaderValue    <TLorentzVector>        l4p4_           (reader,    "l4p4");
-        TTreeReaderValue    <Short_t>               l4pdg_          (reader,    "l4pdg");
-        TTreeReaderValue    <UShort_t>              l4z_            (reader,    "l4z");
+        TTreeReaderValue    <Int_t>             runNum_         (reader,    "runNum");
+        TTreeReaderValue    <Int_t>             evtNum_         (reader,    "evtNum");
+        TTreeReaderValue    <Int_t>             lumiSec_        (reader,    "lumiSec");
+        TTreeReaderValue    <UShort_t>          nPV_            (reader,    "nPV");
+        TTreeReaderValue    <Float_t>           weight_         (reader,    "weight");
+        TTreeReaderValue    <Float_t>           genWeight_      (reader,    "genWeight");
+        TTreeReaderValue    <Float_t>           qtWeight_       (reader,    "qtWeight");
+        TTreeReaderValue    <Float_t>           puWeight_       (reader,    "puWeight");
+        TTreeReaderValue    <Float_t>           ecalWeight_     (reader,    "ecalWeight");
+        TTreeReaderValue    <Float_t>           trigWeight_     (reader,    "trigWeight");
+        TTreeReaderValue    <Float_t>           idWeight_       (reader,    "idWeight");
+        TTreeReaderValue    <UShort_t>          channel_        (reader,    "channel");
+        TTreeReaderValue    <Bool_t>            hasTauDecay_    (reader,    "hasTauDecay");
+
+        TTreeReaderValue    <TLorentzVector>    zzp4_           (reader,    "zzp4");
+        TTreeReaderValue    <TLorentzVector>    z1p4_           (reader,    "z1p4");
+        TTreeReaderValue    <UShort_t>          z1pdg_          (reader,    "z1pdg");
+        TTreeReaderValue    <TLorentzVector>    z2p4_           (reader,    "z2p4");
+        TTreeReaderValue    <UShort_t>          z2pdg_          (reader,    "z2pdg");
+        TTreeReaderValue    <TLorentzVector>    l1p4_           (reader,    "l1p4");
+        TTreeReaderValue    <Short_t>           l1pdg_          (reader,    "l1pdg");
+        TTreeReaderValue    <UShort_t>          l1z_            (reader,    "l1z");
+        TTreeReaderValue    <TLorentzVector>    l2p4_           (reader,    "l2p4");
+        TTreeReaderValue    <Short_t>           l2pdg_          (reader,    "l2pdg");
+        TTreeReaderValue    <UShort_t>          l2z_            (reader,    "l2z");
+        TTreeReaderValue    <TLorentzVector>    l3p4_           (reader,    "l3p4");
+        TTreeReaderValue    <Short_t>           l3pdg_          (reader,    "l3pdg");
+        TTreeReaderValue    <UShort_t>          l3z_            (reader,    "l3z");
+        TTreeReaderValue    <TLorentzVector>    l4p4_           (reader,    "l4p4");
+        TTreeReaderValue    <Short_t>           l4pdg_          (reader,    "l4pdg");
+        TTreeReaderValue    <UShort_t>          l4z_            (reader,    "l4z");
                                                                 
-        TTreeReaderValue    <UShort_t>          nGenMuons_      (reader,    "nFinalStateMuons");
-        TTreeReaderValue    <UShort_t>          nGenElecs_      (reader,    "nFinalStateElectrons");
-        TTreeReaderArray    <TLorentzVector>    genMuonP4_      (reader,    "finalStateMuonP4");
-        TTreeReaderValue    <vector<Short_t>>   genMuonQ_       (reader,    "finalStateMuonQ");
-        TTreeReaderArray    <TLorentzVector>    genElecP4_      (reader,    "finalStateElectronP4");
-        TTreeReaderValue    <vector<Short_t>>   genElecQ_       (reader,    "finalStateElectronQ");
-        TTreeReaderValue    <TLorentzVector>    genLepsP4_      (reader,    "finalStateLeptonsP4");
+        TTreeReaderValue    <UShort_t>          nGenMuons_      (reader,    "nDressedMuons");
+        TTreeReaderValue    <UShort_t>          nGenElecs_      (reader,    "nDressedElectrons");
+        TTreeReaderArray    <TLorentzVector>    genMuonP4_      (reader,    "dressedMuonP4");
+        TTreeReaderValue    <vector<Short_t>>   genMuonQ_       (reader,    "dressedMuonQ");
+        TTreeReaderArray    <TLorentzVector>    genElecP4_      (reader,    "dressedElectronP4");
+        TTreeReaderValue    <vector<Short_t>>   genElecQ_       (reader,    "dressedElectronQ");
+        TTreeReaderValue    <TLorentzVector>    genLepsP4_      (reader,    "dressedLeptonsP4");
         TTreeReaderValue    <TLorentzVector>    u_l1p4_         (reader,    "uncorr_l1p4");
         TTreeReaderValue    <TLorentzVector>    u_l2p4_         (reader,    "uncorr_l2p4");
         TTreeReaderValue    <TLorentzVector>    u_l3p4_         (reader,    "uncorr_l3p4");
@@ -315,14 +314,11 @@ void MatchedAnalysis()
             //  EVENT INFO
             //                
 
-            // Innocent until proven guilty
-            isMatched   = kTRUE;
-
             // Quantities copied directly to output tree
-            runNum      = *runNum_;     evtNum      = *evtNum_;     lumiSec     = *lumiSec_;
-            nPV         = *nPV_;        weight      = *weight_;     genWeight   = *genWeight_;
-            qtWeight    = *qtWeight_;   puWeight    = *puWeight_;   ecalWeight  = *ecalWeight_;
-            trigWeight  = *trigWeight_; idWeight    = *idWeight_;   recoWeight  = *recoWeight_;
+            runNum      = *runNum_;     evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
+            nPV         = *nPV_;        hasTauDecay = *hasTauDecay_;    weight      = *weight_;
+            genWeight   = *genWeight_;  ecalWeight  = *ecalWeight_;     puWeight    = *puWeight_;
+            trigWeight  = *trigWeight_; qtWeight    = *qtWeight_;       idWeight    = *idWeight_;   
             channel     = *channel_;
 
             zzp4    = *zzp4_;           gen_zzp4    = *genLepsP4_;
@@ -340,10 +336,12 @@ void MatchedAnalysis()
             gen_b_z1p4.Delete();        gen_b_z2p4.Delete();        gen_b_ttp4.Delete();
             gen_b_l1v3.Delete();        gen_b_l2v3.Delete();
             gen_b_l3v3.Delete();        gen_b_l4v3.Delete();
-            gen_psi = NAN;              gen_sin_phi = NAN;
-            gen_cos_theta_z1 = NAN;     gen_cos_theta_z2 = NAN;
-            gen_cos_zeta_z1 = NAN;      gen_cos_zeta_z2 = NAN;
+            gen_psi = NAN;              gen_phi = NAN;              gen_sin_phi = NAN;
+            gen_cos_phi = NAN;          gen_cos_theta_z1 = NAN;     gen_cos_theta_z2 = NAN;
             gen_angle_z1leps = NAN;     gen_angle_z2leps = NAN;     gen_angle_z1l2_z2 = NAN;
+
+            // Innocent until proven guilty, unless it's a tau event
+            isMatched   = !hasTauDecay;
 
 
 
@@ -557,12 +555,15 @@ void MatchedAnalysis()
             TVector3    n_cross_n = n_z1.Cross(n_z2),       m_n_cross_n = m_n_z1.Cross(m_n_z2);
             sin_phi     = n_cross_n.Dot(z1.b_v3.Unit());
             gen_sin_phi = m_n_cross_n.Dot(z1.m_b_v3.Unit());
+            cos_phi     = n_z1.Dot(n_z2);                   gen_cos_phi = m_n_z1.Dot(m_n_z2);
+            phi         = atan2(sin_phi, cos_phi);
+            gen_phi     = atan2(gen_sin_phi, gen_cos_phi);
 
             // Angles between paired leptons
             angle_z1leps = z1_plus.Angle(z1_minus); gen_angle_z1leps = m_z1_plus.Angle(m_z1_minus);
             angle_z2leps = z2_plus.Angle(z2_minus); gen_angle_z2leps = m_z2_plus.Angle(m_z2_minus);
 
-            // "theta": angle between trailing pair 1 lepton and low-mass pair
+            // "beta": angle between trailing pair 1 lepton and low-mass pair
             TVector3    z1_low = z1.BSecond().b_v3, m_z1_low = z1.BSecond().m_b_v3;
             angle_z1l2_z2 = z2.b_p4.Angle(z1_low);  gen_angle_z1l2_z2 = z2.m_b_p4.Angle(m_z1_low);
 
@@ -588,16 +589,6 @@ void MatchedAnalysis()
             TVector3    m_u_b2_z2_plus = b2_z2.Plus().m_b_v3.Unit();
             gen_cos_theta_z1 = m_u_b1_z2.Dot(m_u_b1_z1_plus);
             gen_cos_theta_z2 = m_u_b2_z1.Dot(m_u_b2_z2_plus);
-
-
-            // "zeta_zX": polarization angle for positive pair X lepton and X pair in Z CM frame
-            TVector3    u_z1 = z1.b_v3.Unit(),              u_z2 = z2.b_v3.Unit();
-            cos_zeta_z1 = u_z1.Dot(u_b1_z1_plus);
-            cos_zeta_z2 = u_z2.Dot(u_b2_z2_plus);
-
-            TVector3    m_u_z1 = z1.m_b_v3.Unit(),          m_u_z2 = z2.m_b_v3.Unit();
-            gen_cos_zeta_z1 = m_u_z1.Dot(m_u_b1_z1_plus);
-            gen_cos_zeta_z2 = m_u_z2.Dot(m_u_b2_z2_plus);
 
 
 

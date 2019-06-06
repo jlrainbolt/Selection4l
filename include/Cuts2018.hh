@@ -33,9 +33,6 @@ const float     MUON_MASS = 0.105658369,                        ELEC_MASS = 0.00
 
 const float     M_MIN = 80,             M_MAX = 100,            MLL_MIN = 4;
 
-// Cuts used for SS/OF background selection
-const float     M_MIN_BKG = 60,         M_MAX_BKG = 120;
-
 
 
 //
@@ -57,6 +54,16 @@ const float     ELEC_PT1_MIN = 25,      ELEC_PT2_MIN = 15,      ELEC_PT_MIN = 7;
 const float     MUON_ETA_MAX = 2.4,     ELEC_ETA_MAX = 2.5;
 const float     MUON_ISO_MAX = 0.35,    ELEC_ISO_MAX = 0.35;
 const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
+
+
+
+//
+//  TRIGGER REQUIREMENTS
+//
+
+const float     MUON_SINGLE_PT = 24,    ELEC_SINGLE_PT = 35;
+const float     MUON_LEG1_PT = 17,      ELEC_LEG1_PT = 23;
+const float     MUON_LEG2_PT = 8,       ELEC_LEG2_PT = 12;
 
 
 
@@ -96,7 +103,7 @@ const float     MATCH_DR_MAX = 0.02;
 //
 
 const float     MUON_TRIG_LUMI = 58.83,             ELEC_TRIG_LUMI = 58.83;
-const float                                         ELEC_TRIG_SF = 0.991;
+const float                                         ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
 
 // WRONG event numbers

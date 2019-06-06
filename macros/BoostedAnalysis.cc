@@ -46,15 +46,14 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     //
 
     const bool isData       = suffix.Contains(YEAR_STR);
-    const bool isSignal     = suffix.EqualTo("zz_4l") || suffix.EqualTo("zz_4m") 
-                                || suffix.EqualTo("zz_2m2e") || suffix.EqualTo("zz_4e");
+    const bool isSignal     = suffix.EqualTo("zz_4l");
     const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
-    const unsigned N = 5;
-    unsigned                    L4 = 0, M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = { "4l",   "4m",   "2m2e", "2e2m", "4e"    };
-    TString selection2l[N]  = { "",     "mumu", "mumu", "ee",   "ee"    };
-    unsigned chanIdx[N]     = { 5,      6,      7,      8,      9       };
+    const unsigned N = 4;
+    unsigned                    L4 = 0, M4 = 1, ME = 2, E4 = 3;     // Indices
+    TString selection[N]    = { "4l",   "4m",   "2m2e", "4e"    };
+    TString selection2l[N]  = { "",     "mumu", "mumu", "ee"    };
+    unsigned chanIdx[N]     = { 5,      6,      7,      9       };
 
     TRandom3 *rng = new TRandom3(RNG_SEED);
 
@@ -84,7 +83,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     Int_t               runNum,     evtNum,     lumiSec;
     UShort_t            nPV;
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
-    Float_t             trigWeight, idWeight,   recoWeight;
+    Float_t             trigWeight, idWeight;
     UInt_t              channel;
     Bool_t              hasTauDecay;
 

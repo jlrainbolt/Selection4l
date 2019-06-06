@@ -86,6 +86,8 @@ void RecoSelection( const TString suffix,           const TString id,
     TString selection[N]    = {"mumu", "ee",   "4l",   "4m",   "2m2e", "4e"};
     unsigned chanIdx[N]     = {3,      4,      5,      6,      7,      9};
 
+    const TString UncorrP4 = YEAR_STR.EqualTo("2012") ? "UncorrP4" : "UncorrectedP4";
+
 
 
 
@@ -118,9 +120,9 @@ void RecoSelection( const TString suffix,           const TString id,
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
     UShort_t            nPV;
-    Float_t             weight,     genWeight,  qtWeight,   puWeight;
-    Float_t             ecalWeight, trigWeight, idWeight;
-    Float_t             nPU,        nPUUp,      nPUDown,    ecalWeightUp,   ecalWeightDown;
+    Float_t             weight,     genWeight,      qtWeight,       trigWeight,     idWeight;
+    Float_t             ecalWeight, ecalWeightUp,   ecalWeightDown;
+    Float_t             puWeight,   puWeightUp,     puWeightDown,   nPU;
     UShort_t            channel;
     Bool_t              hasTauDecay;
     Bool_t              muonTrig,   siMuTrig,   diMuTrig,   elecTrig,   siElTrig,   diElTrig;
@@ -167,11 +169,12 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if (isSignal || isDrellYan)
         {
-            tree[i]->Branch("nPU",          &nPU);
+            tree[i]->Branch("nPU",              &nPU);
 
             if      (YEAR_STR.EqualTo("2012"))
             {
-                tree[i]->Branch("nPUUp",    &nPUUp);    tree[i]->Branch("nPUDown",  &nPUDown);
+                tree[i]->Branch("puWeightUp",       &puWeightUp);
+                tree[i]->Branch("puWeightDown",     &puWeightDown);
             }
             else if (YEAR_STR.EqualTo("2016") || YEAR_STR.EqualTo("2017"))
             {
@@ -268,7 +271,7 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderValue    <UShort_t>          nTightElecs_    (reader,    "nTightElectrons");
 
     TTreeReaderArray    <TLorentzVector>    muonP4_         (reader,    "muonP4");
-    TTreeReaderArray    <TLorentzVector>    muonUncorrP4_   (reader,    "muonUncorrectedP4");
+    TTreeReaderArray    <TLorentzVector>    muonUncorrP4_   (reader,    "muon" + UncorrP4);
     TTreeReaderValue    <vector<Float_t>>   muonEnergySF_   (reader,    "muonEnergySF" + var);
     TTreeReaderValue    <vector<Short_t>>   muonQ_          (reader,    "muonQ");
     TTreeReaderValue    <vector<Float_t>>   muonIso_        (reader,    "muonIsolation");
@@ -279,7 +282,7 @@ void RecoSelection( const TString suffix,           const TString id,
     TTreeReaderValue    <vector<Bool_t>>    muonFiredSing_  (reader,    "muonFiredSingle");
 
     TTreeReaderArray    <TLorentzVector>    elecP4_         (reader,    "electronP4");
-    TTreeReaderArray    <TLorentzVector>    elecUncorrP4_   (reader,    "electronUncorrectedP4");
+    TTreeReaderArray    <TLorentzVector>    elecUncorrP4_   (reader,    "electron" + UncorrP4);
     TTreeReaderValue    <vector<Float_t>>   elecEnergySF_   (reader,    "electronEnergySF" + var);
     TTreeReaderValue    <vector<Short_t>>   elecQ_          (reader,    "electronQ");
     TTreeReaderValue    <vector<Float_t>>   elecIso_        (reader,    "electronIsolation");
@@ -307,8 +310,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
         if      (YEAR_STR.EqualTo("2012"))
         {
-            inTree->SetBranchAddress(   "nPUUp",            &nPUUp);
-            inTree->SetBranchAddress(   "nPUDown",          &nPUDown);
+            inTree->SetBranchAddress(   "PUWeightUp",       &puWeightUp);
+            inTree->SetBranchAddress(   "PUWeightDown",     &puWeightDown);
         }
         else if (YEAR_STR.EqualTo("2016") || YEAR_STR.EqualTo("2017"))
         {
@@ -426,7 +429,7 @@ void RecoSelection( const TString suffix,           const TString id,
         // Copied directly to output tree
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
         genWeight   = *genWeight_;      ecalWeight  = *ecalWeight_;     puWeight    = *puWeight_;
-        nPV         = *nPV_;
+        nPV         = *nPV_;            hasTauDecay = *hasTauDecay_;
         muonTrig    = *muonTrig_;       diMuTrig    = *diMuTrig_;       siMuTrig    = *siMuTrig_;
         elecTrig    = *elecTrig_;       diElTrig    = *diElTrig_;       siElTrig    = *siElTrig_;
 
@@ -578,8 +581,8 @@ void RecoSelection( const TString suffix,           const TString id,
                     matchedSingle = kTRUE;
             }
 
-            diMuTrig = matchedLeg1 && matchedLeg2;
-            siMuTrig = matchedSingle;
+            diMuTrig = diMuTrig && matchedLeg1 && matchedLeg2;
+            siMuTrig = siMuTrig && matchedSingle;
         }
 
         if (elecTrig)
@@ -596,8 +599,8 @@ void RecoSelection( const TString suffix,           const TString id,
                     matchedSingle = kTRUE;
             }
 
-            diElTrig = matchedLeg1 && matchedLeg2;
-            siElTrig = matchedSingle;
+            diElTrig = diElTrig && matchedLeg1 && matchedLeg2;
+            siElTrig = diElTrig && matchedSingle;
         }
 
         muonTrig = diMuTrig || siMuTrig;
