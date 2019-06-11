@@ -40,25 +40,24 @@ npt_unc = { "4l":2.00,      "4m":0.06,      "2m2e":1.73,    "4e":1.00, "mumu":0,
 ##  SAMPLE INFO
 ##
 
-MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 19.712, 19.712, 1
-LUMI_UNC = .026
+ELEC_TRIG_SF = 1
+INT_LUMI, LUMI_UNC = 19.712, .026
 SQRT_S  = 8
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
 NGEN_ZZ_4L  = 1499064 + 1499093 + 1497445 + 823922 + 823911 + 824466
 XSEC_ZZ_4L  = 3 * 0.1767 + 3 * 0.07691
 NGEN_ZJETS_M50,     XSEC_ZJETS_M50      = 30459503,       3531.9
-NGEN_ZJETS_M10,     XSEC_ZJETS_M10      = 33648307,       11050
 NGEN_TTBAR,         XSEC_TTBAR          = 12011428,       25.81
 NGEN_TTZ_2L2NU,     XSEC_TTZ_2L2NU      = 210160,         0.2057
 NGEN_WW_2L2NU,      XSEC_WW_2L2NU       = 10000431,       57.25
 NGEN_WZ_2L2Q,       XSEC_WZ_2L2Q        = 3215990,        5.09
 NGEN_WZ_3LNU,       XSEC_WZ_3LNU        = 2017979,        1.086
-NGEN_ZZ_2L2NU,      XSEC_ZZ_2L2NU       = 1936727,        2.47
-NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        = 954911,         0.71
+NGEN_ZZ_2L2Q,       XSEC_ZZ_2L2Q        = 1936727,        2.47
+NGEN_ZZ_2L2NU,      XSEC_ZZ_2L2NU       = 954911,         0.71
 
 N_MC = 9
-N_DY = 2
+N_DY = 3
 
 MC_SUFF = [ "zz_4l",            "zjets_m-50",
             "ttbar",            "ttz_2l2nu",        "ww_2l2nu",

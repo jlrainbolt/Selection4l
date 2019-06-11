@@ -31,7 +31,7 @@ lumiDown = False
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Selected/" + YEAR_STR + "/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
 prefix = "selected"
 
 # Muon file

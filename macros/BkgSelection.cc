@@ -23,8 +23,8 @@
 // Cuts
 //#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+#include "Cuts2016.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -42,7 +42,7 @@ using namespace std;
 **  included.  Copies over gen-level particle information for signal (zz_4l) events.
 */
 
-void BkgSelection(const TString suffix, const TString id)
+void BkgSelection(const TString suffix, const TString id, const bool isLoose = kTRUE)
 {
 
 
@@ -83,7 +83,7 @@ void BkgSelection(const TString suffix, const TString id)
     //  FILE
     //
 
-    TString prefix  = "background";
+    TString prefix  = isLoose ? "background" : "background_tight";
     TString outName = prefix + "_" + suffix + "_" + id + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -99,11 +99,13 @@ void BkgSelection(const TString suffix, const TString id)
 
     // Event info
     Int_t               runNum,     evtNum,     lumiSec;
-    UShort_t            nPV,        nLooseLeps, nLooseMuons,    nLooseElecs;
-    Float_t             weight,     genWeight,  qtWeight,   puWeight;
-    Float_t             ecalWeight, trigWeight, idWeight;
-    UInt_t              channel;
+    UShort_t            nPV,        nLooseLeps,     nLooseMuons,    nLooseElecs;
+    Float_t             weight,     genWeight,      qtWeight,       trigWeight,     idWeight;
+    Float_t             ecalWeight, ecalWeightUp,   ecalWeightDown;
+    Float_t             puWeight,   puWeightUp,     puWeightDown,   nPU;
+    UShort_t            channel;
     Bool_t              hasTauDecay;
+    Bool_t              muonTrig,   siMuTrig,   diMuTrig,   elecTrig,   siElTrig,   diElTrig;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
@@ -126,9 +128,12 @@ void BkgSelection(const TString suffix, const TString id)
         tree[i]->Branch("idWeight",     &idWeight);
         tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
         
-        tree[i]->Branch("nLooseLeptons",        &nLooseLeps);
-        tree[i]->Branch("nLooseMuons",          &nLooseMuons);
-        tree[i]->Branch("nLooseElectrons",      &nLooseElecs);
+        if (isLoose)
+        {
+            tree[i]->Branch("nLooseLeptons",        &nLooseLeps);
+            tree[i]->Branch("nLooseMuons",          &nLooseMuons);
+            tree[i]->Branch("nLooseElectrons",      &nLooseElecs);
+        }
     
         tree[i]->Branch("zzp4",         &zzp4);
         tree[i]->Branch("z1p4",         &z1p4);         tree[i]->Branch("z1pdg",        &z1pdg);
@@ -304,7 +309,7 @@ void BkgSelection(const TString suffix, const TString id)
         // Copied directly to output tree
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
         genWeight   = *genWeight_;      ecalWeight  = *ecalWeight_;     puWeight    = *puWeight_;
-        nPV         = *nPV_;
+        nPV         = *nPV_;            hasTauDecay = *hasTauDecay_;
 
         // Needing initialization
         nLooseMuons = 0;                nLooseElecs = 0;                nLooseLeps  = 0;
@@ -323,10 +328,10 @@ void BkgSelection(const TString suffix, const TString id)
         //  PRESELECTION
         //
 
-        if (!muonTrig && !elecTrig && !allowUntriggered)    // event does not pass trigger
+        if (!muonTrig && !elecTrig)                 // event does not pass trigger
             continue;
 
-        if (nTightMuons < 2 && nTightElecs < 2)         // not enough HZZ-identified leptons
+        if (nTightMuons < 2 && nTightElecs < 2)     // not enough HZZ-identified leptons
             continue;
 
 
@@ -430,7 +435,7 @@ void BkgSelection(const TString suffix, const TString id)
             nElecs = nTightElecs;
             nLeps = nTightLeps;
         }
-        else if ((nTightLeps < 4) && (nLeps == 4))
+        else if (isLoose && (nTightLeps == 3) && (nLeps == 4))
         {
             nLooseMuons = nMuons - nTightMuons;
             nLooseElecs = nElecs - nTightElecs;
@@ -469,8 +474,8 @@ void BkgSelection(const TString suffix, const TString id)
                     matchedSingle = kTRUE;
             }
 
-            diMuTrig = matchedLeg1 && matchedLeg2;
-            siMuTrig = matchedSingle;
+            diMuTrig = diMuTrig && matchedLeg1 && matchedLeg2;
+            siMuTrig = siMuTrig && matchedSingle;
         }
 
         if (elecTrig)
@@ -487,8 +492,8 @@ void BkgSelection(const TString suffix, const TString id)
                     matchedSingle = kTRUE;
             }
 
-            diElTrig = matchedLeg1 && matchedLeg2;
-            siElTrig = matchedSingle;
+            diElTrig = diElTrig && matchedLeg1 && matchedLeg2;
+            siElTrig = diElTrig && matchedSingle;
         }
 
         muonTrig = diMuTrig || siMuTrig;
@@ -669,10 +674,8 @@ void BkgSelection(const TString suffix, const TString id)
         if ((z1.Plus().q != 1) || (z1.Minus().q != -1)) // z1 charges are not +1 and -1 
             continue;
 
-        if ((z2.Plus().q != 1) || (z2.Minus().q != -1)) // z2 charges are not +1 and -1
-            isSameSign = kTRUE;
-        else
-            isSameSign = kFALSE;
+        if ((z2.Plus().q == 1) && (z2.Minus().q == -1)) // z2 charges are +1 and -1
+            continue;
 
         if (print)
             cout << "Passed charge requirements" << endl;
@@ -700,9 +703,6 @@ void BkgSelection(const TString suffix, const TString id)
         //  PT REQUIREMENTS
         //
 
-        vector<Lepton> all_leps = z1.GetMembers();
-        vector<Lepton> z2_leps = z2.GetMembers();
-        all_leps.insert(all_leps.end(), z2_leps.begin(), z2_leps.end());
         sort(all_leps.begin(), all_leps.end(), DecreasingPt);
 
         if (all_leps[0].p4.Pt() < FID_PT1_MIN)  // no lepton passes Pt1 threshold
@@ -725,10 +725,10 @@ void BkgSelection(const TString suffix, const TString id)
         if (isDrellYan)
             qtWeight = qtGraph[Q]->Eval(zzp4.Pt());
 
-        idWeight    = z1.First().id_sf.first * z1.Second().id_sf.first;
-        idWeight   *= z2.First().id_sf.first * z2.Second().id_sf.first;
-        recoWeight  = z1.First().id_sf.second * z1.Second().id_sf.second;
-        recoWeight *= z2.First().id_sf.second * z2.Second().id_sf.second;
+        idWeight    *= z1.First().id_sf.first * z1.Second().id_sf.first;
+        idWeight    *= z2.First().id_sf.first * z2.Second().id_sf.first;
+        idWeight    *= z1.First().id_sf.second * z1.Second().id_sf.second;
+        idWeight    *= z2.First().id_sf.second * z2.Second().id_sf.second;
 
 
         hTotalEvents->Fill(9);
