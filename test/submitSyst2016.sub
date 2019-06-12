@@ -19,8 +19,8 @@ when_to_transfer_output = ON_EXIT
 
 arguments   = "$(suffix) $INT(Step) $(systematics)"
 
-#   suffix = zjets_m-50
-#   queue 15
+    suffix = zjets_m-50
+    queue 10
 
     suffix = zz_4l
     queue 2

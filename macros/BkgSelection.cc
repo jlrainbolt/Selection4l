@@ -493,7 +493,7 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
             }
 
             diElTrig = diElTrig && matchedLeg1 && matchedLeg2;
-            siElTrig = diElTrig && matchedSingle;
+            siElTrig = siElTrig && matchedSingle;
         }
 
         muonTrig = diMuTrig || siMuTrig;

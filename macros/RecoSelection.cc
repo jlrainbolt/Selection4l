@@ -600,13 +600,43 @@ void RecoSelection( const TString suffix,           const TString id,
             }
 
             diElTrig = diElTrig && matchedLeg1 && matchedLeg2;
-            siElTrig = diElTrig && matchedSingle;
+            siElTrig = siElTrig && matchedSingle;
+        }
+
+        if (!muonTrig && !elecTrig && allowUntriggered)
+        {
+            bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
+            for (unsigned i = 0; i < nTightMuons; i++)
+            {
+                if (muons[i].p4.Pt() > MUON_LEG1_PT)
+                    matchedLeg1 = kTRUE;
+                if (muons[i].p4.Pt() > MUON_LEG2_PT)
+                    matchedLeg2 = kTRUE;
+                if (muons[i].p4.Pt() > MUON_SINGLE_PT)
+                    matchedSingle = kTRUE;
+            }
+            bool matchedMuTrig = (matchedLeg1 && matchedLeg2) || matchedSingle;
+
+            matchedLeg1 = kFALSE; matchedLeg2 = kFALSE; matchedSingle = kFALSE;
+            for (unsigned i = 0; i < nTightElecs; i++)
+            {
+                if (elecs[i].p4.Pt() > ELEC_LEG1_PT)
+                    matchedLeg1 = kTRUE;
+                if (elecs[i].p4.Pt() > ELEC_LEG2_PT)
+                    matchedLeg2 = kTRUE;
+                if (elecs[i].p4.Pt() > ELEC_SINGLE_PT)
+                    matchedSingle = kTRUE;
+            }
+            bool matchedElTrig = (matchedLeg1 && matchedLeg2) || matchedSingle;
+
+            if (!matchedMuTrig && !matchedElTrig)
+                continue;
         }
 
         muonTrig = diMuTrig || siMuTrig;
         elecTrig = diElTrig || siElTrig;
 
-        if (!muonTrig && !elecTrig)
+        if (!muonTrig && !elecTrig && !allowUntriggered)
             continue;
 
 
@@ -872,6 +902,9 @@ void RecoSelection( const TString suffix,           const TString id,
             vector<Lepton> z2_leps = z2.GetMembers();
             all_leps.insert(all_leps.end(), z2_leps.begin(), z2_leps.end());
             sort(all_leps.begin(), all_leps.end(), DecreasingPt);
+
+//          const float PT1_MIN = (abs(all_leps[0].pdg) == 11) ? ELEC_PT1_MIN : FID_PT1_MIN;
+//          const float PT2_MIN = (abs(all_leps[1].pdg) == 11) ? ELEC_PT2_MIN : FID_PT2_MIN;
 
             if (all_leps[0].p4.Pt() < FID_PT1_MIN)  // no lepton passes Pt1 threshold
                 continue;

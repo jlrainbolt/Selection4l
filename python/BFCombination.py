@@ -67,6 +67,8 @@ def get_vec(meas, pred, params):
         alpha = np.tile(params, P)
     elif len(params) == P:              # four alphas (CMS result)
         alpha = np.repeat(params, M)
+    else:
+        alpha = params
 
     print("Parameters", "\n", alpha, "\n")
 
@@ -111,10 +113,10 @@ unc_stat = np.array([#  4m      2m2e    4e
                     [   0.086,  0.185,  0.157   ],  # 2017
                     [   0.072,  0.161,  0.144   ],  # 2018
                     ])
-print("Statistical uncertainties", "\n",  unc_stat.flatten(), "\n")
+#print("Statistical uncertainties", "\n",  unc_stat.flatten(), "\n")
 
 cov_stat = get_cov_uncorr(unc_stat)
-print("Statistical covariance", "\n",     cov_stat, "\n")
+#print("Statistical covariance", "\n",     cov_stat, "\n")
 
 
 # Pileup
@@ -125,10 +127,10 @@ unc_pu = np.array([
                     [   pileup[2018]],  # 2018
                     ])
 unc_pu = bf_meas * get_unc_year(unc_pu)
-print("Pileup uncertainties", "\n", unc_pu.flatten(), "\n")
+#print("Pileup uncertainties", "\n", unc_pu.flatten(), "\n")
 
 cov_pu = get_cov_corr(unc_pu)
-print("Pileup covariance", "\n",    cov_pu, "\n")
+#print("Pileup covariance", "\n",    cov_pu, "\n")
 
 
 # PDFs
@@ -139,11 +141,11 @@ unc_pdf = np.array([
                     [   pdf[2018]   ],  # 2018
                     ])
 unc_pdf = bf_meas * get_unc_year(unc_pdf)
-print("PDF uncertainties", "\n",    unc_pdf.flatten(), "\n")
+#print("PDF uncertainties", "\n",    unc_pdf.flatten(), "\n")
 
 cov_pdf = get_cov_corr(unc_pdf)
-print("PDF covariance", "\n",       cov_pdf * 100)
-print("(* 1e-2)", "\n")
+#print("PDF covariance", "\n",       cov_pdf * 100)
+#print("(* 1e-2)", "\n")
 
 
 # QCD scales
@@ -154,10 +156,10 @@ unc_qcd = np.array([
                     [   qcd[2018]   ],  # 2018
                     ])
 unc_qcd = bf_meas * get_unc_year(unc_qcd)
-print("QCD uncertainties", "\n",    unc_qcd.flatten(), "\n")
+#print("QCD uncertainties", "\n",    unc_qcd.flatten(), "\n")
 
 cov_qcd = get_cov_corr(unc_qcd)
-print("QCD covariance", "\n",       cov_qcd, "\n")
+#print("QCD covariance", "\n",       cov_qcd, "\n")
 
 
 # Prefiring weight
@@ -167,30 +169,29 @@ unc_ecal = np.array([#  4m                  2m2e                4e
                     [   ecal_2017["4m"],    ecal_2017["2m2e"],  ecal_2017["4e"],],  # 2017
                     [   0,                  0,                  0,              ],  # 2018
                     ])
-print("Prefiring uncertainties", "\n",  unc_ecal.flatten(), "\n")
+#print("Prefiring uncertainties", "\n",  unc_ecal.flatten(), "\n")
 
 cov_ecal = get_cov_corr(unc_ecal)
-#cov_ecal = get_cov_uncorr(unc_ecal)
-print("Prefiring covariance", "\n",     cov_ecal * 100)
-print("(* 1e-2)", "\n")
+#print("Prefiring covariance", "\n",     cov_ecal * 100)
+#print("(* 1e-2)", "\n")
 
 
 # Trigger efficiency (FIXME)
 
 unc_trig = np.zeros_like(bf_meas)
-print("Trigger uncertainties", "\n",  unc_trig.flatten(), "\n")
+#print("Trigger uncertainties", "\n",  unc_trig.flatten(), "\n")
 
 cov_trig = get_cov_corr(unc_trig)
-print("Trigger covariance", "\n",     cov_trig, "\n")
+#print("Trigger covariance", "\n",     cov_trig, "\n")
 
 
 # Muon ID (FIXME)
                     #   4m                  2m2e                4e
 unc_muid = np.array([   mu_id["4m"],        mu_id["2m2e"],      mu_id["4e"],    ])
 unc_muid = bf_meas * np.tile(unc_muid, (P, 1))
-print("Muon ID uncertainties", "\n",     unc_muid.flatten(), "\n")
+#print("Muon ID uncertainties", "\n",     unc_muid.flatten(), "\n")
 
-mu_13, mu_8_13 = 0, 0
+mu_13, mu_8_13 = 1, 1
 
 rho_muid = np.array([#  2012        2016        2017        2018
                     [   1,          mu_8_13,    mu_8_13,    mu_8_13,    ],  # 2012
@@ -199,19 +200,19 @@ rho_muid = np.array([#  2012        2016        2017        2018
                     [   mu_8_13,    mu_13,      mu_13,      1,          ],  # 2017
                     ])
 rho_muid = get_rho_year(rho_muid)
-print("Muon ID correlations", "\n",    rho_muid, "\n")
+#print("Muon ID correlations", "\n",    rho_muid, "\n")
 
 cov_muid = rho_muid * get_cov_corr(unc_muid) 
-print("Muon ID cov.", "\n",     cov_muid, "\n")
+#print("Muon ID cov.", "\n",     cov_muid, "\n")
 
 
 # Electron ID (FIXME)
                     #   4m                  2m2e                4e
 unc_elid = np.array([   el_id["4m"],        el_id["2m2e"],      el_id["4e"],    ])
 unc_elid = bf_meas * np.tile(unc_elid, (P, 1))
-print("Electron ID uncertainties", "\n", unc_elid.flatten(), "\n")
+#print("Electron ID uncertainties", "\n", unc_elid.flatten(), "\n")
 
-el_13, el_8_13 = 0, 0
+el_13, el_8_13 = 1, 1
 
 rho_elid = np.array([#  2012        2016        2017        2018
                     [   1,          el_8_13,    el_8_13,    el_8_13,    ],  # 2012
@@ -220,17 +221,17 @@ rho_elid = np.array([#  2012        2016        2017        2018
                     [   el_8_13,    el_13,      el_13,      1,          ],  # 2017
                     ])
 rho_elid = get_rho_year(rho_elid)
-print("Electron ID correlations", "\n",    rho_elid, "\n")
+#print("Electron ID correlations", "\n",    rho_elid, "\n")
 
 cov_elid = rho_elid * get_cov_corr(unc_elid) 
-print("Electron ID cov.", "\n",     cov_elid, "\n")
+#print("Electron ID cov.", "\n",     cov_elid, "\n")
 
 
 # Electron reco (FIXME)
                     #   4m                  2m2e                4e
 unc_reco = np.array([   el_reco["4m"],      el_reco["2m2e"],    el_reco["4e"],    ])
 unc_reco = bf_meas * np.tile(unc_reco, (P, 1))
-print("Electron reco uncertainties", "\n", unc_reco.flatten(), "\n")
+#print("Electron reco uncertainties", "\n", unc_reco.flatten(), "\n")
 
 #el_13, el_8_13 = 1, 1
 
@@ -241,33 +242,47 @@ rho_reco = np.array([#  2012        2016        2017        2018
                     [   el_8_13,    el_13,      el_13,      1,          ],  # 2017
                     ])
 rho_reco = get_rho_year(rho_reco)
-print("Electron reco correlations", "\n",  rho_reco, "\n")
+#print("Electron reco correlations", "\n",  rho_reco, "\n")
 
 cov_reco = rho_reco * get_cov_corr(unc_reco) 
-print("Electron reco covariance", "\n",  cov_reco, "\n")
+#print("Electron reco covariance", "\n",  cov_reco, "\n")
 
 
 # Background statistical
+sig_evts = np.array([#  4m                  2m2e                4e
+                    [   sig_2012["4m"],     sig_2012["2m2e"],   sig_2012["4e"]], # 2012
+                    [   sig_2016["4m"],     sig_2016["2m2e"],   sig_2016["4e"]], # 2016
+                    [   sig_2017["4m"],     sig_2017["2m2e"],   sig_2017["4e"]], # 2017
+                    [   sig_2018["4m"],     sig_2018["2m2e"],   sig_2018["4e"]], # 2018
+                    ])
+
 unc_bsta = np.array([#  4m                      2m2e                    4e
                     [   npt_unc_2012["4m"],     npt_unc_2012["2m2e"],   npt_unc_2012["4e"]], # 2012
                     [   npt_unc_2016["4m"],     npt_unc_2016["2m2e"],   npt_unc_2016["4e"]], # 2016
                     [   npt_unc_2017["4m"],     npt_unc_2017["2m2e"],   npt_unc_2017["4e"]], # 2017
                     [   npt_unc_2018["4m"],     npt_unc_2018["2m2e"],   npt_unc_2018["4e"]], # 2018
                     ])
-unc_bsta = bf_meas * unc_bsta
-print("Background statistical uncertainties", "\n",  unc_bsta.flatten(), "\n")
+unc_bsta = bf_meas * unc_bsta / sig_evts
+#print("Background statistical uncertainties", "\n",  unc_bsta.flatten(), "\n")
 
 cov_bsta = get_cov_uncorr(unc_bsta)
-print("Background statistical covariance", "\n", cov_bsta, "\n")
+#print("Background statistical covariance", "\n", cov_bsta, "\n")
 
 
-# Background systematic (FIXME)
-unc_bsys = np.full_like(bf_meas, 0.005)
-unc_bsys = bf_meas * unc_bsys
-print("Background systematic uncertainties", "\n",  unc_bsys.flatten(), "\n")
+# Background systematic
+npt_delta = 0.3
+
+unc_bsys = np.array([#  4m                  2m2e                4e
+                    [   npt_2012["4m"],     npt_2012["2m2e"],   npt_2012["4e"]], # 2012
+                    [   npt_2016["4m"],     npt_2016["2m2e"],   npt_2016["4e"]], # 2016
+                    [   npt_2017["4m"],     npt_2017["2m2e"],   npt_2017["4e"]], # 2017
+                    [   npt_2018["4m"],     npt_2018["2m2e"],   npt_2018["4e"]], # 2018
+                    ])
+unc_bsys = bf_meas * npt_delta * unc_bsys / sig_evts
+#print("Background systematic uncertainties", "\n",  unc_bsys.flatten(), "\n")
 
 cov_bsys = get_cov_corr(unc_bsys)
-print("Background systematic covariance", "\n", cov_bsys, "\n")
+#print("Background systematic covariance", "\n", cov_bsys, "\n")
 
 
 # Total covariance
@@ -275,14 +290,14 @@ cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_trig
 cov_syst += cov_muid + cov_elid + cov_reco + cov_bsta + cov_bsys
 cov_total = cov_stat + cov_syst
 
-print("Total covariance", "\n", cov_total, "\n")
+#print("Total covariance", "\n", cov_total, "\n")
 
 
 ##
 ##  PARAMETERS
 ##
 
-alpha_0 = np.ones(1)
+alpha_0 = np.ones(P*M)
 
 print("Initial parameters", "\n", alpha_0, "\n")
 print("\n")
@@ -320,24 +335,39 @@ print("Hesse errors", "\n", sigma_f, "\n")
 delta_f = sigma_f / alpha_f
 print("Fractional Hesse errors", "\n", delta_f, "\n")
 
-chi_sq = target_func(alpha_f) / (P * M)
-print("Reduced chi-squared", "\n", chi_sq, "\n")
+chi_sq = minuit.fval
+print("Final chi-squared", "\n", chi_sq, "\n")
 
 if len(alpha_f) == P:
     alpha_f = np.tile(alpha_f.T, (M, 1)).T
+    bf_pred = np.tile(bf_pred, (P, 1))
+elif len(alpha_f) == M*P:
+    alpha_f = np.reshape(alpha_f, (P, M))
     bf_pred = np.tile(bf_pred, (P, 1))
 
 bf_comb = alpha_f * bf_pred
 print("Combined result", "\n", bf_comb, "\n")
 
+alpha_f = minuit.np_values()
+
 
 # Find systematic uncertainty
+if len(alpha_0) == 1:
+    alpha_stat = alpha_stat_sm
+    sigma_stat = sigma_stat_sm
+elif len(alpha_0) == M:
+    alpha_stat = alpha_stat_bsm
+    sigma_stat = sigma_stat_bsm
+elif len(alpha_0) == P:
+    alpha_stat = alpha_stat_cms
+    sigma_stat = sigma_stat_cms
+elif len(alpha_0) == P*M:
+    alpha_stat = alpha_stat_all
+    sigma_stat = sigma_stat_all
+
 print("\n")
 
-alpha_stat = np.full_like(alpha_f, 1.0654246397258216)
 print("Stat. only parameters", "\n", alpha_stat, "\n")
-
-sigma_stat = np.full_like(sigma_f, 0.026306929883156572)
 print("Stat. only Hesse errors", "\n", sigma_stat, "\n")
 
 delta_stat = sigma_stat / alpha_stat
