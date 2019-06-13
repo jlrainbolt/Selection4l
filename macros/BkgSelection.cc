@@ -21,9 +21,9 @@
 #include "SelectionTools.hh"
 
 // Cuts
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -109,7 +109,7 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
-    Short_t             z1pdg,      z2pdg;
+    UShort_t            z1pdg,      z2pdg;
 
     // Leptons
     TLorentzVector      l1p4,       l2p4,       l3p4,       l4p4;
@@ -647,6 +647,10 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
             cout << "Passed pair requirement for " << selection[C] << endl;
 
         const bool  muonPairLeads   = z1.pdg == 13;
+//      const bool  elecTriggered   = !muonTrig && elecTrig;
+        const bool  elecTriggered   = kFALSE;
+        const float LEP_PT1_MIN     = elecTriggered ? FID_PT1_MIN : ELEC_PT1_MIN;
+        const float LEP_PT2_MIN     = elecTriggered ? FID_PT2_MIN : ELEC_PT2_MIN;
 
 
 
@@ -705,10 +709,10 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
 
         sort(all_leps.begin(), all_leps.end(), DecreasingPt);
 
-        if (all_leps[0].p4.Pt() < FID_PT1_MIN)  // no lepton passes Pt1 threshold
+        if (all_leps[0].p4.Pt() < LEP_PT1_MIN)  // no lepton passes Pt1 threshold
             continue;
 
-        if (all_leps[1].p4.Pt() < FID_PT2_MIN)  // no lepton passes Pt2 threshold
+        if (all_leps[1].p4.Pt() < LEP_PT2_MIN)  // no lepton passes Pt2 threshold
             continue;
 
         if (print)

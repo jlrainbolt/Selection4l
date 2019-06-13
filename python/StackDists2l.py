@@ -8,9 +8,9 @@ from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
 #from Cuts2018 import *
-#from Cuts2017 import *
+from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 
@@ -23,10 +23,6 @@ selection = ["mumu", "ee"]
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
 
-year = sys.argv[1]
-if year != YEAR_STR:
-    print("Wrong year in header file")
-
 #tag = "noQt"
 
 
@@ -37,12 +33,12 @@ if year != YEAR_STR:
 prefix = "2l"
 
 # Muon file
-muName = prefix + "_" + year + "_" + MU_SUFF + ".root"
+muName = prefix + "_" + YEAR_STR + "_" + MU_SUFF + ".root"
 muFile = TFile(muName, "READ")
 print("Opened", muName)
 
 # Electron file
-elName = prefix + "_" + year + "_" + EL_SUFF + ".root"
+elName = prefix + "_" + YEAR_STR + "_" + EL_SUFF + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
 
@@ -63,7 +59,9 @@ h = 0
 
 for hname in hnames:
     data[h]['mumu'] = muFile.Get("mumu/" + hname + "_" + MU_SUFF)
+    data[h]['mumu'].Add(elFile.Get("mumu/" + hname + "_" + EL_SUFF))
     data[h]['ee']   = elFile.Get("ee/" + hname + "_" + EL_SUFF)
+    data[h]['ee'].Add(muFile.Get("ee/" + hname + "_" + MU_SUFF))
 
     for sel in selection:
         data[h][sel].SetDirectory(0)
@@ -87,18 +85,13 @@ h, j = 0, 0
 
 # Loop over all samples
 for suff in MC_SUFF_2L:
-    inName = prefix + "_" + year + "_" + suff + ".root"
+    inName = prefix + "_" + YEAR_STR + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
 
     # Get histograms
     for sel in selection:
-        if sel == "mumu":
-            lumi = MUON_TRIG_LUMI
-        elif sel == "ee":
-            lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
-
-        sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
+        sf = INT_LUMI * 1000 * XSEC[suff] / NGEN[suff]
 
         for hname in hnames:
             mc_arr[j][h][sel] = inFile.Get(sel + "/" + hname + "_" + suff)
@@ -140,11 +133,6 @@ for sel in selection:
 
 for sel in selection:
     print("Drawing", sel, "plots...")
-
-    if sel == "mumu":
-        lumi = MUON_TRIG_LUMI
-    elif sel == "ee":
-        lumi = ELEC_TRIG_LUMI
 
     for h in range(H):
 
@@ -255,7 +243,7 @@ for sel in selection:
 #               fontproperties = helvet_bold,
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
 
-        ax_top.set_title(r'\Large{' + '%.1f' % lumi + r'\,fb$^{-1}$ (' + '%i' % SQRT_S 
+        ax_top.set_title(r'\Large{' + '%.1f' % INT_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S 
                 + r'\,TeV, ' + YEAR_STR + ')}', loc='right')
 
         # Top y axis
@@ -331,10 +319,10 @@ for sel in selection:
                                 r'$\mbox{t}\bar{\mbox{t}}$(V)',     r'VV',
                     ]
 
-        if year == "2016":
+        if YEAR_STR == "2016":
             handles.append(p_mc['ggH_zz_4l'])
             labels.append(r'H')
-        if year in ["2017", "2018"]:
+        if YEAR_STR in ["2017", "2018"]:
             handles.append(p_mc['zzz_4l2nu'])
             labels.append(r'VVV')
             handles.append(p_mc['ggH_zz_4l'])
@@ -342,6 +330,6 @@ for sel in selection:
             
         ax_top.legend(handles, labels, loc = leg_loc, numpoints = 1, frameon = False, ncol = leg_ncol)
 
-        fig.savefig(year + "_" + hnames[h] + "_" + sel + ".pdf")
-#       fig.savefig(year + "_" + tag + "_" + hnames[h] + "_" + sel + ".pdf")
+        fig.savefig(YEAR_STR + "_" + hnames[h] + "_" + sel + ".pdf")
+#       fig.savefig(YEAR_STR + "_" + tag + "_" + hnames[h] + "_" + sel + ".pdf")
         plt.clf()

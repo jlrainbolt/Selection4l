@@ -13,9 +13,9 @@
 
 // Custom
 //#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
+#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -87,7 +87,7 @@ void DrawDists2l(const TString suffix, const TString year)
     //
 
     TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -147,10 +147,7 @@ void DrawDists2l(const TString suffix, const TString year)
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight/trigWeight/qtWeight";
-
-            if (suffix.EqualTo("zjets_m-50"))
-                weight = "weight/trigWeight";
+            TString weight = "weight";
 
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 

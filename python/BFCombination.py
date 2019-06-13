@@ -11,6 +11,13 @@ from CutsComb import *
 
 
 ##
+##  OPTIONS
+##
+
+N = 4   # number of parameters
+
+
+##
 ##  SAMPLE INFO
 ##
 
@@ -21,6 +28,7 @@ M, P = len(selection), len(period)
 
 np.set_printoptions(precision=5, suppress=True, linewidth=100)
 #np.set_printoptions(precision=2, linewidth=100)
+
 
 
 ##
@@ -70,7 +78,7 @@ def get_vec(meas, pred, params):
     else:
         alpha = params
 
-    print("Parameters", "\n", alpha, "\n")
+#   print("Parameters", "\n", alpha, "\n")
 
     return meas - alpha * pred
 
@@ -293,11 +301,12 @@ cov_total = cov_stat + cov_syst
 #print("Total covariance", "\n", cov_total, "\n")
 
 
+
 ##
 ##  PARAMETERS
 ##
 
-alpha_0 = np.ones(P*M)
+alpha_0 = np.ones(N)
 
 print("Initial parameters", "\n", alpha_0, "\n")
 print("\n")
@@ -305,73 +314,89 @@ print("\n")
 
 
 ##
-##  SOLVE
+##  STATISTICAL ONLY RESULT
 ##
 
-def target_func(alpha):
+def target_func_stat(alpha):
     vec = get_vec(bf_meas, bf_pred, alpha)
-#   cov = cov_stat
+    cov = cov_stat
+    return least_squares(vec, cov)
+
+print("STATISTICAL COVARIANCE", "\n")
+minuit = Minuit.from_array_func(target_func_stat, alpha_0, error=0, errordef=1)
+minuit.migrad()
+
+alpha_stat = minuit.np_values()
+sigma_stat = minuit.np_errors()
+delta_stat = sigma_stat / alpha_stat
+chi_sq_stat = minuit.fval
+
+print("\n\n")
+
+
+
+##
+##  TOTAL RESULT
+##
+
+def target_func_total(alpha):
+    vec = get_vec(bf_meas, bf_pred, alpha)
     cov = cov_total
     return least_squares(vec, cov)
 
-minuit = Minuit.from_array_func(target_func, alpha_0, error=0, errordef=1)
-
+print("TOTAL COVARIANCE", "\n")
+minuit = Minuit.from_array_func(target_func_total, alpha_0, error=0, errordef=1)
 minuit.migrad()
 
+alpha_total = minuit.np_values()
+sigma_total = minuit.np_errors()
+delta_total = sigma_total / alpha_total
+chi_sq_total = minuit.fval
+
+delta_syst = np.sqrt(delta_total ** 2 - delta_stat ** 2)
+
+if len(alpha_total) == M: 
+    alpha_f = np.tile(alpha_total, P)
+elif len(alpha_total) == P: 
+    alpha_f = np.repeat(alpha_total, M)
+else:
+    alpha_f = alpha_total
+
+bf_comb = alpha_f * np.tile(bf_pred, P)
+
+print("\n\n")
+
 
 
 ##
-##  RESULTS
+##  PRINT
 ##
 
-print("\n")
+print("Statistical-only parameters", "\n", alpha_stat, "\n")
+print("Total covariance parameters", "\n", alpha_total, "\n")
 
-alpha_f = minuit.np_values()
-print("Parameters", "\n", alpha_f, "\n")
+print("Fractional statistical errors", "\n", delta_stat, "\n")
+print("Fractional systematic errors", "\n", delta_syst, "\n")
+print("Fractional total errors", "\n", delta_total, "\n")
 
-sigma_f = minuit.np_errors()
-print("Hesse errors", "\n", sigma_f, "\n")
+print("Statistical-only chi-squared", "\n", chi_sq_stat, "\n")
+print("Total chi-squared", "\n", chi_sq_total, "\n")
 
-delta_f = sigma_f / alpha_f
-print("Fractional Hesse errors", "\n", delta_f, "\n")
-
-chi_sq = minuit.fval
-print("Final chi-squared", "\n", chi_sq, "\n")
-
-if len(alpha_f) == P:
-    alpha_f = np.tile(alpha_f.T, (M, 1)).T
-    bf_pred = np.tile(bf_pred, (P, 1))
-elif len(alpha_f) == M*P:
-    alpha_f = np.reshape(alpha_f, (P, M))
-    bf_pred = np.tile(bf_pred, (P, 1))
-
-bf_comb = alpha_f * bf_pred
-print("Combined result", "\n", bf_comb, "\n")
-
-alpha_f = minuit.np_values()
-
-
-# Find systematic uncertainty
-if len(alpha_0) == 1:
-    alpha_stat = alpha_stat_sm
-    sigma_stat = sigma_stat_sm
-elif len(alpha_0) == M:
-    alpha_stat = alpha_stat_bsm
-    sigma_stat = sigma_stat_bsm
-elif len(alpha_0) == P:
-    alpha_stat = alpha_stat_cms
-    sigma_stat = sigma_stat_cms
-elif len(alpha_0) == P*M:
-    alpha_stat = alpha_stat_all
-    sigma_stat = sigma_stat_all
+print("Results from total parameters", "\n", bf_comb, "\n")
 
 print("\n")
 
-print("Stat. only parameters", "\n", alpha_stat, "\n")
-print("Stat. only Hesse errors", "\n", sigma_stat, "\n")
 
-delta_stat = sigma_stat / alpha_stat
-print("Stat. only fractional errors", "\n", delta_stat, "\n")
 
-delta_syst = np.sqrt(delta_f ** 2 - delta_stat ** 2)
-print("Fractional systematic uncertainty", "\n", delta_syst, "\n")
+##
+##  SAVE
+##
+
+sigma_stat = delta_stat * alpha_total
+sigma_syst = delta_syst * alpha_total
+
+outfile = "combination_" + str(len(alpha_0)) + ".npz"
+np.savez(outfile, alpha_total=alpha_total, alpha_stat=alpha_stat, sigma_stat=sigma_stat, 
+        sigma_syst=sigma_syst, sigma_total=sigma_total)
+
+print("Wrote arrays to", outfile, "\n")

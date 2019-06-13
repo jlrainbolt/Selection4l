@@ -11,9 +11,9 @@ from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
 #from Cuts2018 import *
-#from Cuts2017 import *
+from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 np.set_printoptions(precision=1, suppress=True)
@@ -22,7 +22,7 @@ np.set_printoptions(precision=1, suppress=True)
 ##  SAMPLE INFO
 ##
 
-selection = ["4l", "4m", "2m2e", "4e"]
+selection = ["4l"]
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f8'), ("y", 'f8'), ("ex", 'f8'), ("ey", 'f8'), ("b", 'f8')])
@@ -41,7 +41,8 @@ if year != YEAR_STR:
 ##  INPUT FILES
 ##
 
-inPath = EOS_PATH + "/Unfolding/new/"
+#inPath = EOS_PATH + "/Unfolding/new/"
+inPath = ""
 
 # Migration and MC matrices
 inName = inPath + "migration_" + YEAR_STR + "_zz_4l.root"
@@ -53,9 +54,6 @@ mig = np.empty(H, dtype=T)
 h = 0
 
 for sel in selection:
-    if sel == "4l":
-        continue
-
     sf = INT_LUMI * 1000 * XSEC['zz_4l'] / NGEN['zz_4l']
 
     for hname in hnames:
@@ -84,7 +82,7 @@ print("Got migration and MC histograms", "\n")
 ##
 
 prefix = "4l"
-inPath = EOS_PATH + "/Histograms/new/"
+#inPath = EOS_PATH + "/Histograms/new/"
 
 # Muon file
 muName = inPath + prefix + "_" + YEAR_STR + "_" + MU_SUFF + ".root"
@@ -101,9 +99,6 @@ data = np.empty(H, dtype=T)
 h = 0
 
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
         data[h][sel] = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
         data[h][sel].Add(elFile.Get(sel + "/" + hname + "_" + EL_SUFF))
@@ -141,9 +136,6 @@ bkg = np.empty(H, dtype=T)
 h = 0
 
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
         bkg[h][sel] = muFile.Get(sel + "/" + hname + "_" + MU_SUFF)
         bkg[h][sel].Add(elFile.Get(sel + "/" + hname + "_" + EL_SUFF))
@@ -174,9 +166,6 @@ for suff in MC_SUFF_4L:
 
     # Get histograms
     for sel in selection:
-        if sel == "4l":
-            continue
-
         sf = INT_LUMI * 1000 * XSEC[suff] / NGEN[suff]
 
         for hname in hnames:
@@ -199,12 +188,10 @@ print("")
 ##  ADD CHANNELS
 ##
 
-# Get 4l and 2m2e
-for h in range(H):
-    for sample in [data, gen, reco, mig, bkg]:
-        sample[h]['4l'] = sample[h]['2m2e'].Clone()
-        sample[h]['4l'].Add(sample[h]['4m'])
-        sample[h]['4l'].Add(sample[h]['4e'])
+# Get nonprompt background
+infile = "nonprompt" + YEAR_STR + ".npz"
+npzfile = np.load(infile)
+npt, npt_unc = npzfile['npt'], npzfile['npt_unc']
 
 # Background subtraction
 for sel in ["4l"]:
@@ -356,6 +343,11 @@ for sel in ["4l"]:
         for i in range(len(v_result)):
             result[h][sel].SetBinContent(i + o, v_result[i]['y'])
             result[h][sel].SetBinError(i + o, v_result[i]['ey'])
+
+        # Probability of final chi-squared
+        chisq_prob = chi2.sf(results['ts_iter'] * len(v_resp['y']), len(v_resp['y']))
+        print("Probability for", hnames[h], "is", chisq_prob)
+
 
 
         # Bin histograms in terms of indices

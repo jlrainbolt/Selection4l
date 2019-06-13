@@ -31,9 +31,6 @@ qcd = 0.008592
 pdf = 0.001185
 pileup = 0.008885
 
-npt_unc = { "4l":4.00,      "4m":2.45,      "2m2e":2.83,    "4e":1.42, "mumu":0, "ee":0, "2e2m":0,  "ll":0}
-npt     = { "4l":14.19,     "4m":5.68,      "2m2e":7.45,    "4e":1.06, "mumu":0, "ee":0, "2e2m":0,  "ll":0}   
-
 
 
 ##
@@ -41,7 +38,7 @@ npt     = { "4l":14.19,     "4m":5.68,      "2m2e":7.45,    "4e":1.06, "mumu":0,
 ##
 
 ELEC_TRIG_SF = 1
-INT_LUMI, LUMI_UNC = 35.92, .025
+INT_LUMI, LUMI_UNC = 36.42, .025
 SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 

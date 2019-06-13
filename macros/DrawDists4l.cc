@@ -11,9 +11,9 @@
 
 // Custom
 //#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
+#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ using namespace std;
 **  Draws UNSCALED distributions for a "boosted_" sample
 */ 
 
-void DrawDists4l(const TString suffix, const TString year)
+void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kFALSE)
 {
     if (!year.EqualTo(YEAR_STR))
     {
@@ -36,11 +36,11 @@ void DrawDists4l(const TString suffix, const TString year)
     //  SAMPLE INFO
     //
 
-    const unsigned N = 5;
-    unsigned                   L4 = 0,  M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = {"4l",    "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {5,       6,      7,      8,      9};
-    TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e};
+    const unsigned N = 4;
+    unsigned                   L4 = 0,  M4 = 1, ME = 2, E4 = 3;     // Indices
+    TString selection[N]    = {"4l",    "4m",   "2m2e", "4e"};
+    unsigned chanIdx[N]     = {5,       6,      7,      9};
+    TString lepChan[N]      = {_l,      _mu,    _l,     _e};
 
 
 
@@ -48,7 +48,7 @@ void DrawDists4l(const TString suffix, const TString year)
     //  OUTPUT FILE
     //
 
-    TString prefix  = "4l";
+    TString prefix  = isBkg ? "bkg_all" : "4l";
     TString outName = prefix + "_" + year + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -73,16 +73,16 @@ void DrawDists4l(const TString suffix, const TString year)
         make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      36),
         make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       10,     0,      60),
 
-        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       20,     0,      100),
+        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       10,     20,     60),
         make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       20,     0,      100),
+        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       10,     10,     50),
         make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       20,     0,      100),
+        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       10,     0,      40),
         make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       20,     0,      100),
+        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       10,     0,      40),
         make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5),
  
         // Z rest frame kinematics                                                
@@ -116,9 +116,9 @@ void DrawDists4l(const TString suffix, const TString year)
     //  INPUT FILE
     //
 
-//  TString inName  = "boosted_bkg_" + suffix + ".root";
-    TString inName  = "boosted_" + suffix + ".root";
-    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
+    TString tag     = isBkg ? "bkg_" : "";
+    TString inName  = "boosted_" + tag + suffix + ".root";
+    TString inPath  = EOS_PATH + "/Boosted/" + year + "_new/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -178,17 +178,9 @@ void DrawDists4l(const TString suffix, const TString year)
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight/trigWeight/qtWeight";
+            TString weight = "weight";
 
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
-
-            if      (suffix.EqualTo("zjets_m-50"))
-                weight = "weight/trigWeight";
-            else if (suffix.EqualTo("phase_space"))
-            {
-                weight = "weight";
-//              bins = 2 * bins;
-            }
 
 
             // Create and draw histogram

@@ -21,8 +21,8 @@
 #include "SelectionTools.hh"
 
 // Cuts
-//#include "Cuts2018.hh"
-#include "Cuts2017.hh"
+#include "Cuts2018.hh"
+//#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
@@ -603,7 +603,7 @@ void RecoSelection( const TString suffix,           const TString id,
             siElTrig = siElTrig && matchedSingle;
         }
 
-        if (!muonTrig && !elecTrig && allowUntriggered)
+        if (allowUntriggered)
         {
             bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
             for (unsigned i = 0; i < nTightMuons; i++)
@@ -792,6 +792,9 @@ void RecoSelection( const TString suffix,           const TString id,
         const bool  isDilepton      = (C == MM) || (C == EE);
         const bool  isFourLepton    = (C == M4) || (C == ME) || (C == E4);
 
+        const float LEP_PT1_MIN     = FID_PT1_MIN;
+        const float LEP_PT2_MIN     = FID_PT2_MIN;
+
 
 
 
@@ -821,10 +824,10 @@ void RecoSelection( const TString suffix,           const TString id,
             //  PT REQUIREMENTS
             //
 
-            if (z1.First().p4.Pt() < FID_PT1_MIN)           // leading lepton Pt too low
+            if (z1.First().p4.Pt() < LEP_PT1_MIN)           // leading lepton Pt too low
                 continue;
 
-            if (z1.Second().p4.Pt() < FID_PT2_MIN)          // trailing lepton Pt too low
+            if (z1.Second().p4.Pt() < LEP_PT2_MIN)          // trailing lepton Pt too low
                 continue;
 
             if (print)
@@ -903,13 +906,10 @@ void RecoSelection( const TString suffix,           const TString id,
             all_leps.insert(all_leps.end(), z2_leps.begin(), z2_leps.end());
             sort(all_leps.begin(), all_leps.end(), DecreasingPt);
 
-//          const float PT1_MIN = (abs(all_leps[0].pdg) == 11) ? ELEC_PT1_MIN : FID_PT1_MIN;
-//          const float PT2_MIN = (abs(all_leps[1].pdg) == 11) ? ELEC_PT2_MIN : FID_PT2_MIN;
-
-            if (all_leps[0].p4.Pt() < FID_PT1_MIN)  // no lepton passes Pt1 threshold
+            if (all_leps[0].p4.Pt() < LEP_PT1_MIN)  // no lepton passes Pt1 threshold
                 continue;
 
-            if (all_leps[1].p4.Pt() < FID_PT2_MIN)  // no lepton passes Pt2 threshold
+            if (all_leps[1].p4.Pt() < LEP_PT2_MIN)  // no lepton passes Pt2 threshold
                 continue;
 
             if (print)

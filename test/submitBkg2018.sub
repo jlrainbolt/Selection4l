@@ -20,19 +20,22 @@ arguments   = "$(suffix) $INT(Step)"
     queue 25
 
     suffix = electron_2018
-    queue 15
+    queue 20
 
     suffix = zjets_m-50
     queue 9
 
-    suffix = ttbar
+    suffix = zz_4l
     queue 2
 
+    suffix = ttbar
+    queue 3
+
     suffix = tt_2l2nu
-    queue 5
+    queue 6
 
     suffix = ttz_2l2nu
-    queue 1
+    queue 2
 
     suffix = ww_2l2nu
     queue 1
@@ -47,9 +50,6 @@ arguments   = "$(suffix) $INT(Step)"
     queue 1
 
     suffix = zz_2l2q
-    queue 2
-
-    suffix = zz_4l
     queue 2
 
     suffix = ggH_zz_4l

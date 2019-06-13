@@ -21,9 +21,9 @@
 
 // Cuts
 //#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
+#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -38,7 +38,7 @@ using namespace std;
 **  Also calculates event weights per source using scale factors from external histograms.
 */
 
-void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
+void BoostedAnalysis(const TString suffix, const bool isBkg = kTRUE)
 {
 
     //
@@ -90,10 +90,11 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 
     // Lab frame objects
     TLorentzVector      z1p4,       z2p4,       zzp4;
-    Short_t             z1pdg,      z2pdg;
+    UShort_t            z1pdg,      z2pdg;
 
     TLorentzVector      l1p4,       l2p4,       l3p4,       l4p4;
     Short_t             l1pdg,      l2pdg,      l3pdg,      l4pdg;
+    Float_t             l1iso,      l2iso,      l3iso,      l4iso;
     UShort_t            l1z,        l2z,        l3z,        l4z;
 
 
@@ -102,6 +103,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 
     TVector3            b_l1v3,     b_l2v3,     b_l3v3,     b_l4v3;
     Short_t             b_l1pdg,    b_l2pdg,    b_l3pdg,    b_l4pdg;
+    Float_t             b_l1iso,    b_l2iso,    b_l3iso,    b_l4iso;
     UShort_t            b_l1z,      b_l2z,      b_l3z,      b_l4z;
 
 
@@ -119,10 +121,8 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
         tree[i]->Branch("weight",       &weight);       tree[i]->Branch("genWeight",    &genWeight);
         tree[i]->Branch("qtWeight",     &qtWeight);     tree[i]->Branch("puWeight",     &puWeight);
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
-        tree[i]->Branch("idWeight",     &idWeight);     tree[i]->Branch("recoWeight",   &recoWeight);
-        tree[i]->Branch("channel",      &channel);
-        if (isSignal || isDrellYan)
-            tree[i]->Branch("hasTauDecay",  &hasTauDecay);
+        tree[i]->Branch("idWeight",     &idWeight);
+        tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
 
         tree[i]->Branch("psi",              &psi);      tree[i]->Branch("phi",          &phi);
         tree[i]->Branch("sin_phi",          &sin_phi);  tree[i]->Branch("cos_phi",      &cos_phi);
@@ -136,25 +136,25 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
         tree[i]->Branch("b_ttp4",   &b_ttp4);
 
         tree[i]->Branch("b_l1v3",   &b_l1v3);           tree[i]->Branch("b_l1pdg",  &b_l1pdg);
-        tree[i]->Branch("b_l1z",    &b_l1z);
+        tree[i]->Branch("b_l1z",    &b_l1z);            tree[i]->Branch("b_l1iso",  &b_l1iso);
         tree[i]->Branch("b_l2v3",   &b_l2v3);           tree[i]->Branch("b_l2pdg",  &b_l2pdg);
-        tree[i]->Branch("b_l2z",    &b_l2z);
+        tree[i]->Branch("b_l2z",    &b_l2z);            tree[i]->Branch("b_l2iso",  &b_l2iso);
         tree[i]->Branch("b_l3v3",   &b_l3v3);           tree[i]->Branch("b_l3pdg",  &b_l3pdg);
-        tree[i]->Branch("b_l3z",    &b_l3z);
+        tree[i]->Branch("b_l3z",    &b_l3z);            tree[i]->Branch("b_l3iso",  &b_l3iso);
         tree[i]->Branch("b_l4v3",   &b_l4v3);           tree[i]->Branch("b_l4pdg",  &b_l4pdg);
-        tree[i]->Branch("b_l4z",    &b_l4z);
+        tree[i]->Branch("b_l4z",    &b_l4z);            tree[i]->Branch("b_l4iso",  &b_l4iso);
 
         tree[i]->Branch("zzp4",     &zzp4);
         tree[i]->Branch("z1p4",     &z1p4);             tree[i]->Branch("z1pdg",    &z1pdg);
         tree[i]->Branch("z2p4",     &z2p4);             tree[i]->Branch("z2pdg",    &z2pdg);
         tree[i]->Branch("l1p4",     &l1p4);             tree[i]->Branch("l1pdg",    &l1pdg);
-        tree[i]->Branch("l1z",      &l1z);
+        tree[i]->Branch("l1z",      &l1z);              tree[i]->Branch("l1iso",    &l1iso);
         tree[i]->Branch("l2p4",     &l2p4);             tree[i]->Branch("l2pdg",    &l2pdg);
-        tree[i]->Branch("l2z",      &l2z);
+        tree[i]->Branch("l2z",      &l2z);              tree[i]->Branch("l2iso",    &l2iso);
         tree[i]->Branch("l3p4",     &l3p4);             tree[i]->Branch("l3pdg",    &l3pdg);
-        tree[i]->Branch("l3z",      &l3z);
+        tree[i]->Branch("l3z",      &l3z);              tree[i]->Branch("l3iso",    &l3iso);
         tree[i]->Branch("l4p4",     &l4p4);             tree[i]->Branch("l4pdg",    &l4pdg);
-        tree[i]->Branch("l4z",      &l4z);
+        tree[i]->Branch("l4z",      &l4z);              tree[i]->Branch("l4iso",    &l4iso);
     }
 
 
@@ -166,7 +166,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     TString inName  = "selected_" + suffix + ".root";
     if (isBkg)
         inName = "background_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;
@@ -197,43 +197,41 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     {
         TTreeReader reader(selection[i] + "_" + suffix, inFile);
 
-        TTreeReaderValue    <Int_t>                 runNum_         (reader,    "runNum");
-        TTreeReaderValue    <Int_t>                 evtNum_         (reader,    "evtNum");
-        TTreeReaderValue    <Int_t>                 lumiSec_        (reader,    "lumiSec");
-        TTreeReaderValue    <UShort_t>              nPV_            (reader,    "nPV");
-        TTreeReaderValue    <Float_t>               weight_         (reader,    "weight");
-        TTreeReaderValue    <Float_t>               genWeight_      (reader,    "genWeight");
-        TTreeReaderValue    <Float_t>               qtWeight_       (reader,    "qtWeight");
-        TTreeReaderValue    <Float_t>               puWeight_       (reader,    "puWeight");
-        TTreeReaderValue    <Float_t>               ecalWeight_     (reader,    "ecalWeight");
-        TTreeReaderValue    <Float_t>               trigWeight_     (reader,    "trigWeight");
-        TTreeReaderValue    <Float_t>               idWeight_       (reader,    "idWeight");
-        TTreeReaderValue    <Float_t>               recoWeight_     (reader,    "recoWeight");
-        TTreeReaderValue    <UInt_t>                channel_        (reader,    "channel");
-//      TTreeReaderValue    <Bool_t>                hasTauDecay_    (reader,    "hasTauDecay");
-        TTreeReaderValue    <TLorentzVector>        zzp4_           (reader,    "zzp4");
-        TTreeReaderValue    <TLorentzVector>        z1p4_           (reader,    "z1p4");
-        TTreeReaderValue    <Short_t>               z1pdg_          (reader,    "z1pdg");
-        TTreeReaderValue    <TLorentzVector>        z2p4_           (reader,    "z2p4");
-        TTreeReaderValue    <Short_t>               z2pdg_          (reader,    "z2pdg");
-        TTreeReaderValue    <TLorentzVector>        l1p4_           (reader,    "l1p4");
-        TTreeReaderValue    <Short_t>               l1pdg_          (reader,    "l1pdg");
-        TTreeReaderValue    <UShort_t>              l1z_            (reader,    "l1z");
-        TTreeReaderValue    <TLorentzVector>        l2p4_           (reader,    "l2p4");
-        TTreeReaderValue    <Short_t>               l2pdg_          (reader,    "l2pdg");
-        TTreeReaderValue    <UShort_t>              l2z_            (reader,    "l2z");
-        TTreeReaderValue    <TLorentzVector>        l3p4_           (reader,    "l3p4");
-        TTreeReaderValue    <Short_t>               l3pdg_          (reader,    "l3pdg");
-        TTreeReaderValue    <UShort_t>              l3z_            (reader,    "l3z");
-        TTreeReaderValue    <TLorentzVector>        l4p4_           (reader,    "l4p4");
-        TTreeReaderValue    <Short_t>               l4pdg_          (reader,    "l4pdg");
-        TTreeReaderValue    <UShort_t>              l4z_            (reader,    "l4z");
+        TTreeReaderValue    <Int_t>             runNum_         (reader,    "runNum");
+        TTreeReaderValue    <Int_t>             evtNum_         (reader,    "evtNum");
+        TTreeReaderValue    <Int_t>             lumiSec_        (reader,    "lumiSec");
+        TTreeReaderValue    <UShort_t>          nPV_            (reader,    "nPV");
+        TTreeReaderValue    <Float_t>           weight_         (reader,    "weight");
+        TTreeReaderValue    <Float_t>           genWeight_      (reader,    "genWeight");
+        TTreeReaderValue    <Float_t>           qtWeight_       (reader,    "qtWeight");
+        TTreeReaderValue    <Float_t>           puWeight_       (reader,    "puWeight");
+        TTreeReaderValue    <Float_t>           ecalWeight_     (reader,    "ecalWeight");
+        TTreeReaderValue    <Float_t>           trigWeight_     (reader,    "trigWeight");
+        TTreeReaderValue    <Float_t>           idWeight_       (reader,    "idWeight");
+        TTreeReaderValue    <UShort_t>          channel_        (reader,    "channel");
+        TTreeReaderValue    <Bool_t>            hasTauDecay_    (reader,    "hasTauDecay");
 
-        // Background
-        TTreeReaderValue    <Bool_t>                isSameSign_     (reader,    "isSameSign");
-        TTreeReaderValue    <Bool_t>                isDiffFlavor_   (reader,    "isDiffFlavor");
-        TTreeReaderValue    <UShort_t>              nLooseLeps_     (reader,    "nLooseLeptons");
-
+        TTreeReaderValue    <TLorentzVector>    zzp4_           (reader,    "zzp4");
+        TTreeReaderValue    <TLorentzVector>    z1p4_           (reader,    "z1p4");
+        TTreeReaderValue    <UShort_t>          z1pdg_          (reader,    "z1pdg");
+        TTreeReaderValue    <TLorentzVector>    z2p4_           (reader,    "z2p4");
+        TTreeReaderValue    <UShort_t>          z2pdg_          (reader,    "z2pdg");
+        TTreeReaderValue    <TLorentzVector>    l1p4_           (reader,    "l1p4");
+        TTreeReaderValue    <Short_t>           l1pdg_          (reader,    "l1pdg");
+        TTreeReaderValue    <Float_t>           l1iso_          (reader,    "l1iso");
+        TTreeReaderValue    <UShort_t>          l1z_            (reader,    "l1z");
+        TTreeReaderValue    <TLorentzVector>    l2p4_           (reader,    "l2p4");
+        TTreeReaderValue    <Short_t>           l2pdg_          (reader,    "l2pdg");
+        TTreeReaderValue    <Float_t>           l2iso_          (reader,    "l2iso");
+        TTreeReaderValue    <UShort_t>          l2z_            (reader,    "l2z");
+        TTreeReaderValue    <TLorentzVector>    l3p4_           (reader,    "l3p4");
+        TTreeReaderValue    <Short_t>           l3pdg_          (reader,    "l3pdg");
+        TTreeReaderValue    <Float_t>           l3iso_          (reader,    "l3iso");
+        TTreeReaderValue    <UShort_t>          l3z_            (reader,    "l3z");
+        TTreeReaderValue    <TLorentzVector>    l4p4_           (reader,    "l4p4");
+        TTreeReaderValue    <Short_t>           l4pdg_          (reader,    "l4pdg");
+        TTreeReaderValue    <Float_t>           l4iso_          (reader,    "l4iso");
+        TTreeReaderValue    <UShort_t>          l4z_            (reader,    "l4z");
 
 
 
@@ -258,31 +256,20 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
             //  EVENT INFO
             //                
 
-            if (isBkg)
-            {
-                if (*nLooseLeps_ > 1)
-                    continue;
-                if (!*isSameSign_)
-                    continue;
-                if (*isDiffFlavor_)
-                    continue;
-            }
-
             // Quantities copied directly to output tree
             runNum      = *runNum_;     evtNum      = *evtNum_;     lumiSec     = *lumiSec_;
             nPV         = *nPV_;        weight      = *weight_;     genWeight   = *genWeight_;
             qtWeight    = *qtWeight_;   puWeight    = *puWeight_;   ecalWeight  = *ecalWeight_;
-            trigWeight  = *trigWeight_; idWeight    = *idWeight_;   recoWeight  = *recoWeight_;
-            channel     = *channel_;
-//          hasTauDecay = *hasTauDecay_;
+            trigWeight  = *trigWeight_; idWeight    = *idWeight_;
+            channel     = *channel_;    hasTauDecay = *hasTauDecay_;
 
-            zzp4        = *zzp4_;                  
-            z1p4        = *z1p4_;       z1pdg       = *z1pdg_;
-            z2p4        = *z2p4_;       z2pdg       = *z2pdg_;
-            l1p4        = *l1p4_;       l1pdg       = *l1pdg_;      l1z     = *l1z_;
-            l2p4        = *l2p4_;       l2pdg       = *l2pdg_;      l2z     = *l2z_;
-            l3p4        = *l3p4_;       l3pdg       = *l3pdg_;      l3z     = *l3z_;
-            l4p4        = *l4p4_;       l4pdg       = *l4pdg_;      l4z     = *l4z_;
+            zzp4    = *zzp4_;
+            z1p4    = *z1p4_;       z1pdg   = *z1pdg_;
+            z2p4    = *z2p4_;       z2pdg   = *z2pdg_;
+            l1p4    = *l1p4_;       l1pdg   = *l1pdg_;      l1z = *l1z_;        l1pdg = *l1pdg_;
+            l2p4    = *l2p4_;       l2pdg   = *l2pdg_;      l2z = *l2z_;        l2pdg = *l2pdg_;
+            l3p4    = *l3p4_;       l3pdg   = *l3pdg_;      l3z = *l3z_;        l3pdg = *l3pdg_;
+            l4p4    = *l4p4_;       l4pdg   = *l4pdg_;      l4z = *l4z_;        l4pdg = *l4pdg_;
 
 
 
@@ -292,10 +279,10 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 
             vector<Lepton> leps(4);
 
-            leps[0].p4  = l1p4;         leps[0].pdg = l1pdg;        leps[0].mother  = l1z;
-            leps[1].p4  = l2p4;         leps[1].pdg = l2pdg;        leps[1].mother  = l2z;
-            leps[2].p4  = l3p4;         leps[2].pdg = l3pdg;        leps[2].mother  = l3z;
-            leps[3].p4  = l4p4;         leps[3].pdg = l4pdg;        leps[3].mother  = l4z;
+            leps[0].p4 = l1p4; leps[0].pdg = l1pdg; leps[0].mother  = l1z; leps[0].iso = l1iso;
+            leps[1].p4 = l2p4; leps[1].pdg = l2pdg; leps[1].mother  = l2z; leps[1].iso = l2iso;
+            leps[2].p4 = l3p4; leps[2].pdg = l3pdg; leps[2].mother  = l3z; leps[2].iso = l3iso;
+            leps[3].p4 = l4p4; leps[3].pdg = l4pdg; leps[3].mother  = l4z; leps[3].iso = l4iso;
 
             for (unsigned i = 0; i < leps.size(); i++)
                 leps[i].q = -1 * copysign(1, leps[i].pdg);
@@ -395,10 +382,10 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
             b_ttp4  = leps[1].b_p4 + leps[2].b_p4 + leps[3].b_p4;
             b_z1p4  = z1.b_p4;          b_z2p4  = z2.b_p4;
 
-            b_l1v3  = leps[0].b_v3;     b_l1pdg = leps[0].pdg;      b_l1z   = leps[0].mother;
-            b_l2v3  = leps[1].b_v3;     b_l2pdg = leps[1].pdg;      b_l2z   = leps[1].mother;
-            b_l3v3  = leps[2].b_v3;     b_l3pdg = leps[2].pdg;      b_l3z   = leps[2].mother;
-            b_l4v3  = leps[3].b_v3;     b_l4pdg = leps[3].pdg;      b_l4z   = leps[3].mother;
+            b_l1v3 = leps[0].b_v3; b_l1pdg = leps[0].pdg; b_l1z = leps[0].mother; b_l1iso = leps[0].iso;
+            b_l2v3 = leps[1].b_v3; b_l2pdg = leps[1].pdg; b_l2z = leps[1].mother; b_l2iso = leps[1].iso;
+            b_l3v3 = leps[2].b_v3; b_l3pdg = leps[2].pdg; b_l3z = leps[2].mother; b_l3iso = leps[2].iso;
+            b_l4v3 = leps[3].b_v3; b_l4pdg = leps[3].pdg; b_l4z = leps[3].mother; b_l4iso = leps[3].iso;
 
 
             tree[i]->Fill();

@@ -31,13 +31,6 @@ qcd = 0.008592
 pdf = 0.001185
 pileup = 0.005765
 
-npt     = { "4l":17.58, "4m":9.59,  "2m2e":6.54,    "4e":1.45,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
-npt_unc = { "4l":4.36,  "4m":3.16,  "2m2e":2.65,    "4e":1.42,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
-
-npt_lumiUp  = { "4l":17.55, "4m":9.58,  "2m2e":6.53,    "4e":1.44,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
-npt_lumiDn  = { "4l":17.62, "4m":9.60,  "2m2e":6.55,    "4e":1.46,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
-
-
 
 
 ##
@@ -45,8 +38,7 @@ npt_lumiDn  = { "4l":17.62, "4m":9.60,  "2m2e":6.55,    "4e":1.46,  "mumu":0, "e
 ##
 
 # Muon trigger lumi doesn't include 2017B
-MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 41.37, 41.37, 0.991
-LUMI_UNC = .023;
+INT_LUMI, LUMI_UNC = 41.53, .023
 SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
@@ -56,7 +48,6 @@ MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 #      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
 NGEN_ZZ_4L,         XSEC_ZZ_4L          =   6893887,        1.256      #1.212
 NGEN_ZJETS_M50,     XSEC_ZJETS_M50      =   123485957,      5765.4    #6225.43
-NGEN_ZJETS_M10,     XSEC_ZJETS_M10      =   39505301,       71310
 NGEN_TTBAR,         XSEC_TTBAR          =   57584555,       831.76 / 2
 NGEN_TT_2L2NU,      XSEC_TT_2L2NU       =   8926992,        87.31 / 2
 NGEN_TTZ_2L2NU,     XSEC_TTZ_2L2NU      =   3570720,        0.2529
@@ -75,28 +66,28 @@ NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     =   984662,         0.001034
 N_MC = 16
 N_DY = 15
 
-MC_SUFF = [ "zz_4l",            "zjets_m-50",       #"zjets_m-10",
+MC_SUFF = [ "zz_4l",            "zjets_m-50",
             "ttbar",            "tt_2l2nu",         "ttz_2l2nu",        "ww_2l2nu",
             "wz_2l2q",          "wz_3lnu",          "zz_2l2nu",         "zz_2l2q",
             "wwz_4l2nu",        "wzz_4l2nu",        "zzz_4l2nu",        "zzg_4l2nu",
             "ggH_zz_4l",        "vbfH_zz_4l",
             ]
 
-NGEN_   = [ NGEN_ZZ_4L,         NGEN_ZJETS_M50,     #NGEN_ZJETS_M10,
+NGEN_   = [ NGEN_ZZ_4L,         NGEN_ZJETS_M50,
             NGEN_TTBAR,         NGEN_TT_2L2NU,      NGEN_TTZ_2L2NU,     NGEN_WW_2L2NU,
             NGEN_WZ_2L2Q,       NGEN_WZ_3LNU,       NGEN_ZZ_2L2NU,      NGEN_ZZ_2L2Q,
             NGEN_WWZ_4L2NU,     NGEN_WZZ_4L2NU,     NGEN_ZZZ_4L2NU,     NGEN_ZZG_4L2NU,
             NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,
             ]
 
-XSEC_   = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,     #XSEC_ZJETS_M10,
+XSEC_   = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,
             XSEC_TTBAR,         XSEC_TT_2L2NU,      XSEC_TTZ_2L2NU,     XSEC_WW_2L2NU,
             XSEC_WZ_2L2Q,       XSEC_WZ_3LNU,       XSEC_ZZ_2L2NU,      XSEC_ZZ_2L2Q,
             XSEC_WWZ_4L2NU,     XSEC_WZZ_4L2NU,     XSEC_ZZZ_4L2NU,     XSEC_ZZG_4L2NU,
             XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,
             ]
 
-COLOR_  = [ lLightBlue,         lYellow,            #lYellow,
+COLOR_  = [ lLightBlue,         lYellow,
             lGreen,             lGreen,             lGreen,             lOrange,
             lOrange,            lOrange,            lOrange,            lOrange,
             lRed,               lRed,               lRed,               lRed,

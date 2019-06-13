@@ -12,9 +12,9 @@
 
 // Custom
 //#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
+#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -32,11 +32,11 @@ void DrawMigration()
     //  SAMPLE INFO
     //
 
-    const unsigned N = 5;
-    unsigned                   L4 = 0,  M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = {"4l",    "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {5,       6,      7,      8,      9};
-    TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e};
+    const unsigned N = 4;
+    unsigned                   L4 = 0,  M4 = 1, ME = 2, E4 = 3;     // Indices
+    TString selection[N]    = {"4l",    "4m",   "2m2e", "4e"};
+    unsigned chanIdx[N]     = {5,       6,      7,      9};
+    TString lepChan[N]      = {_l,      _mu,    _l,     _e};
 
 
 
@@ -82,7 +82,7 @@ void DrawMigration()
 
     TString suffix  = "zz_4l";
     TString inName  = "matched_" + suffix + ".root";
-    TString inPath  = HOME_PATH + "/Boosted/" + YEAR_STR + "/" + inName;
+    TString inPath  = EOS_PATH + "/Boosted/" + YEAR_STR + "_new/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -122,8 +122,8 @@ void DrawMigration()
             TString hname,  quantity,   xlabel;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight/trigWeight/qtWeight";
-//          TString weight = "genWeight";
+            TString weight = "weight";
+
             tie(hname, quantity, xlabel, bins, xmin, xmax) = v[j];
 
             xlabel.ReplaceAll(_l, lepChan[i]);

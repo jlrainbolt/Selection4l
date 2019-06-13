@@ -21,8 +21,8 @@
 
 // Cuts
 //#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -90,7 +90,7 @@ void MatchedAnalysis()
     // Lab frame objects
     TLorentzVector      z1p4,           z2p4,           zzp4;
     TLorentzVector      gen_z1p4,       gen_z2p4,       gen_zzp4;
-    Short_t             z1pdg,          z2pdg;
+    UShort_t            z1pdg,          z2pdg;
 
     TLorentzVector      l1p4,           l2p4,           l3p4,           l4p4;
     TLorentzVector      gen_l1p4,       gen_l2p4,       gen_l3p4,       gen_l4p4;

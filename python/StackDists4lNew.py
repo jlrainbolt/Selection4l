@@ -8,9 +8,9 @@ from ROOT import TFile, TH1
 
 from PlotUtils import *
 #from Cuts2018 import *
-#from Cuts2017 import *
+from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 
@@ -18,7 +18,7 @@ from Cuts2012 import *
 ##  SAMPLE INFO
 ##
 
-selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
+selection = ["4l", "4m", "2m2e", "4e"]
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
@@ -43,10 +43,10 @@ print("Opened", elName)
 
 
 # Get histograms
-#hnames = ["zzm", "zzpt"]#, "z1m", "z2m", "z1pt", "z2pt"]
-#hnames = ["sin_phi"]
-hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
-            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
+hnames = ["sin_phi"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt"]
+#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 H = len(hnames)
 
@@ -54,14 +54,9 @@ data = np.empty(H, dtype=T)
 h = 0
 
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
-        if sel in ["4m", "2m2e"]:
-            data[h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
-        elif sel in ["4e", "2e2m"]:
-            data[h][sel] = elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR)
+        data[h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
+        data[h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR))
 
         data[h][sel].SetDirectory(0)
         h = h + 1
@@ -96,21 +91,12 @@ for suff in MC_SUFF:
 
     # Get histograms
     for sel in selection:
-        if sel == "4l":
-            continue
-        elif sel in ["4m", "2m2e"]:
-            lumi = MUON_TRIG_LUMI
-        elif sel in ["4e", "2e2m"]:
-            lumi = ELEC_TRIG_LUMI * ELEC_TRIG_SF
-
-        sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
+        sf = INT_LUMI * 1000 * XSEC[suff] / NGEN[suff]
 
         for hname in hnames:
             mc_arr[j][h][sel] = inFile.Get(sel + "/" + hname + "_" + suff)
             mc_arr[j][h][sel].SetDirectory(0)
             mc_arr[j][h][sel].Scale(sf)
-            if hnames[h] == "zzpt" and YEAR_STR in ["2016", "2017"]:
-                mc_arr[j][h][sel].Rebin(2)
 
             h = h + 1
         h = 0
@@ -141,18 +127,17 @@ elName = prefix + "_" + YEAR_STR + "_electron_" + YEAR_STR + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
 
+# Get nonprompt background
+infile = "nonprompt" + YEAR_STR + ".npz"
+npzfile = np.load(infile)
+npt, npt_unc = npzfile['npt'], npzfile['npt_unc']
 
-# Get histograms for 2017
+# Get histograms for nonprompt
 h = 0
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
-        if sel in ["4m", "2m2e"]:
-            mc['zjets_m-50'][h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
-        elif sel in ["4e", "2e2m"]:
-            mc['zjets_m-50'][h][sel] = elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR)
+        mc['zjets_m-50'][h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
+        mc['zjets_m-50'][h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR))
 
         mc['zjets_m-50'][h][sel].SetDirectory(0)
         sf = npt[sel] / mc['zjets_m-50'][h][sel].Integral()
@@ -167,48 +152,28 @@ elFile.Close()
 
 
 ##
-##  ADD CHANNELS
+##  REBIN
 ##
 
-# Get 4l and 2m2e, rebin 4e
 for h in range(H):
-    data[h]['2m2e'].Add(data[h]['2e2m'])
-    data[h]['4l'] = data[h]['2m2e'].Clone()
-    data[h]['4l'].Add(data[h]['4m'])
-    data[h]['4l'].Add(data[h]['4e'])
-
     data[h]['4e'].Rebin(2)
-
-#   if (YEAR_STR == "2012"):
-#       data[h]['4e'].Rebin(2)
-#       data[h]['4l'].Rebin(2)
-#       data[h]['4m'].Rebin(2)
-#       data[h]['2m2e'].Rebin(2)
+    if (YEAR_STR == "2012"):
+        for sel in selection:
+            data[h][sel].Rebin(2)
 
     for suff in MC_SUFF:
         if suff in ["ttbar", "tt_2l2nu"]:
             continue
-        mc[suff][h]['2m2e'].Add(mc[suff][h]['2e2m'])
-        mc[suff][h]['4l'] = mc[suff][h]['2m2e'].Clone()
-        mc[suff][h]['4l'].Add(mc[suff][h]['4m'])
-        mc[suff][h]['4l'].Add(mc[suff][h]['4e'])
-
         mc[suff][h]['4e'].Rebin(2)
-
-#       if (YEAR_STR == "2012"):
-#           mc[suff][h]['4e'].Rebin(2)
-#           mc[suff][h]['4l'].Rebin(2)
-#           mc[suff][h]['4m'].Rebin(2)
-#           mc[suff][h]['2m2e'].Rebin(2)
+        if (YEAR_STR == "2012"):
+            for sel in selection:
+                mc[suff][h][sel].Rebin(2)
 
 
 # Get total
 total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 for sel in selection:
-    if sel == "2e2m":
-        continue
-
     for h in range(H):
         for suff in MC_SUFF:
             if suff == "zz_4l":
@@ -221,7 +186,7 @@ for sel in selection:
         ratio[h][sel] = data[h][sel].Clone()
         ratio[h][sel].Divide(total[h][sel])
 
-        print(mc['zjets_m-50'][h][sel].Integral())
+#       print(mc['zjets_m-50'][h][sel].Integral())
 
 
 
@@ -234,10 +199,8 @@ for sel in selection:
 ####
 
 
-for sel in ["4l"]:
-#for sel in selection:
-    if sel == "2e2m":
-        continue
+#for sel in ["4l"]:
+for sel in selection:
 
 
     print("Drawing", sel, "plots...")
@@ -351,7 +314,7 @@ for sel in ["4l"]:
                 size = "x-large",   style = "italic",
 #               fontproperties = helvet_bold,
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
-        ax_top.set_title(r'\Large{' + '%.1f' % MUON_TRIG_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S
+        ax_top.set_title(r'\Large{' + '%.1f' % INT_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S
                 + r'\,TeV, ' + YEAR_STR + ')}', loc='right')
 
         # Top y axis
@@ -428,36 +391,37 @@ for sel in ["4l"]:
         ##  LEGEND
         ##
 
-#       if hnames[h] == "sin_phi":
-#           leg_loc = 'upper right'
-#           bbox = (0.86, 1)
-#       elif hnames[h] == "zzpt":
-#           leg_loc = 'upper right'
-#       else:
-#           leg_loc = 'center left'
-
         if hnames[h] in ["zzm", "z1m", "angle_z1leps", "b_l1p"]:#, "cos_theta_z2"]:
             leg_loc = 'center left'
-        elif hnames[h] in ["sin_phi", "sin_phi_2", "cos_theta_z1"]:
+        elif hnames[h] in ["sin_phi_2"]:
             leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'
 
-        ax_top.legend(
-                (   p_data,
-                    p_mc['zz_4l'],          p_mc['zjets_m-50'], p_mc['ww_2l2nu'],
-#                   p_mc['zzz_4l2nu'],
-#                   p_mc['ggH_zz_4l'],  
-                    p_mc['ttz_2l2nu']
-                    ),
-                (   r'Data',
-                    r'$\mbox{Z}\to4\ell$',  r'Nonprompt',       r'VV',
-#                   r'VVV',
-#                   r'H',
-                    r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$' 
-                    ),
-                loc = leg_loc, numpoints = 1, frameon = False#, bbox_to_anchor = bbox
-            )
+        if hnames[h] in ["sin_phi", "cos_theta_z1", "cos_theta_z2"]:
+            leg_ncol = 2
+        else:
+            leg_ncol = 1
+
+        handles = [ p_data,     p_mc['zjets_m-50'],                 p_mc['zz_4l'],
+                                p_mc['ww_2l2nu'],
+                    ]
+        labels = [  r'Data',    r'$\mbox{Z}\to\ell^+\ell^-$',       r'$\mbox{ZZ}\to4\ell$',
+                                r'VV',
+                    ]
+
+        if YEAR_STR == "2016":
+            handles.append(p_mc['ggH_zz_4l'])
+            labels.append(r'H')
+        if YEAR_STR in ["2017", "2018"]:
+            handles.append(p_mc['zzz_4l2nu'])
+            labels.append(r'VVV')
+            handles.append(p_mc['ggH_zz_4l'])
+            labels.append(r'H')
+        handles.append(p_mc['ttz_2l2nu'])
+        labels.append(r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$')
+
+        ax_top.legend(handles, labels, loc = leg_loc, numpoints = 1, frameon = False, ncol = leg_ncol)
 
         fig_name = YEAR_STR + "_" + hnames[h] + "_" + sel + ".pdf"
         fig.savefig(fig_name)

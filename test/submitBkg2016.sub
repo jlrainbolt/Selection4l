@@ -31,6 +31,9 @@ arguments   = "$(suffix) $INT(Step)"
     suffix = tt_2l2nu
     queue 8
 
+    suffix = ttz_2l2nu
+    queue 1
+
     suffix = ww_2l2nu
     queue 1
 

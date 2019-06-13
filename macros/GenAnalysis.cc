@@ -21,8 +21,8 @@
 
 // Cuts
 //#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+#include "Cuts2017.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -64,7 +64,7 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     //  SAMPLE INFO
     //
 
-    const unsigned N = 5;
+    const unsigned N = 4;
     unsigned                    L4 = 0, M4 = 1, ME = 2, E4 = 3;     // Indices
     TString selection[N]    = { "4l",   "4m",   "2m2e", "4e"    };
     TString selection2l[N]  = { "",     "mumu", "mumu", "ee"    };

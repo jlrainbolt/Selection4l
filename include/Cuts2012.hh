@@ -66,7 +66,6 @@ const float     MUON_LEG1_PT = 17,      ELEC_LEG1_PT = 17;
 const float     MUON_LEG2_PT = 8,       ELEC_LEG2_PT = 8;
 
 
-
 //
 //  LEPTON ID
 //

@@ -6,19 +6,18 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 
 #from Cuts2018 import *
-#from Cuts2017 import *
+from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
-tightOnly = True
+tightOnly = False
 
 selection   = ["4l", "4m", "2m2e", "4e"]
 
 if tightOnly:
-    weight = "(nLooseLeptons == 0) "
+    weight = "(nLooseLeptons == 0)"
 else:
-    weight = ""
-#    weight = "(nLooseLeptons <= 1) "
+    weight = "(nLooseLeptons > 0)"
 
 
 ##
@@ -87,6 +86,8 @@ for suff in MC_SUFF:
         mc_arr[row][sel] = sf * hist.GetBinContent(1);
         mc_unc_arr[row][sel] = sf * hist.GetBinError(1);
 
+        mc_arr[row][sel] = np.abs(mc_arr[row][sel])
+
         hist.Delete()
 
     mc[suff] = mc_arr[row]
@@ -97,34 +98,13 @@ for suff in MC_SUFF:
 
 
 ##
-##  ADD CHANNELS
-##
-'''
-for sample in [data, mc_arr]:
-    sample['2m2e']  = sample['2m2e'] + sample['2e2m']
-    sample['4l']    = sample['4m'] + sample['2m2e'] + sample['4e']
-    if not signalOnly:
-        sample['4l']    = sample['4l'] + sample['3m1e'] + sample['1m3e']
-    sample['2e2m']  = 0
-
-# Handle uncertainty
-mc_unc_arr['2m2e']  = np.sqrt(mc_unc_arr['2m2e'] ** 2 + mc_unc_arr['2e2m'] ** 2)
-mc_unc_arr['4l']    = mc_unc_arr['4m'] ** 2 + mc_unc_arr['2m2e'] ** 2 + mc_unc_arr['4e'] ** 2
-if not signalOnly:
-    mc_unc_arr['4l'] = mc_unc_arr['4l'] + mc_unc_arr['3m1e'] ** 2 + mc_unc_arr['1m3e'] ** 2
-mc_unc_arr['4l'] = np.sqrt(mc_unc_arr['4l'])
-mc_unc_arr['2e2m']  = 0
-'''
-
-
-##
 ##  ADD SAMPLES
 ##
 
 # Take average of ttbar (inclusive) and tt_2l2nu
 if (YEAR_STR != "2012"):
     for sel in selection:
-        mc['ttbar'][sel] = (mc['ttbar'][sel] + mc['tt_2l2nu'][sel])
+        mc['ttbar'][sel] = mc['ttbar'][sel] + mc['tt_2l2nu'][sel]
         mc_unc['ttbar'][sel] = np.sqrt(mc_unc['ttbar'][sel] ** 2 + mc_unc['tt_2l2nu'][sel] ** 2)
         mc['tt_2l2nu'][sel] = 0
         mc_unc['tt_2l2nu'][sel] = 0
@@ -149,7 +129,11 @@ for sel in selection:
     diff[sel]       = data[sel] - bg[sel]
     diff_unc[sel]   = bg_unc[sel] + data[sel]
 
-    if (npt[sel] == 0):
+    if diff[sel] < 0:
+        diff_unc[sel] = diff_unc[sel] - diff[sel]
+        diff[sel] = 0
+
+    if npt[sel] == 0 or diff[sel] == 0:
         sf[sel]     = 0
         sf_unc[sel] = 0
     else:
@@ -182,7 +166,7 @@ f.write(r"\toprule" + "\n")
 
 f.write("\t" + r"\multicolumn{3}{l}{Type}")
 for sel in selection:
-    f.write(r" & \multicolumn{2}{l}{$N_{" + selTeX[sel] + r"}$ (events)}")
+    f.write(r" & \multicolumn{2}{l}{$N_{" + selTeX[sel] + r"}$}")
 f.write(r" \\" + "\n")
 
 f.write(r"\midrule" + "\n")
@@ -254,3 +238,15 @@ f.write(r"\end{tabular}" + "\n")
 
 f.close()
 print("Wrote table to", fileName)
+
+
+
+##
+##  SAVE
+##
+
+if tightOnly:
+    print("")
+    outfile = "nonprompt" + YEAR_STR + ".npz"
+    np.savez(outfile, npt=diff, npt_unc=diff_unc)
+    print("Wrote nonprompt arrays to", outfile)
