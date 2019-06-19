@@ -6,8 +6,8 @@ import numpy as np
 from ROOT import TFile, TTree, TH1D
 
 #from Cuts2018 import *
-from Cuts2017 import *
-#from Cuts2016 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 #from Cuts2012 import *
 
 tightOnly = False
@@ -15,9 +15,9 @@ tightOnly = False
 selection   = ["4l", "4m", "2m2e", "4e"]
 
 if tightOnly:
-    weight = "(nLooseLeptons == 0)"
+    cut = "(nLooseLeptons == 0)"
 else:
-    weight = "(nLooseLeptons > 0)"
+    cut = "(nLooseLeptons > 0)"
 
 
 ##
@@ -52,7 +52,7 @@ for sel in selection:
     muTree = muFile.Get(sel + "_" + MU_SUFF)
     elTree = elFile.Get(sel + "_" + EL_SUFF)
 
-    data[sel] = muTree.GetEntries(weight) + elTree.GetEntries(weight)
+    data[sel] = muTree.GetEntries(cut) + elTree.GetEntries(cut)
 
 muFile.Close()
 elFile.Close()
@@ -66,6 +66,7 @@ elFile.Close()
 mc_arr, mc_unc_arr = np.zeros(N_MC, dtype=T), np.zeros(N_MC, dtype=T)
 mc, mc_unc = {}, {}
 row = 0
+weight = "weight"
 
 # Loop over all samples
 for suff in MC_SUFF:
@@ -81,10 +82,11 @@ for suff in MC_SUFF:
         hist.Sumw2()
 
         tree = inFile.Get(sel + "_" + suff)
-        tree.Draw("1>>hist", weight + " * weight", "goff")
+        tree.Draw("1>>hist", cut + " * " + weight, "goff")
+        mc_arr[row][sel] = sf * hist.GetBinContent(1)
 
-        mc_arr[row][sel] = sf * hist.GetBinContent(1);
-        mc_unc_arr[row][sel] = sf * hist.GetBinError(1);
+        tree.Draw("1>>hist", cut + " * " + weight + " * " + weight, "goff")
+        mc_unc_arr[row][sel] = sf * np.sqrt(hist.GetBinContent(1))
 
         mc_arr[row][sel] = np.abs(mc_arr[row][sel])
 
@@ -228,7 +230,7 @@ f.write(r" \\" + "\n")
 
 f.write(r"\addlinespace\addlinespace" + "\n")
 
-f.write("\t" + r"\multicolumn{3}{l}{Exp. $\mapsto$ Obs.~nonprompt}")
+f.write("\t" + r"\multicolumn{3}{l}{$N^\text{obs}_\text{npr} / N^\text{exp}_\text{npr}$}")
 for sel in selection:
     f.write(r" & " + fmt % np.squeeze(sf[sel]) + r" & " + fmt % np.squeeze(sf_unc[sel]))
 f.write(r" \\" + "\n")

@@ -12,16 +12,14 @@
 #include "TMath.h"
 
 // Cuts
-//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+#include "Cuts2016.hh"
 
 using namespace std;
 
 
 
-void CalculateLeptonID(const TString flavor, const TString type, const TString suff = "")
+void CalculateLeptonReco(const TString flavor, const TString type, const TString suff = "")
 {
 
 
@@ -76,38 +74,38 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     //  HISTOGRAMS
     //
 
-    TString idName;
-    if (suff.IsNull())
-        idName = flavor + "_" + type + "_smear_" + YEAR_STR + ".root";
-    else
-        idName = flavor + "_" + type + "_smear_" + YEAR_STR + "_" + suff + ".root";
+    TString idName, idName_suff;
+    idName = flavor + "_" + type + "_smear_" + YEAR_STR + ".root";
+    idName_suff = flavor + "_" + type + "_smear_" + YEAR_STR + "_" + suff + ".root";
 
-    TH2     *h_nom, *h_smr[N];
+    TH2     *h_nom, *h_nom_suff, *h_smr[N], *h_smr_suff[N];
 
     TString inPath  = BLT_PATH + "/BLTAnalysis/data/" + idName;
     TFile   *idFile = TFile::Open(inPath);
+
+    TString inPath_suff  = BLT_PATH + "/BLTAnalysis/data/" + idName_suff;
+    TFile   *idFile_suff = TFile::Open(inPath_suff);
 
     cout << "Opened " << inPath << endl;
 
     idFile->GetObject("FINAL", h_nom);
     h_nom->SetDirectory(0);
+    idFile_suff->GetObject("FINAL", h_nom_suff);
+    h_nom_suff->SetDirectory(0);
 
-    float PT_MIN = h_nom->GetYaxis()->GetXmin();
+    float PT_MIN = h_nom_suff->GetYaxis()->GetXmin();
+    float PT_THRESH = h_nom->GetYaxis()->GetXmin();
     float PT_MAX = h_nom->GetYaxis()->GetXmax();
 
-    if (YEAR_STR.EqualTo("2012"))
-    {
-        PT_MIN = h_nom->GetXaxis()->GetXmin();
-        PT_MAX = h_nom->GetXaxis()->GetXmax();
-    }
-
-    cout << "Limits: " << PT_MIN << ", " << PT_MAX << endl << endl;
+    cout << "Limits: " << PT_MIN << ", " << PT_THRESH << ", " << PT_MAX << endl << endl;
 
     for (unsigned j = 0; j < N; j++)
     {
         TString id = TString::Format("%i", j);
         idFile->GetObject("SMEAR" + id, h_smr[j]);
         h_smr[j]->SetDirectory(0);
+        idFile_suff->GetObject("SMEAR" + id, h_smr_suff[j]);
+        h_smr_suff[j]->SetDirectory(0);
     }
 
     idFile->Close();
@@ -169,22 +167,28 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
             // Get bin numbers for leptons we care about
 
             vector<int> bins;
+            vector<bool> isSuff;
             for (unsigned l = 0; l < p4.size(); l++)
             {
                 float pt = p4[l].Pt();
 
                 // all but low-et reco histograms are inclusive of higher pt
-                if (pt > PT_MAX && !suff.EqualTo("lowEt"))
+                if (pt > PT_MAX)
                     pt = 0.99 * PT_MAX;
+                if (pt < PT_MIN)
+                    pt = 1.01 * PT_MIN;
 
                 // in any case, don't include leptons below pt range
-                else if (pt < PT_MIN)
-                    continue;
-
-                if (YEAR_STR.EqualTo("2012"))
-                    bins.push_back(h_nom->FindBin(pt, p4[l].Eta()));
-                else
+                if (pt > PT_THRESH)
+                {
+                    isSuff.push_back(kFALSE);
                     bins.push_back(h_nom->FindBin(p4[l].Eta(), pt));
+                }
+                else
+                {
+                    isSuff.push_back(kTRUE);
+                    bins.push_back(h_nom_suff->FindBin(p4[l].Eta(), pt));
+                }
             }
 
 
@@ -196,7 +200,12 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
             float nomWeight = genWeight;
 
             for (unsigned l = 0; l < bins.size(); l++)
-                nomWeight *= h_nom->GetBinContent(bins[l]);
+            {
+                if (isSuff[l])
+                    nomWeight *= h_nom_suff->GetBinContent(bins[l]);
+                else
+                    nomWeight *= h_nom->GetBinContent(bins[l]);
+            }
 
             sel_4l_nom[i] += nomWeight;
 
@@ -208,7 +217,12 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
                 float varWeight = genWeight;
 
                 for (unsigned l = 0; l < bins.size(); l++)
-                    varWeight *= h_smr[j]->GetBinContent(bins[l]);
+                {
+                    if (isSuff[l])
+                        varWeight *= h_smr_suff[j]->GetBinContent(bins[l]);
+                    else
+                        varWeight *= h_smr[j]->GetBinContent(bins[l]);
+                }
 
                 sel_4l_var[i][j] += varWeight;
             }
@@ -276,28 +290,39 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
                 vector<TLorentzVector> p4 = {*l1p4_, *l2p4_};
 
                 vector<int> bins;
+                vector<bool> isSuff;
                 for (unsigned l = 0; l < p4.size(); l++)
                 {
                     float pt = p4[l].Pt();
 
                     // all but low-et reco histograms are inclusive of higher pt
-                    if (pt > PT_MAX && !suff.EqualTo("lowEt"))
+                    if (pt > PT_MAX)
                         pt = 0.99 * PT_MAX;
+                    if (pt < PT_MIN)
+                        pt = 1.01 * PT_MIN;
 
                     // in any case, don't include leptons below pt range
-                    else if (pt < PT_MIN)
-                        continue;
-
-                    if (YEAR_STR.EqualTo("2012"))
-                        bins.push_back(h_nom->FindBin(pt, p4[l].Eta()));
-                    else
+                    if (pt > PT_THRESH)
+                    {
+                        isSuff.push_back(kFALSE);
                         bins.push_back(h_nom->FindBin(p4[l].Eta(), pt));
+                    }
+                    else
+                    {
+                        isSuff.push_back(kTRUE);
+                        bins.push_back(h_nom_suff->FindBin(p4[l].Eta(), pt));
+                    }
                 }
 
 
                 // Nominal
                 for (unsigned l = 0; l < bins.size(); l++)
-                    nomWeight *= h_nom->GetBinContent(bins[l]);
+                {
+                    if (isSuff[l])
+                        nomWeight *= h_nom_suff->GetBinContent(bins[l]);
+                    else
+                        nomWeight *= h_nom->GetBinContent(bins[l]);
+                }
 
 
                 // Variations
@@ -307,7 +332,12 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
                     float varWeight = genWeight;
 
                     for (unsigned l = 0; l < bins.size(); l++)
-                        varWeight *= h_smr[j]->GetBinContent(bins[l]);
+                    {
+                        if (isSuff[l])
+                            varWeight *= h_smr_suff[j]->GetBinContent(bins[l]);
+                        else
+                            varWeight *= h_smr[j]->GetBinContent(bins[l]);
+                    }
 
                     sel_2l_var[i][j] += varWeight;
                 }

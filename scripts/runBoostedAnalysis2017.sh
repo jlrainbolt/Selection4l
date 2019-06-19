@@ -12,3 +12,8 @@ for suffix in   "electron_2017" "muon_2017"     "zjets_m-50"    "ttbar"     "tt_
 do
     root.exe -q -b "../macros/BoostedAnalysis.cc(\"$suffix\")"
 done
+
+for suffix in   "electron_2017" "muon_2017"
+do
+        root.exe -q -b "../macros/BoostedAnalysis.cc(\"$suffix\", \"kTRUE\")"
+done

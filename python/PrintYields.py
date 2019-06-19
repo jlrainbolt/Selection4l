@@ -5,8 +5,8 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2018 import *
-from Cuts2017 import *
+from Cuts2018 import *
+#from Cuts2017 import *
 #from Cuts2016 import *
 #from Cuts2012 import *
 
@@ -17,10 +17,7 @@ from Cuts2017 import *
 ##
 
 selection   = ["mumu", "ee", "4l", "4m", "2m2e", "4e"]
-selTeX      = { "mumu":r"\MM",  "ee":r"\EE",
-                "4l":r"4\Pell", "4m":r"4\PGm",  "4e":r"4\Pe",   "2m2e":r"2\PGm 2\Pe"
-                }
-selDef      = { "mumu":"MM",    "ee":"EE",  "4l":"4L",  "4m":"4M",  "4e":"4E",  "2m2e":"2M2E"   }
+selTeX      = {"mumu":r"\MM", "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "2m2e":r"\tMtE", "4e":r"\fE"}
 T = np.dtype([(sel, 'f4') for sel in selection])
 
 
@@ -95,7 +92,9 @@ for suff in MC_SUFF:
         tree.Draw("1>>hist", weight, "goff")
 
         mc_arr[row][sel] = sf * hist.Integral()
-        mc_unc_arr[row][sel] = sf * np.sqrt(tree.GetEntries(cut))
+
+        tree.Draw("1>>hist", weight + " * " + weight, "goff")
+        mc_unc_arr[row][sel] = sf * np.sqrt(hist.Integral())
 
         mc_arr[row][sel] = np.abs(mc_arr[row][sel])
 
@@ -154,8 +153,6 @@ for sel in selection:
 ##  WRITE TEX FILES
 ##
 
-fmt = '%.2f'
-
 fileName = "Yield" + YEAR_STR + ".tex"
 f = open(fileName, "w")
 
@@ -171,13 +168,17 @@ f.write(r"\midrule" + "\n")
 
 f.write("\t" + r"\multicolumn{3}{l}{Observed}")
 for sel in selection:
-    f.write(r" & \multicolumn{2}{l}{" + '%.0f' % np.squeeze(data[sel]) + "}")
+    f.write(r" & \multicolumn{2}{l}{" + '%i' % np.squeeze(data[sel]) + "}")
 f.write(r" \\" + "\n")
 
 f.write(r"\addlinespace\addlinespace" + "\n")
 
 f.write("\t" + r"\multicolumn{3}{l}{Expected}")
 for sel in selection:
+    if sel in ["mumu", "ee"]:
+        fmt = '%i'
+    else:
+        fmt = '%.2f'
     f.write(" & " + fmt % np.squeeze(exp[sel]) + " & " + fmt % np.squeeze(exp_unc[sel]))
 f.write(r" \\" + "\n")
 
@@ -185,6 +186,10 @@ f.write(r"\addlinespace" + "\n")
 
 f.write("\t&\t" + r"\multicolumn{2}{l}{Signal}")
 for sel in selection:
+    if sel in ["mumu", "ee"]:
+        fmt = '%i'
+    else:
+        fmt = '%.2f'
     f.write(" & " + fmt % np.squeeze(sig[sel]) + " & " + fmt % np.squeeze(sig_unc[sel]))
 f.write(r" \\" + "\n")
 
@@ -192,6 +197,10 @@ f.write(r"\addlinespace" + "\n")
 
 f.write("\t&\t" + r"\multicolumn{2}{l}{Background}")
 for sel in selection:
+    if sel in ["mumu", "ee"]:
+        fmt = '%i'
+    else:
+        fmt = '%.2f'
     f.write(" & " + fmt % np.squeeze(bg[sel]) + " & " + fmt % np.squeeze(bg_unc[sel]))
 f.write(r" \\" + "\n")
 
@@ -199,16 +208,28 @@ f.write(r"\addlinespace" + "\n")
 
 f.write("\t&\t&\t" + r"Nonprompt & \multicolumn{4}{c}{}")
 for sel in ["4l", "4m", "2m2e", "4e"]:
+    if sel in ["mumu", "ee"]:
+        fmt = '%i'
+    else:
+        fmt = '%.2f'
     f.write(" & " + fmt % np.squeeze(npt[sel]) + " & " + fmt % np.squeeze(npt_unc[sel]))
 f.write(r" \\" + "\n")
 
 for suff in MC_SUFF:
     if suff == "tt_2l2nu":
         continue
+    if suff == "zz_4l" and sel in ["4l", "4m", "2m2e", "4e"]:
+        f.write("\t&\t&\t" + r"$\ZZtoTtL$")
+    elif suff == "zjets_m-50" and sel in ["mumu", "ee"]:
+        f.write("\t&\t&\t" + r"$\ZtoTT$")
     else:
         f.write("\t&\t&\t" + MC_TEX[suff])
 
         for sel in selection:
+            if sel in ["mumu", "ee"]:
+                fmt = '%i'
+            else:
+                fmt = '%.2f'
             if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"]:
                 continue
             else:
@@ -218,14 +239,16 @@ for suff in MC_SUFF:
 
 f.write(r"\midrule" + "\n")
 
-f.write("\t" + r"\multicolumn{3}{l}{Purity (\%)}")
+fmt = '%.2f'
+
+f.write("\t" + r"\multicolumn{3}{l}{Signal purity (\%)}")
 for sel in selection:
     f.write(" & " + fmt % np.squeeze(pur[sel]) + " & " + fmt % np.squeeze(pur_unc[sel]))
 f.write(r" \\" + "\n")
 
 f.write(r"\addlinespace" + "\n")
 
-f.write("\t" + r"\multicolumn{3}{l}{Exp. $\mapsto$ Obs. (\%)}")
+f.write("\t" + r"\multicolumn{3}{l}{$N^\text{obs} / N^\text{exp}$ (\%)}")
 for sel in selection:
     f.write(" & " + fmt % np.squeeze(sf[sel]) + " & " + fmt % np.squeeze(sf_unc[sel]))
 f.write(r" \\" + "\n")

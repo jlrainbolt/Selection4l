@@ -18,21 +18,17 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 F_NR = 0.04
 BF_LL = 0.033658
-CAP_K = 3.3016956e-10
 GAMMA_Z = 2.4952e6
 
-mu_id = {   "4l":0.0171,    "4m":0.0213,    "2m2e":0.0095,      "4e":0          }
-el_id = {   "4l":0.0062,    "4m":0,         "2m2e":0.0138,      "4e":0.0265     }
-el_reco = { "4l":0.0027,    "4m":0,         "2m2e":0.0093,      "4e":0.0154     }
-mu_pt = {   "4l":0.000042,  "4m":0.000071,  "2m2e":0.000042,    "4e":0          }
-el_pt = {   "4l":0.001017,  "4m":0,         "2m2e":0.002930,    "4e":0.000169   }
+mu_id = {   "4l":0.0157,    "4m":0.0208,    "2m2e":0.0092,      "4e":0          }
+el_id = {   "4l":0.0109,    "4m":0,         "2m2e":0.0188,      "4e":0.0406     }
+el_reco = { "4l":0.0037,    "4m":0,         "2m2e":0.0093,      "4e":0.0152     }
 ecal =  {   "4l":0,         "4m":0,         "2m2e":0,           "4e":0          }
 qcd = 0.008592
 pdf = 0.001185
 pileup = 0.005730
 
-npt     = { "4l":34.51,     "4m":22.10,     "2m2e":13.33,   "4e":0.91,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
-npt_unc = { "4l":6.09,      "4m":4.80,      "2m2e":3.74,    "4e":1.02,  "mumu":0, "ee":0, "2e2m":0, "ll":0}
+DELTA_LAMBDA = 0.3
 
 
 
@@ -41,9 +37,8 @@ npt_unc = { "4l":6.09,      "4m":4.80,      "2m2e":3.74,    "4e":1.02,  "mumu":0
 ##  SAMPLE INFO
 ##
 
-# Muon trigger lumi doesn't include 2018B
-MUON_TRIG_LUMI, ELEC_TRIG_LUMI, ELEC_TRIG_SF = 58.83, 58.83, 1
-LUMI_UNC = .025;
+ELEC_TRIG_SF = 1
+INT_LUMI, LUMI_UNC = 59.74, .025
 SQRT_S  = 13
 MU_SUFF, EL_SUFF = "muon_" + YEAR_STR, "electron_" + YEAR_STR
 
@@ -66,41 +61,41 @@ NGEN_GGH_ZZ_4L,     XSEC_GGH_ZZ_4L      =   948128,         0.01212
 NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     =   499348,         0.001034
 
 N_MC = 16
-N_DY = 10
+N_DY = 10   # number of gen zjets_m-50 files
 
 MC_SUFF = [ "zz_4l",            "zjets_m-50",
-            "ttbar",            "tt_2l2nu",         "ttz_2l2nu",        "ww_2l2nu",
+            "ttbar",            "tt_2l2nu",                             "ww_2l2nu",
             "wz_2l2q",          "wz_3lnu",          "zz_2l2nu",         "zz_2l2q",
             "wwz_4l2nu",        "wzz_4l2nu",        "zzz_4l2nu",        "zzg_4l2nu",
-            "ggH_zz_4l",        "vbfH_zz_4l",
+            "ggH_zz_4l",        "vbfH_zz_4l",                           "ttz_2l2nu",
             ]
 
 NGEN_   = [ NGEN_ZZ_4L,         NGEN_ZJETS_M50,
-            NGEN_TTBAR,         NGEN_TT_2L2NU,      NGEN_TTZ_2L2NU,     NGEN_WW_2L2NU,
+            NGEN_TTBAR,         NGEN_TT_2L2NU,                          NGEN_WW_2L2NU,
             NGEN_WZ_2L2Q,       NGEN_WZ_3LNU,       NGEN_ZZ_2L2NU,      NGEN_ZZ_2L2Q,
             NGEN_WWZ_4L2NU,     NGEN_WZZ_4L2NU,     NGEN_ZZZ_4L2NU,     NGEN_ZZG_4L2NU,
-            NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,
+            NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,                        NGEN_TTZ_2L2NU,
             ]
 
 XSEC_   = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,
-            XSEC_TTBAR,         XSEC_TT_2L2NU,      XSEC_TTZ_2L2NU,     XSEC_WW_2L2NU,
+            XSEC_TTBAR,         XSEC_TT_2L2NU,                          XSEC_WW_2L2NU,
             XSEC_WZ_2L2Q,       XSEC_WZ_3LNU,       XSEC_ZZ_2L2NU,      XSEC_ZZ_2L2Q,
             XSEC_WWZ_4L2NU,     XSEC_WZZ_4L2NU,     XSEC_ZZZ_4L2NU,     XSEC_ZZG_4L2NU,
-            XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,
+            XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,                        XSEC_TTZ_2L2NU,
             ]
 
 COLOR_  = [ lLightBlue,         lYellow,
-            lGreen,             lGreen,             lGreen,             lOrange,
+            lGreen,             lGreen,                                 lOrange,
             lOrange,            lOrange,            lOrange,            lOrange,
             lRed,               lRed,               lRed,               lRed,
-            lPurple,            lPurple,
+            lPurple,            lPurple,                                lGreen,
             ]
 
 MC_TEX_ = [ r"$\ZZtofL$",       r"$\ZtoLL$",
-            r"$\ttbar$",        r"$\TTtoLLNuNu$",   r"$\TTZtoLLNuNu$",  r"$\WWtoLLNuNu$",
+            r"$\ttbar$",        r"$\TTtoLLNuNu$",                       r"$\WWtoLLNuNu$",
             r"$\WZtoLLQQ$",     r"$\WZtoLLLNu$",    r"$\ZZtoLLNuNu$",   r"$\ZZtoLLQQ$",
             r"$\WWZtofLtNu$",   r"$\WZZtofLtNu$",   r"$\ZZZtofLtNu$",   r"$\ZZGtofLtNu$",
-            r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",
+            r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",                    r"$\TTZtoLLNuNu$",
             ]
 
 NGEN    = dict(zip(MC_SUFF, NGEN_))

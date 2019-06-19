@@ -8,8 +8,8 @@ from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
 #from Cuts2018 import *
-from Cuts2017 import *
-#from Cuts2016 import *
+#from Cuts2017 import *
+from Cuts2016 import *
 #from Cuts2012 import *
 
 
@@ -319,10 +319,7 @@ for sel in selection:
                                 r'$\mbox{t}\bar{\mbox{t}}$(V)',     r'VV',
                     ]
 
-        if YEAR_STR == "2016":
-            handles.append(p_mc['ggH_zz_4l'])
-            labels.append(r'H')
-        if YEAR_STR in ["2017", "2018"]:
+        if YEAR_STR != "2012":
             handles.append(p_mc['zzz_4l2nu'])
             labels.append(r'VVV')
             handles.append(p_mc['ggH_zz_4l'])

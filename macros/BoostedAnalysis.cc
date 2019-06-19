@@ -21,8 +21,8 @@
 
 // Cuts
 //#include "Cuts2018.hh"
-#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+//#include "Cuts2017.hh"
+#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -38,7 +38,7 @@ using namespace std;
 **  Also calculates event weights per source using scale factors from external histograms.
 */
 
-void BoostedAnalysis(const TString suffix, const bool isBkg = kTRUE)
+void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 {
 
     //

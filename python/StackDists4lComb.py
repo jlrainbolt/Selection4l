@@ -7,7 +7,6 @@ import numpy as np
 from ROOT import TFile, TH1
 
 from PlotUtils import *
-from CutsComb import *
 
 
 
@@ -15,10 +14,39 @@ from CutsComb import *
 ##  SAMPLE INFO
 ##
 
-selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
+selection = ["4l", "4m", "2m2e", "4e"]
+period = ["2012", "2016", "2017", "2018"]
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
+
+
+# Get header info
+lumi, xsec, ngen, mc_suff = {}, {}, {}, {}
+
+from Cuts2012 import *
+lumi[YEAR_STR] = INT_LUMI
+xsec[YEAR_STR] = XSEC
+ngen[YEAR_STR] = NGEN
+mc_suff[YEAR_STR] = MC_SUFF
+
+from Cuts2016 import *
+lumi[YEAR_STR] = INT_LUMI
+xsec[YEAR_STR] = XSEC
+ngen[YEAR_STR] = NGEN
+mc_suff[YEAR_STR] = MC_SUFF
+
+from Cuts2017 import *
+lumi[YEAR_STR] = INT_LUMI
+xsec[YEAR_STR] = XSEC
+ngen[YEAR_STR] = NGEN
+mc_suff[YEAR_STR] = MC_SUFF
+
+from Cuts2018 import *
+lumi[YEAR_STR] = INT_LUMI
+xsec[YEAR_STR] = XSEC
+ngen[YEAR_STR] = NGEN
+mc_suff[YEAR_STR] = MC_SUFF
 
 
 
@@ -27,23 +55,23 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 ##
 
 prefix = "4l"
+year = "2018"
 
 # Muon file
-muName = prefix + "_" + YEAR_STR + "_muon_" + YEAR_STR + ".root"
+muName = prefix + "_" + year + "_muon_" + year + ".root"
 muFile = TFile(muName, "READ")
 print("Opened", muName)
 
 # Electron file
-elName = prefix + "_" + YEAR_STR + "_electron_" + YEAR_STR + ".root"
+elName = prefix + "_" + year + "_electron_" + year + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
 
 
 # Get histograms for 2018
-hnames = ["zzm"]
-#hnames = ["sin_phi"]
-#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2",
-#            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
+#hnames = ["zzm"]
+hnames = ["sin_phi"]
+#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 H = len(hnames)
 
@@ -51,14 +79,9 @@ data = np.empty(H, dtype=T)
 h = 0
 
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
-        if sel in ["4m", "2m2e"]:
-            data[h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
-        elif sel in ["4e", "2e2m"]:
-            data[h][sel] = elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR)
+        data[h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + year)
+        data[h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + year))
 
         data[h][sel].SetDirectory(0)
         h = h + 1
@@ -84,17 +107,15 @@ for year in ["2017", "2016", "2012"]:
     h = 0
 
     for sel in selection:
-        if sel == "4l":
-            continue
-
         for hname in hnames:
-            if sel in ["4m", "2m2e"]:
-                hist = muFile.Get(sel + "/" + hname + "_muon_" + year)
-            elif sel in ["4e", "2e2m"]:
-                hist = elFile.Get(sel + "/" + hname + "_electron_" + year)
-
+            hist = muFile.Get(sel + "/" + hname + "_muon_" + year)
             hist.SetDirectory(0)
             data[h][sel].Add(hist)
+
+            hist = elFile.Get(sel + "/" + hname + "_electron_" + year)
+            hist.SetDirectory(0)
+            data[h][sel].Add(hist)
+
             h = h + 1
         h = 0
 
@@ -112,29 +133,24 @@ print("")
 mc_arr = np.empty((N_MC, H), dtype=T)
 mc = {}
 h, j = 0, 0
+year = "2018"
 
 # Loop over all samples
-for suff in MC_SUFF:
+for suff in mc_suff[year]:
     if suff == "zjets_m-50":
         mc[suff] = mc_arr[j]
         j = j + 1
         continue
 
-    inName = prefix + "_" + YEAR_STR + "_" + suff + ".root"
+    # Get 2018 histograms
+    year = "2018"
+    inName = prefix + "_" + year + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
 
-    # Get histograms
+    sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
+
     for sel in selection:
-        if sel == "4l":
-            continue
-        elif sel in ["4m", "2m2e"]:
-            lumi = MUON_TRIG_LUMI_2018
-        elif sel in ["4e", "2e2m"]:
-            lumi = ELEC_TRIG_LUMI_2018 * ELEC_TRIG_SF_2018
-
-        sf = lumi * 1000 * XSEC[suff] / NGEN[suff]
-
         for hname in hnames:
             mc_arr[j][h][sel] = inFile.Get(sel + "/" + hname + "_" + suff)
             mc_arr[j][h][sel].SetDirectory(0)
@@ -143,85 +159,25 @@ for suff in MC_SUFF:
             h = h + 1
         h = 0
 
-    # Get 2017
-    year = "2017"
-    inName = prefix + "_" + year + "_" + suff + ".root"
-    inFile = TFile.Open(inName)
-    print("Opened", inName)
-
-    # Get histograms
-    for sel in selection:
-        if sel == "4l":
+    # Add 2012, 2016, & 2017
+    for year in ["2017", "2016", "2012"]:
+        if suff not in mc_suff[year]:
             continue
-        elif sel in ["4m", "2m2e"]:
-            lumi = MUON_TRIG_LUMI_2017
-        elif sel in ["4e", "2e2m"]:
-            lumi = ELEC_TRIG_LUMI_2017 * ELEC_TRIG_SF_2017
 
-        sf = lumi * 1000 * XSEC_2017[suff] / NGEN_2017[suff]
-
-        for hname in hnames:
-            hist = inFile.Get(sel + "/" + hname + "_" + suff)
-            hist.SetDirectory(0)
-            hist.Scale(sf)
-
-            mc_arr[j][h][sel].Add(hist)
-
-            h = h + 1
-        h = 0
-
-
-    if suff in MC_SUFF_2012:
-        year = "2012"
         inName = prefix + "_" + year + "_" + suff + ".root"
         inFile = TFile.Open(inName)
         print("Opened", inName)
- 
-        # Get histograms
+
+        sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
+
         for sel in selection:
-            if sel == "4l":
-                continue
-            elif sel in ["4m", "2m2e"]:
-                lumi = MUON_TRIG_LUMI_2012
-            elif sel in ["4e", "2e2m"]:
-                lumi = ELEC_TRIG_LUMI_2012 * ELEC_TRIG_SF_2012
- 
-            sf = lumi * 1000 * XSEC_2012[suff] / NGEN_2012[suff]
- 
             for hname in hnames:
                 hist = inFile.Get(sel + "/" + hname + "_" + suff)
                 hist.SetDirectory(0)
                 hist.Scale(sf)
 
                 mc_arr[j][h][sel].Add(hist)
- 
-                h = h + 1
-            h = 0
 
-    if suff in MC_SUFF_2016:
-        year = "2016"
-        inName = prefix + "_" + year + "_" + suff + ".root"
-        inFile = TFile.Open(inName)
-        print("Opened", inName)
- 
-        # Get histograms
-        for sel in selection:
-            if sel == "4l":
-                continue
-            elif sel in ["4m", "2m2e"]:
-                lumi = MUON_TRIG_LUMI_2016
-            elif sel in ["4e", "2e2m"]:
-                lumi = ELEC_TRIG_LUMI_2016 * ELEC_TRIG_SF_2016
- 
-            sf = lumi * 1000 * XSEC_2016[suff] / NGEN_2016[suff]
- 
-            for hname in hnames:
-                hist = inFile.Get(sel + "/" + hname + "_" + suff)
-                hist.SetDirectory(0)
-                hist.Scale(sf)
-
-                mc_arr[j][h][sel].Add(hist)
- 
                 h = h + 1
             h = 0
 
@@ -239,6 +195,15 @@ print("")
 ##  BACKGROUND
 ##
 
+# Get number of nonprompt events
+npt = {}
+
+for year in period:
+    infile = "nonprompt" + year + ".npz"
+    npzfile = np.load(infile)
+    npt[year] = npzfile['npt']
+
+
 prefix = "bkg_all"
 
 # Muon file
@@ -254,18 +219,14 @@ print("Opened", elName)
 
 # Get histograms for 2018
 h = 0
+year = "2018"
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
-        if sel in ["4m", "2m2e"]:
-            mc['zjets_m-50'][h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
-        elif sel in ["4e", "2e2m"]:
-            mc['zjets_m-50'][h][sel] = elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR)
+        mc['zjets_m-50'][h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
+        mc['zjets_m-50'][h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR))
 
         mc['zjets_m-50'][h][sel].SetDirectory(0)
-        sf = npt_2018[sel] / mc['zjets_m-50'][h][sel].Integral()
+        sf = npt[year][sel] / mc['zjets_m-50'][h][sel].Integral()
         mc['zjets_m-50'][h][sel].Scale(sf)
 
         h = h + 1
@@ -291,24 +252,14 @@ for year in ["2017", "2016", "2012"]:
     h = 0
 
     for sel in selection:
-        if sel == "4l":
-            continue
-
         for hname in hnames:
-            if sel in ["4m", "2m2e"]:
-                hist = muFile.Get(sel + "/" + hname + "_muon_" + year)
-            elif sel in ["4e", "2e2m"]:
-                hist = elFile.Get(sel + "/" + hname + "_electron_" + year)
+            hist = muFile.Get(sel + "/" + hname + "_muon_" + year)
+            hist.Add(elFile.Get(sel + "/" + hname + "_electron_" + year))
 
             hist.SetDirectory(0)
-            if year == "2012":
-                sf = npt_2012[sel] / hist.Integral()
-            elif year == "2016":
-                sf = npt_2016[sel] / hist.Integral()
-            elif year == "2017":
-                sf = npt_2017[sel] / hist.Integral()
-
+            sf = npt[year][sel] / hist.Integral()
             hist.Scale(sf)
+
             mc['zjets_m-50'][h][sel].Add(hist)
             h = h + 1
         h = 0
@@ -324,21 +275,12 @@ print("")
 ##  ADD CHANNELS
 ##
 
-# Get 4l and 2m2e, rebin 4e
+year = "2018"
+
+# Rebin 4e
 for h in range(H):
-    data[h]['2m2e'].Add(data[h]['2e2m'])
-    data[h]['4l'] = data[h]['2m2e'].Clone()
-    data[h]['4l'].Add(data[h]['4m'])
-    data[h]['4l'].Add(data[h]['4e'])
-
     data[h]['4e'].Rebin(2)
-
-    for suff in MC_SUFF:
-        mc[suff][h]['2m2e'].Add(mc[suff][h]['2e2m'])
-        mc[suff][h]['4l'] = mc[suff][h]['2m2e'].Clone()
-        mc[suff][h]['4l'].Add(mc[suff][h]['4m'])
-        mc[suff][h]['4l'].Add(mc[suff][h]['4e'])
-
+    for suff in mc_suff[year]:
         mc[suff][h]['4e'].Rebin(2)
 
 
@@ -346,11 +288,8 @@ for h in range(H):
 total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 for sel in selection:
-    if sel == "2e2m":
-        continue
-
     for h in range(H):
-        for suff in MC_SUFF:
+        for suff in mc_suff[year]:
             if suff == "zz_4l":
                 total[h][sel] = mc[suff][h][sel].Clone()
             else:
@@ -358,8 +297,6 @@ for sel in selection:
 
         ratio[h][sel] = data[h][sel].Clone()
         ratio[h][sel].Divide(total[h][sel])
-
-        print(mc['zjets_m-50'][h][sel].Integral())
 
 
 
@@ -372,12 +309,8 @@ for sel in selection:
 ####
 
 
-#for sel in ["4e"]:
-for sel in selection:
-    if sel == "2e2m":
-        continue
-
-
+for sel in ["2m2e"]:
+#for sel in selection:
     print("Drawing", sel, "plots...")
 
     for h in range(H):
@@ -448,22 +381,26 @@ for sel in selection:
 
         if hnames[h] == "zzm":
             if sel == "4l":
-                top_max = 325
+                top_max = 350
             elif sel == "4m":
-                top_max = 225
+                top_max = 200
             elif sel == "2m2e":
-                top_max = 100
+                top_max = 140
             elif sel == "4e":
-                top_max = 55
+                top_max = 70
         elif hnames[h] == "sin_phi":
             if sel == "4l":
-                top_max = 450
+                top_max = 500
             elif sel == "4m":
                 top_max = 250
             elif sel == "2m2e":
-                top_max = 160
+                top_max = 225
             elif sel == "4e":
-                top_max = 65
+                top_max = 60
+        elif hnames[h] in ["b_ttm", "cos_theta_z2"]:
+            top_max = 1.5 * top_max
+        else:
+            top_max = 1.3 * top_max
 
         ax_top.set_ylim(0, top_max)
 
@@ -530,8 +467,6 @@ for sel in selection:
                 xtitle = r'$m_{2\mu 2\mathrm{e}}$ (GeV)'
             elif sel == "4e":
                 xtitle = r'$m_{4\mathrm{e}}$ (GeV)'
-#       if "Delta" in xtitle:
-#           xtitle = xtitle.replace("Delta", "bigtriangleup")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 
@@ -575,11 +510,15 @@ for sel in selection:
         ##  LEGEND
         ##
 
-        if hnames[h] == "sin_phi":
-            leg_loc = 'upper right'
-            bbox = (0.86, 1)
-        else:
+        if hnames[h] in ["zzm", "z1m", "angle_z1leps", "b_l1p"]:
             leg_loc = 'center left'
+        else:
+            leg_loc = 'upper right'
+
+        if hnames[h] in ["sin_phi", "cos_theta_z1", "cos_theta_z2", "b_ttm"]:
+            leg_ncol = 2
+        else:
+            leg_ncol = 1
 
         ax_top.legend(
                 (   p_data,
@@ -590,7 +529,7 @@ for sel in selection:
                     r'$\mbox{Z}\to4\ell$',  r'Nonprompt',       r'VV',
                     r'VVV',                 r'H',               r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$' 
                     ),
-                loc = leg_loc, numpoints = 1, frameon = False#, bbox_to_anchor = bbox
+                loc = leg_loc, numpoints = 1, frameon = False, ncol = leg_ncol
             )
 
         fig_name = "comb_" + hnames[h] + "_" + sel + ".pdf"

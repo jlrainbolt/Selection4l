@@ -21,11 +21,9 @@ BF_LL = 0.033658
 CAP_K = 4.6494342e-10
 GAMMA_Z = 2.4952e6
 
-mu_id = {   "4l":0.0171,    "4m":0.0213,    "2m2e":0.0095,      "4e":0          }
-el_id = {   "4l":0.0062,    "4m":0,         "2m2e":0.0138,      "4e":0.0265     }
-el_reco = { "4l":0.0027,    "4m":0,         "2m2e":0.0093,      "4e":0.0154     }
-mu_pt = {   "4l":0.000042,  "4m":0.000071,  "2m2e":0.000042,    "4e":0          }
-el_pt = {   "4l":0.001017,  "4m":0,         "2m2e":0.002930,    "4e":0.000169   }
+mu_id = {   "4l":0.0154,    "4m":0.0208,    "2m2e":0.0093,      "4e":0          }
+el_id = {   "4l":0.0077,    "4m":0,         "2m2e":0.0138,      "4e":0.0274     }
+el_reco = { "4l":0.0176,    "4m":0,         "2m2e":0.0247,      "4e":0.0588     }
 ecal =  {   "4l":0.001579,  "4m":0,         "2m2e":0.001136,    "4e":0.002990   }
 qcd = 0.008592
 pdf = 0.001185
@@ -66,39 +64,39 @@ NGEN_VBFH_ZZ_4L,    XSEC_VBFH_ZZ_4L     =   984662,         0.001034
 N_MC = 16
 N_DY = 15
 
-MC_SUFF = [ "zz_4l",            "zjets_m-50",
-            "ttbar",            "tt_2l2nu",         "ttz_2l2nu",        "ww_2l2nu",
+MC_SUFF = [ "zz_4l",            "zjets_m-50",        
+            "ttbar",            "tt_2l2nu",                             "ww_2l2nu",
             "wz_2l2q",          "wz_3lnu",          "zz_2l2nu",         "zz_2l2q",
             "wwz_4l2nu",        "wzz_4l2nu",        "zzz_4l2nu",        "zzg_4l2nu",
-            "ggH_zz_4l",        "vbfH_zz_4l",
+            "ggH_zz_4l",        "vbfH_zz_4l",                           "ttz_2l2nu",
             ]
 
 NGEN_   = [ NGEN_ZZ_4L,         NGEN_ZJETS_M50,
-            NGEN_TTBAR,         NGEN_TT_2L2NU,      NGEN_TTZ_2L2NU,     NGEN_WW_2L2NU,
+            NGEN_TTBAR,         NGEN_TT_2L2NU,                          NGEN_WW_2L2NU,
             NGEN_WZ_2L2Q,       NGEN_WZ_3LNU,       NGEN_ZZ_2L2NU,      NGEN_ZZ_2L2Q,
             NGEN_WWZ_4L2NU,     NGEN_WZZ_4L2NU,     NGEN_ZZZ_4L2NU,     NGEN_ZZG_4L2NU,
-            NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,
+            NGEN_GGH_ZZ_4L,     NGEN_VBFH_ZZ_4L,                        NGEN_TTZ_2L2NU,
             ]
 
-XSEC_   = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,
-            XSEC_TTBAR,         XSEC_TT_2L2NU,      XSEC_TTZ_2L2NU,     XSEC_WW_2L2NU,
+XSEC_   = [ XSEC_ZZ_4L,         XSEC_ZJETS_M50,      
+            XSEC_TTBAR,         XSEC_TT_2L2NU,                          XSEC_WW_2L2NU,
             XSEC_WZ_2L2Q,       XSEC_WZ_3LNU,       XSEC_ZZ_2L2NU,      XSEC_ZZ_2L2Q,
             XSEC_WWZ_4L2NU,     XSEC_WZZ_4L2NU,     XSEC_ZZZ_4L2NU,     XSEC_ZZG_4L2NU,
-            XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,
+            XSEC_GGH_ZZ_4L,     XSEC_VBFH_ZZ_4L,                        XSEC_TTZ_2L2NU,
             ]
 
 COLOR_  = [ lLightBlue,         lYellow,
-            lGreen,             lGreen,             lGreen,             lOrange,
+            lGreen,             lGreen,                                 lOrange,
             lOrange,            lOrange,            lOrange,            lOrange,
             lRed,               lRed,               lRed,               lRed,
-            lPurple,            lPurple,
+            lPurple,            lPurple,                                lGreen,
             ]
 
-MC_TEX_ = [ r"$\ZZtofL$",       r"$\ZtoLL$",  #r"$\ZtoLL$ $(10 < \mll < 50\GeV)$",
-            r"$\ttbar$",        r"$\TTtoLLNuNu$",   r"$\TTZtoLLNuNu$",  r"$\WWtoLLNuNu$",
+MC_TEX_ = [ r"$\ZZtofL$",       r"$\ZtoLL$",
+            r"$\ttbar$",        r"$\TTtoLLNuNu$",                       r"$\WWtoLLNuNu$",
             r"$\WZtoLLQQ$",     r"$\WZtoLLLNu$",    r"$\ZZtoLLNuNu$",   r"$\ZZtoLLQQ$",
             r"$\WWZtofLtNu$",   r"$\WZZtofLtNu$",   r"$\ZZZtofLtNu$",   r"$\ZZGtofLtNu$",
-            r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",
+            r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",                    r"$\TTZtoLLNuNu$",
             ]
 
 NGEN    = dict(zip(MC_SUFF, NGEN_))

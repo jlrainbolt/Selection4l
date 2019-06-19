@@ -14,7 +14,7 @@ from CutsComb import *
 ##  OPTIONS
 ##
 
-N = 4   # number of parameters
+N = 12   # number of parameters
 
 
 ##
@@ -28,6 +28,51 @@ M, P = len(selection), len(period)
 
 np.set_printoptions(precision=5, suppress=True, linewidth=100)
 #np.set_printoptions(precision=2, linewidth=100)
+
+
+
+##
+##  DATA
+##
+
+bf, bf_stat, diff, bg_unc, npt, sig = {}, {}, {}, {}, {}, {}
+
+for year in period:
+    infile = "bf_measurements.npz"
+    npzfile = np.load(infile)
+
+    bf["2012"], bf_stat["2012"] = npzfile["bf_2012"], npzfile["bf_stat_2012"]
+    diff["2012"], bg_unc["2012"] = npzfile["diff_2012"], npzfile["bg_unc_2012"]
+    npt["2012"], sig["2012"] = npzfile["npt_2012"], npzfile["sig_2012"]
+
+    bf["2016"], bf_stat["2016"] = npzfile["bf_2016"], npzfile["bf_stat_2016"]
+    diff["2016"], bg_unc["2016"] = npzfile["diff_2016"], npzfile["bg_unc_2016"]
+    npt["2016"], sig["2016"] = npzfile["npt_2016"], npzfile["sig_2016"]
+
+    bf["2017"], bf_stat["2017"] = npzfile["bf_2017"], npzfile["bf_stat_2017"]
+    diff["2017"], bg_unc["2017"] = npzfile["diff_2017"], npzfile["bg_unc_2017"]
+    npt["2017"], sig["2017"] = npzfile["npt_2017"], npzfile["sig_2017"]
+
+    bf["2018"], bf_stat["2018"] = npzfile["bf_2018"], npzfile["bf_stat_2018"]
+    diff["2018"], bg_unc["2018"] = npzfile["diff_2018"], npzfile["bg_unc_2018"]
+    npt["2018"], sig["2018"] = npzfile["npt_2018"], npzfile["sig_2018"]
+
+
+mu_id_unc, el_id_unc, el_reco_unc, ecal_unc = {}, {}, {}, {}
+qcd_unc, pdf_unc, pu_unc = {}, {}, {}
+
+from Cuts2012 import *
+mu_id_unc[YEAR_STR], el_id_unc[YEAR_STR], el_reco_unc[YEAR_STR] = mu_id, el_id, el_reco
+ecal_unc[YEAR_STR], qcd_unc[YEAR_STR], pdf_unc[YEAR_STR], pu_unc[YEAR_STR] = ecal, qcd, pdf, pileup
+from Cuts2016 import *
+mu_id_unc[YEAR_STR], el_id_unc[YEAR_STR], el_reco_unc[YEAR_STR] = mu_id, el_id, el_reco
+ecal_unc[YEAR_STR], qcd_unc[YEAR_STR], pdf_unc[YEAR_STR], pu_unc[YEAR_STR] = ecal, qcd, pdf, pileup
+from Cuts2017 import *
+mu_id_unc[YEAR_STR], el_id_unc[YEAR_STR], el_reco_unc[YEAR_STR] = mu_id, el_id, el_reco
+ecal_unc[YEAR_STR], qcd_unc[YEAR_STR], pdf_unc[YEAR_STR], pu_unc[YEAR_STR] = ecal, qcd, pdf, pileup
+from Cuts2018 import *
+mu_id_unc[YEAR_STR], el_id_unc[YEAR_STR], el_reco_unc[YEAR_STR] = mu_id, el_id, el_reco
+ecal_unc[YEAR_STR], qcd_unc[YEAR_STR], pdf_unc[YEAR_STR], pu_unc[YEAR_STR] = ecal, qcd, pdf, pileup
 
 
 
@@ -98,12 +143,13 @@ print("Predictions", "\n",          bf_pred.flatten(), "\n")
 
 
 # Measured central values
-bf_meas = np.array([#   4m      2m2e    4e
-                    [   1.348,  1.797,  1.000   ],  # 2012
-                    [   1.372,  2.169,  1.277   ],  # 2016
-                    [   1.368,  2.401,  1.109   ],  # 2017
-                    [   1.384,  2.458,  1.240   ]   # 2018
+bf_meas = np.array([
+                    [   bf["2012"]["4m"],       bf["2012"]["2m2e"],     bf["2012"]["4e"],   ],
+                    [   bf["2016"]["4m"],       bf["2016"]["2m2e"],     bf["2016"]["4e"],   ],
+                    [   bf["2017"]["4m"],       bf["2017"]["2m2e"],     bf["2017"]["4e"],   ],
+                    [   bf["2018"]["4m"],       bf["2018"]["2m2e"],     bf["2018"]["4e"],   ],
                     ])
+bf_meas = np.squeeze(bf_meas)
 
 print("Measurements", "\n",         bf_meas.flatten(), "\n")
 
@@ -115,91 +161,92 @@ print("Measurements", "\n",         bf_meas.flatten(), "\n")
 
 
 # Statistical
-unc_stat = np.array([#  4m      2m2e    4e
-                    [   0.166,  0.274,  0.246   ],  # 2012
-                    [   0.094,  0.196,  0.187   ],  # 2016
-                    [   0.086,  0.185,  0.157   ],  # 2017
-                    [   0.072,  0.161,  0.144   ],  # 2018
+unc_stat = np.array([
+                    [   bf_stat["2012"]["4m"], bf_stat["2012"]["2m2e"], bf_stat["2012"]["4e"],  ],
+                    [   bf_stat["2016"]["4m"], bf_stat["2016"]["2m2e"], bf_stat["2016"]["4e"],  ],
+                    [   bf_stat["2017"]["4m"], bf_stat["2017"]["2m2e"], bf_stat["2017"]["4e"],  ],
+                    [   bf_stat["2018"]["4m"], bf_stat["2018"]["2m2e"], bf_stat["2018"]["4e"],  ],
                     ])
-#print("Statistical uncertainties", "\n",  unc_stat.flatten(), "\n")
+bf_stat = np.squeeze(bf_stat)
+print("Statistical uncertainties", "\n",  unc_stat.flatten(), "\n")
 
 cov_stat = get_cov_uncorr(unc_stat)
-#print("Statistical covariance", "\n",     cov_stat, "\n")
+print("Statistical covariance", "\n",     cov_stat, "\n")
 
 
 # Pileup
-unc_pu = np.array([
-                    [   pileup[2012]],  # 2012
-                    [   pileup[2016]],  # 2016
-                    [   pileup[2017]],  # 2017
-                    [   pileup[2018]],  # 2018
-                    ])
-unc_pu = bf_meas * get_unc_year(unc_pu)
-#print("Pileup uncertainties", "\n", unc_pu.flatten(), "\n")
+unc_pu = bf_meas * get_unc_year(np.array([
+                    [   pu_unc["2012"]  ],
+                    [   pu_unc["2016"]  ],
+                    [   pu_unc["2017"]  ],
+                    [   pu_unc["2018"]  ],
+                    ]))
+print("Pileup uncertainties", "\n", unc_pu.flatten(), "\n")
 
 cov_pu = get_cov_corr(unc_pu)
-#print("Pileup covariance", "\n",    cov_pu, "\n")
+print("Pileup covariance", "\n",    cov_pu, "\n")
 
 
 # PDFs
-unc_pdf = np.array([
-                    [   pdf[2012]   ],  # 2012
-                    [   pdf[2016]   ],  # 2016
-                    [   pdf[2017]   ],  # 2017
-                    [   pdf[2018]   ],  # 2018
-                    ])
-unc_pdf = bf_meas * get_unc_year(unc_pdf)
-#print("PDF uncertainties", "\n",    unc_pdf.flatten(), "\n")
+unc_pdf = bf_meas * get_unc_year(np.array([
+                    [   pdf_unc["2012"] ],
+                    [   pdf_unc["2016"] ],
+                    [   pdf_unc["2017"] ],
+                    [   pdf_unc["2018"] ],
+                    ]))
+print("PDF uncertainties", "\n",    unc_pdf.flatten(), "\n")
 
 cov_pdf = get_cov_corr(unc_pdf)
-#print("PDF covariance", "\n",       cov_pdf * 100)
-#print("(* 1e-2)", "\n")
+print("PDF covariance", "\n",       cov_pdf * 100)
+print("(* 1e-2)", "\n")
 
 
 # QCD scales
-unc_qcd = np.array([
-                    [   qcd[2012]   ],  # 2012
-                    [   qcd[2016]   ],  # 2016
-                    [   qcd[2017]   ],  # 2017
-                    [   qcd[2018]   ],  # 2018
-                    ])
-unc_qcd = bf_meas * get_unc_year(unc_qcd)
-#print("QCD uncertainties", "\n",    unc_qcd.flatten(), "\n")
+unc_qcd = bf_meas * get_unc_year(np.array([
+                    [   qcd_unc["2012"] ],
+                    [   qcd_unc["2016"] ],
+                    [   qcd_unc["2017"] ],
+                    [   qcd_unc["2018"] ],
+                    ]))
+print("QCD uncertainties", "\n",    unc_qcd.flatten(), "\n")
 
 cov_qcd = get_cov_corr(unc_qcd)
-#print("QCD covariance", "\n",       cov_qcd, "\n")
+print("QCD covariance", "\n",       cov_qcd, "\n")
 
 
 # Prefiring weight
-unc_ecal = np.array([#  4m                  2m2e                4e
-                    [   0,                  0,                  0,              ],  # 2012
-                    [   ecal_2016["4m"],    ecal_2016["2m2e"],  ecal_2016["4e"],],  # 2016
-                    [   ecal_2017["4m"],    ecal_2017["2m2e"],  ecal_2017["4e"],],  # 2017
-                    [   0,                  0,                  0,              ],  # 2018
+unc_ecal = bf_meas * np.array([
+                    [ ecal_unc["2012"]["4m"], ecal_unc["2012"]["2m2e"], ecal_unc["2012"]["4e"], ],
+                    [ ecal_unc["2016"]["4m"], ecal_unc["2016"]["2m2e"], ecal_unc["2016"]["4e"], ],
+                    [ ecal_unc["2017"]["4m"], ecal_unc["2017"]["2m2e"], ecal_unc["2017"]["4e"], ],
+                    [ ecal_unc["2018"]["4m"], ecal_unc["2018"]["2m2e"], ecal_unc["2018"]["4e"], ],
                     ])
-#print("Prefiring uncertainties", "\n",  unc_ecal.flatten(), "\n")
+print("Prefiring uncertainties", "\n",  unc_ecal.flatten(), "\n")
 
 cov_ecal = get_cov_corr(unc_ecal)
-#print("Prefiring covariance", "\n",     cov_ecal * 100)
-#print("(* 1e-2)", "\n")
+print("Prefiring covariance", "\n",     cov_ecal * 100)
+print("(* 1e-2)", "\n")
 
 
 # Trigger efficiency (FIXME)
 
 unc_trig = np.zeros_like(bf_meas)
-#print("Trigger uncertainties", "\n",  unc_trig.flatten(), "\n")
+print("Trigger uncertainties", "\n",  unc_trig.flatten(), "\n")
 
 cov_trig = get_cov_corr(unc_trig)
-#print("Trigger covariance", "\n",     cov_trig, "\n")
+print("Trigger covariance", "\n",     cov_trig, "\n")
 
 
-# Muon ID (FIXME)
-                    #   4m                  2m2e                4e
-unc_muid = np.array([   mu_id["4m"],        mu_id["2m2e"],      mu_id["4e"],    ])
-unc_muid = bf_meas * np.tile(unc_muid, (P, 1))
-#print("Muon ID uncertainties", "\n",     unc_muid.flatten(), "\n")
+# Muon ID
+unc_muid = bf_meas * np.array([
+                [ mu_id_unc["2012"]["4m"], mu_id_unc["2012"]["2m2e"], mu_id_unc["2012"]["4e"], ],
+                [ mu_id_unc["2016"]["4m"], mu_id_unc["2016"]["2m2e"], mu_id_unc["2016"]["4e"], ],
+                [ mu_id_unc["2017"]["4m"], mu_id_unc["2017"]["2m2e"], mu_id_unc["2017"]["4e"], ],
+                [ mu_id_unc["2018"]["4m"], mu_id_unc["2018"]["2m2e"], mu_id_unc["2018"]["4e"], ],
+                ])
+print("Muon ID uncertainties", "\n",     unc_muid.flatten(), "\n")
 
-mu_13, mu_8_13 = 1, 1
+mu_13, mu_8_13 = 1, 0
 
 rho_muid = np.array([#  2012        2016        2017        2018
                     [   1,          mu_8_13,    mu_8_13,    mu_8_13,    ],  # 2012
@@ -208,19 +255,22 @@ rho_muid = np.array([#  2012        2016        2017        2018
                     [   mu_8_13,    mu_13,      mu_13,      1,          ],  # 2017
                     ])
 rho_muid = get_rho_year(rho_muid)
-#print("Muon ID correlations", "\n",    rho_muid, "\n")
+print("Muon ID correlations", "\n",    rho_muid, "\n")
 
 cov_muid = rho_muid * get_cov_corr(unc_muid) 
-#print("Muon ID cov.", "\n",     cov_muid, "\n")
+print("Muon ID cov.", "\n",     cov_muid, "\n")
 
 
-# Electron ID (FIXME)
-                    #   4m                  2m2e                4e
-unc_elid = np.array([   el_id["4m"],        el_id["2m2e"],      el_id["4e"],    ])
-unc_elid = bf_meas * np.tile(unc_elid, (P, 1))
-#print("Electron ID uncertainties", "\n", unc_elid.flatten(), "\n")
+# Electron ID
+unc_elid = bf_meas * np.array([
+                [ el_id_unc["2012"]["4m"], el_id_unc["2012"]["2m2e"], el_id_unc["2012"]["4e"], ],
+                [ el_id_unc["2016"]["4m"], el_id_unc["2016"]["2m2e"], el_id_unc["2016"]["4e"], ],
+                [ el_id_unc["2017"]["4m"], el_id_unc["2017"]["2m2e"], el_id_unc["2017"]["4e"], ],
+                [ el_id_unc["2018"]["4m"], el_id_unc["2018"]["2m2e"], el_id_unc["2018"]["4e"], ],
+                ])
+print("Electron ID uncertainties", "\n", unc_elid.flatten(), "\n")
 
-el_13, el_8_13 = 1, 1
+el_13, el_8_13 = 1, 0
 
 rho_elid = np.array([#  2012        2016        2017        2018
                     [   1,          el_8_13,    el_8_13,    el_8_13,    ],  # 2012
@@ -229,17 +279,20 @@ rho_elid = np.array([#  2012        2016        2017        2018
                     [   el_8_13,    el_13,      el_13,      1,          ],  # 2017
                     ])
 rho_elid = get_rho_year(rho_elid)
-#print("Electron ID correlations", "\n",    rho_elid, "\n")
+print("Electron ID correlations", "\n",    rho_elid, "\n")
 
 cov_elid = rho_elid * get_cov_corr(unc_elid) 
-#print("Electron ID cov.", "\n",     cov_elid, "\n")
+print("Electron ID cov.", "\n",     cov_elid, "\n")
 
 
-# Electron reco (FIXME)
-                    #   4m                  2m2e                4e
-unc_reco = np.array([   el_reco["4m"],      el_reco["2m2e"],    el_reco["4e"],    ])
-unc_reco = bf_meas * np.tile(unc_reco, (P, 1))
-#print("Electron reco uncertainties", "\n", unc_reco.flatten(), "\n")
+# Electron reco
+unc_reco = bf_meas * np.array([
+           [ el_reco_unc["2012"]["4m"], el_reco_unc["2012"]["2m2e"], el_reco_unc["2012"]["4e"], ],
+           [ el_reco_unc["2016"]["4m"], el_reco_unc["2016"]["2m2e"], el_reco_unc["2016"]["4e"], ],
+           [ el_reco_unc["2017"]["4m"], el_reco_unc["2017"]["2m2e"], el_reco_unc["2017"]["4e"], ],
+           [ el_reco_unc["2018"]["4m"], el_reco_unc["2018"]["2m2e"], el_reco_unc["2018"]["4e"], ],
+           ])
+print("Electron reco uncertainties", "\n", unc_reco.flatten(), "\n")
 
 #el_13, el_8_13 = 1, 1
 
@@ -250,47 +303,48 @@ rho_reco = np.array([#  2012        2016        2017        2018
                     [   el_8_13,    el_13,      el_13,      1,          ],  # 2017
                     ])
 rho_reco = get_rho_year(rho_reco)
-#print("Electron reco correlations", "\n",  rho_reco, "\n")
+print("Electron reco correlations", "\n",  rho_reco, "\n")
 
 cov_reco = rho_reco * get_cov_corr(unc_reco) 
-#print("Electron reco covariance", "\n",  cov_reco, "\n")
+print("Electron reco covariance", "\n",  cov_reco, "\n")
 
 
 # Background statistical
-sig_evts = np.array([#  4m                  2m2e                4e
-                    [   sig_2012["4m"],     sig_2012["2m2e"],   sig_2012["4e"]], # 2012
-                    [   sig_2016["4m"],     sig_2016["2m2e"],   sig_2016["4e"]], # 2016
-                    [   sig_2017["4m"],     sig_2017["2m2e"],   sig_2017["4e"]], # 2017
-                    [   sig_2018["4m"],     sig_2018["2m2e"],   sig_2018["4e"]], # 2018
+diff_evts = np.array([
+                    [   diff["2012"]["4m"],     diff["2012"]["2m2e"],   diff["2012"]["4e"]  ],
+                    [   diff["2016"]["4m"],     diff["2016"]["2m2e"],   diff["2016"]["4e"]  ],
+                    [   diff["2017"]["4m"],     diff["2017"]["2m2e"],   diff["2017"]["4e"]  ],
+                    [   diff["2018"]["4m"],     diff["2018"]["2m2e"],   diff["2018"]["4e"]  ],
                     ])
+diff_evts = np.squeeze(diff_evts)
 
-unc_bsta = np.array([#  4m                      2m2e                    4e
-                    [   npt_unc_2012["4m"],     npt_unc_2012["2m2e"],   npt_unc_2012["4e"]], # 2012
-                    [   npt_unc_2016["4m"],     npt_unc_2016["2m2e"],   npt_unc_2016["4e"]], # 2016
-                    [   npt_unc_2017["4m"],     npt_unc_2017["2m2e"],   npt_unc_2017["4e"]], # 2017
-                    [   npt_unc_2018["4m"],     npt_unc_2018["2m2e"],   npt_unc_2018["4e"]], # 2018
+unc_bsta = np.array([
+                    [   bg_unc["2012"]["4m"],   bg_unc["2012"]["2m2e"], bg_unc["2012"]["4e"]    ],
+                    [   bg_unc["2016"]["4m"],   bg_unc["2016"]["2m2e"], bg_unc["2016"]["4e"]    ],
+                    [   bg_unc["2017"]["4m"],   bg_unc["2017"]["2m2e"], bg_unc["2017"]["4e"]    ],
+                    [   bg_unc["2018"]["4m"],   bg_unc["2018"]["2m2e"], bg_unc["2018"]["4e"]    ],
                     ])
-unc_bsta = bf_meas * unc_bsta / sig_evts
-#print("Background statistical uncertainties", "\n",  unc_bsta.flatten(), "\n")
+unc_bsta = np.squeeze(unc_bsta)
+unc_bsta = bf_meas * unc_bsta / diff_evts
+print("Background statistical uncertainties", "\n",  unc_bsta.flatten(), "\n")
 
 cov_bsta = get_cov_uncorr(unc_bsta)
-#print("Background statistical covariance", "\n", cov_bsta, "\n")
+print("Background statistical covariance", "\n", cov_bsta, "\n")
 
 
 # Background systematic
-npt_delta = 0.3
-
-unc_bsys = np.array([#  4m                  2m2e                4e
-                    [   npt_2012["4m"],     npt_2012["2m2e"],   npt_2012["4e"]], # 2012
-                    [   npt_2016["4m"],     npt_2016["2m2e"],   npt_2016["4e"]], # 2016
-                    [   npt_2017["4m"],     npt_2017["2m2e"],   npt_2017["4e"]], # 2017
-                    [   npt_2018["4m"],     npt_2018["2m2e"],   npt_2018["4e"]], # 2018
+unc_bsys = np.array([
+                    [   npt["2012"]["4m"],      npt["2012"]["2m2e"],    npt["2012"]["4e"]   ],
+                    [   npt["2016"]["4m"],      npt["2016"]["2m2e"],    npt["2016"]["4e"]   ],
+                    [   npt["2017"]["4m"],      npt["2017"]["2m2e"],    npt["2017"]["4e"]   ],
+                    [   npt["2018"]["4m"],      npt["2018"]["2m2e"],    npt["2018"]["4e"]   ],
                     ])
-unc_bsys = bf_meas * npt_delta * unc_bsys / sig_evts
-#print("Background systematic uncertainties", "\n",  unc_bsys.flatten(), "\n")
+unc_bsys = np.squeeze(unc_bsys)
+unc_bsys = bf_meas * DELTA_LAMBDA * unc_bsys / diff_evts
+print("Background systematic uncertainties", "\n",  unc_bsys.flatten(), "\n")
 
 cov_bsys = get_cov_corr(unc_bsys)
-#print("Background systematic covariance", "\n", cov_bsys, "\n")
+print("Background systematic covariance", "\n", cov_bsys, "\n")
 
 
 # Total covariance
@@ -298,7 +352,7 @@ cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_trig
 cov_syst += cov_muid + cov_elid + cov_reco + cov_bsta + cov_bsys
 cov_total = cov_stat + cov_syst
 
-#print("Total covariance", "\n", cov_total, "\n")
+print("Total covariance", "\n", cov_total, "\n")
 
 
 
@@ -389,6 +443,14 @@ print("\n")
 
 
 ##
+##  LATEX
+##
+
+
+
+
+
+##
 ##  SAVE
 ##
 
@@ -396,7 +458,9 @@ sigma_stat = delta_stat * alpha_total
 sigma_syst = delta_syst * alpha_total
 
 outfile = "combination_" + str(len(alpha_0)) + ".npz"
-np.savez(outfile, alpha_total=alpha_total, alpha_stat=alpha_stat, sigma_stat=sigma_stat, 
-        sigma_syst=sigma_syst, sigma_total=sigma_total)
+np.savez(outfile, bf_pred=bf_pred, alpha_total=alpha_total, alpha_stat=alpha_stat,
+        sigma_stat=sigma_stat, sigma_syst=sigma_syst, sigma_total=sigma_total,
+        delta_stat=delta_stat, delta_syst=delta_syst, delta_total=delta_total,
+        chi_sq_total=chi_sq_total, chi_sq_stat=chi_sq_stat)
 
 print("Wrote arrays to", outfile, "\n")

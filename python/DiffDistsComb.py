@@ -9,13 +9,14 @@ from ROOT import TFile, TH1
 from PlotUtils import *
 from CutsComb import *
 
+mpl.rcParams["legend.fontsize"] = "x-large"
 
 
 ##
 ##  SAMPLE INFO
 ##
 
-selection = ["4l", "4m", "2m2e", "2e2m", "4e"]
+selection = ["4l"]
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
@@ -23,6 +24,13 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 
 hnames = ["b_ttm", "b_l1p", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2"]
 H = len(hnames)
+
+# Single-parameter result
+infile = "combination_1.npz"
+npzfile = np.load(infile)
+
+alpha, bf_pred = npzfile['alpha_total'], np.sum(npzfile['bf_pred'])
+delta_syst = npzfile['delta_syst']
 
 
 ##
@@ -89,9 +97,6 @@ axe = np.empty(H, dtype=T)
 
 h = 0
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
         axe[h][sel] = zzFile.Get(sel + "/" + hname + "_zz_4l")
         axe[h][sel].SetDirectory(0)
@@ -109,9 +114,6 @@ for year in ["2017", "2016", "2012"]:
 
     h = 0
     for sel in selection:
-        if sel == "4l":
-            continue
-
         for hname in hnames:
             hist = zzFile.Get(sel + "/" + hname + "_zz_4l")
             hist.SetDirectory(0)
@@ -131,9 +133,6 @@ psFile = TFile(psName, "READ")
 print("Opened", psName)
 
 for sel in selection:
-    if sel == "4l":
-        continue
-
     for hname in hnames:
         ps[h][sel] = psFile.Get(sel + "/" + hname + "_phase_space")
         ps[h][sel].SetDirectory(0)
@@ -150,9 +149,6 @@ for year in ["2017", "2016", "2012"]:
 
     h = 0
     for sel in selection:
-        if sel == "4l":
-            continue
-
         for hname in hnames:
             hist = psFile.Get(sel + "/" + hname + "_phase_space")
             hist.SetDirectory(0)
@@ -168,27 +164,15 @@ print("")
 
 
 ##
-##  ADD CHANNELS
-##
-
-# Get 4l and 2m2e
-for h in range(H):
-    for sample in [ps, axe]:
-        sample[h]['2m2e'].Add(sample[h]['2e2m'])
-        sample[h]['4l'] = sample[h]['2m2e'].Clone()
-        sample[h]['4l'].Add(sample[h]['4m'])
-        sample[h]['4l'].Add(sample[h]['4e'])
-
-
-
-##
 ##  SCALING
 ##
+
+scale = 1e-6 * alpha * bf_pred * GAMMA_Z
+sigma_syst = delta_syst * scale
 
 for sel in ["4l"]:
     for h in range(H):
         axe[h][sel].Divide(ps[h][sel])
-        scale = BF_4L * GAMMA_Z
 
         for sample in [data, pred]:
             sample[h][sel].Divide(axe[h][sel])
@@ -196,12 +180,22 @@ for sel in ["4l"]:
 
 
 # Get ratio
-ratio = np.empty(H, dtype=T)
+ratio, ratio_syst = np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 for sel in ["4l"]:
     for h in range(H):
+        for i in range(pred[h][sel].GetNbinsX()):
+            pred[h][sel].SetBinError(i+1, 0)
         ratio[h][sel] = data[h][sel].Clone()
         ratio[h][sel].Divide(pred[h][sel])
+
+        ratio_syst[h][sel] = data[h][sel].Clone()
+        for i in range(ratio_syst[h][sel].GetNbinsX()):
+            ratio_syst[h][sel].SetBinError(i+1, sigma_syst)
+        ratio_syst[h][sel].Divide(pred[h][sel])
+
+        for i in range(pred[h][sel].GetNbinsX()):
+            pred[h][sel].SetBinError(i+1, sigma_syst)
 
 
 
@@ -236,15 +230,17 @@ for sel in ["4l"]:
         for i in range(len(v_pred)):
             v_pred[i]['x']  = pred[h][sel].GetBinLowEdge(i+1)
             v_pred[i]['y']  = pred[h][sel].GetBinContent(i+1)
-            v_pred[i]['ey'] = pred[h][sel].GetBinContent(i+1)
+            v_pred[i]['ey'] = pred[h][sel].GetBinError(i+1)
 
         # Ratio
         v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
+        v_ratio_syst = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_ratio)):
             v_ratio[i]['x']     = ratio[h][sel].GetBinCenter(i+1)
             v_ratio[i]['ex']    = ratio[h][sel].GetBinWidth(i+1) / 2
             v_ratio[i]['y']     = ratio[h][sel].GetBinContent(i+1)
             v_ratio[i]['ey']    = ratio[h][sel].GetBinError(i+1)
+            v_ratio_syst[i]['ey'] = ratio_syst[h][sel].GetBinError(i+1)
 
 
 
@@ -260,10 +256,9 @@ for sel in ["4l"]:
                             )
 
         # Top plots
-        p_pred = ax_top.errorbar(   v_data['x'],    v_pred['y'],    xerr = v_ratio['ex'], 
-                            linewidth = 0,  ecolor = lBlue,
-                            fmt = 'None',   capsize = lCapSize,
-                            elinewidth = 4 * lErrorLineWidth4l
+        p_pred = ax_top.bar(v_pred['x'],    2 * v_pred['ey'],       width,
+                            bottom = v_pred['y'] - v_pred['ey'],    align = 'edge',
+                            linewidth=0,    color = lBlue,          alpha = 0.7
                             )
         p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = v_data['ey'], 
                             linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
@@ -291,8 +286,21 @@ for sel in ["4l"]:
 
 
         # Ratio plot
-        ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
-        ax_bot.axhline(lRatioMid,   color = lBlue,     linewidth = 2 * lErrorLineWidth4l)
+
+        if hnames[h] == "cos_theta_z2":
+            ax_bot.set_ylim(0, 3)
+        else:
+            ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
+
+        ax_bot.bar(v_pred['x'],    2 * v_ratio_syst['ey'], width,
+                            bottom = 1 - v_ratio_syst['ey'],        align = 'edge',
+                            linewidth=0,    color = lBlue,          alpha = 0.7
+                            )
+#       ax_bot.fill_between([v_pred['x'][0], v_pred['x'][-1] + width],
+#                   1 + delta_syst, 1 - delta_syst,
+#                   facecolor = lBlue,                      alpha = 0.8
+#                   )
+        ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')
         ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],   xerr = v_ratio['ex'],   yerr = v_ratio['ey'], 
                     linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
                     marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
@@ -387,8 +395,8 @@ for sel in ["4l"]:
 #       ax_top.yaxis.get_major_formatter().set_powerlimits((0, 1))
 
         # Bottom y axis
-        if sel == "4e":
-            ax_bot.yaxis.set_ticks( np.arange(lRatioMid, lRatioMid+2, step = 1) )
+        if hnames[h] == "cos_theta_z2":
+            ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, 3, step = 1) )
         else:
             ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, lRatioMax4l, step = 0.5) )
 #       ax_bot.yaxis.set_ticks( np.arange(lRatioMin2l+0.05, lRatioMax4l, step = 0.05),
@@ -412,7 +420,7 @@ for sel in ["4l"]:
 
         ax_top.legend(
                 (   p_data,     p_pred, ),
-                (   'Measured', 'POWHEG',
+                (   'Measured (stat)', 'POWHEG (syst)',
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 
