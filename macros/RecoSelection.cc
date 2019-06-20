@@ -566,7 +566,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //
         //  TRIGGER MATCHING
         //
-
+/*
         if (muonTrig)
         {
             bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
@@ -635,7 +635,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
         muonTrig = diMuTrig || siMuTrig;
         elecTrig = diElTrig || siElTrig;
-
+*/
         if (!muonTrig && !elecTrig && !allowUntriggered)
             continue;
 

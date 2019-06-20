@@ -5,9 +5,9 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
-#from Cuts2016 import *
+from Cuts2016 import *
 #from Cuts2012 import *
 
 

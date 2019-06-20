@@ -16,7 +16,7 @@ const TString   EOS_PATH = "root://cmseos.fnal.gov//store/user/jrainbol";
 const TString   HOME_PATH = "/uscms/home/jrainbol/nobackup";
 const TString   BLT_PATH = HOME_PATH + "/lacey_legacy/CMSSW_10_2_13/src/BLT";
 
-const unsigned  RNG_SEED = 2017;
+const unsigned  RNG_SEED = 7102;
 
 
 //

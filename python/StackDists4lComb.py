@@ -309,8 +309,8 @@ for sel in selection:
 ####
 
 
-for sel in ["2m2e"]:
-#for sel in selection:
+#for sel in ["4l"]:
+for sel in selection:
     print("Drawing", sel, "plots...")
 
     for h in range(H):
@@ -390,13 +390,13 @@ for sel in ["2m2e"]:
                 top_max = 70
         elif hnames[h] == "sin_phi":
             if sel == "4l":
-                top_max = 500
+                top_max = 550
             elif sel == "4m":
-                top_max = 250
+                top_max = 275
             elif sel == "2m2e":
                 top_max = 225
             elif sel == "4e":
-                top_max = 60
+                top_max = 85
         elif hnames[h] in ["b_ttm", "cos_theta_z2"]:
             top_max = 1.5 * top_max
         else:
@@ -447,7 +447,10 @@ for sel in ["2m2e"]:
             else:
                 ytitle = r'Events$/$GeV'
         if hnames[h] == "sin_phi":
-            ytitle = r'Events$/$0.1 units'
+            if sel == "4e":
+                ytitle = r'Events$/$0.2 units'
+            else:
+                ytitle = r'Events$/$0.1 units'
         ax_top.set_ylabel(ytitle, horizontalalignment='right')
         ax_top.yaxis.set_label_coords(-0.08, 1)
         ax_top.minorticks_on()
@@ -486,7 +489,7 @@ for sel in ["2m2e"]:
         for ax in [ax_bot.xaxis, ax_top.xaxis]:
             ax.set_ticks( np.arange(
                             v_mc['zz_4l']['x'][0],
-                            v_mc['zz_4l']['x'][-1] + 2 * width,
+                            v_mc['zz_4l']['x'][-1] + major_step,
                             step = major_step)
                             )
             ax.set_ticks( np.arange(
