@@ -168,7 +168,7 @@ for year in period:
 
         bf_[sel] = f * adj[year][sel]
 
-        pr_stat_[sel] = np.sqrt(data[year][sel]) / diff[year][sel]
+        pr_stat_[sel] = np.sqrt(1 / diff[year][sel])
         bf_stat_[sel] = bf_[sel] * pr_stat_[sel]
 
         pr_syst_[sel] = (bg_unc[year][sel] / diff[year][sel]) ** 2

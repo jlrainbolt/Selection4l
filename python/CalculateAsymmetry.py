@@ -195,12 +195,12 @@ for sel in selection:
         unc[year][sel] = np.sqrt(unc[year][sel])
 
     total = pos_tot[sel] + neg_tot[sel]
-    assy[sel] = 100 * (pos_tot[sel] - neg_tot[sel]) / total
+    assy[sel] = (pos_tot[sel] - neg_tot[sel]) / total
 
-    stat_unc[sel] = 100 * 1 / np.sqrt(stat_unc[sel])
-    syst_unc[sel] = np.sqrt(syst_unc[sel])
-    syst_unc[sel] = 100 * max(np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total + syst_unc[sel])),
-                            np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total - syst_unc[sel])))
+    stat_unc[sel] = 1 / np.sqrt(total)
+    syst_unc[sel] = np.sqrt(1 / (total - unc[year][sel]) - 1 / total)
+#   syst_unc[sel] = max(np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total + syst_unc[sel])),
+#                           np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total - syst_unc[sel])))
 
 pos["Total"], neg["Total"] = pos_tot, neg_tot
 
@@ -221,7 +221,7 @@ fileName = "Asymmetry.tex"
 f = open(fileName, "w")
 fmt = '%.2f'
 
-f.write(r"\begin{tabular}{l c r r c r r c r r c r r c c r r c r@{ $\pm$ }r@{ $\pm$ }r}" + "\n")
+f.write(r"\begin{tabular}{l c r r c r r c r r c r r c c r r c r@{\ $\pm$ }r@{\ $\pm$ }r}" + "\n")
 f.write(r"\toprule" + "\n")
 f.write("\t")
 
@@ -230,16 +230,16 @@ for year in period:
         f.write("&")
     f.write(r"&& \multicolumn{2}{c}{" + year + "} ")
 
-f.write(r"&& \multicolumn{3}{l}{$A_{\sin\phi}$ (\%)} \\" + "\n")
+f.write(r"&& \multicolumn{3}{c}{$A_{\sin\phi}$ (\%)} \\" + "\n")
 f.write(r"\rulepad \cline{3-4} \cline{6-7} \cline{9-10} \cline{12-13} \cline{16-17}"
-        + " \cline{19-21} \rulepad" + "\n")
+        + r" \cline{19-21} \rulepad" + "\n")
 
 f.write("Channel ")
 for year in period:
     if year == "Total":
         f.write("&")
     f.write(r"&& \multicolumn{1}{l}{$N_{+}$} & \multicolumn{1}{l}{$N_{-}$} ")
-f.write(r" && \multicolumn{3}{r}{\quad\quad\quad \stat \quad \syst} \\" + "\n")
+f.write(r" && \multicolumn{3}{r}{\stat \ \syst} \\" + "\n")
 
 f.write(r"\midrule" + "\n")
 for sel in selection:
@@ -249,8 +249,8 @@ for sel in selection:
             f.write("&")
         f.write("&& " + fmt % np.squeeze(pos[year][sel]) + " & " + fmt % np.squeeze(neg[year][sel])
                 + " ")
-    f.write("&& $" + fmt % np.squeeze(assy[sel]) + "$ & " + fmt % np.squeeze(stat_unc[sel])
-            + " & " + fmt % np.squeeze(syst_unc[sel]) + r" \\" + "\n")
+    f.write("&& $" + fmt % np.squeeze(100 * assy[sel]) + "$ & " + fmt % np.squeeze(100 * stat_unc[sel])
+            + " & " + fmt % np.squeeze(100 * syst_unc[sel]) + r" \\" + "\n")
     if sel == "4l":
         f.write(r"\addlinespace" + "\n")
 

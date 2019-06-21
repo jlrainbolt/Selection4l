@@ -5,12 +5,12 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
-from Cuts2016 import *
+#from Cuts2016 import *
 #from Cuts2012 import *
 
-tightOnly = False
+tightOnly = True
 
 selection   = ["4l", "4m", "2m2e", "4e"]
 
@@ -18,6 +18,9 @@ if tightOnly:
     cut = "(nLooseLeptons == 0)"
 else:
     cut = "(nLooseLeptons > 0)"
+    infile = "nonprompt" + YEAR_STR + ".npz"
+    npzfile = np.load(infile)
+    npt_tight, npt_tight_unc = npzfile['npt'], npzfile['npt_unc']
 
 
 ##
@@ -154,10 +157,9 @@ for sel in selection:
 
 prefix = "Background" + YEAR_STR
 
-if tightOnly:
-    fileName = prefix + ".tex"
-else:
-    fileName = prefix + "_all.tex"
+fileName = prefix + ".tex"
+if not tightOnly:
+    fileName = "Loose" + fileName
 
 fmt = '%.2f'
 
@@ -228,12 +230,21 @@ for sel in selection:
     f.write(r" & " + fmt % np.squeeze(diff[sel]) + r" & " + fmt % np.squeeze(diff_unc[sel]))
 f.write(r" \\" + "\n")
 
-f.write(r"\addlinespace\addlinespace" + "\n")
+f.write(r"\addlinespace" + "\n")
 
 f.write("\t" + r"\multicolumn{3}{l}{$N^\text{obs}_\text{npr} / N^\text{exp}_\text{npr}$}")
 for sel in selection:
     f.write(r" & " + fmt % np.squeeze(sf[sel]) + r" & " + fmt % np.squeeze(sf_unc[sel]))
 f.write(r" \\" + "\n")
+
+if not tightOnly:
+    f.write(r"\addlinespace" + "\n")
+    f.write("\t" + r"\multicolumn{3}{l}{$\Nnpr / \Nnpr\looseCR$}")
+    for sel in selection:
+        f.write(r" & " + fmt % np.squeeze(npt_tight[sel] / diff[sel]) + r" & "
+                + fmt % np.squeeze((npt_tight[sel] / diff[sel])
+                    * np.sqrt(npt_tight_unc[sel] / diff[sel] ** 2 + npt_unc[sel] / npt[sel] ** 2)))
+    f.write(r" \\" + "\n")
 
 f.write(r"\bottomrule" + "\n")
 f.write(r"\end{tabular}" + "\n")

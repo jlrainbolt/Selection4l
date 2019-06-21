@@ -168,7 +168,6 @@ print("")
 ##
 
 scale = 1e-6 * alpha * bf_pred * GAMMA_Z
-sigma_syst = delta_syst * scale
 
 for sel in ["4l"]:
     for h in range(H):
@@ -186,16 +185,21 @@ for sel in ["4l"]:
     for h in range(H):
         for i in range(pred[h][sel].GetNbinsX()):
             pred[h][sel].SetBinError(i+1, 0)
+
         ratio[h][sel] = data[h][sel].Clone()
         ratio[h][sel].Divide(pred[h][sel])
 
         ratio_syst[h][sel] = data[h][sel].Clone()
         for i in range(ratio_syst[h][sel].GetNbinsX()):
-            ratio_syst[h][sel].SetBinError(i+1, sigma_syst)
+            ratio_syst[h][sel].SetBinError(i + 1,
+                    np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
+                        + data[h][sel].GetBinError(i + 1) ** 2))
         ratio_syst[h][sel].Divide(pred[h][sel])
 
         for i in range(pred[h][sel].GetNbinsX()):
-            pred[h][sel].SetBinError(i+1, sigma_syst)
+            pred[h][sel].SetBinError(i + 1,
+                    np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
+                        + data[h][sel].GetBinError(i + 1) ** 2))
 
 
 
@@ -256,18 +260,19 @@ for sel in ["4l"]:
                             )
 
         # Top plots
-        p_pred = ax_top.bar(v_pred['x'],    2 * v_pred['ey'],       width,
-                            bottom = v_pred['y'] - v_pred['ey'],    align = 'edge',
-                            linewidth=0,    color = lBlue,          alpha = 0.7
+        p_pred = ax_top.errorbar(   v_data['x'],    v_pred['y'],    xerr = v_ratio['ex'], 
+                            linewidth = 0,  ecolor = lBlue,
+                            fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
+                            )
+        ax_top.errorbar(    v_data['x'],    v_data['y'],    yerr = v_pred['ey'], 
+                            linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
+                            marker = None,   capsize = 4
                             )
         p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = v_data['ey'], 
-                            linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
-                            marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
+                            linewidth = 0,  ecolor = lRed,  elinewidth = lErrorLineWidth4l,
+                            marker = 'o',   capsize = 4,            markersize = lMarkerSize2l,
                             markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                             )
-#       p_pred = ax_top.bar(        v_pred['x'],        v_pred['y'],        width,
-#                                   align = 'edge',     linewidth=0,        color = COLOR['zz_4l']
-#                               )
 
         top_min, top_max = ax_top.get_ylim()
 
@@ -292,21 +297,28 @@ for sel in ["4l"]:
         else:
             ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
 
-        ax_bot.bar(v_pred['x'],    2 * v_ratio_syst['ey'], width,
-                            bottom = 1 - v_ratio_syst['ey'],        align = 'edge',
-                            linewidth=0,    color = lBlue,          alpha = 0.7
-                            )
+#       ax_bot.bar(v_pred['x'],    2 * v_ratio_syst['ey'], width,
+#                           bottom = 1 - v_ratio_syst['ey'],        align = 'edge',
+#                           linewidth=0,    color = lBlue,          alpha = 0.7
+#                           )
 #       ax_bot.fill_between([v_pred['x'][0], v_pred['x'][-1] + width],
 #                   1 + delta_syst, 1 - delta_syst,
 #                   facecolor = lBlue,                      alpha = 0.8
 #                   )
-        ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')
-        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],   xerr = v_ratio['ex'],   yerr = v_ratio['ey'], 
+        ax_bot.axhline(lRatioMid,   color = lBlue,          linewidth=2 * lErrorLineWidth4l)
+        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       xerr = v_ratio['ex'],
                     linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
-                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
+                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize2l,
                     markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                     )
-#       ax_bot.axhline(lRatioMid,   color = lRatioLineColor,    linestyle = ':')
+        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       yerr = v_ratio_syst['ey'], 
+                    linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
+                    marker = None,   capsize = 4
+                    )
+        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       yerr = v_ratio['ey'], 
+                    linewidth = 0,  ecolor = lRed,  elinewidth = lErrorLineWidth4l,
+                    marker = None,   capsize = 4
+                    )
 
 
 
@@ -420,7 +432,7 @@ for sel in ["4l"]:
 
         ax_top.legend(
                 (   p_data,     p_pred, ),
-                (   'Measured (stat)', 'POWHEG (syst)',
+                (   'Measured', 'POWHEG',
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 

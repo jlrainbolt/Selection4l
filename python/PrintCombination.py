@@ -19,7 +19,7 @@ period      = [ "2012", "2016", "2017", "2018"  ]
 
 P, M = len(period), len(selection)
 n_params = [1, M, P, P*M]
-name = ["SM", "BSM", "Yearly", "Indiv."]
+name = ["SM", "BSM", "Yearly", "Individual"]
 name = dict(zip(n_params, name))
 
 
@@ -134,77 +134,85 @@ f = open(fileName, "w")
 fmt = '%.2f'
 
 
-f.write(r"\begin{tabular}{l ll c rr c rrr}" + "\n")
+f.write(r"\begin{tabular}{l ll rr c rrr c rr}" + "\n")
 f.write(r"\toprule" + "\n")
 
-f.write("\t" + r"& & && \multicolumn{2}{c}{Signal strength} && \multicolumn{3}{c}{Precision (\%)} \\"
-        + "\n")
-f.write(r"\rulepad \cline{5-6} \cline{8-10} \rulepad" + "\n")
-f.write("\t" + r"Case & \multicolumn{2}{l}{Category} && \stat & \total && \stat & \syst & \total \\"
-        + "\n")
+f.write("\t" + r"& & & \multicolumn{2}{c}{Signal strength} && "
+        + r"\multicolumn{3}{c}{Precision (\%)} && \multicolumn{2}{c}{$\chi^2$} \\" + "\n")
+f.write(r"\rulepad \cline{4-5} \cline{7-9} \cline{11-12} \rulepad" + "\n")
+f.write("\t" + r"Param. & \multicolumn{2}{l}{Category} & \stat & \total && "
+        + r"\stat & \syst & \total && \stat & \total \\" + "\n")
 f.write(r"\midrule" + "\n")
 
 for N in n_params:
+    f.write("\t" + name[N] + " & ")
+
     if N == 1:
-        f.write("\t" + name[N] + " & & && " + fmt % np.squeeze(alpha_stat[N]) + " & "
-                + fmt % np.squeeze(alpha_total[N]) + " && " + fmt % np.squeeze(100 * delta_stat[N])
-                + " & " + fmt % np.squeeze(100 * delta_syst[N]) + " & "
-                + fmt % np.squeeze(100 * delta_total[N]) + r" \\" + "\n")
+        f.write(" & & " + fmt % np.squeeze(alpha_stat[N]) + " & "
+                + fmt % np.squeeze(alpha_total[N]) + " && "
+                + fmt % np.squeeze(100 * delta_stat[N]) + " & "
+                + fmt % np.squeeze(100 * delta_syst[N]) + " & "
+                + fmt % np.squeeze(100 * delta_total[N]) + " && "
+                + fmt % np.squeeze(chi_sq_stat[N]) + " & "
+                + fmt % np.squeeze(chi_sq_total[N]) + r" \\" + "\n")
 
     elif N == M:
         for sel in selection:
             i = I[sel]
-            if sel == "4m":
-                f.write("\t" + name[N])
-            else:
-                f.write("\t\t")
-            f.write(r" & \multicolumn{2}{l}{$" + selTeX[sel] + "$} && "
+            if sel != "4m":
+                f.write("\t\t & ")
+            f.write(r"\multicolumn{2}{l}{$" + selTeX[sel] + "$} & "
                     + fmt % np.squeeze(alpha_stat[N][i]) + " & "
                     + fmt % np.squeeze(alpha_total[N][i]) + " && "
                     + fmt % np.squeeze(100 * delta_stat[N][i]) + " & "
                     + fmt % np.squeeze(100 * delta_syst[N][i]) + " & "
-                    + fmt % np.squeeze(100 * delta_total[N][i]) + r" \\" + "\n")
+                    + fmt % np.squeeze(100 * delta_total[N][i]))
+            if sel == "4m":
+                f.write(" && " + fmt % np.squeeze(chi_sq_stat[N]) + " & "
+                        + fmt % np.squeeze(chi_sq_total[N]))
+            f.write(r" \\" + "\n")
 
     elif N == P:
         for year in period:
             i = I[year]
-            if year == "2012":
-                f.write("\t" + name[N])
-            else:
-                f.write("\t\t")
-            f.write(r" & \multicolumn{2}{l}{" + year + "} && "
-                    + fmt % np.squeeze(alpha_stat[N][i]) + " & "
-                    + fmt % np.squeeze(alpha_total[N][i]) + " && "
+            if year != "2012":
+                f.write("\t\t & ")
+            f.write(r"\multicolumn{2}{l}{$" + year + "$} & " + fmt % np.squeeze(alpha_stat[N][i])
+                    + " & " + fmt % np.squeeze(alpha_total[N][i]) + " && "
                     + fmt % np.squeeze(100 * delta_stat[N][i]) + " & "
                     + fmt % np.squeeze(100 * delta_syst[N][i]) + " & "
-                    + fmt % np.squeeze(100 * delta_total[N][i]) + r" \\" + "\n")
+                    + fmt % np.squeeze(100 * delta_total[N][i]))
+            if year == "2012":
+                f.write(" && " + fmt % np.squeeze(chi_sq_stat[N]) + " & "
+                        + fmt % np.squeeze(chi_sq_total[N]))
+            f.write(r" \\" + "\n")
 
     elif N == P*M:
         for year in period:
-            if year == "2012":
-                f.write("\t" + name[N])
-            else:
-                f.write("\t\t")
             for sel in selection:
+                if not (year == "2012" and sel == "4m"):
+                    f.write("\t\t& ")
                 i = I[sel] + M * I[year]
                 if sel == "4m":
-                    f.write(" & " + year)
+                    f.write(year + " ")
                 else:
-                    f.write("\t\t\t" + "&")
-                f.write(" & $" + selTeX[sel] + "$ && "
-                    + fmt % np.squeeze(alpha_stat[N][i]) + " & "
+                    f.write(" ")
+                f.write("& $" + selTeX[sel] + "$ & " + fmt % np.squeeze(alpha_stat[N][i]) + " & "
                     + fmt % np.squeeze(alpha_total[N][i]) + " && "
                     + fmt % np.squeeze(100 * delta_stat[N][i]) + " & "
                     + fmt % np.squeeze(100 * delta_syst[N][i]) + " & "
-                    + fmt % np.squeeze(100 * delta_total[N][i]) + r" \\" + "\n")
+                    + fmt % np.squeeze(100 * delta_total[N][i]))
+                if year == "2012" and sel == "4m":
+                    f.write(" && " + fmt % np.squeeze(chi_sq_stat[N]) + " & "
+                            + fmt % np.squeeze(chi_sq_total[N]))
+                f.write(r" \\" + "\n")
 
             if year != "2018":
                 f.write(r"\addlinespace" + "\n")
 
-    if N == P*M:
         f.write(r"\bottomrule" + "\n")
-    else:
-        f.write(r"\addlinespace\addlinespace" + "\n")
+    
+    f.write(r"\addlinespace\addlinespace" + "\n")
 
 f.write(r"\end{tabular}" + "\n")
 

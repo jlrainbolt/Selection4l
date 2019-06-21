@@ -62,8 +62,8 @@ void DrawPt4l(const TString suffix, const TString year)
 
 //  TString inName  = "selected_" + suffix + ".root";
     TString inName  = "boosted_" + suffix + ".root";
-//  TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
-    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
+//  TString inPath  = EOS_PATH + "/Selected/" + year + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Boosted/" + year + "_new/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
