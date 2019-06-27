@@ -44,12 +44,15 @@ ufFile = TFile(ufName, "READ")
 print("Opened", ufName)
 
 # Get histograms for 2018
-data, pred = np.empty(H, dtype=T), np.empty(H, dtype=T)
+data, pred, stat = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 h = 0
 for hname in hnames:
     data[h]['4l'] = ufFile.Get(hname + "/" + hname + "_result")
     data[h]['4l'].SetDirectory(0)
+
+    stat[h]['4l'] = ufFile.Get(hname + "/" + hname + "_stat")
+    stat[h]['4l'].SetDirectory(0)
 
     pred[h]['4l'] = ufFile.Get(hname + "/" + hname + "_reco")
     pred[h]['4l'].SetDirectory(0)
@@ -69,6 +72,10 @@ for year in ["2017", "2016", "2012"]:
         hist = ufFile.Get(hname + "/" + hname + "_result")
         hist.SetDirectory(0)
         data[h]['4l'].Add(hist)
+
+        hist = ufFile.Get(hname + "/" + hname + "_stat")
+        hist.SetDirectory(0)
+        stat[h]['4l'].Add(hist)
 
         hist = ufFile.Get(hname + "/" + hname + "_reco")
         hist.SetDirectory(0)
@@ -167,39 +174,48 @@ print("")
 ##  SCALING
 ##
 
-scale = 1e-6 * alpha * bf_pred * GAMMA_Z
+scale = alpha * bf_pred * GAMMA_Z
 
 for sel in ["4l"]:
     for h in range(H):
+        for i in range(stat[h][sel].GetNbinsX()):
+            if stat[h][sel].GetBinContent(i + 1) < 1:
+                stat[h][sel].SetBinError(i + 1, 1.- 0.682689492);
+                data[h][sel].SetBinError(i + 1,
+                        np.sqrt((1.- 0.682689492) ** 2 + data[h][sel].GetBinError(i + 1) ** 2))
+
         axe[h][sel].Divide(ps[h][sel])
 
-        for sample in [data, pred]:
+        for sample in [data, pred, stat]:
             sample[h][sel].Divide(axe[h][sel])
             sample[h][sel].Scale(scale / sample[h][sel].Integral())
 
 
-# Get ratio
-ratio, ratio_syst = np.empty(H, dtype=T), np.empty(H, dtype=T)
-
+# Systemtatic uncertainty
 for sel in ["4l"]:
     for h in range(H):
+
+        # Add total systematic
+        for i in range(data[h][sel].GetNbinsX()):
+            data[h][sel].SetBinError(i + 1,
+                    np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
+                        + data[h][sel].GetBinError(i + 1) ** 2))
+
+        # Get rid of the prediction uncertainty
         for i in range(pred[h][sel].GetNbinsX()):
             pred[h][sel].SetBinError(i+1, 0)
 
+
+# Get ratio
+ratio, ratio_stat = np.empty(H, dtype=T), np.empty(H, dtype=T)
+
+for sel in ["4l"]:
+    for h in range(H):
+        ratio_stat[h][sel] = stat[h][sel].Clone()
+        ratio_stat[h][sel].Divide(pred[h][sel])
+
         ratio[h][sel] = data[h][sel].Clone()
         ratio[h][sel].Divide(pred[h][sel])
-
-        ratio_syst[h][sel] = data[h][sel].Clone()
-        for i in range(ratio_syst[h][sel].GetNbinsX()):
-            ratio_syst[h][sel].SetBinError(i + 1,
-                    np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
-                        + data[h][sel].GetBinError(i + 1) ** 2))
-        ratio_syst[h][sel].Divide(pred[h][sel])
-
-        for i in range(pred[h][sel].GetNbinsX()):
-            pred[h][sel].SetBinError(i + 1,
-                    np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
-                        + data[h][sel].GetBinError(i + 1) ** 2))
 
 
 
@@ -224,10 +240,12 @@ for sel in ["4l"]:
 
         # Data
         v_data = np.zeros(data[h][sel].GetNbinsX(), dtype=V)
+        v_stat = np.zeros(data[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_data)):
             v_data[i]['x']  = data[h][sel].GetBinCenter(i+1)
             v_data[i]['y']  = data[h][sel].GetBinContent(i+1)
             v_data[i]['ey'] = data[h][sel].GetBinError(i+1)
+            v_stat[i]['ey'] = stat[h][sel].GetBinError(i+1)
 
         # MC
         v_pred = np.zeros(pred[h][sel].GetNbinsX(), dtype=V)
@@ -238,13 +256,13 @@ for sel in ["4l"]:
 
         # Ratio
         v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
-        v_ratio_syst = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
+        v_ratio_stat = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_ratio)):
             v_ratio[i]['x']     = ratio[h][sel].GetBinCenter(i+1)
             v_ratio[i]['ex']    = ratio[h][sel].GetBinWidth(i+1) / 2
             v_ratio[i]['y']     = ratio[h][sel].GetBinContent(i+1)
             v_ratio[i]['ey']    = ratio[h][sel].GetBinError(i+1)
-            v_ratio_syst[i]['ey'] = ratio_syst[h][sel].GetBinError(i+1)
+            v_ratio_stat[i]['ey'] = ratio_stat[h][sel].GetBinError(i+1)
 
 
 
@@ -264,13 +282,13 @@ for sel in ["4l"]:
                             linewidth = 0,  ecolor = lBlue,
                             fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
                             )
-        ax_top.errorbar(    v_data['x'],    v_data['y'],    yerr = v_pred['ey'], 
-                            linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
-                            marker = None,   capsize = 4
+        ax_top.errorbar(    v_data['x'],    v_data['y'],            yerr = v_data['ey'], 
+                            linewidth = 0,  ecolor = '#C0C0C0',     elinewidth = 4 * lErrorLineWidth4l,
+                            marker = None,   capsize = 0
                             )
-        p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = v_data['ey'], 
-                            linewidth = 0,  ecolor = lRed,  elinewidth = lErrorLineWidth4l,
-                            marker = 'o',   capsize = 4,            markersize = lMarkerSize2l,
+        p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = v_stat['ey'], 
+                            linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
+                            marker = 'o',   capsize = 0,            markersize = lMarkerSize2l,
                             markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                             )
 
@@ -297,27 +315,15 @@ for sel in ["4l"]:
         else:
             ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
 
-#       ax_bot.bar(v_pred['x'],    2 * v_ratio_syst['ey'], width,
-#                           bottom = 1 - v_ratio_syst['ey'],        align = 'edge',
-#                           linewidth=0,    color = lBlue,          alpha = 0.7
-#                           )
-#       ax_bot.fill_between([v_pred['x'][0], v_pred['x'][-1] + width],
-#                   1 + delta_syst, 1 - delta_syst,
-#                   facecolor = lBlue,                      alpha = 0.8
-#                   )
         ax_bot.axhline(lRatioMid,   color = lBlue,          linewidth=2 * lErrorLineWidth4l)
-        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       xerr = v_ratio['ex'],
+        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       yerr = v_ratio['ey'], 
+                    linewidth = 0,  ecolor = '#C0C0C0',     elinewidth = 4 * lErrorLineWidth4l,
+                    marker = None,   capsize = 0
+                    )
+        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       yerr = v_ratio_stat['ey'], 
                     linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
                     marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize2l,
                     markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
-                    )
-        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       yerr = v_ratio_syst['ey'], 
-                    linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
-                    marker = None,   capsize = 4
-                    )
-        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       yerr = v_ratio['ey'], 
-                    linewidth = 0,  ecolor = lRed,  elinewidth = lErrorLineWidth4l,
-                    marker = None,   capsize = 4
                     )
 
 

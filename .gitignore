@@ -33,3 +33,4 @@ docker*
 
 # Save data ntuples
 !data/**
+!madgraph/*/*/*

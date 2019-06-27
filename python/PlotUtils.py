@@ -70,6 +70,7 @@ lCapSize = 0
 lRatioLineColor = 'black'
 lRatioMin4l,    lRatioMax4l                     =   0,      2
 lRatioMin2l,    lRatioMax2l                     =   0.8,    1.2
+lRatioMinBkg,   lRatioMaxBkg                    =   0,      4
 lRatioUpper,    lRatioMid,      lRatioLower     =   1.5,    1,      0.5
 
 lErrorLineWidth12 = 2

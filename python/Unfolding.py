@@ -11,9 +11,9 @@ from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
 
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
-from Cuts2016 import *
+#from Cuts2016 import *
 #from Cuts2012 import *
 
 
@@ -218,7 +218,7 @@ for sel in ["4l"]:
 
 
 # Store results in histograms (for now)
-result = np.empty(H, dtype=T)
+result, stat = np.empty(H, dtype=T), np.empty(H, dtype=T)
 resp, unf, cov = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
 var = np.empty(H, dtype=T)
 
@@ -332,18 +332,25 @@ for sel in ["4l"]:
         ##  GET RESULTS
         ##
 
-        # Unfolded result
-        v_result        = np.zeros_like(v_gen, dtype=V)
-        v_result['y']   = results['unfolded']
+        # Unfolded result (total unc. and stat. only)
+        v_result, v_stat            = np.zeros_like(v_gen, dtype=V), np.zeros_like(v_gen, dtype=V)
+        v_result['y'], v_stat['y']  = results['unfolded'], results['unfolded']
         v_result['ey']  = np.sqrt(results['stat_err']**2, results['sys_err']**2)
+        v_stat['ey']    = results['stat_err']
 
         o = s.start
 
-        result[h][sel] = data[h][sel].Clone(hnames[h] + "_result");
-        result[h][sel].SetYTitle("");
+        result[h][sel] = data[h][sel].Clone(hnames[h] + "_result")
+        result[h][sel].SetYTitle("")
         for i in range(len(v_result)):
             result[h][sel].SetBinContent(i + o, v_result[i]['y'])
             result[h][sel].SetBinError(i + o, v_result[i]['ey'])
+
+        stat[h][sel] = data[h][sel].Clone(hnames[h] + "_stat")
+        stat[h][sel].SetYTitle("")
+        for i in range(len(v_stat)):
+            stat[h][sel].SetBinContent(i + o, v_stat[i]['y'])
+            stat[h][sel].SetBinError(i + o, v_stat[i]['ey'])
 
         # Probability of final chi-squared
         chisq_prob = chi2.sf(results['ts_iter'] * len(v_resp['y']), len(v_resp['y']))
@@ -423,61 +430,7 @@ for h in range(H):
     data[h]['4l'].Write()
     bkg[h]['4l'].Write()
     result[h]['4l'].Write()
-
-
-
-#   ##
-#   ##  DRAW
-#   ##
-
-#   # Data/MC comparison
-#   c_comp = TCanvas(hnames[h] + "_comparison", "", 1000, 1000)
-
-#   data[h]['4l'].SetLineColor(1)
-#   data[h]['4l'].SetLineWidth(2)
-#   data[h]['4l'].SetMarkerColor(1)
-#   data[h]['4l'].SetMarkerStyle(20)
-#   data[h]['4l'].SetMarkerSize(2)
-
-#   reco[h]['4l'].SetLineColor(8)
-#   reco[h]['4l'].SetLineWidth(2)
-
-#   gen[h]['4l'].SetLineColor(4)
-#   gen[h]['4l'].SetLineWidth(2)
-
-#   result[h]['4l'].SetLineColor(2)
-#   result[h]['4l'].SetLineWidth(2)
-#   result[h]['4l'].SetMarkerColor(2)
-#   result[h]['4l'].SetMarkerStyle(22)
-#   result[h]['4l'].SetMarkerSize(2)
-
-#   if hnames[h] in ["b_l1p", "angle_z1leps"]:
-#       l = TLegend(0.18, 0.68, 0.48, 0.98)
-#   elif hnames[h] in ["cos_theta_z1"]:
-#       l = TLegend(0.35, 0.68, 0.65, 0.98)
-#   else:
-#       l = TLegend(0.68, 0.68, 0.98, 0.98)
-#   l.AddEntry(reco[h]['4l'], "Reco MC", "L")
-#   l.AddEntry(gen[h]['4l'], "Gen MC", "L")
-#   l.AddEntry(data[h]['4l'], "Smeared data", "LP")
-#   l.AddEntry(result[h]['4l'], "Unfolded data", "LP")
-
-#   c_comp.cd()
-#   result[h]['4l'].SetMinimum(0);
-#   result[h]['4l'].Draw("E1")
-#   reco[h]['4l'].Draw("SAME")
-#   gen[h]['4l'].Draw("SAME")
-#   data[h]['4l'].Draw("E1 SAME")
-#   result[h]['4l'].Draw("E1 SAME")
-#   l.Draw()
-
-#   c_comp.Write()
-
-
-#   # Unfolded covariance matrix
-#   c_cov = TCanvas(hnames[h] + "_comparison", "", 1000, 800)
-#   c_cov.cd()
-#   cov.Draw("COLZ")
+    stat[h]['4l'].Write()
 
 
 outFile.Close()

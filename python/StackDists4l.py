@@ -7,10 +7,10 @@ import numpy as np
 from ROOT import TFile, TH1
 
 from PlotUtils import *
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -43,8 +43,8 @@ print("Opened", elName)
 
 
 # Get histograms
-#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
-hnames = ["sin_phi"]
+hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
+#hnames = ["sin_phi"]
 #hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt"]
 #hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
@@ -404,7 +404,7 @@ for sel in selection:
         handles = [ p_data,     p_mc['zjets_m-50'],                 p_mc['zz_4l'],
                                 p_mc['ww_2l2nu'],
                     ]
-        labels = [  r'Data',    r'$\mbox{Z}\to\ell^+\ell^-$',       r'$\mbox{ZZ}\to4\ell$',
+        labels = [  r'Data',    r'Nonprompt',       r'$\mbox{ZZ}\to4\ell$',
                                 r'VV',
                     ]
 

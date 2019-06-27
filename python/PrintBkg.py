@@ -5,8 +5,8 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
-#from Cuts2017 import *
+#from Cuts2018 import *
+from Cuts2017 import *
 #from Cuts2016 import *
 #from Cuts2012 import *
 
@@ -143,7 +143,7 @@ for sel in selection:
         sf_unc[sel] = 0
     else:
         sf[sel]     = diff[sel] / npt[sel]
-        sf_unc[sel] = np.abs(sf[sel]) * np.sqrt(diff_unc[sel] / diff[sel] ** 2 + npt_unc[sel] / npt[sel] ** 2)
+        sf_unc[sel] = np.abs(sf[sel]) * np.sqrt(1 / diff[sel] + npt_unc[sel] / npt[sel] ** 2)
 
     bg_unc[sel]     = np.sqrt(bg_unc[sel])
     npt_unc[sel]    = np.sqrt(npt_unc[sel])

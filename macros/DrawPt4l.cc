@@ -40,7 +40,7 @@ void DrawPt4l(const TString suffix, const TString year)
     const unsigned N = 2;
     unsigned                    M = 0,  E = 1;     // Indices
     TString selection[N]    = {"mu",    "e"};
-    TString lepChan[N]      = {"#mu",  "e"};
+    TString lepChan[N]      = {"l",  "l"};
     int     lepPDG[N]       = { 13,     11  };
 
     int lColor[4]           = {lBlue, lOrange, lPurple, lGreen};
@@ -96,7 +96,7 @@ void DrawPt4l(const TString suffix, const TString year)
         outFile->cd(selection[i]);
 
 //      TString evtWeight = "(weight/trigWeight/qtWeight) * ";
-        TString evtWeight = "weight * isFiducial * ";
+        TString evtWeight = "weight * ";
 
         for (unsigned j = 0; j < 4; j++)
         {
@@ -104,7 +104,7 @@ void DrawPt4l(const TString suffix, const TString year)
             TString name = "l" + index + "pt_" + selection[i];
             TString pdg = TString::Format("%i", lepPDG[i]);
 
-            TString weight = evtWeight + "(abs(l" + index + "pdg) == " + pdg + ")";
+            TString weight = evtWeight + "(abs(l1p4.Eta()) < 2.5) * (abs(l2p4.Eta()) < 2.5) * (abs(l3p4.Eta()) < 2.5) * (abs(l4p4.Eta()) < 2.5)";
             cout << weight << endl;
 
             h[i][j] = new TH1D(name, "", 60, 0, 60);
@@ -128,12 +128,27 @@ void DrawPt4l(const TString suffix, const TString year)
         c[i]->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
         c[i]->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
 
+
+        float LeftPosition = 0.5,       LeftMargin = 2. * lCanvasMargin - lLegendMargin;
+        float RightPosition = 1,        RightMargin = -lLegendMargin;
+        float TopPosition = 1,          TopMargin = -lLegendMargin;
+        float BottomPosition = TopPosition - 0.085 * 5;
+        float BottomMargin = 2. * lCanvasMargin - lLegendMargin;
+        TLegend *l = new TLegend(LeftPosition + LeftMargin, BottomPosition - TopMargin,
+                TopPosition + TopMargin, TopPosition + TopMargin);
+        l->AddEntry(h[0][0], "Lepton 1", "L");
+        l->AddEntry(h[0][1], "Lepton 2", "L");
+        l->AddEntry(h[0][2], "Lepton 3", "L");
+        l->AddEntry(h[0][3], "Lepton 4", "L");
+        Facelift(l);
+
         c[i]->cd();
 
         h[i][3]->Draw("HIST");
 
         for (unsigned j = 0; j < 4; j++)
             h[i][j]->Draw("HIST SAME");
+        l->Draw();
 
         c[i]->Write();
         cout << "done!" << endl;

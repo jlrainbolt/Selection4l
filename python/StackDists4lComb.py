@@ -70,7 +70,8 @@ print("Opened", elName)
 
 # Get histograms for 2018
 #hnames = ["zzm"]
-hnames = ["sin_phi"]
+#hnames = ["sin_phi"]
+hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
 #hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 H = len(hnames)

@@ -18,7 +18,7 @@ HOME_PATH   = "/uscms/home/jrainbol/nobackup"
 
 F_NR = 0.04
 BF_LL = 0.033658
-GAMMA_Z = 2.4952e6
+GAMMA_Z = 2.4952
 
 mu_id = {   "4l":0.0157,    "4m":0.0208,    "2m2e":0.0092,      "4e":0          }
 el_id = {   "4l":0.0109,    "4m":0,         "2m2e":0.0188,      "4e":0.0406     }

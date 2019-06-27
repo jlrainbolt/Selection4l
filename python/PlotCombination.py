@@ -67,21 +67,21 @@ yearlabels = ["2012", "2016", "2017", "2018"]
 
 # Single parameter
 
-fig = plt.figure(figsize = (8,4))
+fig = plt.figure(figsize = (8,3))
 ax = plt.axes()
 
 p_total_1 = ax.fill_between( xpoints_fill,
         alpha_total_1 + sigma_total_1,          alpha_total_1 - sigma_total_1,  
-        facecolor = lBlue,                      alpha = 0.5
+        facecolor = lRed,                       alpha = 0.5
         )
 
 p_stat_1 = ax.fill_between( xpoints_fill,
         alpha_total_1 + sigma_stat_1,           alpha_total_1 - sigma_stat_1,  
-        facecolor = lBlue,                      alpha = 0.75
+        facecolor = lRed,                       alpha = 0.5
         )
 
-p_result_1 = ax.axhline(  alpha_total_1,       color = lMarkerColor,
-        linewidth = lErrorLineWidth12)
+p_result_1 = ax.hlines(  alpha_total_1,     0, 16,
+        color = lMarkerColor,   linewidth = lErrorLineWidth12)
 
 p_total_12 = ax.errorbar(   xpoints,    alpha_total_12,     yerr = sigma_total_12,
         linewidth = 0,      ecolor = '#C0C0C0',       elinewidth = 4 * lErrorLineWidth12,
@@ -113,7 +113,7 @@ ax2.tick_params(length=0)
 ax.text(0.025,  0.95,   "CMS",
         size = "xx-large",  weight = "bold",
         verticalalignment = 'top', transform = ax.transAxes, usetex = False)
-ax.text(0.025,  0.875,  "Work in Progress",
+ax.text(0.025,  0.85,  "Work in Progress",
         size = "x-large",   style = "italic",
         verticalalignment = 'top', transform = ax.transAxes, usetex = False)
 
@@ -126,17 +126,17 @@ fig.clf()
 
 # Single parameter
 
-fig = plt.figure(figsize = (8,4))
+fig = plt.figure(figsize = (8,3))
 ax = plt.axes()
 
 for i in range(len(alpha_total_4)):
     p_total_4 = ax.fill_between( [xpoints[i*3] - 0.5, xpoints[i*3 + 2] + 0.5],
         alpha_total_4[i] + sigma_total_4[i],    alpha_total_4[i] - sigma_total_4[i],  
-        facecolor = lBlue,                      alpha = 0.5
+        facecolor = lRed,                       alpha = 0.5
         )
     p_stat_4 = ax.fill_between( [xpoints[i*3] - 0.5, xpoints[i*3 + 2] + 0.5],
         alpha_total_4[i] + sigma_stat_4[i],     alpha_total_4[i] - sigma_stat_4[i],  
-        facecolor = lBlue,                      alpha = 0.75
+        facecolor = lRed,                       alpha = 0.5
         )
     p_result_4 = ax.hlines(  alpha_total_4[i],      xpoints[i*3] - 0.5, xpoints[i*3 + 2] + 0.5,
         color = lMarkerColor, linewidth = lErrorLineWidth12)
@@ -171,7 +171,7 @@ ax2.tick_params(length=0)
 ax.text(0.025,  0.95,   "CMS",
         size = "xx-large",  weight = "bold",
         verticalalignment = 'top', transform = ax.transAxes, usetex = False)
-ax.text(0.025,  0.875,  "Work in Progress",
+ax.text(0.025,  0.85,  "Work in Progress",
         size = "x-large",   style = "italic",
         verticalalignment = 'top', transform = ax.transAxes, usetex = False)
 
@@ -198,17 +198,17 @@ sigma_total_12 = np.reshape(sigma_total_12, (4, 3)).transpose().flatten()
 sigma_stat_12 = np.reshape(sigma_stat_12, (4, 3)).transpose().flatten()
 
 
-fig = plt.figure(figsize = (8,4))
+fig = plt.figure(figsize = (8,3))
 ax = plt.axes()
 
 for i in range(len(alpha_total_3)):
     p_total_3 = ax.fill_between( [xpoints[i*4] - 0.5, xpoints[i*4 + 3] + 0.5],
         alpha_total_3[i] + sigma_total_3[i],    alpha_total_3[i] - sigma_total_3[i],  
-        facecolor = lBlue,                      alpha = 0.5
+        facecolor = lRed,                       alpha = 0.5
         )
     p_stat_3 = ax.fill_between( [xpoints[i*4] - 0.5, xpoints[i*4 + 3] + 0.5],
         alpha_total_3[i] + sigma_stat_3[i],     alpha_total_3[i] - sigma_stat_3[i],  
-        facecolor = lBlue,                      alpha = 0.75
+        facecolor = lRed,                       alpha = 0.5
         )
     p_result_3 = ax.hlines(  alpha_total_3[i],      xpoints[i*4] - 0.5, xpoints[i*4 + 3] + 0.5,
         color = lMarkerColor, linewidth = lErrorLineWidth12)
@@ -238,12 +238,16 @@ ax2.set_xticks(yearpoints)
 ax2.set_xticklabels(yearlabels)
 ax2.tick_params(length=0)
 
+#for i in range(len(yearlabels)):
+#    ax.text(yearpoints[i], 0.05, yearlabels[i], verticalalignment = 'top', 
+#            size = "xx-large", transform = ax.transAxes, usetex = True)
+
 
 # CMS text
 ax.text(0.025,  0.95,   "CMS",
         size = "xx-large",  weight = "bold",
         verticalalignment = 'top', transform = ax.transAxes, usetex = False)
-ax.text(0.025,  0.875,  "Work in Progress",
+ax.text(0.025,  0.85,  "Work in Progress",
         size = "x-large",   style = "italic",
         verticalalignment = 'top', transform = ax.transAxes, usetex = False)
 

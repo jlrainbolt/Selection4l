@@ -24,7 +24,7 @@ using namespace std;
 **  Draws distributions for a "background_" sample
 */ 
 
-void DrawBackground(const TString suffix, const TString year, const bool signalOnly = kFALSE)
+void DrawBackground(const TString suffix, const TString year, const bool tightOnly = kFALSE)
 {
     if (!year.EqualTo(YEAR_STR))
     {
@@ -36,11 +36,11 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
     //  SAMPLE INFO
     //
 
-    const unsigned N = 5;
-    unsigned                   L4 = 0,  M4 = 1, ME = 2, EM = 3, E4 = 4;     // Indices
-    TString selection[N]    = {"4l",    "4m",   "2m2e", "2e2m", "4e"};
-    unsigned chanIdx[N]     = {5,       6,      7,      8,      9};
-    TString lepChan[N]      = {_l,      _mu,    _l,     _l,     _e};
+    const unsigned N = 4;
+    unsigned                   L4 = 0,  M4 = 1, ME = 2, E4 = 3;     // Indices
+    TString selection[N]    = {"4l",    "4m",   "2m2e", "4e"};
+    unsigned chanIdx[N]     = {5,       6,      7,      9};
+    TString lepChan[N]      = {_l,      _mu,    _l,     _e};
 
 
 
@@ -48,7 +48,7 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
     //  OUTPUT FILE
     //
 
-    TString prefix  = signalOnly ? "bkg" : "bkg_all";
+    TString prefix  = tightOnly ? "bkg_tight" : "bkg_loose";
     TString outName = prefix + "_" + year + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -64,51 +64,26 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
         make_tuple( "nPV",      "nPV",           _nPV,          _unit,      10,     0,      60),
 
         // Lab frame kinematics
-        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       20,     80,     100),
-        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       20,     0,      100),
+        make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       10,     80,     100),
+        make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       10,     0,      100),
 
-        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       16,     12,     92),
-        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       16,     0,      100),
+        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       10,     12,     92),
+        make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       10,     0,      100),
 
         make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       10,     4,      36),
         make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       10,     0,      60),
 
-        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       20,     0,      100),
+        make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       10,     0,      100),
         make_tuple( "l1eta",    "l1p4.Eta()",    _eta_(_l_(1)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       20,     0,      100),
+        make_tuple( "l2pt",     "l2p4.Pt()",     _pT_(_l_(2)),  _GeV,       10,     0,      100),
         make_tuple( "l2eta",    "l2p4.Eta()",    _eta_(_l_(2)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       20,     0,      100),
+        make_tuple( "l3pt",     "l3p4.Pt()",     _pT_(_l_(3)),  _GeV,       10,     0,      100),
         make_tuple( "l3eta",    "l3p4.Eta()",    _eta_(_l_(3)), _units,     10,     -2.5,   2.5),
 
-        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       20,     0,      100),
-        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5),
- 
-        // Z rest frame kinematics                                                
-        make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
-                                
-        make_tuple( "b_l1p",    "b_l1v3.Mag()",  _p_(_l_(1)),   _GeV,       10,     25,     50),
-        make_tuple( "b_l2p",    "b_l2v3.Mag()",  _p_(_l_(2)),   _GeV,       10,     15,     45),
-        make_tuple( "b_l3p",    "b_l3v3.Mag()",  _p_(_l_(3)),   _GeV,       10,     4,      24),
-        make_tuple( "b_l4p",    "b_l4v3.Mag()",  _p_(_l_(4)),   _GeV,       10,     0,      20),
-                        
-                        
-        // Observables      
-        make_tuple( "psi",          "psi",          _psi,           "",     20,     -5000,  5000),
-        make_tuple( "phi",      "phi/3.141592654",  _phi,           _pirad, 20,     -1,     1),
-        make_tuple( "cos_phi",      "cos_phi",      _cosphi,        _units, 20,     -1,     1),
-        make_tuple( "sin_phi",      "sin_phi",      _sinphi,        _units, 20,     -1,     1),
-        make_tuple( "sin_phi_2",    "sin_phi",      _sinphi,        _units, 2,      -1,     1),
-        make_tuple( "cos_theta_z1", "cos_theta_z1", _costheta_(_Z1),_units, 10,     -1,     1),
-        make_tuple( "cos_theta_z2", "cos_theta_z2", _costheta_(_Z2),_units, 10,     -1,     1),
-        make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
-                _alpha_(_Z1),   _pirad, 10,     0,      1),
-        make_tuple( "angle_z2leps", "angle_z2leps/3.141592654",
-                _alpha_(_Z2),   _pirad, 10,     0,      1),
-        make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.141592654",
-                _beta,          _pirad, 10,     0,      1)
-
+        make_tuple( "l4pt",     "l4p4.Pt()",     _pT_(_l_(4)),  _GeV,       10,     0,      100),
+        make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5)
     };
 
 
@@ -117,10 +92,10 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
     //  INPUT FILE
     //
 
-//  TString inName  = "background_" + suffix + ".root";
-//  TString inPath  = EOS_PATH + "/Selected/" + year + "/" + inName;
-    TString inName  = "boosted_bkg_" + suffix + ".root";
-    TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
+    TString inName  = "background_" + suffix + ".root";
+    TString inPath  = EOS_PATH + "/Selected/" + year + "_new/" + inName;
+//  TString inName  = "boosted_bkg_" + suffix + ".root";
+//  TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -180,18 +155,16 @@ void DrawBackground(const TString suffix, const TString year, const bool signalO
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight/trigWeight/qtWeight";
+            TString weight = "weight";
            
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
-/*
-            if (signalOnly)
+
+            if (tightOnly)
             {
-                weight.Prepend("(nLooseLeptons == 0) * (!isDiffFlavor) * ");
+                weight.Prepend("(nLooseLeptons == 0) * ");
                 bins = 4;
             }
-            else
-                weight.Prepend("(nLooseLeptons < 2) * (!isDiffFlavor) * ");
-*/
+
 
 
             // Create and draw histogram

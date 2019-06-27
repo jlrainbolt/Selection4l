@@ -1,0 +1,12 @@
+P1_uux_epemepem
+P1_uux_mupmummupmum
+P1_ccx_epemepem
+P1_ccx_mupmummupmum
+P1_ddx_epemepem
+P1_ddx_mupmummupmum
+P1_ssx_epemepem
+P1_ssx_mupmummupmum
+P1_uux_epemmupmum
+P1_ccx_epemmupmum
+P1_ddx_epemmupmum
+P1_ssx_epemmupmum

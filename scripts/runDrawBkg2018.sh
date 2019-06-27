@@ -1,9 +1,9 @@
 #! /bin/bash
 
 ##
-##  runDrawDists2l2018.sh
+##  runDrawBkg2018.sh
 ##
-##  Runs DrawDists2l.cc on all 2018 (data and MC) samples
+##  Runs DrawBackground.cc on all 2018 (data and MC) samples
 ##
 
 for suffix in   "electron_2018" "muon_2018"     "zjets_m-50"    "ttbar"     "tt_2l2nu"  "ttz_2l2nu" \
@@ -11,4 +11,5 @@ for suffix in   "electron_2018" "muon_2018"     "zjets_m-50"    "ttbar"     "tt_
                 "ggH_zz_4l"     "vbfH_zz_4l"    "wwz_4l2nu"     "wzz_4l2nu" "zzz_4l2nu" "zzg_4l2nu"
 do
     root.exe -q -b "../macros/DrawBackground.cc(\"$suffix\", \"2018\")"
+    root.exe -q -b "../macros/DrawBackground.cc(\"$suffix\", \"2018\", kTRUE)"
 done
