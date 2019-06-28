@@ -100,7 +100,7 @@ automatic_html_opening = False
 
 #! Default Running mode 
 #!  0: single machine/ 1: cluster / 2: multicore
-# run_mode = 0
+# run_mode = 2
 
 #! Cluster Type [pbs|sge|condor|lsf|ge|slurm|htcaas|htcaas2] Use for cluster run only
 #!  And cluster queue (or partition for slurm)
@@ -222,7 +222,7 @@ syscalc_path = /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/syscalc/1.1.7-3e85e/
 # amcfast = amcfast-config
 
 
-mg5_path = /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt 
+mg5_path = /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.0-d53b7/x86_64-slc6-gcc62-opt
 
 # MG5 MAIN DIRECTORY
-mg5_path = /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt
+mg5_path = /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.0-d53b7/x86_64-slc6-gcc62-opt

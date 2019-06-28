@@ -6,8 +6,6 @@ from numpy.linalg import multi_dot, pinv
 
 from iminuit import Minuit
 
-from CutsComb import *
-
 
 
 ##

@@ -1,0 +1,73 @@
+##
+##  Submit RecoSelection job to Condor
+##
+
+executable  = execMG5.sh
+universe    = vanilla
+
+output      = reports/$(model)_mU$(MUb)_ge$(gUbe)_gmu$(gUbmu).out
+error       = reports/$(model)_mU$(MUb)_ge$(gUbe)_gmu$(gUbmu).err
+log         = reports/$(model)_mU$(MUb)_ge$(gUbe)_gmu$(gUbmu).log
+
+should_transfer_files   = YES
+initialdir              = output
+transfer_input_files    = source.tar.gz
+when_to_transfer_output = ON_EXIT
+
+request_cpus            = 2
+request_memory          = 4000
+
+arguments   = "$(model) $(finalstate) $(nevents) $(MUb) $(gUbe) $(gUbmu)"
+
+model       = VectorU
+finalstate  = 4l
+nevents     = 10000
+
+    gUbe = 0.005
+    gUbmu = 0.005
+
+        MUb = 4
+        queue
+
+        MUb = 5
+        queue
+
+        MUb = 6
+        queue
+
+        MUb = 7
+        queue
+
+        MUb = 8
+        queue
+
+        MUb = 9
+        queue
+
+        MUb = 10
+        queue
+
+
+#   gUbe = 0.01
+#   gUbmu = 0.01
+
+#       MUb = 4
+#       queue
+
+#       MUb = 5
+#       queue
+
+#       MUb = 6
+#       queue
+
+#       MUb = 7
+#       queue
+
+#       MUb = 8
+#       queue
+
+#       MUb = 9
+#       queue
+
+#       MUb = 10
+#       queue

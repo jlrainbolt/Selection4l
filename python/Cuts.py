@@ -1,0 +1,13 @@
+##
+##  PHASE SPACE
+##
+
+M_MIN, M_MAX, MLL_MIN = 80, 100, 4
+
+
+##
+##  FIDUCIAL CUTS
+##
+
+FID_PT1_MIN, FID_PT2_MIN, FID_PT_MIN = 20, 10, 5
+FID_ETA_MAX = 2.5

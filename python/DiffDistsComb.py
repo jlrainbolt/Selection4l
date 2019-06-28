@@ -7,7 +7,7 @@ import numpy as np
 from ROOT import TFile, TH1
 
 from PlotUtils import *
-from CutsComb import *
+from Cuts2018 import *
 
 mpl.rcParams["legend.fontsize"] = "x-large"
 
