@@ -24,10 +24,14 @@ cd madgraph/${model}_pp_z_${finalstate}
 echo "generate_events" >> input.txt
 echo "set nevents $nevents" >> input.txt
 echo "set iseed 0" >> input.txt
-echo "set MUb $MUb" >> input.txt
-echo "set WUb Auto" >> input.txt
-echo "set gUbe $gUbe" >> input.txt
-echo "set gUbmu $gUbmu" >> input.txt
+
+if [[ ${model} == *"U" ]]
+then
+    echo "set MUb $MUb" >> input.txt
+    echo "set WUb Auto" >> input.txt
+    echo "set gUbe $gUbe" >> input.txt
+    echo "set gUbmu $gUbmu" >> input.txt
+fi
 
 ./bin/madevent input.txt
 
@@ -39,11 +43,10 @@ echo "ROOTSYS = " $ROOTSYS
 cd Events/run_01
 gunzip unweighted_events.lhe.gz
 
-python ${TEMP}/python/LHEtoTTree.py ${model} ${gUbe} ${gUbmu}
+python ${TEMP}/python/LHEtoTTree.py ${nevents}
 
 
 cp *.root ${_CONDOR_SCRATCH_DIR}
-cp unweighted_events.lhe ${_CONDOR_SCRATCH_DIR}
 
 echo ""
 echo ""

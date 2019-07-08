@@ -2,53 +2,27 @@
 ##  Submit RecoSelection job to Condor
 ##
 
+# User variable
+systematics = triggerEff
+
 executable  = execSyst.sh
 universe    = vanilla
 
-output      = reports/$(syst)$(disp)_$(suffix)_$INT(Step).out
-error       = reports/$(syst)$(disp)_$(suffix)_$INT(Step).err
-log         = reports/$(syst)$(disp)_$(suffix)_$INT(Step).log
+output      = reports/$(systematics)_$(suffix)_$INT(Step).out
+error       = reports/$(systematics)_$(suffix)_$INT(Step).err
+log         = reports/$(systematics)_$(suffix)_$INT(Step).log
 
 should_transfer_files   = YES
 initialdir              = output
 transfer_input_files    = source.tar.gz
 when_to_transfer_output = ON_EXIT
 
-arguments   = "$(suffix) $INT(Step) $(syst) $(disp)"
+arguments   = "$(suffix) $INT(Step) $(systematics)"
 
-    suffix = electron_2017
+systematics = triggerEff
 
-#       syst = electronPt
+    suffix = zjets_m-50
+    queue 18
 
-#           disp = Up
-#           queue 8
-
-#           disp = Down
-#           queue 8
-
-        syst = muonPt
-
-            disp = Up
-            queue 8
-
-            disp = Down
-            queue 8
-
-
-    suffix = muon_2017
-
-        syst = electronPt
-
-            disp = Up
-            queue 20
-
-            disp = Down
-            queue 20
-
-#       syst = muonPt
-
-#           disp = Up
-#           queue 20
-
-#           disp = Down
-#           queue 20
+    suffix = zz_4l
+    queue 2

@@ -88,10 +88,12 @@ const float     MATCH_DR_MAX = 0.02;
 //  SAMPLES
 //
 
-const float     MUON_TRIG_LUMI = 36.42,                         ELEC_TRIG_LUMI = 36.42;
-const float                                                     ELEC_TRIG_SF = 1;
-const TString   MU_SUFF = "muon_" + YEAR_STR,                   EL_SUFF = "electron_" + YEAR_STR;
+const float     INT_LUMI = 36.42,                   SQRT_S = 13;
+const float     ELEC_TRIG_SF = 1;
+const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
 
+
+const float     NGEN_ZZ_4L = 6669988,               XSEC_ZZ_4L = 1.256;
 
 
 #endif // CUTS2016_HH

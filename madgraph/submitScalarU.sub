@@ -14,8 +14,8 @@ initialdir              = output
 transfer_input_files    = source.tar.gz
 when_to_transfer_output = ON_EXIT
 
-request_cpus            = 2
-request_memory          = 4000
+request_cpus            = 3
+request_memory          = 6000
 
 arguments   = "$(model) $(finalstate) $(nevents) $(MUb) $(gUbe) $(gUbmu)"
 
@@ -23,7 +23,103 @@ model       = ScalarU
 finalstate  = 4l
 nevents     = 10000
 
-    MUb = 18
-    gUbe = 0.05
-    gUbmu = 0.05
-    queue
+    gUbe = 0.3
+    gUbmu = 0.3
+
+        MUb = 45
+        queue
+
+        MUb = 50
+        queue
+
+        MUb = 60
+        queue
+
+
+    gUbe = 0.5
+    gUbmu = 0.5
+
+        MUb = 50
+        queue
+
+        MUb = 60
+        queue
+
+        MUb = 70
+        queue
+
+
+    gUbe = 0.022
+    gUbmu = 0.022
+
+        MUb = 7
+        queue
+
+        MUb = 8
+        queue
+
+        MUb = 9
+        queue
+
+        MUb = 10
+        queue
+
+        MUb = 12
+        queue
+
+        MUb = 14
+        queue
+
+        MUb = 16
+        queue
+
+
+    gUbe = 0.011
+    gUbmu = 0.011
+
+        MUb = 4
+        queue
+
+        MUb = 5
+        queue
+
+        MUb = 6
+        queue
+
+
+    gUbe = 0.017
+    gUbmu = 0.017
+
+        MUb = 4
+        queue
+
+        MUb = 5
+        queue
+
+        MUb = 6
+        queue
+
+        MUb = 7
+        queue
+
+        MUb = 8
+        queue
+
+
+    MUb = 35
+
+        gUbe = 0.05
+        gUbmu = 0.05
+        queue
+
+        gUbe = 0.06
+        gUbmu = 0.06
+        queue
+
+        gUbe = 0.07
+        gUbmu = 0.07
+        queue
+
+        gUbe = 0.08
+        gUbmu = 0.08
+        queue

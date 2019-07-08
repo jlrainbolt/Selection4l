@@ -12,7 +12,7 @@ from iminuit import Minuit
 ##  OPTIONS
 ##
 
-N = 12   # number of parameters
+N = 1   # number of parameters
 
 
 ##
@@ -268,6 +268,7 @@ unc_elid = bf_meas * np.array([
                 ])
 print("Electron ID uncertainties", "\n", unc_elid.flatten(), "\n")
 
+#el_13, el_8_13 = 1, 1
 el_13, el_8_13 = 1, 0
 
 rho_elid = np.array([#  2012        2016        2017        2018
@@ -292,7 +293,7 @@ unc_reco = bf_meas * np.array([
            ])
 print("Electron reco uncertainties", "\n", unc_reco.flatten(), "\n")
 
-#el_13, el_8_13 = 1, 1
+el_13, el_8_13 = 1, 0
 
 rho_reco = np.array([#  2012        2016        2017        2018
                     [   1,          el_8_13,    el_8_13,    el_8_13,    ],  # 2012

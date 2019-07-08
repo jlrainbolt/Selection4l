@@ -19,6 +19,8 @@ when_to_transfer_output = ON_EXIT
 
 arguments   = "$(suffix) $INT(Step) $(systematics)"
 
+systematics = triggerEff
+
     suffix = zjets_m-50
     queue 10
 

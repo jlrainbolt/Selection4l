@@ -15,7 +15,7 @@ from Cuts import *
 ##  INFO
 ##
 
-n_max = 10000
+n_max = int(sys.argv[1])
 
 selection = ["4l", "4m", "2m2e", "4e"]
 channels = {"4l":5, "4m":6, "2m2e":7, "4e":9}
@@ -43,11 +43,11 @@ else:
 model_name = TNamed("model", model)
 print("Model:", model)
 
-if isBSM:
-    xsec = infile.xsec
-    x_sec = TParameter("Float_t")("xsec", infile.xsec)
-    print("Cross section:", xsec, "pb")
+xsec = infile.xsec
+x_sec = TParameter("Float_t")("xsec", infile.xsec)
+print("Cross section:", xsec, "pb")
 
+if isBSM:
     MUb = infile.MU
     m_U = TParameter("Float_t")("mU", MUb)
     print("U mass:", MUb, "GeV")
@@ -283,8 +283,8 @@ for sel in selection:
 ##
 
 model_name.Write()
+x_sec.Write()
 if isBSM:
-    x_sec.Write()
     m_U.Write()
     w_U.Write()
     g_mu.Write()

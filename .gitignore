@@ -36,3 +36,5 @@ docker*
 !madgraph/*
 !madgraph/*/*
 madgraph/output
+madgraph/*/*.tar.gz
+madgraph/*.tar.gz

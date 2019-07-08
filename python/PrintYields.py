@@ -85,7 +85,8 @@ for suff in MC_SUFF:
         if (suff == "zz_4l" and sel in ["4l", "4m", "2m2e", "4e"]) or (suff == "zjets_m-50" and sel in ["mumu", "ee"]):
             tree.Draw("1>>hist", "!hasTauDecay * " + weight, "goff")
             sig[sel] = sf * hist.Integral()
-            sig_unc[sel] = sf * np.sqrt(tree.GetEntries("!hasTauDecay"))
+            tree.Draw("1>>hist", "!hasTauDecay * " + weight " * " + weight, "goff")
+            sig_unc[sel] = sf * np.sqrt(hist.Integral())
             cut = "hasTauDecay"
             weight = cut + " * " + weight
  
