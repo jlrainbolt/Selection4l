@@ -22,8 +22,8 @@
 // Cuts
 //#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
-//#include "Cuts2012.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -360,13 +360,13 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
             // Boosted lepton-pair angles
             TVector3    z1_boost = z1.p4.BoostVector(),     z2_boost = z2.p4.BoostVector();
             LeptonPair  b1_z1 = z1,     b1_z2 = z2,         b2_z1 = z1,     b2_z2 = z2;
-            TVector3    u_b1_z2 = b1_z2.b_v3.Unit(),        u_b2_z1 = b2_z1.b_v3.Unit();
 
             b1_z1.SetBoostedP4(z1_boost);                   b1_z2.SetBoostedP4(z1_boost);
             b2_z1.SetBoostedP4(z2_boost);                   b2_z2.SetBoostedP4(z2_boost);
 
 
             // "theta_zX": angle between positive pair X lepton and Y pair in X pair CM frame
+            TVector3    u_b1_z2 = b1_z2.b_v3.Unit(),        u_b2_z1 = b2_z1.b_v3.Unit();
             TVector3    u_b1_z1_plus = b1_z1.Plus().b_v3.Unit();
             TVector3    u_b2_z2_plus = b2_z2.Plus().b_v3.Unit();
 

@@ -14,9 +14,9 @@
 //#include "TMathText.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -52,7 +52,7 @@ void DrawRatios()
 
     const unsigned H = hnames.size();
 
-    TString zzName = "4l_" + YEAR_STR + "_zz_4l.root";
+    TString zzName = "migration_" + YEAR_STR + "_zz_4l.root";
     TFile   *zzFile = TFile::Open(zzName);
     cout << endl << endl << "Opened " << zzName << endl;
 
@@ -86,7 +86,7 @@ void DrawRatios()
         inFile->GetObject(hnames[h] + "/" + hnames[h] + "_reco", reco[h]);
         reco[h]->SetDirectory(0);
 
-        zzFile->GetObject("4l/" + hnames[h] + "_zz_4l", sel[h]);
+        zzFile->GetObject("4l/" + hnames[h] + "_gen", sel[h]);
         sel[h]->SetDirectory(0);
 
         psFile->GetObject("4l/" + hnames[h] + "_phase_space", ps[h]);

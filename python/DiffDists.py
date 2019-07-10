@@ -8,9 +8,9 @@ from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
 #from Cuts2018 import *
-#from Cuts2017 import *
+from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 mpl.rcParams["legend.fontsize"] = "x-large"
@@ -40,6 +40,7 @@ ufName = prefix + "_" + year + ".root"
 ufFile = TFile(ufName, "READ")
 print("Opened", ufName)
 
+#hnames = ["cos_theta_z2"]
 hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", 
             "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 H = len(hnames)
@@ -63,7 +64,7 @@ for hname in hnames:
     stat[h]['4l'] = ufFile.Get(hname + "/" + hname + "_stat")
     stat[h]['4l'].SetDirectory(0)
 
-    pred[h]['4l'] = ufFile.Get(hname + "/" + hname + "_reco")
+    pred[h]['4l'] = ufFile.Get(hname + "/" + hname + "_gen")
     pred[h]['4l'].SetDirectory(0)
 
     h = h + 1
@@ -79,7 +80,7 @@ print("")
 ##  ACC * EFF
 ##
 
-prefix = "4l"
+prefix = "migration"
 
 # Unscaled signal events
 zzName = prefix + "_" + year + "_zz_4l.root"
@@ -91,7 +92,7 @@ h = 0
 
 for sel in selection:
     for hname in hnames:
-        axe[h][sel] = zzFile.Get(sel + "/" + hname + "_zz_4l")
+        axe[h][sel] = zzFile.Get(sel + "/" + hname + "_gen")
         axe[h][sel].SetDirectory(0)
         axe[h][sel].SetName(hname + "_acc_x_eff")
 
@@ -105,14 +106,19 @@ zzFile.Close()
 ps = np.empty(H, dtype=T)
 h = 0
 
+prefix = "4l"
+
 psName = prefix + "_" + year + "_phase_space.root"
 psFile = TFile(psName, "READ")
 print("Opened", psName)
+
+sf = INT_LUMI * 1000 * XSEC['zz_4l'] / NGEN['zz_4l']
 
 for sel in selection:
     for hname in hnames:
         ps[h][sel] = psFile.Get(sel + "/" + hname + "_phase_space")
         ps[h][sel].SetDirectory(0)
+        ps[h][sel].Scale(sf)
 
         h = h + 1
     h = 0
@@ -132,17 +138,14 @@ scale = alpha * bf_pred * GAMMA_Z
 
 for sel in ["4l"]:
     for h in range(H):
-        for i in range(stat[h][sel].GetNbinsX()):
-            if stat[h][sel].GetBinContent(i + 1) < 1:
-                stat[h][sel].SetBinError(i + 1, 1.- 0.682689492);
-                data[h][sel].SetBinError(i + 1,
-                        np.sqrt((1.- 0.682689492) ** 2 + data[h][sel].GetBinError(i + 1) ** 2))
-
         axe[h][sel].Divide(ps[h][sel])
 
         for sample in [data, pred, stat]:
             sample[h][sel].Divide(axe[h][sel])
             sample[h][sel].Scale(scale / sample[h][sel].Integral())
+
+        ps[h][sel].Scale(scale / ps[h][sel].Integral())
+#        pred[h][sel].Scale(scale / pred[h][sel].Integral())
 
 
 # Systemtatic uncertainty
@@ -158,6 +161,7 @@ for sel in ["4l"]:
         # Get rid of the prediction uncertainty
         for i in range(pred[h][sel].GetNbinsX()):
             pred[h][sel].SetBinError(i+1, 0)
+            ps[h][sel].SetBinError(i+1, 0)
 
 
 # Get ratio
@@ -166,10 +170,12 @@ ratio, ratio_stat = np.empty(H, dtype=T), np.empty(H, dtype=T)
 for sel in ["4l"]:
     for h in range(H):
         ratio_stat[h][sel] = stat[h][sel].Clone()
-        ratio_stat[h][sel].Divide(pred[h][sel])
+#       ratio_stat[h][sel].Divide(pred[h][sel])
+        ratio_stat[h][sel].Divide(ps[h][sel])
 
         ratio[h][sel] = data[h][sel].Clone()
-        ratio[h][sel].Divide(pred[h][sel])
+#       ratio[h][sel].Divide(pred[h][sel])
+        ratio[h][sel].Divide(ps[h][sel])
 
 
 
@@ -205,11 +211,14 @@ for sel in ["4l"]:
             v_stat[i]['ey'] = stat[h][sel].GetBinError(i+1)
 
         # MC
-        v_pred = np.zeros(pred[h][sel].GetNbinsX(), dtype=V)
+        v_pred = np.zeros(ps[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_pred)):
-            v_pred[i]['x']  = pred[h][sel].GetBinLowEdge(i+1)
-            v_pred[i]['y']  = pred[h][sel].GetBinContent(i+1)
-            v_pred[i]['ey'] = pred[h][sel].GetBinContent(i+1)
+#           v_pred[i]['x']  = pred[h][sel].GetBinLowEdge(i+1)
+#           v_pred[i]['y']  = pred[h][sel].GetBinContent(i+1)
+#           v_pred[i]['ey'] = pred[h][sel].GetBinContent(i+1)
+            v_pred[i]['x']  = ps[h][sel].GetBinLowEdge(i+1)
+            v_pred[i]['y']  = ps[h][sel].GetBinContent(i+1)
+            v_pred[i]['ey'] = ps[h][sel].GetBinContent(i+1)
 
         # Ratio
         v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
@@ -268,10 +277,7 @@ for sel in ["4l"]:
 
         # Ratio plot
 
-        if hnames[h] == "cos_theta_z2":
-            ax_bot.set_ylim(0, 3)
-        else:
-            ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
+        ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
 
         ax_bot.axhline(lRatioMid,   color = lBlue,     linewidth = 2 * lErrorLineWidth4l)
         ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],       yerr = v_ratio['ey'],
@@ -367,10 +373,7 @@ for sel in ["4l"]:
 #       ax_top.yaxis.get_major_formatter().set_powerlimits((0, 1))
 
         # Bottom y axis
-        if hnames[h] == "cos_theta_z2":
-            ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, 3, step = 1) )
-        else:
-            ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, lRatioMax4l, step = 0.5) )
+        ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, lRatioMax4l, step = 0.5) )
 
 
 

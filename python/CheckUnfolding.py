@@ -11,10 +11,10 @@ from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
 
-from Cuts2016 import *
+from Cuts2012 import *
 
 
-np.set_printoptions(precision=1, suppress=True)
+np.set_printoptions(precision=4, suppress=True)
 
 ##
 ##  SAMPLE INFO
@@ -310,17 +310,20 @@ for sel in ["4l"]:
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
                                     ts = 'chi2',                ts_stopping = 0,
-                                    max_iter = 1000,            return_iterations = True,
+                                    max_iter = 200,             return_iterations = True,
 #                                   max_iter = 20,              return_iterations = True,
                                     callbacks = [Logger()]
                                     )
 
-        iters = [5, 20, 100, 1000]
+#       iters = [5, 20, 50, 99, 100]
 #       iters = [3, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+        iters = range(1, 200)
         for it in iters:
             print("Iteration", it, end='\n\n')
-            print("Result", results.loc[it - 1, 'unfolded'], sep='\n', end='\n\n')
-            print("Covariance matrix", results.loc[it - 1, 'covariance_matrix'], sep='\n', end='\n\n\n')
+#           print("Result", results.loc[it - 1, 'unfolded'], sep='\n', end='\n\n')
+#           print("Covariance matrix", results.loc[it - 1, 'covariance_matrix'], sep='\n', end='\n\n\n')
+            print(np.allclose(results.loc[it - 1, 'covariance_matrix'], results.loc[it, 'covariance_matrix'], rtol=1e-04, atol=1e-07))
+
 
 '''
         ##
