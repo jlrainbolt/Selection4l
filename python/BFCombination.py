@@ -213,6 +213,7 @@ print("QCD covariance", "\n",       cov_qcd, "\n")
 
 
 # Prefiring weight
+ecal_unc *= 1.0016
 unc_ecal = bf_meas * np.array([
                     [ ecal_unc["2012"]["4m"], ecal_unc["2012"]["2m2e"], ecal_unc["2012"]["4e"], ],
                     [ ecal_unc["2016"]["4m"], ecal_unc["2016"]["2m2e"], ecal_unc["2016"]["4e"], ],
@@ -268,8 +269,7 @@ unc_elid = bf_meas * np.array([
                 ])
 print("Electron ID uncertainties", "\n", unc_elid.flatten(), "\n")
 
-#el_13, el_8_13 = 1, 1
-el_13, el_8_13 = 1, 0
+el_13, el_8_13 = 1, 0.5
 
 rho_elid = np.array([#  2012        2016        2017        2018
                     [   1,          el_8_13,    el_8_13,    el_8_13,    ],  # 2012

@@ -1,6 +1,5 @@
 from __future__ import print_function
 from __future__ import division
-import sys
 
 import numpy as np
 from pyunfold import iterative_unfold
@@ -11,10 +10,10 @@ from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
 
-from Cuts2012 import *
+from Cuts2017 import *
 
 
-np.set_printoptions(precision=4, suppress=True)
+np.set_printoptions(precision=5, suppress=True, linewidth=110)
 
 ##
 ##  SAMPLE INFO
@@ -25,12 +24,11 @@ selection = ["4l"]
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f8'), ("y", 'f8'), ("ex", 'f8'), ("ey", 'f8'), ("b", 'f8')])
 
-hnames = ["b_l1p"]
+hnames = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
+        "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
 H = len(hnames)
 
-year = sys.argv[1]
-if year != YEAR_STR:
-    print("Wrong year in header file")
+draw_opt = ['unc', 'min', 'max']
 
 
 
@@ -157,7 +155,7 @@ for suff in MC_SUFF_4L:
     if suff in ["zz_4l", "zjets_m-50", "tt_2l2nu", "ttbar"]:
         continue
 
-    inName = inPath + prefix + "_" + year + "_" + suff + ".root"
+    inName = inPath + prefix + "_" + YEAR_STR + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
 
@@ -212,7 +210,6 @@ for sel in ["4l"]:
 ####
 ####
 
-
 # Store results in histograms (for now)
 result, stat = np.empty(H, dtype=T), np.empty(H, dtype=T)
 resp, unf, cov = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
@@ -260,16 +257,21 @@ for sel in ["4l"]:
         ##
 
         # Slicing
-        if hnames[h] == "b_l1p":
-            s = slice(0, -1)
-        elif hnames[h] == "b_ttm":
+        if hnames[h] in ["b_z1m"]:
+            s = slice(2, -1)
+        elif hnames[h] in ["b_z2m", "b_ttm"]:
             s = slice(1, None)
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps"]:
+        elif hnames[h] in ["b_l1p"]:
+            s = slice(0, -1)
+        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi"]:
             s = slice(1, -1)
         elif hnames[h] == "angle_z1leps":
             s = slice(3, -1)
+            if YEAR_STR == "2012":
+                s = slice(4, -1)
         elif hnames[h] == "angle_z1l2_z2":
             s = slice(1, -2)
+
 
         v_data = v_data[s]
         v_gen = v_gen[s]
@@ -297,6 +299,7 @@ for sel in ["4l"]:
 
         sigma = np.linalg.svd(v_resp['y'], compute_uv = False)
         cond_num = np.max(sigma) / np.min(sigma)
+        print("")
         print("Condition number for", hnames[h], "is", cond_num)
 
 
@@ -305,132 +308,114 @@ for sel in ["4l"]:
         ##  PERFORM UNFOLDING
         ##
 
+        max_iter = 100
+
         chisq_nu = chi2.isf(0.997, len(v_resp['y'])) / len(v_resp['y'])
         results = iterative_unfold( data = v_data['y'],         data_err = v_data['ey'],
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
-                                    ts = 'chi2',                ts_stopping = 0,
-                                    max_iter = 200,             return_iterations = True,
-#                                   max_iter = 20,              return_iterations = True,
-                                    callbacks = [Logger()]
+                                    ts = 'conv',                ts_stopping = 0,
+                                    max_iter = max_iter,        return_iterations = True,
+#                                   callbacks = [Logger()]
                                     )
 
-#       iters = [5, 20, 50, 99, 100]
-#       iters = [3, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-        iters = range(1, 200)
-        for it in iters:
-            print("Iteration", it, end='\n\n')
-#           print("Result", results.loc[it - 1, 'unfolded'], sep='\n', end='\n\n')
-#           print("Covariance matrix", results.loc[it - 1, 'covariance_matrix'], sep='\n', end='\n\n\n')
-            print(np.allclose(results.loc[it - 1, 'covariance_matrix'], results.loc[it, 'covariance_matrix'], rtol=1e-04, atol=1e-07))
+        y = {}
+        true_x, true_y = [], {opt:[] for opt in draw_opt}
+        false_x, false_y = [], {opt:[] for opt in draw_opt}
+
+        for it in range(max_iter):
+#           print("Iteration", it + 1, end='\n\n')
+#           print("Result", results.loc[it, 'unfolded'], sep='\n', end='\n\n')
+#           print("Covariance matrix", results.loc[it, 'covariance_matrix'], sep='\n', end='\n\n\n')
+#           if it > 0:
+#               print(np.isclose(results.loc[it - 1, 'covariance_matrix'], results.loc[it, 'covariance_matrix'], rtol=1e-2, atol=1e-2))
+
+            unc = np.sqrt(results.loc[it, 'stat_err']**2, results.loc[it, 'sys_err']**2)
+#           unc = np.mean(unc / results.loc[it, 'unfolded'])
+            y['unc'] = np.mean(unc)
+
+            y['max'] = np.max(results.loc[it, 'unfolded'])
+            y['min'] = np.min(results.loc[it, 'unfolded'])
+
+            if it == 0:
+                converged = np.allclose(np.zeros_like(results.loc[it, 'covariance_matrix']),
+                        results.loc[it, 'covariance_matrix'], rtol=1e-2, atol=1e-2)
+            else:
+                converged = np.allclose(results.loc[it - 1, 'covariance_matrix'],
+                        results.loc[it, 'covariance_matrix'], rtol=1e-2, atol=1e-2)
+
+            if converged:
+                true_x.append(it+1)
+                for opt in draw_opt:
+                    true_y[opt].append(y[opt])
+            else:
+                false_x.append(it+1)
+                for opt in draw_opt:
+                    false_y[opt].append(y[opt])
 
 
-'''
         ##
-        ##  GET RESULTS
+        ##  PLOT
         ##
 
-        # Unfolded result (total unc. and stat. only)
-        v_result, v_stat            = np.zeros_like(v_gen, dtype=V), np.zeros_like(v_gen, dtype=V)
-        v_result['y'], v_stat['y']  = results['unfolded'], results['unfolded']
-        v_result['ey']  = np.sqrt(results['stat_err']**2, results['sys_err']**2)
-        v_stat['ey']    = results['stat_err']
-
-        o = s.start
-
-        result[h][sel] = data[h][sel].Clone(hnames[h] + "_result")
-        result[h][sel].SetYTitle("")
-        for i in range(len(v_result)):
-            result[h][sel].SetBinContent(i + o, v_result[i]['y'])
-            result[h][sel].SetBinError(i + o, v_result[i]['ey'])
-
-        stat[h][sel] = data[h][sel].Clone(hnames[h] + "_stat")
-        stat[h][sel].SetYTitle("")
-        for i in range(len(v_stat)):
-            stat[h][sel].SetBinContent(i + o, v_stat[i]['y'])
-            stat[h][sel].SetBinError(i + o, v_stat[i]['ey'])
-
-        # Probability of final chi-squared
-        chisq_prob = chi2.sf(results['ts_iter'] * len(v_resp['y']), len(v_resp['y']))
-        print("Probability for", hnames[h], "is", chisq_prob)
+        if hnames[h] == "b_l1p":
+            xtitle = r"$p_{\ell_{1}}$"
+        elif hnames[h] == "b_z1m":
+            xtitle = r"$m_{\mathrm{Z}_{1}}$"
+        elif hnames[h] == "b_z2m":
+            xtitle = r"$m_{\mathrm{Z}_{2}}$"
+        elif hnames[h] == "b_ttm":
+            xtitle = r"$m_{\ell_{2,3,4}}$"
+        elif hnames[h] == "angle_z1l2_z2":
+            xtitle = r"$\beta$"
+        elif hnames[h] == "angle_z1leps":
+            xtitle = r"$\alpha_{\mathrm{Z}_{1}}$"
+        elif hnames[h] == "angle_z2leps":
+            xtitle = r"$\alpha_{\mathrm{Z}_{2}}$"
+        elif hnames[h] == "cos_theta_z1":
+            xtitle = r"$\cos\theta_{\mathrm{Z}_{1}}$"
+        elif hnames[h] == "cos_theta_z2":
+            xtitle = r"$\cos\theta_{\mathrm{Z}_{2}}$"
+        elif hnames[h] == "sin_phi":
+            xtitle = r"$\sin\phi$"
 
 
 
-        # Bin histograms in terms of indices
-        xbins, ybins = len(v_result), len(v_result)
-        xmin, ymin = o - 0.5, o - 0.5
-        xmax, ymax = xmin + xbins, ymin + ybins
+        for opt in draw_opt:
+            fig = plt.figure(figsize = (8,3))
+            ax = plt.axes()
 
+            p_false = ax.scatter(false_x, false_y[opt], marker='o', c = 'r')
+            p_true = ax.scatter(true_x, true_y[opt], marker='o', c = 'b')
 
-        # Response matrix
-        resp[h][sel] = TH2D(hnames[h] + "_response", "", xbins, xmin, xmax, ybins, ymin, ymax);
-        resp[h][sel].SetXTitle("i (bin)");
-        resp[h][sel].SetYTitle("j (bin)");
-        for i in range(xbins):
-            for j in range(ybins):
-                resp[h][sel].SetBinContent(i + 1, j + 1, v_resp[i][j]['y'])
-                resp[h][sel].SetBinError(i + 1, j + 1, v_resp[i][j]['ey'])
+            ax.set_title(xtitle)
+            ax.set_title(r"cond$(K) = {:,.2f}$".format(cond_num), loc='right')
 
-        # Unfolding matrix
-        v_unf   = results['unfolding_matrix']
+            y_min, y_max = ax.get_ylim()
+            if opt == 'min':
+                ax.set_ylim(y_min - (y_max - y_min)/4, y_max)
+            else:
+                ax.set_ylim(y_min, y_max + (y_max - y_min)/4)
 
-        unf[h][sel] = TH2D(hnames[h] + "_unfolding", "", xbins, xmin, xmax, ybins, ymin, ymax);
-        unf[h][sel].SetXTitle("i (bin)");
-        unf[h][sel].SetYTitle("j (bin)");
-        for i in range(xbins):
-            for j in range(ybins):
-                unf[h][sel].SetBinContent(i + 1, j + 1, v_unf[i][j])
+            ax.set_xlabel(r"Iteration $n$")
+            if opt == 'unc':
+                ax.set_ylabel('Mean unc. in result')
+            elif opt == 'max':
+                ax.set_ylabel('Max. bin of result')
+            elif opt == 'min':
+                ax.set_ylabel('Min. bin of result')
 
-        # Covariance matrix
-        v_cov   = results['covariance_matrix']
+            if opt == 'min':
+                leg_loc = 'upper right'
+            else:
+                leg_loc = 'lower right'
 
-        cov[h][sel] = TH2D(hnames[h] + "_covariance", "", xbins, xmin, xmax, ybins, ymin, ymax);
-        cov[h][sel].SetXTitle("i (bin)");
-        cov[h][sel].SetYTitle("j (bin)");
-        for i in range(xbins):
-            for j in range(ybins):
-                cov[h][sel].SetBinContent(i + 1, j + 1, v_cov[i][j])
+            ax.legend([r"Stopping criterion satisfied for $n$ and $n-1$",
+                r"Stopping criterion not satisfied for $n$ and $n-1$"],
+                loc = leg_loc, numpoints = 1, frameon = False)
 
-        # Data covariance matrix
-        var[h][sel] = TH2D(hnames[h] + "_data_cov", "", xbins, xmin, xmax, ybins, ymin, ymax);
-        var[h][sel].SetXTitle("i (bin)");
-        var[h][sel].SetYTitle("j (bin)");
-        for i in range(xbins):
-            var[h][sel].SetBinContent(i + 1, i + 1, v_data[i]['y'])
+            fig.tight_layout()
+            figname = opt + "_" + hnames[h] + "_" + YEAR_STR + ".pdf"
+            fig.savefig(figname)
 
-
-        print("")
-
-
-
-##
-##  OUTPUT FILE
-##
-
-# Create file
-outName = "unfolding_" + YEAR_STR + ".root"
-outFile = TFile(outName, "RECREATE")
-
-
-for h in range(H):
-    outFile.mkdir(hnames[h])
-    outFile.cd(hnames[h])
-
-    # Write histograms
-    mig[h]['4l'].Write()
-    resp[h]['4l'].Write()
-    unf[h]['4l'].Write()
-    cov[h]['4l'].Write()
-    var[h]['4l'].Write()
-
-    gen[h]['4l'].Write()
-    reco[h]['4l'].Write()
-    data[h]['4l'].Write()
-    bkg[h]['4l'].Write()
-    result[h]['4l'].Write()
-    stat[h]['4l'].Write()
-
-
-outFile.Close()
-print("Wrote output to", outName)
-'''
+            print("Saved plot as", figname)

@@ -58,12 +58,18 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 
 
 //
-//  TRIGGER REQUIREMENTS
+//  TRIGGERS
 //
 
 const float     MUON_SINGLE_PT = 24,    ELEC_SINGLE_PT = 27;
 const float     MUON_LEG1_PT = 17,      ELEC_LEG1_PT = 17;
 const float     MUON_LEG2_PT = 8,       ELEC_LEG2_PT = 8;
+
+
+const unsigned  N_TRIG = 0;             // number of trigger sf files
+const float     TRIG_FRAC = 1;          // fraction of events for first file
+const TString   TRIG_NAME = "";
+const TString   TRIG_PD[2] = {"ABCD", ""};
 
 
 //

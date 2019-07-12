@@ -32,6 +32,7 @@ struct Lepton
     pair<float, float>  id_sf;              // Scale factors for ID/reco
     pair<bool, bool>    di_hlt;             // Fired trigger leg1/leg2
     bool                si_hlt;             // Fired single-lepton trigger
+    float               trig_sf;            // Scale factor for single-lepton trigger
 
     // Boosted quantities
     TLorentzVector      b_p4;               // boosted 4-momentum

@@ -132,6 +132,7 @@ plt.grid(which='minor')
 # Save
 fig_name = "Exclusion_log.pdf"
 fig.savefig(fig_name)
+#fig.savefig(fig_name, transparent=True)
 
 print("Wrote plot to", fig_name)
 

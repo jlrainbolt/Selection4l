@@ -28,6 +28,19 @@ const float     MUON_MASS = 0.105658369,                        ELEC_MASS = 0.00
 
 
 //
+//  SAMPLES
+//
+
+const float     INT_LUMI = 35.921,                  SQRT_S = 13;
+const float     ELEC_TRIG_SF = 1;
+const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
+
+
+const float     NGEN_ZZ_4L = 6669988,               XSEC_ZZ_4L = 1.256;
+
+
+
+//
 //  PHASE SPACE
 //
 
@@ -58,12 +71,17 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 
 
 //
-//  TRIGGER REQUIREMENTS
+//  TRIGGERS
 //
 
 const float     MUON_SINGLE_PT = 24,    ELEC_SINGLE_PT = 27;
 const float     MUON_LEG1_PT = 17,      ELEC_LEG1_PT = 23;
 const float     MUON_LEG2_PT = 8,       ELEC_LEG2_PT = 12;
+
+const unsigned  N_TRIG = 2;                             // number of trigger sf files
+const float     TRIG_FRAC = 19.695 / INT_LUMI;          // fraction of events for first file
+const TString   TRIG_NAME = "IsoMu24_OR_IsoTkMu24";
+const TString   TRIG_PD[2] = {"BCDEF", "GH"};
 
 
 
@@ -81,19 +99,6 @@ const int       MUON_BAD_TRACK = 2;
 //
 
 const float     MATCH_DR_MAX = 0.02;
-
-
-
-//
-//  SAMPLES
-//
-
-const float     INT_LUMI = 36.42,                   SQRT_S = 13;
-const float     ELEC_TRIG_SF = 1;
-const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
-
-
-const float     NGEN_ZZ_4L = 6669988,               XSEC_ZZ_4L = 1.256;
 
 
 #endif // CUTS2016_HH

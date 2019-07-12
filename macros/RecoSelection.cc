@@ -8,12 +8,14 @@
 #include "TString.h"
 #include "TFile.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TGraphAsymmErrors.h"
 #include "TTree.h"
 #include "TTreeReader.h"
 #include "TTreeReaderValue.h"
 #include "TTreeReaderArray.h"
 #include "TLorentzVector.h"
+#include "TRandom3.h"
 
 // Custom
 #include "Lepton.hh"
@@ -358,6 +360,28 @@ void RecoSelection( const TString suffix,           const TString id,
     graphFile->Close();
 
 
+    // Trigger scale factors (only single muon for now)
+    TString histName[2];
+    TH2 *sfHist[2];
+
+    if (allowUntriggered)
+    {
+        for (unsigned i = 0; i < N_TRIG; i++)
+        {
+            histName[i] = "../data/muon_trig_sf_" + YEAR_STR + "_" + TRIG_PD[i] + ".root";
+
+            TFile *histFile = TFile::Open(histName[i]);
+            histFile->GetObject(TRIG_NAME + "_PtEtaBins/abseta_pt_ratio", sfHist[i]);
+            sfHist[i]->SetDirectory(0);
+
+            histFile->Close();
+        }
+    }
+
+    // RNG to choose file
+    TRandom3 rng;
+
+
 
     //
     //  HISTOGRAMS
@@ -458,6 +482,10 @@ void RecoSelection( const TString suffix,           const TString id,
         if (print)
             cout << "Passed preselection" << endl;
 
+        // Throw a random number to decide which trigger SF file to pull from
+        const unsigned TI = rng.Rndm() < TRIG_FRAC ? 0 : 1;
+        TH2 *hist = sfHist[TI];
+
 
 
 
@@ -495,13 +523,23 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
             // Correct energy (if necessary)
-
             if (smearMuonPt)
             {
                 float corrPt = muon.u_p4.Pt() * (*muonEnergySF_)[i];
                 muon.p4.SetPtEtaPhiM(corrPt, muon.u_p4.Eta(), muon.u_p4.Phi(), muon.u_p4.M());
             }
-
+            
+            // Get trigger scale factor
+            if (!isData and !YEAR_STR.EqualTo("2012") and allowUntriggered)
+            {
+                int bin = hist->FindBin(fabs(muon.p4.Eta()), muon.p4.Pt());
+                if (hist->IsBinUnderflow(bin) || hist->IsBinOverflow(bin))
+                    muon.trig_sf = 1;
+                else
+                    muon.trig_sf = hist->GetBinContent(bin);
+            }
+            else
+                muon.trig_sf = 1;
 
             muons.push_back(muon);
         }
@@ -958,11 +996,25 @@ void RecoSelection( const TString suffix,           const TString id,
         {
             if      (muonTrig)
             {
-                trigWeight = 1;
                 ecalWeight = 1;
+                trigWeight = 1;
+                for (unsigned i = 0; i < nTightMuons; i++)
+                    trigWeight *= muons[i].trig_sf;
             }
             else if (elecTrig)
+            {
+                // check for events with more than one electron with eta > 2.1
+                unsigned n_pref = 0;
+                for (unsigned i = 0; i < nTightElecs; i++)
+                {
+                    if (elecs[i].p4.Eta() > ELEC_ETA_PREF)
+                        n_pref++;
+                }
+                if (n_pref > 1)
+                    ecalWeight = 1;
+
                 trigWeight = ELEC_TRIG_SF;
+            }
             else // untriggered
                 ecalWeight = 1;
         }

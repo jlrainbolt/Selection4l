@@ -10,10 +10,10 @@
 #include "TH1.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -86,6 +86,8 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
         make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     10,     -2.5,   2.5),
  
         // Z rest frame kinematics                                                
+        make_tuple( "b_z1m",    "b_z1p4.M()",    _m_(_Z1),      _GeV,       11,     4,      92),
+        make_tuple( "b_z2m",    "b_z2p4.M()",    _m_(_Z2),      _GeV,       11,     4,      37),
         make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
                                 
         make_tuple( "b_l1p",    "b_l1v3.Mag()",  _p_(_l_(1)),   _GeV,       10,     25,     50),

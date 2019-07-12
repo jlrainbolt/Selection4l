@@ -23,103 +23,62 @@ model       = ScalarU
 finalstate  = 4l
 nevents     = 10000
 
-    gUbe = 0.3
-    gUbmu = 0.3
 
-        MUb = 45
-        queue
+    MUb = 18
 
-        MUb = 50
-        queue
-
-        MUb = 60
+        gUbe = 0.035
+        gUbmu = 0.035
         queue
 
 
-    gUbe = 0.5
-    gUbmu = 0.5
+    MUb = 20
 
-        MUb = 50
-        queue
-
-        MUb = 60
-        queue
-
-        MUb = 70
+        gUbe = 0.035
+        gUbmu = 0.035
         queue
 
 
-    gUbe = 0.022
-    gUbmu = 0.022
+    MUb = 16
 
-        MUb = 7
-        queue
-
-        MUb = 8
-        queue
-
-        MUb = 9
-        queue
-
-        MUb = 10
-        queue
-
-        MUb = 12
-        queue
-
-        MUb = 14
-        queue
-
-        MUb = 16
+        gUbe = 0.035
+        gUbmu = 0.035
         queue
 
 
-    gUbe = 0.011
-    gUbmu = 0.011
+    MUb = 14
 
-        MUb = 4
-        queue
-
-        MUb = 5
-        queue
-
-        MUb = 6
+        gUbe = 0.025
+        gUbmu = 0.025
         queue
 
 
-    gUbe = 0.017
-    gUbmu = 0.017
+    MUb = 12
 
-        MUb = 4
-        queue
-
-        MUb = 5
-        queue
-
-        MUb = 6
-        queue
-
-        MUb = 7
-        queue
-
-        MUb = 8
+        gUbe = 0.025
+        gUbmu = 0.025
         queue
 
 
-    MUb = 35
+    MUb = 10
 
-        gUbe = 0.05
-        gUbmu = 0.05
+        gUbe = 0.017
+        gUbmu = 0.017
         queue
 
-        gUbe = 0.06
-        gUbmu = 0.06
+
+    MUb = 6
+
+        gUbe = 0.017
+        gUbmu = 0.017
         queue
 
-        gUbe = 0.07
-        gUbmu = 0.07
+
+    MUb = 5
+
+        gUbe = 0.017
+        gUbmu = 0.017
         queue
 
-        gUbe = 0.08
-        gUbmu = 0.08
+        gUbe = 0.015
+        gUbmu = 0.015
         queue

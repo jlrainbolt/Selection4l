@@ -20,403 +20,76 @@ request_memory          = 4000
 arguments   = "$(model) $(finalstate) $(nevents) $(MUb) $(gUbe) $(gUbmu)"
 
 model       = VectorU
-finalstate  = 4e
+finalstate  = 4m
 nevents     = 10000
 
-gUbmu = 0
-
-
-    mUb = 80
-
-        gUbe = 1
-        queue
-
-        gUbe = 0.8
-        queue
-
-        gUbe = 0.6
-        queue
-
-        gUbe = 0.4
-        queue
-
-        gUbe = 0.3
-        queue
-
-        gUbe = 0.2
-        queue
-
-
-    mUb = 70
-
-        gUbe = 1
-        queue
-
-        gUbe = 0.8
-        queue
-
-        gUbe = 0.6
-        queue
-
-        gUbe = 0.4
-        queue
-
-        gUbe = 0.3
-        queue
-
-        gUbe = 0.2
-        queue
-
-        gUbe = 0.15
-        queue
-
-
-    mUb = 60
-
-        gUbe = 0.8
-        queue
-
-        gUbe = 0.6
-        queue
-
-        gUbe = 0.4
-        queue
-
-        gUbe = 0.3
-        queue
-
-        gUbe = 0.2
-        queue
-
-        gUbe = 0.15
-        queue
-
-        gUbe = 0.1
-        queue
-
-
-    mUb = 50
-
-        gUbe = 0.8
-        queue
-
-        gUbe = 0.6
-        queue
-
-        gUbe = 0.4
-        queue
-
-        gUbe = 0.3
-        queue
-
-        gUbe = 0.2
-        queue
-
-        gUbe = 0.15
-        queue
-
-        gUbe = 0.1
-        queue
-
-        gUbe = 0.08
-        queue
+gUbe = 0
 
 
     mUb = 45
 
-        gUbe = 0.15
+        gUbmu = 0.08
         queue
 
-        gUbe = 0.1
-        queue
-
-        gUbe = 0.08
-        queue
-
-        gUbe = 0.06
-        queue
-
-
-    mUb = 40
-
-        gUbe = 0.1
-        queue
-
-        gUbe = 0.08
-        queue
-
-        gUbe = 0.06
-        queue
-
-        gUbe = 0.04
-        queue
-
-
-    mUb = 35
-
-        gUbe = 0.08
-        queue
-
-        gUbe = 0.06
-        queue
-
-        gUbe = 0.04
-        queue
-
-        gUbe = 0.035
-        queue
-
-
-    mUb = 30
-
-        gUbe = 0.08
-        queue
-
-        gUbe = 0.06
-        queue
-
-        gUbe = 0.04
-        queue
-
-        gUbe = 0.035
-        queue
-
-        gUbe = 0.03
+        gUbmu = 0.06
         queue
 
 
     mUb = 28
 
-        gUbe = 0.04
-        queue
-
-        gUbe = 0.035
-        queue
-
-        gUbe = 0.03
+        gUbmu = 0.025
         queue
 
 
     mUb = 26
 
-        gUbe = 0.04
-        queue
-
-        gUbe = 0.035
-        queue
-
-        gUbe = 0.03
-        queue
-
-        gUbe = 0.025
+        gUbmu = 0.025
         queue
 
 
     mUb = 24
 
-        gUbe = 0.04
-        queue
-
-        gUbe = 0.035
-        queue
-
-        gUbe = 0.03
-        queue
-
-        gUbe = 0.025
+        gUbmu = 0.022
         queue
 
 
     mUb = 22
 
-        gUbe = 0.035
+        gUbmu = 0.035
         queue
 
-        gUbe = 0.03
-        queue
-
-        gUbe = 0.025
-        queue
-
-        gUbe = 0.022
-        queue
-
-
-    mUb = 20
-
-        gUbe = 0.035
-        queue
-
-        gUbe = 0.03
-        queue
-
-        gUbe = 0.025
-        queue
-
-        gUbe = 0.022
-        queue
-
-
-    mUb = 18
-
-        gUbe = 0.03
-        queue
-
-        gUbe = 0.025
-        queue
-
-        gUbe = 0.022
-        queue
-
-        gUbe = 0.02
+        gUbmu = 0.022
         queue
 
 
     mUb = 16
 
-        gUbe = 0.03
-        queue
-
-        gUbe = 0.025
-        queue
-
-        gUbe = 0.022
-        queue
-
-        gUbe = 0.02
+        gUbmu = 0.018
         queue
 
 
     mUb = 14
 
-        gUbe = 0.025
-        queue
-
-        gUbe = 0.022
-        queue
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
+        gUbmu = 0.018
         queue
 
 
     mUb = 12
 
-        gUbe = 0.022
-        queue
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
-        queue
-
-        gUbe = 0.016
-        queue
-
-
-    mUb = 10
-
-        gUbe = 0.022
-        queue
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
-        queue
-
-        gUbe = 0.016
-        queue
-
-
-    mUb = 9
-
-        gUbe = 0.022
-        queue
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
-        queue
-
-        gUbe = 0.016
-        queue
-
-
-    mUb = 8
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
-        queue
-
-        gUbe = 0.016
-        queue
-
-        gUbe = 0.015
-        queue
-
-
-    mUb = 7
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
-        queue
-
-        gUbe = 0.016
-        queue
-
-        gUbe = 0.015
-        queue
-
-
-    mUb = 6
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
-        queue
-
-        gUbe = 0.016
-        queue
-
-        gUbe = 0.015
+        gUbmu = 0.016
         queue
 
 
     mUb = 5
 
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
-        queue
-
-        gUbe = 0.016
-        queue
-
-        gUbe = 0.015
+        gUbmu = 0.014
         queue
 
 
     mUb = 4
 
-        gUbe = 0.025
+        gUbmu = 0.025
         queue
 
-        gUbe = 0.022
-        queue
-
-        gUbe = 0.02
-        queue
-
-        gUbe = 0.018
+        gUbmu = 0.022
         queue

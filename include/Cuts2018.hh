@@ -58,12 +58,19 @@ const float     SF_DR_MIN = 0.02,       OF_DR_MIN = 0.05;
 
 
 //
-//  TRIGGER REQUIREMENTS
+//  TRIGGERS
 //
+
+const float     INT_LUMI = 59.741;
 
 const float     MUON_SINGLE_PT = 24,    ELEC_SINGLE_PT = 35;
 const float     MUON_LEG1_PT = 17,      ELEC_LEG1_PT = 23;
 const float     MUON_LEG2_PT = 8,       ELEC_LEG2_PT = 12;
+
+const unsigned  N_TRIG = 2;                         // number of trigger sf files
+const float     TRIG_FRAC = 8.951 / INT_LUMI;       // fraction of events for first file
+const TString   TRIG_NAME = "IsoMu24";
+const TString   TRIG_PD[2] = {"A", "ABCD"};
 
 
 
@@ -81,20 +88,6 @@ const int       MUON_BAD_TRACK = 2;
 //
 
 const float     MATCH_DR_MAX = 0.02;
-
-
-
-//
-//  SYSTEMATICS
-//
-
-//const float     MUON_PT_SHIFT = 0.002,  ELEC_PT_SHIFT = 0.005;
-
-//const unsigned  N_HISTS = 100;
-                            //  ll          mumu        ee
-//const float     AXE_2L[3] = {   0.320909,   0.376059,   0.265793};
-                            //  4l          4m          2m2e        4e
-//const float     AXE_4L[4] = {   0.043777,   0.0868125,  0.0335567,  0.0204522};
 
 
 
