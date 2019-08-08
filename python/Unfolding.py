@@ -6,7 +6,7 @@ import numpy as np
 from numpy.linalg import multi_dot, pinv
 from pyunfold import iterative_unfold
 #from pyunfold.callbacks import Logger
-from scipy.stats import chi2
+#from scipy.stats import chi2
 
 from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
@@ -30,7 +30,7 @@ T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f8'), ("y", 'f8'), ("ex", 'f8'), ("ey", 'f8'), ("b", 'f8')])
 
 hnames = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
-            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
+            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi", "sin_phi_10"]
 H = len(hnames)
 
 year = sys.argv[1]
@@ -225,8 +225,15 @@ result, stat = np.empty(H, dtype=T), np.empty(H, dtype=T)
 resp, unf, cov = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
 var = np.empty(H, dtype=T)
 
+
+# Store unfolding info in arrays
+bins, n_iter, cond_num = np.empty(H), np.empty(H), np.empty(H)
+chisq_smr, chisq_unf = np.empty(H), np.empty(H)
+
+
 for sel in ["4l"]:
     for h in range(H):
+
 
         ##
         ##  GET BIN CONTENT
@@ -237,28 +244,28 @@ for sel in ["4l"]:
         for i in range(len(v_data)):
             v_data[i]['x']  = data[h][sel].GetBinCenter(i)
             v_data[i]['y']  = np.maximum(data[h][sel].GetBinContent(i), data_bin_min)
-            v_data[i]['ey'] = data[h][sel].GetBinError(i)
+            v_data[i]['ey'] = data[h][sel].GetBinErrorUp(i)
 
         # Gen MC
         v_gen = np.zeros(gen[h][sel].GetNbinsX() + 2, dtype=V)
         for i in range(len(v_gen)):
             v_gen[i]['x']   = gen[h][sel].GetBinLowEdge(i)
             v_gen[i]['y']   = gen[h][sel].GetBinContent(i)
-            v_gen[i]['ey']  = gen[h][sel].GetBinError(i)
+            v_gen[i]['ey']  = gen[h][sel].GetBinErrorUp(i)
 
         # Reco MC (only used for tests)
         v_reco = np.zeros(reco[h][sel].GetNbinsX() + 2, dtype=V)
         for i in range(len(v_gen)):
             v_reco[i]['x']  = reco[h][sel].GetBinLowEdge(i)
             v_reco[i]['y']  = reco[h][sel].GetBinContent(i)
-            v_reco[i]['ey'] = reco[h][sel].GetBinError(i)
+            v_reco[i]['ey'] = reco[h][sel].GetBinErrorUp(i)
 
         # Migrations
         v_mig = np.zeros([mig[h][sel].GetNbinsX() + 2, mig[h][sel].GetNbinsY() + 2], dtype=V)
         for i in range(np.size(v_mig, 0)):
             for j in range(np.size(v_mig, 1)):
                 v_mig[i][j]['y']    = mig[h][sel].GetBinContent(i, j)
-                v_mig[i][j]['ey']   = mig[h][sel].GetBinError(i, j)
+                v_mig[i][j]['ey']   = mig[h][sel].GetBinErrorUp(i, j)
 
 
 
@@ -267,25 +274,42 @@ for sel in ["4l"]:
         ##
 
         # Slicing
-        if hnames[h] in ["b_z1m"]:
-            s = slice(2, -1)
-        elif hnames[h] in ["b_z2m", "b_ttm"]:
-            s = slice(1, None)
-        elif hnames[h] in ["b_l1p"]:
-            s = slice(0, -1)
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi"]:
-            s = slice(1, -1)
-        elif hnames[h] == "angle_z1leps":
-            s = slice(3, -1)
+        if hnames[h] == "b_z1m":
+            if YEAR_STR in ["2012", "2016"]:
+                s = slice(2, -2)
+            else:
+                s = slice(2, -1)
+        elif hnames[h] == "b_z2m":
             if YEAR_STR == "2012":
-                s = slice(4, -1)
+                s = slice(1, -1)
+            else:
+                s = slice(1, None)
+        elif hnames[h] in ["b_l1p"]:
+            if YEAR_STR in ["2012", "2017"]:
+                s = slice(1, -1)
+            else:
+                s = slice(0, -1)
+        elif hnames[h] == "b_ttm":
+            if YEAR_STR in ["2017", "2018"]:
+                s = slice(1, -1)
+            else:
+                s = slice(1, None)
         elif hnames[h] == "angle_z1l2_z2":
             s = slice(1, -2)
+        elif hnames[h] == "angle_z1leps":
+            if YEAR_STR == "2012":
+                s = slice(4, -1)
+            else:
+                s = slice(3, -1)
+        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi"]:
+            s = slice(1, -1)
 
         v_data = v_data[s]
         v_gen = v_gen[s]
         v_reco = v_reco[s]
         v_mig = v_mig[s, s]
+
+        bins[h] = len(v_data)
 
 
         # Efficiencies (assume 1)
@@ -316,8 +340,8 @@ for sel in ["4l"]:
         ##
 
         sigma = np.linalg.svd(v_resp['y'], compute_uv = False)
-        cond_num = np.max(sigma) / np.min(sigma)
-        print("Condition number for", hnames[h], "is", cond_num)
+        cond_num[h] = np.max(sigma) / np.min(sigma)
+        print("Condition number for", hnames[h], "is", cond_num[h])
 
 
 
@@ -325,16 +349,15 @@ for sel in ["4l"]:
         ##  PERFORM UNFOLDING
         ##
 
-        chisq_nu = chi2.isf(0.997, len(v_resp['y'])) / len(v_resp['y'])
+#       chisq_nu = chi2.isf(0.997, len(v_resp['y'])) / len(v_resp['y'])
         results = iterative_unfold( data = v_data['y'],         data_err = v_data['ey'],
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
-#                                   ts = 'chi2',                ts_stopping = chisq_nu,
                                     ts = 'conv',                ts_stopping = 1e-2,
                                     max_iter=1000,              #callbacks = [Logger()]
                                     )
-        stop_iter = results['num_iterations']
-        print("Iterations:", stop_iter)
+        n_iter[h] = results['num_iterations']
+        print("Iterations:", n_iter[h])
 
 
 
@@ -408,17 +431,14 @@ for sel in ["4l"]:
 
         # Bottom line test 
         diff_unf = v_result['y'] - v_gen['y']
-        chisq_unf = multi_dot([diff_unf.T, pinv(v_cov), diff_unf])
-        print("Unfolded chi^2:", chisq_unf)
+        chisq_unf[h] = multi_dot([diff_unf.T, pinv(v_cov), diff_unf])
+        print("Unfolded chi^2:", chisq_unf[h])
 
         diff_smr = v_data['y'] - v_reco['y']
         cov_smr = np.diag(v_data['y'])
-        chisq_smr = multi_dot([diff_smr.T, pinv(cov_smr), diff_smr])
-        print("Smeared chi^2:", chisq_smr)
-        print("Pass bottom line test:", chisq_smr > chisq_unf)
-
-#       chisq_prob = chi2.sf(results['ts_iter'] * len(v_resp['y']), len(v_resp['y']))
-#       print("Probability for", hnames[h], "is", chisq_prob)
+        chisq_smr[h] = multi_dot([diff_smr.T, pinv(cov_smr), diff_smr])
+        print("Smeared chi^2:", chisq_smr[h])
+        print("Pass bottom line test:", chisq_smr[h] > chisq_unf[h])
 
 
         print("")
@@ -458,3 +478,14 @@ for h in range(H):
 
 outFile.Close()
 print("Wrote output to", outName)
+
+
+# Save arrays
+names = np.array(hnames, dtype=object)   # strings of (ugly) names
+
+print("")
+outfile = "unfolding" + YEAR_STR + ".npz"
+np.savez(outfile, names=names, bins=bins, cond_num=cond_num, n_iter=n_iter,
+        chisq_smr=chisq_smr, chisq_unf=chisq_unf)
+
+print("Wrote arrays to", outfile)

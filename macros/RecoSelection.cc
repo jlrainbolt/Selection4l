@@ -63,8 +63,9 @@ void RecoSelection( const TString suffix,           const TString id,
     const bool smearMuonPt = systematics.EqualTo("muonPt");
     const bool smearElecPt = systematics.EqualTo("electronPt");
     const bool allowUntriggered = systematics.EqualTo("triggerEff");
+    const bool checkPrefiring = systematics.EqualTo("checkPref");
 
-    const bool systOn = allowUntriggered || smearMuonPt || smearElecPt;
+    const bool systOn = allowUntriggered || checkPrefiring || smearMuonPt || smearElecPt;
 
     if ((smearMuonPt || smearElecPt) && !var.EqualTo("Up") && !var.EqualTo("Down"))
     {
@@ -128,6 +129,7 @@ void RecoSelection( const TString suffix,           const TString id,
     UShort_t            channel;
     Bool_t              hasTauDecay;
     Bool_t              muonTrig,   siMuTrig,   diMuTrig,   elecTrig,   siElTrig,   diElTrig;
+    Bool_t              diTrig12,   diTrig13,   diTrig14,   diTrig23,   diTrig24,   diTrig34;
 
     // Pairs
     TLorentzVector      z1p4,       z2p4,       zzp4;
@@ -167,6 +169,13 @@ void RecoSelection( const TString suffix,           const TString id,
             tree[i]->Branch("muonTrig",     &muonTrig); tree[i]->Branch("doubleMuTrig", &diMuTrig);
             tree[i]->Branch("singleMuTrig", &siMuTrig); tree[i]->Branch("electronTrig", &elecTrig);
             tree[i]->Branch("doubleElTrig", &diElTrig); tree[i]->Branch("singleElTrig", &siElTrig);
+        }
+
+        if (isData || isSignal)
+        {
+            tree[i]->Branch("diTrig12", &diTrig12);     tree[i]->Branch("diTrig13",     &diTrig13);
+            tree[i]->Branch("diTrig14", &diTrig14);     tree[i]->Branch("diTrig23",     &diTrig23);
+            tree[i]->Branch("diTrig24", &diTrig24);     tree[i]->Branch("diTrig34",     &diTrig34);
         }
 
         if (isSignal || isDrellYan)
@@ -359,7 +368,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     graphFile->Close();
 
-
+/*
     // Trigger scale factors (only single muon for now)
     TString histName[2];
     TH2 *sfHist[2];
@@ -380,7 +389,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     // RNG to choose file
     TRandom3 rng;
-
+*/
 
 
     //
@@ -459,6 +468,8 @@ void RecoSelection( const TString suffix,           const TString id,
 
         // Needing initialization
         trigWeight  = 1;                qtWeight    = 1;                idWeight    = 1;
+        diTrig12    = kFALSE;           diTrig13    = kFALSE;           diTrig14    = kFALSE;
+        diTrig23    = kFALSE;           diTrig24    = kFALSE;           diTrig34    = kFALSE;
 
         // Used in analysis, but not written out
         unsigned    nMuons      = *nMuons_,             nElecs      = *nElecs_;
@@ -483,8 +494,8 @@ void RecoSelection( const TString suffix,           const TString id,
             cout << "Passed preselection" << endl;
 
         // Throw a random number to decide which trigger SF file to pull from
-        const unsigned TI = rng.Rndm() < TRIG_FRAC ? 0 : 1;
-        TH2 *hist = sfHist[TI];
+//      const unsigned TI = rng.Rndm() < TRIG_FRAC ? 0 : 1;
+//      TH2 *hist = sfHist[TI];
 
 
 
@@ -528,7 +539,7 @@ void RecoSelection( const TString suffix,           const TString id,
                 float corrPt = muon.u_p4.Pt() * (*muonEnergySF_)[i];
                 muon.p4.SetPtEtaPhiM(corrPt, muon.u_p4.Eta(), muon.u_p4.Phi(), muon.u_p4.M());
             }
-            
+/*
             // Get trigger scale factor
             if (!isData and !YEAR_STR.EqualTo("2012") and allowUntriggered)
             {
@@ -539,6 +550,7 @@ void RecoSelection( const TString suffix,           const TString id,
                     muon.trig_sf = hist->GetBinContent(bin);
             }
             else
+*/
                 muon.trig_sf = 1;
 
             muons.push_back(muon);
@@ -641,6 +653,10 @@ void RecoSelection( const TString suffix,           const TString id,
             siElTrig = siElTrig && matchedSingle;
         }
 
+
+/*
+        // Enforce kinematic requirements for untriggered events
+
         if (allowUntriggered)
         {
             bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
@@ -670,6 +686,7 @@ void RecoSelection( const TString suffix,           const TString id,
             if (!matchedMuTrig && !matchedElTrig)
                 continue;
         }
+*/
 
         muonTrig = diMuTrig || siMuTrig;
         elecTrig = diElTrig || siElTrig;
@@ -956,6 +973,45 @@ void RecoSelection( const TString suffix,           const TString id,
 
 
             //
+            //  TRIGGER EFFICIENCY
+            //
+
+            // Pairs of indices to test for dilepton triggers in 4m and 4e events
+            const unsigned NP = 6;
+            pair<unsigned, unsigned> ix[NP] = { make_pair(0,1), make_pair(0,2), make_pair(0,3),
+                                                make_pair(1,2), make_pair(1,3), make_pair(2,3)  };
+            bool diTrigLL[NP] = {   kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, };
+
+            for (unsigned j = 0; j < NP; j++)
+            {
+                Lepton lepA = all_leps[ix[j].first], lepB = all_leps[ix[j].second];
+
+                if (fabs(lepA.pdg) != fabs(lepB.pdg))
+                    continue;
+
+                // Check if appropriate trigger fired
+                bool areMuons = (fabs(lepA.pdg) == 13);
+                bool diLepTrig = areMuons ? diMuTrig : diElTrig;
+                float LEP_LEG1_PT = areMuons? MUON_LEG1_PT : ELEC_LEG1_PT;
+                float LEP_LEG2_PT = areMuons? MUON_LEG2_PT : ELEC_LEG2_PT;
+
+                if  (
+                        (
+                            (lepA.di_hlt.first && lepA.p4.Pt() > LEP_LEG1_PT)
+                            && (lepB.di_hlt.second && lepB.p4.Pt() > LEP_LEG2_PT)
+                        ) || (
+                            (lepB.di_hlt.first && lepB.p4.Pt() > LEP_LEG1_PT)
+                            && (lepA.di_hlt.second && lepA.p4.Pt() > LEP_LEG2_PT)
+                        )
+                    )
+                    diTrigLL[j] = diLepTrig;
+            }
+            diTrig12 = diTrigLL[0];     diTrig13 = diTrigLL[1];     diTrig14 = diTrigLL[2];
+            diTrig23 = diTrigLL[3];     diTrig24 = diTrigLL[4];     diTrig34 = diTrigLL[5];
+
+
+
+            //
             //  EVENT WEIGHT
             //
 
@@ -1003,15 +1059,18 @@ void RecoSelection( const TString suffix,           const TString id,
             }
             else if (elecTrig)
             {
-                // check for events with more than one electron with eta > 2.1
-                unsigned n_pref = 0;
-                for (unsigned i = 0; i < nTightElecs; i++)
+                if (checkPrefiring)
                 {
-                    if (elecs[i].p4.Eta() > ELEC_ETA_PREF)
-                        n_pref++;
+                    // check for events with more than one electron with eta > 2.1
+                    unsigned n_pref = 0;
+                    for (unsigned i = 0; i < nTightElecs; i++)
+                    {
+                        if (elecs[i].p4.Eta() > ELEC_ETA_PREF)
+                            n_pref++;
+                    }
+                    if (n_pref > 1)
+                        ecalWeight = 0;
                 }
-                if (n_pref > 1)
-                    ecalWeight = 1;
 
                 trigWeight = ELEC_TRIG_SF;
             }

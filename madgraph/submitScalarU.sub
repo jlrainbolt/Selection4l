@@ -20,65 +20,19 @@ request_memory          = 6000
 arguments   = "$(model) $(finalstate) $(nevents) $(MUb) $(gUbe) $(gUbmu)"
 
 model       = ScalarU
-finalstate  = 4l
+finalstate  = 4e
 nevents     = 10000
 
+gUbmu = 0
 
-    MUb = 18
 
-        gUbe = 0.035
-        gUbmu = 0.035
+    MUb = 45
+
+        gUbe = 0.15
         queue
 
-
-    MUb = 20
-
-        gUbe = 0.035
-        gUbmu = 0.035
+        gUbe = 0.2
         queue
 
-
-    MUb = 16
-
-        gUbe = 0.035
-        gUbmu = 0.035
-        queue
-
-
-    MUb = 14
-
-        gUbe = 0.025
-        gUbmu = 0.025
-        queue
-
-
-    MUb = 12
-
-        gUbe = 0.025
-        gUbmu = 0.025
-        queue
-
-
-    MUb = 10
-
-        gUbe = 0.017
-        gUbmu = 0.017
-        queue
-
-
-    MUb = 6
-
-        gUbe = 0.017
-        gUbmu = 0.017
-        queue
-
-
-    MUb = 5
-
-        gUbe = 0.017
-        gUbmu = 0.017
-        queue
-
-        gUbe = 0.015
-        gUbmu = 0.015
+        gUbe = 0.3
         queue

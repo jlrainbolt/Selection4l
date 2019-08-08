@@ -10,7 +10,7 @@ from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
 
 from PlotUtils import *
 
-from Cuts2017 import *
+from Cuts2012 import *
 
 
 np.set_printoptions(precision=5, suppress=True, linewidth=110)
@@ -257,21 +257,36 @@ for sel in ["4l"]:
         ##
 
         # Slicing
-        if hnames[h] in ["b_z1m"]:
-            s = slice(2, -1)
-        elif hnames[h] in ["b_z2m", "b_ttm"]:
-            s = slice(1, None)
-        elif hnames[h] in ["b_l1p"]:
-            s = slice(0, -1)
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi"]:
-            s = slice(1, -1)
-        elif hnames[h] == "angle_z1leps":
-            s = slice(3, -1)
+
+        if hnames[h] == "b_z1m":
+            if YEAR_STR in ["2012", "2016"]:
+                s = slice(2, -2)
+            else:
+                s = slice(2, -1)
+        elif hnames[h] == "b_z2m":
             if YEAR_STR == "2012":
-                s = slice(4, -1)
+                s = slice(1, -1)
+            else:
+                s = slice(1, None)
+        elif hnames[h] in ["b_l1p"]:
+            if YEAR_STR in ["2012", "2017"]:
+                s = slice(1, -1)
+            else:
+                s = slice(0, -1)
+        elif hnames[h] == "b_ttm":
+            if YEAR_STR in ["2017", "2018"]:
+                s = slice(1, -1)
+            else:
+                s = slice(1, None)
         elif hnames[h] == "angle_z1l2_z2":
             s = slice(1, -2)
-
+        elif hnames[h] == "angle_z1leps":
+            if YEAR_STR == "2012":
+                s = slice(4, -1)
+            else:
+                s = slice(3, -1)
+        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi"]:
+            s = slice(1, -1)
 
         v_data = v_data[s]
         v_gen = v_gen[s]
@@ -396,6 +411,14 @@ for sel in ["4l"]:
                 ax.set_ylim(y_min - (y_max - y_min)/4, y_max)
             else:
                 ax.set_ylim(y_min, y_max + (y_max - y_min)/4)
+                
+            y_offset = (y_max - y_min)/4
+            if opt != 'min':
+                y_offset *= -1
+
+            ax.annotate(r"$n = {:,.0f}$".format(true_x[0]), xy=(true_x[0], true_y[opt][0]),
+                    xytext=(true_x[0], true_y[opt][0] + y_offset), fontsize='large',
+                    horizontalalignment='center', arrowprops=dict(arrowstyle='->'))
 
             ax.set_xlabel(r"Iteration $n$")
             if opt == 'unc':
@@ -410,8 +433,8 @@ for sel in ["4l"]:
             else:
                 leg_loc = 'lower right'
 
-            ax.legend([r"Stopping criterion satisfied for $n$ and $n-1$",
-                r"Stopping criterion not satisfied for $n$ and $n-1$"],
+            ax.legend([r"Stopping criterion not satisfied for $n$ and $n-1$",
+                r"Stopping criterion satisfied for $n$ and $n-1$"],
                 loc = leg_loc, numpoints = 1, frameon = False)
 
             fig.tight_layout()

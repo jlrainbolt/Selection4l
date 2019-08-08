@@ -7,10 +7,10 @@ import numpy as np
 from ROOT import TFile, TH1
 
 from PlotUtils import *
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -44,10 +44,13 @@ print("Opened", elName)
 
 # Get histograms
 #hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
-#hnames = ["sin_phi"]
+#hnames = ["b_z1m", "b_z2m"]
 #hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt"]
-#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
-hnames = ["cos_theta_z1", "cos_theta_z2"]
+hnames = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps",
+            "angle_z2leps", "angle_z1l2_z2", "sin_phi_10"]
+
+diff_dists = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps",
+            "angle_z2leps", "angle_z1l2_z2", "sin_phi_10"]
 
 H = len(hnames)
 
@@ -60,6 +63,8 @@ for sel in selection:
         data[h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR))
 
         data[h][sel].SetDirectory(0)
+        data[h][sel].SetBinErrorOpt(kPoisson)
+
         h = h + 1
     h = 0
 
@@ -156,9 +161,11 @@ elFile.Close()
 ##  REBIN
 ##
 
+doRebin = (YEAR_STR == "2012") and (hnames[h] not in diff_dists)
+
 for h in range(H):
     data[h]['4e'].Rebin(2)
-    if (YEAR_STR == "2012"):
+    if doRebin:
         for sel in selection:
             data[h][sel].Rebin(2)
 
@@ -166,7 +173,7 @@ for h in range(H):
         if suff in ["ttbar", "tt_2l2nu"]:
             continue
         mc[suff][h]['4e'].Rebin(2)
-        if (YEAR_STR == "2012"):
+        if doRebin:
             for sel in selection:
                 mc[suff][h][sel].Rebin(2)
 
@@ -276,6 +283,8 @@ for sel in ["4l"]:
 
         if hnames[h] == "zzm":
             top_max = 1.2 * top_max
+        elif hnames[h] == "cos_theta_z2":
+            top_max = 1.4 * top_max
         else:
             top_max = 1.3 * top_max
 
@@ -306,12 +315,10 @@ for sel in ["4l"]:
 #               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
 #               verticalalignment = 'top', transform = ax_top.transAxes)
         ax_top.text(0.025,  0.95,   "CMS",
-                size = "xx-large",  weight = "bold",
-#               fontproperties = helvet_bold,
+                size = "xx-large",  weight = "bold", fontdict={'family':'Helvetica'},
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.text(0.025,  0.875,  "Work in Progress",
-                size = "x-large",   style = "italic",
-#               fontproperties = helvet_bold,
+                size = "x-large",   style = "italic", fontdict={'family':'Helvetica'},
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.set_title(r'\Large{' + '%.1f' % INT_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S
                 + r'\,TeV, ' + YEAR_STR + ')}', loc='right')
@@ -345,8 +352,7 @@ for sel in ["4l"]:
                 xtitle = r'$m_{2\mu 2\mathrm{e}}$ (GeV)'
             elif sel == "4e":
                 xtitle = r'$m_{4\mathrm{e}}$ (GeV)'
-#       if "Delta" in xtitle:
-#           xtitle = xtitle.replace("Delta", "bigtriangleup")
+        xtitle = xtitle.replace("mbox", "mathrm")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 
@@ -390,14 +396,14 @@ for sel in ["4l"]:
         ##  LEGEND
         ##
 
-        if hnames[h] in ["zzm", "z1m", "angle_z1leps", "b_l1p"]:#, "cos_theta_z2"]:
+        if hnames[h] in ["zzm", "z1m", "angle_z1leps", "b_l1p", "b_z1m"]:
             leg_loc = 'center left'
         elif hnames[h] in ["sin_phi_2"]:
             leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'
 
-        if hnames[h] in ["sin_phi", "cos_theta_z1", "cos_theta_z2"]:
+        if hnames[h] in ["sin_phi", "sin_phi_10", "cos_theta_z1", "cos_theta_z2", "b_ttm"]:
             leg_ncol = 2
         else:
             leg_ncol = 1

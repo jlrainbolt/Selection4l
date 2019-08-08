@@ -66,6 +66,7 @@ const float     INT_LUMI = 59.741;
 const float     MUON_SINGLE_PT = 24,    ELEC_SINGLE_PT = 35;
 const float     MUON_LEG1_PT = 17,      ELEC_LEG1_PT = 23;
 const float     MUON_LEG2_PT = 8,       ELEC_LEG2_PT = 12;
+const float     ELEC_ETA_PREF = 2.1;
 
 const unsigned  N_TRIG = 2;                         // number of trigger sf files
 const float     TRIG_FRAC = 8.951 / INT_LUMI;       // fraction of events for first file

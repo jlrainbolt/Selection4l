@@ -21,8 +21,8 @@ arguments   = "$(suffix) $INT(Step) $(systematics)"
 
 systematics = triggerEff
 
-    suffix = zjets_m-50
-    queue 3
+#   suffix = zjets_m-50
+#   queue 3
 
     suffix = zz_4l
     queue 2

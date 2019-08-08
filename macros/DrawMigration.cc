@@ -11,10 +11,10 @@
 #include "TH2.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -66,6 +66,7 @@ void DrawMigration()
 
         // Observables
         make_tuple( "sin_phi",      "sin_phi",          _sinphi,            20,     -1,     1),
+        make_tuple( "sin_phi_10",   "sin_phi",          _sinphi,            10,     -1,     1),
         make_tuple( "cos_theta_z1", "cos_theta_z1",     _costheta_(_Z1),    10,     -1,     1),
         make_tuple( "cos_theta_z2", "cos_theta_z2",     _costheta_(_Z2),    10,     -1,     1),
         make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
@@ -136,12 +137,14 @@ void DrawMigration()
 
             TH1D *h_reco = new TH1D(hname + "_reco", "", bins, xmin, xmax);
             h_reco->Sumw2(kTRUE);
+            h_reco->SetBinErrorOption(TH1::kPoisson);
             tree->Draw(quantity + ">>+" + hname + "_reco", "isMatched*" + weight);
             h_reco->GetXaxis()->SetTitle(xlabel);
             h_reco->Write();
 
             TH1D *h_gen = new TH1D(hname + "_gen", "", bins, xmin, xmax);
             h_gen->Sumw2(kTRUE);
+            h_gen->SetBinErrorOption(TH1::kPoisson);
             tree->Draw("gen_" + quantity + ">>+" + hname + "_gen", "isMatched*" + weight);
             h_gen->GetXaxis()->SetTitle(xlabel);
             h_gen->Write();
@@ -154,6 +157,7 @@ void DrawMigration()
             TH2D *h_2d = new TH2D(hname + "_2d", "Migrations",
                     bins, xmin, xmax, bins, xmin, xmax);
             h_2d->Sumw2(kTRUE);
+            h_2d->SetBinErrorOption(TH1::kPoisson);
             tree->Draw("gen_" + quantity + ":" + quantity + ">>+" + hname + "_2d",
                     "isMatched*" + weight);
 

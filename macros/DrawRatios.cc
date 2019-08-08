@@ -241,7 +241,7 @@ void DrawRatios()
 
         
         // Background vs. data
-
+/*
         TCanvas *c_bkg_data = new TCanvas(YEAR_STR + "_" + hnames[h] + "_bkg_vs_data",
                 "", lCanvasSize, lCanvasSize);
         Facelift(c_bkg_data);
@@ -298,7 +298,7 @@ void DrawRatios()
         r_bkg_data->GetUpperPad()->cd();
         l_bkg_data->Draw();
         c_bkg_data->SaveAs(".pdf");
-
+*/
 
         // Folded vs. unfolded
 
@@ -331,8 +331,8 @@ void DrawRatios()
 
         TLegend *l_fol_unf = new TLegend(LeftPosition + LeftMargin, BottomPosition - TopMargin,
                 TopPosition + TopMargin, TopPosition + TopMargin);
-        l_fol_unf->AddEntry(data[h], "Data", "LP");
-        l_fol_unf->AddEntry(res[h], "Background", "LP");
+        l_fol_unf->AddEntry(data[h], "Raw data", "LP");
+        l_fol_unf->AddEntry(res[h], "Unfolded", "LP");
         Facelift(l_fol_unf);
 
         c_fol_unf->cd();
@@ -356,13 +356,15 @@ void DrawRatios()
 
         r_fol_unf->GetUpperPad()->cd();
         l_fol_unf->Draw();
+        res[h]->Draw("E1 SAME");
+        c_fol_unf->SaveAs(".pdf");
 
 
         // Write to file
         outFile->mkdir(hnames[h]);
         outFile->cd(hnames[h]);
         c_reco_gen->Write();
-        c_bkg_data->Write();
+//      c_bkg_data->Write();
         c_fol_unf->Write();
         c_axe->Write();
     }

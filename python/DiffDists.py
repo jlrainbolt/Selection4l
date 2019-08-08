@@ -8,9 +8,9 @@ from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
 #from Cuts2018 import *
-from Cuts2017 import *
+#from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 mpl.rcParams["legend.fontsize"] = "x-large"
@@ -20,6 +20,14 @@ mpl.rcParams["legend.fontsize"] = "x-large"
 ##
 
 selection = ["4l"]
+
+nameTeX = {"b_z1m":r"m_{\mathrm{Z}_{1}}", "b_z2m":r"m_{\mathrm{Z}_{2}}",
+        "b_l1p":r"p_{\ell_{1}}", "b_ttm":r"m_{\ell_{2,3,4}}",
+        "angle_z1l2_z2":r"\beta", "angle_z1leps":r"\alpha_{\mathrm{Z}_{1}}",
+        "angle_z2leps":r"\alpha_{\mathrm{Z}_{2}}",
+        "cos_theta_z1":r"\cos\theta_{\mathrm{Z}_{1}}",
+        "cos_theta_z2":r"\cos\theta_{\mathrm{Z}_{2}}",
+        "sin_phi":r"\sin\phi", "sin_phi_10":r"\sin\phi"}
 
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
@@ -40,9 +48,8 @@ ufName = prefix + "_" + year + ".root"
 ufFile = TFile(ufName, "READ")
 print("Opened", ufName)
 
-#hnames = ["cos_theta_z2"]
-hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", 
-            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
+hnames = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", 
+            "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi", "sin_phi_10"]
 H = len(hnames)
 
 # Single-parameter result
@@ -54,18 +61,17 @@ delta_syst = npzfile['delta_syst']
 
 
 # Get histograms
-data, pred, stat = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
+data, axe, stat = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
 h = 0
 
 for hname in hnames:
     data[h]['4l'] = ufFile.Get(hname + "/" + hname + "_result")
     data[h]['4l'].SetDirectory(0)
+    data[h]['4l'].SetBinErrorOpt(kPoisson)
 
     stat[h]['4l'] = ufFile.Get(hname + "/" + hname + "_stat")
     stat[h]['4l'].SetDirectory(0)
-
-    pred[h]['4l'] = ufFile.Get(hname + "/" + hname + "_gen")
-    pred[h]['4l'].SetDirectory(0)
+    stat[h]['4l'].SetBinErrorOpt(kPoisson)
 
     h = h + 1
 h = 0
@@ -90,14 +96,13 @@ print("Opened", zzName)
 axe = np.empty(H, dtype=T)
 h = 0
 
-for sel in selection:
-    for hname in hnames:
-        axe[h][sel] = zzFile.Get(sel + "/" + hname + "_gen")
-        axe[h][sel].SetDirectory(0)
-        axe[h][sel].SetName(hname + "_acc_x_eff")
+for hname in hnames:
+    axe[h][sel] = zzFile.Get(sel + "/" + hname + "_gen")
+    axe[h][sel].SetDirectory(0)
+    axe[h][sel].SetName(hname + "_acc_x_eff")
 
-        h = h + 1
-    h = 0
+    h = h + 1
+h = 0
 
 zzFile.Close()
 
@@ -140,12 +145,11 @@ for sel in ["4l"]:
     for h in range(H):
         axe[h][sel].Divide(ps[h][sel])
 
-        for sample in [data, pred, stat]:
+        for sample in [data, stat]:
             sample[h][sel].Divide(axe[h][sel])
             sample[h][sel].Scale(scale / sample[h][sel].Integral())
 
         ps[h][sel].Scale(scale / ps[h][sel].Integral())
-#        pred[h][sel].Scale(scale / pred[h][sel].Integral())
 
 
 # Systemtatic uncertainty
@@ -159,8 +163,7 @@ for sel in ["4l"]:
                         + data[h][sel].GetBinError(i + 1) ** 2))
 
         # Get rid of the prediction uncertainty
-        for i in range(pred[h][sel].GetNbinsX()):
-            pred[h][sel].SetBinError(i+1, 0)
+        for i in range(ps[h][sel].GetNbinsX()):
             ps[h][sel].SetBinError(i+1, 0)
 
 
@@ -170,11 +173,9 @@ ratio, ratio_stat = np.empty(H, dtype=T), np.empty(H, dtype=T)
 for sel in ["4l"]:
     for h in range(H):
         ratio_stat[h][sel] = stat[h][sel].Clone()
-#       ratio_stat[h][sel].Divide(pred[h][sel])
         ratio_stat[h][sel].Divide(ps[h][sel])
 
         ratio[h][sel] = data[h][sel].Clone()
-#       ratio[h][sel].Divide(pred[h][sel])
         ratio[h][sel].Divide(ps[h][sel])
 
 
@@ -213,9 +214,6 @@ for sel in ["4l"]:
         # MC
         v_pred = np.zeros(ps[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_pred)):
-#           v_pred[i]['x']  = pred[h][sel].GetBinLowEdge(i+1)
-#           v_pred[i]['y']  = pred[h][sel].GetBinContent(i+1)
-#           v_pred[i]['ey'] = pred[h][sel].GetBinContent(i+1)
             v_pred[i]['x']  = ps[h][sel].GetBinLowEdge(i+1)
             v_pred[i]['y']  = ps[h][sel].GetBinContent(i+1)
             v_pred[i]['ey'] = ps[h][sel].GetBinContent(i+1)
@@ -261,15 +259,19 @@ for sel in ["4l"]:
 
         top_min, top_max = ax_top.get_ylim()
 
-        if hnames[h] in ["b_ttm", "angle_z1l2_z2"]:
+        if hnames[h] in ["b_ttm", "angle_z1l2_z2", "sin_phi"]:
             top_max = 3.5
         elif hnames[h] == "b_l1p":
             top_max = 5.5
+        elif hnames[h] in ["b_z1m", "sin_phi_10"]:
+            top_max = 5
+        elif hnames[h] == "b_z2m":
+            top_max = 10
         elif hnames[h] == "angle_z1leps":
             top_max = 8
         elif hnames[h] in ["angle_z2leps", "cos_theta_z1"]:
             top_max = 4
-        elif hnames[h] == "cos_theta_z2":
+        elif hnames[h] in ["cos_theta_z2"]:
             top_max = 3
 
         ax_top.set_ylim(0, top_max)
@@ -307,33 +309,23 @@ for sel in ["4l"]:
                 loc='right')
 
         # Shared x axis
-        if hnames[h] == "b_l1p":
-            xtitle = r"$p_{\ell_{1}}$ (GeV)"
-            ytitle = r"$d\Gamma/dp_{\ell_{1}}$ (keV$/$GeV)"
-        elif hnames[h] == "b_ttm":
-            xtitle = r"$m_{\ell_{2,3,4}}$ (GeV)"
-            ytitle = r"$d\Gamma/dm_{\ell_{2,3,4}}$ (keV$/$GeV)"
-        elif hnames[h] == "angle_z1l2_z2":
-            xtitle = r"$\beta$ ($\pi$ rad)"
-            ytitle = r"$d\Gamma/d\beta$ (keV$/\pi$ rad)"
-        elif hnames[h] == "angle_z1leps":
-            xtitle = r"$\alpha_{\mathrm{Z}_{1}}$ ($\pi$ rad)"
-            ytitle = r"$d\Gamma/d\alpha_{\mathrm{Z}_{1}}$ (keV$/\pi$ rad)"
-        elif hnames[h] == "angle_z2leps":
-            xtitle = r"$\alpha_{\mathrm{Z}_{2}}$ ($\pi$ rad)"
-            ytitle = r"$d\Gamma/d\alpha_{\mathrm{Z}_{2}}$ (keV$/\pi$ rad)"
-        elif hnames[h] == "cos_theta_z1":
-            xtitle = r"$\cos\theta_{\mathrm{Z}_{1}}$"
-            ytitle = r"$d\Gamma/d\cos\theta_{\mathrm{Z}_{1}}$ (keV$/$unit)"
-        elif hnames[h] == "cos_theta_z2":
-            xtitle = r"$\cos\theta_{\mathrm{Z}_{2}}$"
-            ytitle = r"$d\Gamma/d\cos\theta_{\mathrm{Z}_{2}}$ (keV$/$unit)"
+        if hnames[h] in ["b_l1p", "b_ttm", "b_z1m", "b_z2m"]:
+            xtitle = "$" + nameTeX[hnames[h]] + "$ (GeV)"
+            ytitle = r"$d\Gamma/d" + nameTeX[hnames[h]] + r"$ (keV$/$GeV)"
+        elif hnames[h] in ["angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]:
+            xtitle = "$" + nameTeX[hnames[h]] + "$ ($\pi$ rad)"
+            ytitle = r"$d\Gamma/d" + nameTeX[hnames[h]] + r"$ (keV$/\pi$ rad)"
+        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "sin_phi", "sin_phi_10"]:
+            xtitle = "$" + nameTeX[hnames[h]] + "$"
+            ytitle = r"$d\Gamma/d" + nameTeX[hnames[h]] + r"$ (keV$/$unit)"
+
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 
         # Top y axis
         ax_top.set_ylabel(ytitle, horizontalalignment='right')
-        if hnames[h] in ["b_ttm", "b_l1p", "angle_z1leps", "angle_z2leps", "cos_theta_z1", "cos_theta_z2"]:    
+        if hnames[h] in ["b_ttm", "b_l1p", "angle_z1leps", "angle_z2leps", "cos_theta_z1",
+                "cos_theta_z2", "b_z1m", "b_z2m"]:    
             ax_top.yaxis.set_label_coords(-0.065, 1)
         else:
             ax_top.yaxis.set_label_coords(-0.08, 1)

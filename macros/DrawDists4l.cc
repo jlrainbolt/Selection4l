@@ -101,7 +101,7 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
         make_tuple( "phi",      "phi/3.141592654",  _phi,           _pirad, 20,     -1,     1),
         make_tuple( "cos_phi",      "cos_phi",      _cosphi,        _units, 20,     -1,     1),
         make_tuple( "sin_phi",      "sin_phi",      _sinphi,        _units, 20,     -1,     1),
-        make_tuple( "sin_phi_2",    "sin_phi",      _sinphi,        _units, 2,      -1,     1),
+        make_tuple( "sin_phi_10",   "sin_phi",      _sinphi,        _units, 10,     -1,     1),
         make_tuple( "cos_theta_z1", "cos_theta_z1", _costheta_(_Z1),_units, 10,     -1,     1),
         make_tuple( "cos_theta_z2", "cos_theta_z2", _costheta_(_Z2),_units, 10,     -1,     1),
         make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
@@ -187,13 +187,15 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
 
             // Create and draw histogram
             TH1D *h = new TH1D(hname + "_" + suffix, "", bins, xmin, xmax);
+            h->Sumw2(kTRUE);
+            h->SetBinErrorOption(TH1::kPoisson);
+
             tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
 
             xlabel.ReplaceAll(_l, lepChan[i]);
 
             h->GetXaxis()->SetTitle(xlabel);
             h->GetYaxis()->SetTitle(unit);
-            h->Sumw2(kTRUE);
             h->SetStats(0);
             h->Write();
 

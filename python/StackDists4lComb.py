@@ -85,6 +85,8 @@ for sel in selection:
         data[h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + year))
 
         data[h][sel].SetDirectory(0)
+        data[h][sel].SetBinErrorOpt(kPoisson)
+
         h = h + 1
     h = 0
 

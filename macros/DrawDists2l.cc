@@ -154,13 +154,15 @@ void DrawDists2l(const TString suffix, const TString year)
 
             // Create and draw histogram
             TH1D *h = new TH1D(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
+            h->Sumw2(kTRUE);
+            h->SetBinErrorOption(TH1::kPoisson);
+
             tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
 
             xlabel.ReplaceAll(_l, lepChan[i]);
 
             h->GetXaxis()->SetTitle(xlabel);
             h->GetYaxis()->SetTitle(unit);
-            h->Sumw2(kTRUE);
             h->Write();
         }
 
