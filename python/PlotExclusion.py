@@ -16,8 +16,10 @@ import matplotlib.patches as pat
 selection = ["4l", "4m", "4e"]
 models = ["VectorU", "ScalarU"]
 
-c_up = {"ScalarU":{"4l":1.10, "4m":1.10, "4e":1.22}, "VectorU":{"4l":5.00, "4m":5.00, "4e":5.00}}
-c_dn = {"ScalarU":{"4l":0.94, "4m":0.93, "4e":0.94}, "VectorU":{"4l":0.65, "4m":0.50, "4e":0.50}}
+c_up = {"ScalarU":{"4l":1.10, "4m":1.10, "4e":1.32}, "VectorU":{"4l":10.0, "4m":10.0, "4e":10.0}}
+c_dn = {"ScalarU":{"4l":0.96, "4m":0.95, "4e":0.90}, "VectorU":{"4l":0.00, "4m":-10., "4e":-5.0}}
+#c_up = {"ScalarU":{"4l":1.10, "4m":1.10, "4e":1.22}, "VectorU":{"4l":5.00, "4m":5.00, "4e":5.00}}
+#c_dn = {"ScalarU":{"4l":0.94, "4m":0.93, "4e":0.94}, "VectorU":{"4l":0.65, "4m":0.50, "4e":0.50}}
 
 mU, g, lhs, rhs = {}, {}, {}, {}
 
@@ -52,7 +54,8 @@ for mod in models:
         x_, y_, z_ = mU[mod][sel], g[mod][sel], lhs[mod][sel]
         c = np.squeeze(rhs[sel])
 
-        f = SmoothBivariateSpline(np.log10(x_), np.log10(y_), z_, kx=3, ky=2)
+#       f = SmoothBivariateSpline(np.log10(x_), np.log10(y_), z_, kx=3, ky=2)
+        f = SmoothBivariateSpline(np.log10(x_), np.log10(y_), z_, kx=4, ky=3)
         h = SmoothBivariateSpline(np.log10(x_), np.log10(y_), z_, kx=1, ky=1)
 
         xv = np.linspace(4, 90, 500)
@@ -62,9 +65,11 @@ for mod in models:
 
         xv, yv = np.meshgrid(xv, yv)
         mask = np.logical_or(np.less(zh, c * c_dn[mod][sel]), np.greater(zh, c * c_up[mod][sel]))
-        if mod == "VectorU":
-            m2 = np.logical_and(np.less(zh, c * 0.9), np.greater(xv, 70))
+        if mod == "VectorU" and sel == "4l":
+            m2 = np.logical_and(np.less(yv, 0.2), np.greater(xv, 65))
+            m3 = np.logical_and(np.greater(yv, 0.2), np.greater(xv, 73))
             mask = np.logical_or(mask, m2)
+            mask = np.logical_or(mask, m3)
         zv = np.ma.array(zf, mask=mask)
 
         p[mod][sel] = ax.contour(xv, yv, zv,
@@ -151,8 +156,8 @@ print("Wrote plot to", fig_name)
 ##  SAVE
 ##
 
-outfile = "exclusion_4m.npz"
-np.savez(outfile, x=x["VectorU"]["4m"], y=y["VectorU"]["4m"], z=z["VectorU"]["4m"],
-        m=m["VectorU"]["4m"])
-
-print("Wrote arrays to", outfile)
+for mod in models:
+    for sel in selection:
+        outfile = "curves_" + mod + "_" + sel + ".npz"
+        np.savez(outfile, x=x[mod][sel], y=y[mod][sel], z=z[mod][sel], m=m[mod][sel])
+        print("Wrote arrays to", outfile)

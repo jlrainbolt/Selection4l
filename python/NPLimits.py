@@ -6,9 +6,11 @@ import sys
 import numpy as np
 from os import listdir
 from scipy.stats import norm
+from scipy.interpolate import SmoothBivariateSpline
 from ROOT import TFile, TTree, TParameter
 
 from PlotUtils import *
+import matplotlib.patches as pat
 
 from Cuts2018 import EOS_PATH
 
@@ -146,23 +148,49 @@ for filename in listdir(inpath.replace("root://cmseos.fnal.gov/", "/eos/uscms"))
 fig = plt.figure()
 ax = plt.axes()
 
-p_exc = ax.plot(mU_exc, g_exc, 'ro')
-p_all = ax.plot(mU_all, g_all, 'bo')
+p_exc = ax.plot(mU_exc, g_exc, 'rx')
+p_all = ax.plot(mU_all, g_all, 'bo', mfc='none')
+
+ax.axhline(-5, color='k') # dummy for fit
+
+
+# Fitted line
+infile = "curves_" + model + "_" + selection + ".npz"
+npzfile = np.load(infile)
+x_, y_, z_, m_ = npzfile["x"], npzfile["y"], npzfile["z"], npzfile["m"]
+print("Got arrays from", infile)
+
+z_ = np.ma.array(z_, mask=m_)
+ax.contour(x_, y_, z_, levels=[rhs], colors=['k'])
 
 
 # Axis labels and limits
+ax.set_axisbelow(True)
+
 plt.yscale('log')
 ax.set_ylabel(r"$g_{\ell}$")
 ax.set_ylim(0.005, 0.5)
 
 plt.xscale('log')
-ax.set_xlabel(r"$m_{\mathrm{U}}$")
+ax.set_xlabel(r"$m_{\mathrm{U}}$ (GeV)")
 ax.set_xlim(3, 100)
 
 
 # Legend
-ax.legend(["Excluded", "Allowed"], loc = 'upper left', numpoints = 1, frameon = False)
+r = pat.Rectangle((3.25, 0.065), 11, 0.38, color='w')
+ax.add_patch(r)
+
+ax.legend(["Excluded", "Allowed", "Fit"], loc = 'upper left', bbox_to_anchor = (0.025, 0.75),
+        numpoints = 1, frameon = True, facecolor='w', edgecolor='w', framealpha=1)
 plt.grid(which='both')
+
+modelTeX = {"ScalarU":"Scalar U", "VectorU":"Vector U"}
+selTeX = {"4l":r"$g_\ell = g_\mathrm{e} = g_\mu$", "4m":r"$g_\ell = g_\mu$; $g_\mathrm{e} = 0$",
+        "4e":r"$g_\ell = g_\mathrm{e}$; $g_\mu = 0$"}
+
+ax.text(0.05,  0.95,    modelTeX[model] + r"\\ \\" + selTeX[selection],
+        size = "xx-large",  weight = "bold", backgroundcolor='w',
+        verticalalignment = 'top', transform = ax.transAxes)
 
 
 # Save

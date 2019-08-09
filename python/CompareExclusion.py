@@ -17,7 +17,7 @@ import matplotlib.patches as pat
 selection = ["smp", "exo"]
 types = ["exp", "obs"]
 
-infile = "exclusion_4m.npz"
+infile = "curves_VectorU_4m.npz"
 npzfile = np.load(infile)
 x, y, z, m = npzfile["x"], npzfile["y"], npzfile["z"], npzfile["m"]
 print("Got arrays from", infile)
@@ -87,7 +87,7 @@ d["blank"] = ax.axhline(-5, color='w')
 # Axes and labels
 ax.set_axisbelow(True)
 
-ax.set_ylabel(r"$g_{\ell}$")
+ax.set_ylabel(r"$g_{\mu}$")
 plt.yscale('log')
 ax.set_ylim(0.003, 0.5)
 
