@@ -5,10 +5,10 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -36,6 +36,7 @@ s = {"both":1, "single":1, "double":0, "neither":0}
 d = {"both":1, "single":0, "double":1, "neither":0}
 
 T = np.dtype([(sel, 'f4') for sel in selection])
+U = np.dtype([(sel, 'f4') for sel in ["mumu", "ee"]])
 V = np.dtype([(var, 'f4') for var in varexp_pair])
 W = np.dtype([(var, 'f4') for var in varexp_2m2e])
 
@@ -179,8 +180,8 @@ elFile.Close()
 ##
 
 # Efficiency for single-lepton triggered events to also fire dilepton trigger
-mc_ll_eff, data_ll_eff, ll_sf = {}, {}, {}
-mc_ll_var, data_ll_var, ll_sf_unc = {}, {}, {}
+mc_ll_eff, data_ll_eff, ll_sf = np.zeros(1, dtype=U), np.zeros(1, dtype=U), np.zeros(1, dtype=U)
+mc_ll_var, data_ll_var, ll_sf_unc = np.zeros(1, dtype=U), np.zeros(1, dtype=U), np.zeros(1, dtype=U)
 for sel in ["mumu", "ee"]:
     mc_ll_eff[sel] = mc[1,1][sel] / (mc[1,1][sel] + mc[1,0][sel])
     mc_ll_var[sel] = mc_var[1,1][sel] * mc[1,0][sel] ** 2 + mc_var[1,0][sel] * mc[1,1][sel] ** 2
@@ -339,12 +340,11 @@ for sel in ["4m", "2m2e", "4e"]:
     print(sel, ": ", np.squeeze(data_4l_down[sel]), sep='')
 
 
-'''
+
 ##
 ##  SAVE
 ##
 
 print("\n")
 outfile = "trigger_eff_" + YEAR_STR + ".py"
-np.savez(outfile, mc=mc, data=data)
-'''
+np.savez(outfile, mc_eff=mc_ll_eff, data_eff=data_ll_eff, sf=ll_sf)
