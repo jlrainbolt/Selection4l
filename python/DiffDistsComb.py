@@ -48,11 +48,10 @@ delta_syst = npzfile['delta_syst']
 
 prefix = "unfolding"
 
-ufName = prefix + "_" + YEAR_STR + ".root"
+ufName = prefix + "_comb.root"
 ufFile = TFile(ufName, "READ")
 print("Opened", ufName)
 
-# Get histograms for 2018
 data, axe, stat = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 h = 0
@@ -62,40 +61,16 @@ for hname in hnames:
 
     stat[h]['4l'] = ufFile.Get(hname + "/" + hname + "_stat")
     stat[h]['4l'].SetDirectory(0)
-    stat[h]['4l'].SetBinErrorOption(TH1.kPoisson)
+#   stat[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
     h = h + 1
 ufFile.Close()
 
-
-# Get histograms for 2017, 2016, 2012
-for year in ["2017", "2016", "2012"]:
-    ufName = prefix + "_" + year + ".root"
-    ufFile = TFile(ufName, "READ")
-    print("Opened", ufName)
-
-    h = 0
-    for hname in hnames:
-        hist = ufFile.Get(hname + "/" + hname + "_result")
-        hist.SetDirectory(0)
-        data[h]['4l'].Add(hist)
-
-        hist = ufFile.Get(hname + "/" + hname + "_stat")
-        hist.SetDirectory(0)
-        stat[h]['4l'].Add(hist)
-
-        h = h + 1
-    ufFile.Close()
-
-h = 0
-for hname in hnames:
-#   data[h]['4l'].SetBinErrorOption(TH1.kPoisson)
-#   data[h]['4l'].Rebin(1)
-    data[h]['4l'].Sumw2(False)
-    data[h]['4l'].SetBinErrorOption(TH1.kPoisson)
-#   data[h]['4l'].Sumw2(True)
-    h = h + 1
-h = 0
+#h = 0
+#for hname in hnames:
+#    data[h]['4l'].SetBinErrorOption(TH1.kPoisson)
+#    h = h + 1
+#h = 0
 
 print("Got data histograms")
 print("")
@@ -120,7 +95,7 @@ for hname in hnames:
     axe[h]['4l'] = zzFile.Get("4l/" + hname + "_zz_4l")
     axe[h]['4l'].SetDirectory(0)
     axe[h]['4l'].SetName(hname + "_acc_x_eff")
-    axe[h]['4l'].SetBinErrorOption(TH1.kPoisson)
+#   axe[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
     h = h + 1
 h = 0
@@ -137,7 +112,7 @@ for year in ["2017", "2016", "2012"]:
         hist = zzFile.Get("4l/" + hname + "_zz_4l")
         hist.SetDirectory(0)
         axe[h]['4l'].Add(hist)
-        axe[h]['4l'].SetBinErrorOption(TH1.kPoisson)
+#       axe[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
         h = h + 1
     h = 0
@@ -155,7 +130,7 @@ print("Opened", psName)
 for hname in hnames:
     ps[h]['4l'] = psFile.Get("4l/" + hname + "_phase_space")
     ps[h]['4l'].SetDirectory(0)
-    ps[h]['4l'].SetBinErrorOption(TH1.kPoisson)
+#   ps[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
     h = h + 1
 h = 0
@@ -173,7 +148,7 @@ for year in ["2017", "2016", "2012"]:
             hist = psFile.Get(sel + "/" + hname + "_phase_space")
             hist.SetDirectory(0)
             ps[h][sel].Add(hist)
-            ps[h]['4l'].SetBinErrorOption(TH1.kPoisson)
+#           ps[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
             h = h + 1
         h = 0
@@ -206,11 +181,11 @@ for sel in ["4l"]:
     for h in range(H):
 
         # Add total systematic
-#       for i in range(data[h][sel].GetNbinsX()):
-#           data[h][sel].SetBinError(i + 1,
-#                   np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
-#                       + data[h][sel].GetBinError(i + 1) ** 2))
-        print(data[h]['4l'].GetBinErrorOption())
+        for i in range(data[h][sel].GetNbinsX()):
+            data[h][sel].SetBinError(i + 1,
+                    np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
+                        + data[h][sel].GetBinError(i + 1) ** 2))
+#       print(data[h]['4l'].GetBinErrorOption())
 
         # Get rid of the prediction uncertainty
 #       for i in range(ps[h][sel].GetNbinsX()):
@@ -227,6 +202,9 @@ for sel in ["4l"]:
 
         ratio[h][sel] = data[h][sel].Clone()
         ratio[h][sel].Divide(ps[h][sel])
+
+        for i in range(ratio[h][sel].GetNbinsX()):
+            ratio_stat[h][sel].SetBinContent(i, ratio[h][sel].GetBinContent(i))
 
 
 
@@ -257,10 +235,11 @@ for sel in ["4l"]:
             v_data[i]['y']      = data[h][sel].GetBinContent(i+1)
             v_data[i]['eyu']    = data[h][sel].GetBinErrorUp(i+1)
             v_data[i]['eyd']    = data[h][sel].GetBinErrorLow(i+1)
+            v_stat[i]['y']      = stat[h][sel].GetBinContent(i+1)
             v_stat[i]['eyu']    = stat[h][sel].GetBinErrorUp(i+1)
             v_stat[i]['eyd']    = stat[h][sel].GetBinErrorLow(i+1)
-            print(v_data[i]['eyu'])
-            print(v_data[i]['eyd'])
+
+        print(v_stat['y'] - v_data['y'])
 
         # MC
         v_pred = np.zeros(ps[h][sel].GetNbinsX(), dtype=V)

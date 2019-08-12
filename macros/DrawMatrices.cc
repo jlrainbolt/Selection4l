@@ -14,10 +14,7 @@
 //#include "TMathText.h"
 
 // Custom
-//#include "Cuts2018.hh"
-//#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+#include "Cuts2018.hh"
 
 using namespace std;
 
@@ -35,7 +32,7 @@ void DrawMatrices()
     //  INPUT FILE
     //
 
-    TString inName  = "unfolding_" + YEAR_STR + ".root";
+    TString inName  = "unfolding_comb.root";
     TFile   *inFile = TFile::Open(inName);
 
     cout << endl << endl << "Opened " << inName << endl << endl;
@@ -86,7 +83,7 @@ void DrawMatrices()
     //  OUTPUT FILE
     //
 
-    TString outName = "matrices_" + YEAR_STR + ".root";
+    TString outName = "matrices_comb.root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -109,7 +106,7 @@ void DrawMatrices()
 
         // Response matrix
         TString title = "Response matrix";
-        TCanvas *c_resp = new TCanvas(YEAR_STR + "_" + hnames[h] + "_response", "", 
+        TCanvas *c_resp = new TCanvas("comb_" + hnames[h] + "_response", "", 
                 lCanvasSize, lCanvasSize);
         c_resp->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
         c_resp->SetMargin(0.6*lCanvasMargin, 1.1*lCanvasMargin, lCanvasMargin, lCanvasMargin);
@@ -144,7 +141,7 @@ void DrawMatrices()
 
         // Covariance matrix
         title = "Unfolded covariance matrix";
-        TCanvas *c_cov = new TCanvas(YEAR_STR + "_" + hnames[h] + "_covariance", "", 
+        TCanvas *c_cov = new TCanvas("comb_" + hnames[h] + "_covariance", "", 
                 lCanvasSize, lCanvasSize);
         c_cov->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
         c_cov->SetMargin(0.6*lCanvasMargin, 1.1*lCanvasMargin, lCanvasMargin, lCanvasMargin);
@@ -178,7 +175,7 @@ void DrawMatrices()
 
         // Data "covariance" (variance) matrix
         title = "Data covariance matrix";
-        TCanvas *c_var = new TCanvas(YEAR_STR + "_" + hnames[h] + "_data_cov", "", 
+        TCanvas *c_var = new TCanvas("comb_" + hnames[h] + "_data_cov", "", 
                 lCanvasSize, lCanvasSize);
         c_var->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
         c_var->SetMargin(0.6*lCanvasMargin, 1.1*lCanvasMargin, lCanvasMargin, lCanvasMargin);

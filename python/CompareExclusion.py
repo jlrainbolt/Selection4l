@@ -89,7 +89,7 @@ ax.set_axisbelow(True)
 
 ax.set_ylabel(r"$g_{\mu}$")
 plt.yscale('log')
-ax.set_ylim(0.003, 0.5)
+ax.set_ylim(0.002, 0.5)
 
 ax.set_xlabel(r"$m_{\mathrm{U}}$ (GeV)")
 plt.xscale('log')

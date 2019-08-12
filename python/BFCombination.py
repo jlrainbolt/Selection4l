@@ -12,7 +12,7 @@ from iminuit import Minuit
 ##  OPTIONS
 ##
 
-N = 1   # number of parameters
+N = 12   # number of parameters
 
 
 ##
@@ -35,25 +35,24 @@ np.set_printoptions(precision=5, suppress=True, linewidth=100)
 
 bf, bf_stat, diff, bg_unc, npt, sig = {}, {}, {}, {}, {}, {}
 
-for year in period:
-    infile = "bf_measurements.npz"
-    npzfile = np.load(infile)
+infile = "bf_measurements.npz"
+npzfile = np.load(infile)
 
-    bf["2012"], bf_stat["2012"] = npzfile["bf_2012"], npzfile["bf_stat_2012"]
-    diff["2012"], bg_unc["2012"] = npzfile["diff_2012"], npzfile["bg_unc_2012"]
-    npt["2012"], sig["2012"] = npzfile["npt_2012"], npzfile["sig_2012"]
+bf["2012"], bf_stat["2012"] = npzfile["bf_2012"], npzfile["bf_stat_2012"]
+diff["2012"], bg_unc["2012"] = npzfile["diff_2012"], npzfile["bg_unc_2012"]
+npt["2012"], sig["2012"] = npzfile["npt_2012"], npzfile["sig_2012"]
 
-    bf["2016"], bf_stat["2016"] = npzfile["bf_2016"], npzfile["bf_stat_2016"]
-    diff["2016"], bg_unc["2016"] = npzfile["diff_2016"], npzfile["bg_unc_2016"]
-    npt["2016"], sig["2016"] = npzfile["npt_2016"], npzfile["sig_2016"]
+bf["2016"], bf_stat["2016"] = npzfile["bf_2016"], npzfile["bf_stat_2016"]
+diff["2016"], bg_unc["2016"] = npzfile["diff_2016"], npzfile["bg_unc_2016"]
+npt["2016"], sig["2016"] = npzfile["npt_2016"], npzfile["sig_2016"]
 
-    bf["2017"], bf_stat["2017"] = npzfile["bf_2017"], npzfile["bf_stat_2017"]
-    diff["2017"], bg_unc["2017"] = npzfile["diff_2017"], npzfile["bg_unc_2017"]
-    npt["2017"], sig["2017"] = npzfile["npt_2017"], npzfile["sig_2017"]
+bf["2017"], bf_stat["2017"] = npzfile["bf_2017"], npzfile["bf_stat_2017"]
+diff["2017"], bg_unc["2017"] = npzfile["diff_2017"], npzfile["bg_unc_2017"]
+npt["2017"], sig["2017"] = npzfile["npt_2017"], npzfile["sig_2017"]
 
-    bf["2018"], bf_stat["2018"] = npzfile["bf_2018"], npzfile["bf_stat_2018"]
-    diff["2018"], bg_unc["2018"] = npzfile["diff_2018"], npzfile["bg_unc_2018"]
-    npt["2018"], sig["2018"] = npzfile["npt_2018"], npzfile["sig_2018"]
+bf["2018"], bf_stat["2018"] = npzfile["bf_2018"], npzfile["bf_stat_2018"]
+diff["2018"], bg_unc["2018"] = npzfile["diff_2018"], npzfile["bg_unc_2018"]
+npt["2018"], sig["2018"] = npzfile["npt_2018"], npzfile["sig_2018"]
 
 
 mu_id_unc, el_id_unc, el_reco_unc, ecal_unc = {}, {}, {}, {}
@@ -71,6 +70,17 @@ ecal_unc[YEAR_STR], qcd_unc[YEAR_STR], pdf_unc[YEAR_STR], pu_unc[YEAR_STR] = eca
 from Cuts2018 import *
 mu_id_unc[YEAR_STR], el_id_unc[YEAR_STR], el_reco_unc[YEAR_STR] = mu_id, el_id, el_reco
 ecal_unc[YEAR_STR], qcd_unc[YEAR_STR], pdf_unc[YEAR_STR], pu_unc[YEAR_STR] = ecal, qcd, pdf, pileup
+
+
+# Trigger efficiency uncertainties
+mumu_trig_unc, ee_trig_unc = {}, {}
+for year in period:
+    infile = "trigger_eff_" + year + ".npz"
+    npzfile = np.load(infile)
+
+    ll_sf = npzfile["sf"]
+    mumu_trig_unc[year] = abs(1 - np.squeeze(ll_sf["mumu"])) / 2
+    ee_trig_unc[year] = abs(1 - np.squeeze(ll_sf["ee"])) / 2
 
 
 
@@ -213,7 +223,7 @@ print("QCD covariance", "\n",       cov_qcd, "\n")
 
 
 # Prefiring weight
-ecal_unc *= 1.0016
+#ecal_unc *= 1.0016
 unc_ecal = bf_meas * np.array([
                     [ ecal_unc["2012"]["4m"], ecal_unc["2012"]["2m2e"], ecal_unc["2012"]["4e"], ],
                     [ ecal_unc["2016"]["4m"], ecal_unc["2016"]["2m2e"], ecal_unc["2016"]["4e"], ],
@@ -227,13 +237,32 @@ print("Prefiring covariance", "\n",     cov_ecal * 100)
 print("(* 1e-2)", "\n")
 
 
-# Trigger efficiency (FIXME)
+# Dimuon trigger efficiency
+#unc_mutr = np.zeros_like(bf_meas)
+unc_mutr = bf_meas * np.array([
+                                [   mumu_trig_unc["2012"],  0.5 * mumu_trig_unc["2012"],    0,  ],
+                                [   mumu_trig_unc["2016"],  0.5 * mumu_trig_unc["2016"],    0,  ],
+                                [   mumu_trig_unc["2017"],  0.5 * mumu_trig_unc["2017"],    0,  ],
+                                [   mumu_trig_unc["2018"],  0.5 * mumu_trig_unc["2018"],    0,  ],
+                                ])
+print("Dimuon trigger uncertainties", "\n",  unc_mutr.flatten(), "\n")
 
-unc_trig = np.zeros_like(bf_meas)
-print("Trigger uncertainties", "\n",  unc_trig.flatten(), "\n")
+cov_mutr = get_cov_uncorr(unc_mutr)
+print("Dimuon trigger covariance", "\n",     cov_mutr, "\n")
 
-cov_trig = get_cov_corr(unc_trig)
-print("Trigger covariance", "\n",     cov_trig, "\n")
+
+# Dielectron trigger efficiency
+#unc_eltr = np.zeros_like(bf_meas)
+unc_eltr = bf_meas * np.array([
+                                [   0,  0.5 * ee_trig_unc["2012"],      ee_trig_unc["2012"],    ],
+                                [   0,  0.5 * ee_trig_unc["2016"],      ee_trig_unc["2016"],    ],
+                                [   0,  0.5 * ee_trig_unc["2017"],      ee_trig_unc["2017"],    ],
+                                [   0,  0.5 * ee_trig_unc["2018"],      ee_trig_unc["2018"],    ],
+                                ])
+print("Dielectron trigger uncertainties", "\n",  unc_eltr.flatten(), "\n")
+
+cov_eltr = get_cov_uncorr(unc_eltr)
+print("Dielectron trigger covariance", "\n",     cov_eltr, "\n")
 
 
 # Muon ID
@@ -347,7 +376,7 @@ print("Background systematic covariance", "\n", cov_bsys, "\n")
 
 
 # Total covariance
-cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_trig
+cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr
 cov_syst += cov_muid + cov_elid + cov_reco + cov_bsta + cov_bsys
 cov_total = cov_stat + cov_syst
 

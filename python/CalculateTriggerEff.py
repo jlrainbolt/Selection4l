@@ -346,5 +346,5 @@ for sel in ["4m", "2m2e", "4e"]:
 ##
 
 print("\n")
-outfile = "trigger_eff_" + YEAR_STR + ".py"
+outfile = "trigger_eff_" + YEAR_STR + ".npz"
 np.savez(outfile, mc_eff=mc_ll_eff, data_eff=data_ll_eff, sf=ll_sf)
