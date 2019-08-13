@@ -5,10 +5,10 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 
@@ -314,6 +314,7 @@ print("Scale factor")
 for sel in ["mumu", "ee"]:
     print(sel, ": ", np.squeeze(ll_sf[sel]), " +- " , np.squeeze(ll_sf_unc[sel]), sep='')
 
+'''
 print("")
 print("Actual MC efficiency")
 for sel in ["4m", "2m2e", "4e"]:
@@ -348,3 +349,4 @@ for sel in ["4m", "2m2e", "4e"]:
 print("\n")
 outfile = "trigger_eff_" + YEAR_STR + ".npz"
 np.savez(outfile, mc_eff=mc_ll_eff, data_eff=data_ll_eff, sf=ll_sf)
+'''

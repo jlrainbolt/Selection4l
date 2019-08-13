@@ -12,7 +12,7 @@ from iminuit import Minuit
 ##  OPTIONS
 ##
 
-N = 12   # number of parameters
+N = 12  # number of parameters
 
 
 ##
@@ -223,13 +223,13 @@ print("QCD covariance", "\n",       cov_qcd, "\n")
 
 
 # Prefiring weight
-#ecal_unc *= 1.0016
 unc_ecal = bf_meas * np.array([
                     [ ecal_unc["2012"]["4m"], ecal_unc["2012"]["2m2e"], ecal_unc["2012"]["4e"], ],
                     [ ecal_unc["2016"]["4m"], ecal_unc["2016"]["2m2e"], ecal_unc["2016"]["4e"], ],
                     [ ecal_unc["2017"]["4m"], ecal_unc["2017"]["2m2e"], ecal_unc["2017"]["4e"], ],
                     [ ecal_unc["2018"]["4m"], ecal_unc["2018"]["2m2e"], ecal_unc["2018"]["4e"], ],
                     ])
+unc_ecal *= 1.0016
 print("Prefiring uncertainties", "\n",  unc_ecal.flatten(), "\n")
 
 cov_ecal = get_cov_corr(unc_ecal)

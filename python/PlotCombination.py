@@ -71,12 +71,12 @@ ax = plt.axes()
 
 p_total_1 = ax.fill_between( xpoints_fill,
         alpha_total_1 + sigma_total_1,          alpha_total_1 - sigma_total_1,  
-        facecolor = lRed,                       alpha = 0.5
+        facecolor = lRed,                       alpha = 0.6
         )
 
 p_stat_1 = ax.fill_between( xpoints_fill,
         alpha_total_1 + sigma_stat_1,           alpha_total_1 - sigma_stat_1,  
-        facecolor = lRed,                       alpha = 0.5
+        hatch = '///',                         alpha = 0
         )
 
 p_result_1 = ax.hlines(  alpha_total_1,     0, 16,
@@ -131,11 +131,11 @@ ax = plt.axes()
 for i in range(len(alpha_total_4)):
     p_total_4 = ax.fill_between( [xpoints[i*3] - 0.5, xpoints[i*3 + 2] + 0.5],
         alpha_total_4[i] + sigma_total_4[i],    alpha_total_4[i] - sigma_total_4[i],  
-        facecolor = lRed,                       alpha = 0.5
+        facecolor = lRed,                       alpha = 0.6
         )
     p_stat_4 = ax.fill_between( [xpoints[i*3] - 0.5, xpoints[i*3 + 2] + 0.5],
         alpha_total_4[i] + sigma_stat_4[i],     alpha_total_4[i] - sigma_stat_4[i],  
-        facecolor = lRed,                       alpha = 0.5
+        hatch = '///',                         alpha = 0
         )
     p_result_4 = ax.hlines(  alpha_total_4[i],      xpoints[i*3] - 0.5, xpoints[i*3 + 2] + 0.5,
         color = lMarkerColor, linewidth = lErrorLineWidth12)
@@ -203,11 +203,11 @@ ax = plt.axes()
 for i in range(len(alpha_total_3)):
     p_total_3 = ax.fill_between( [xpoints[i*4] - 0.5, xpoints[i*4 + 3] + 0.5],
         alpha_total_3[i] + sigma_total_3[i],    alpha_total_3[i] - sigma_total_3[i],  
-        facecolor = lRed,                       alpha = 0.5
+        facecolor = lRed,                       alpha = 0.6
         )
     p_stat_3 = ax.fill_between( [xpoints[i*4] - 0.5, xpoints[i*4 + 3] + 0.5],
         alpha_total_3[i] + sigma_stat_3[i],     alpha_total_3[i] - sigma_stat_3[i],  
-        facecolor = lRed,                       alpha = 0.5
+        hatch = '///',                         alpha = 0
         )
     p_result_3 = ax.hlines(  alpha_total_3[i],      xpoints[i*4] - 0.5, xpoints[i*4 + 3] + 0.5,
         color = lMarkerColor, linewidth = lErrorLineWidth12)

@@ -94,7 +94,7 @@ const float     MATCH_DR_MAX = 0.02;
 //  SAMPLES
 //
 
-const float     MUON_TRIG_LUMI = 19.71,             ELEC_TRIG_LUMI = 19.71;
+const float     INT_LUMI = 19.71;
 const float                                         ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
 

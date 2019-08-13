@@ -12,10 +12,10 @@
 #include "TLine.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -26,7 +26,7 @@ using namespace std;
 **  Draws resolution of distributions for a "matched_" sample
 */ 
 
-void DrawResolution()
+void DrawResolutionComb()
 {
 
     //
@@ -54,17 +54,11 @@ void DrawResolution()
     //  INPUT FILE
     //
 
-    TString suffix  = "zz_4l";
-    TString inName  = "matched_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Boosted/" + YEAR_STR + "_new/" + inName;
-    TFile   *inFile = TFile::Open(inPath);
+    TString prefix  = "resolution";
+    TString inName  = prefix + "_sum.root";
+    TFile   *inFile = new TFile(inName);
 
-    cout << endl << endl << "Opened " << inPath << endl << endl;
-
-    TTree *tree;
-    inFile->GetObject("4l_" + suffix, tree);
-
-    cout << "4l tree has " << tree->GetEntries() << " events." << flush;
+    cout << endl << endl << "Opened " << inName << endl << endl;
 
 
 
@@ -72,8 +66,8 @@ void DrawResolution()
     //  OUTPUT FILE
     //
 
-    TString prefix  = "resolution";
-    TString outName = prefix + "_" + YEAR_STR + ".root";
+    TString suffix = "zz_4l";
+    TString outName = prefix + "_comb.root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -93,38 +87,20 @@ void DrawResolution()
         TString weight = "weight";
         tie(hname, quantity, xlabel, bins, xmin, xmax, width) = v[j];
 
-        // Add subtraction to quantity
-        quantity = "gen_" + quantity + " - " + quantity;
-
-        // Create and draw histogram
-        TH1D *h = new TH1D(hname + "_" + suffix, "", bins, xmin, xmax);
-        tree->Draw(quantity + ">>+" + hname + "_" + suffix, weight);
-
-        xlabel.ReplaceAll("\\ ", " ");
-        xlabel.ReplaceAll("\\ell", "l");
-        xlabel.ReplaceAll("\\cos", "cos ");
-        xlabel.ReplaceAll("\\mbox{", "");
-        xlabel.ReplaceAll("})", ")");
-        xlabel.ReplaceAll("}_", "_");
-        xlabel.ReplaceAll("  ", " ");
-        xlabel = "#Delta " + xlabel;
-        h->GetXaxis()->SetTitle(xlabel);
-        h->Sumw2(kFALSE);
-        h->Scale(INT_LUMI * 1000. * XSEC_ZZ_4L / NGEN_ZZ_4L);
-
-        TCanvas *canvas = new TCanvas(YEAR_STR + "_" + hname + "_resolution", "", 100, 100);
+        // Get and draw histogram
+        TH1D *h;
+        inFile->GetObject(hname + "_" + suffix, h);
+        h->SetDirectory(0);
+       
+        TCanvas *canvas = new TCanvas("comb_" + hname + "_resolution", "", 100, 100);
         canvas->cd();
         Facelift(canvas);
 //      canvas->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
-//      canvas->SetMargin(lCanvasMargin, lCanvasMargin/2, 1.8*lCanvasMargin, lCanvasMargin);
+        canvas->SetMargin(1.2*lCanvasMargin, 0.9*lCanvasMargin, 0.9*lCanvasMargin, 0.6*lCanvasMargin);
 
-        h->SetFillColor(kMagenta);
-        h->SetLineColor(kMagenta);
-        Facelift(h);
-        h->SetStats(kTRUE);
+        h->GetYaxis()->SetTitle("Events");
+        h->GetYaxis()->SetTitleOffset(lTitleOffsetY);
         h->Draw("HIST");
-        h->SetStats(0);
-        h->Write();
 
         canvas->Update();
 //      TPaveStats *stats = (TPaveStats*)h->GetListOfFunctions()->FindObject("stats");

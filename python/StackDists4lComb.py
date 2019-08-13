@@ -73,7 +73,7 @@ print("Opened", elName)
 #hnames = ["sin_phi"]
 #hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
 #hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
-hnames = ["b_z1m", "b_z2m"]
+hnames = ["b_z1m"]
 
 H = len(hnames)
 
@@ -517,7 +517,7 @@ for sel in selection:
         ##  LEGEND
         ##
 
-        if hnames[h] in ["zzm", "z1m", "angle_z1leps", "b_l1p"]:
+        if hnames[h] in ["zzm", "z1m", "angle_z1leps", "b_l1p", "b_z1m"]:
             leg_loc = 'center left'
         else:
             leg_loc = 'upper right'
