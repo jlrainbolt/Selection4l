@@ -12,7 +12,7 @@ from iminuit import Minuit
 ##  OPTIONS
 ##
 
-N = 12  # number of parameters
+N = 3  # number of parameters
 
 
 ##

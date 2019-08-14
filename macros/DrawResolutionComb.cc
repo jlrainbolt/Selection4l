@@ -98,6 +98,9 @@ void DrawResolutionComb()
 //      canvas->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
         canvas->SetMargin(1.2*lCanvasMargin, 0.9*lCanvasMargin, 0.9*lCanvasMargin, 0.6*lCanvasMargin);
 
+        h->SetFillColor(kWhite);
+        h->SetLineColor(kViolet);
+        h->SetLineWidth(3);
         h->GetYaxis()->SetTitle("Events");
         h->GetYaxis()->SetTitleOffset(lTitleOffsetY);
         h->Draw("HIST");
@@ -116,7 +119,7 @@ void DrawResolutionComb()
         {
             line[l]->SetLineColor(kBlack);
             line[l]->SetLineStyle(kDashed);
-            line[l]->SetLineWidth(2);
+            line[l]->SetLineWidth(3);
             line[l]->Draw();
         }
 

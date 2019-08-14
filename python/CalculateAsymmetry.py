@@ -113,17 +113,18 @@ for year in period:
         else:
             cut = ""
 
-        tree = inFile.Get(sel + "_" + suff)
-        hist = TH1D("hist", "", 2, -1, 1)
+        for sel in selection:
+            tree = inFile.Get(sel + "_" + suff)
+            hist = TH1D("hist", "", 2, -1, 1)
 
-        tree.Draw("sin_phi>>hist", weight + cut, "goff")
-        pos_bkg_[sel] += sf * hist.GetBinContent(2)
-        neg_bkg_[sel] += sf * hist.GetBinContent(1)
+            tree.Draw("sin_phi>>hist", weight + cut, "goff")
+            pos_bkg_[sel] += sf * hist.GetBinContent(2)
+            neg_bkg_[sel] += sf * hist.GetBinContent(1)
 
-        tree.Draw("0>>hist", weight + " * " + weight + cut, "goff")
-        unc_[sel] += sf * hist.Integral()
+            tree.Draw("0>>hist", weight + " * " + weight + cut, "goff")
+            unc_[sel] += sf * hist.Integral()
 
-        hist.Delete()
+            hist.Delete()
 
         inFile.Close()
 
