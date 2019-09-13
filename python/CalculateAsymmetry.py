@@ -41,6 +41,7 @@ for year in period:
     infile = "yields" + year + ".npz"
     npzfile = np.load(infile)
     npt[year], npt_unc[year] = npzfile["npt"], npzfile["npt_unc"]
+print(npt)
 
 
 
@@ -161,10 +162,9 @@ for year in period:
         elTree.Draw("sin_phi>>+hist", "", "goff")
 
         sf = npt[year][sel] / hist.Integral()
-        hist.Scale(sf)
 
-        pos_bkg[year][sel] += hist.GetBinContent(2)
-        neg_bkg[year][sel] += hist.GetBinContent(1)
+        pos_bkg[year][sel] += sf * hist.GetBinContent(2)
+        neg_bkg[year][sel] += sf * hist.GetBinContent(1)
 
         unc[year][sel] += npt_unc[year][sel] ** 2
         unc[year][sel] += (DELTA_LAMBDA * npt[year][sel]) ** 2
@@ -202,6 +202,19 @@ for sel in selection:
     syst_unc[sel] = np.sqrt(1 / (total - unc[year][sel]) - 1 / total)
 #   syst_unc[sel] = max(np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total + syst_unc[sel])),
 #                           np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total - syst_unc[sel])))
+
+    stat_unc[sel] = 1 / np.sqrt(total)
+    syst_unc[sel] = np.sqrt(1 / (total - unc[year][sel]) - 1 / total)
+
+# FIXME
+for year in period:
+    pos[year]["4l"] = pos[year]["4m"] + pos[year]["2m2e"] + pos[year]["4e"]
+    neg[year]["4l"] = neg[year]["4m"] + neg[year]["2m2e"] + neg[year]["4e"]
+
+pos_tot["4l"] = pos_tot["4m"] + pos_tot["2m2e"] + pos_tot["4e"]
+neg_tot["4l"] = neg_tot["4m"] + neg_tot["2m2e"] + neg_tot["4e"]
+total = pos_tot["4l"] + neg_tot["4l"]
+assy["4l"] = (pos_tot["4l"] - neg_tot["4l"]) / total
 
 pos["Total"], neg["Total"] = pos_tot, neg_tot
 

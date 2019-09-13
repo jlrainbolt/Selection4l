@@ -12,10 +12,10 @@
 #include "TLine.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -26,7 +26,7 @@ using namespace std;
 **  Draws resolution of distributions for a "matched_" sample
 */ 
 
-void DrawResolution()
+void DrawResolution(TString chan = "4l")
 {
 
     //
@@ -36,6 +36,7 @@ void DrawResolution()
     vector<tuple<TString, TString, TString, int, float, float, float>> v = {
 
         //          name            quantity            axis label          bins xmin   xmax  width
+        make_tuple( "zzm",          "zzp4.M()",         _m_(_4l),           100, -20,   20,    1),
         make_tuple( "b_z1m",        "b_z1p4.M()",       _m_(_Z1),           100, -10,   10,    8),
         make_tuple( "b_z2m",        "b_z2p4.M()",       _m_(_Z2),           100, -10,   10,    4),
         make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  100, -10,   10,    5),
@@ -62,9 +63,9 @@ void DrawResolution()
     cout << endl << endl << "Opened " << inPath << endl << endl;
 
     TTree *tree;
-    inFile->GetObject("4l_" + suffix, tree);
+    inFile->GetObject(chan + "_" + suffix, tree);
 
-    cout << "4l tree has " << tree->GetEntries() << " events." << flush;
+    cout << chan + " tree has " << tree->GetEntries() << " events." << flush;
 
 
 
@@ -73,7 +74,7 @@ void DrawResolution()
     //
 
     TString prefix  = "resolution";
-    TString outName = prefix + "_" + YEAR_STR + ".root";
+    TString outName = prefix + "_" + YEAR_STR + "_" + chan + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -92,6 +93,8 @@ void DrawResolution()
         float   xmin,   xmax,       width;
         TString weight = "weight";
         tie(hname, quantity, xlabel, bins, xmin, xmax, width) = v[j];
+        if (chan.EqualTo("4e"))
+            width *= 2;
 
         // Add subtraction to quantity
         quantity = "gen_" + quantity + " - " + quantity;
@@ -147,7 +150,7 @@ void DrawResolution()
 //      gPad->Modified();
 //      gPad->Update();
 
-        canvas->SaveAs(".pdf");
+//      canvas->SaveAs(".pdf");
         canvas->Write();
     }
 

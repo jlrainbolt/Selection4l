@@ -71,9 +71,9 @@ print("Opened", elName)
 # Get histograms for 2018
 #hnames = ["zzm"]
 #hnames = ["sin_phi"]
-#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
+hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt", "l1eta", "l2eta", "l3eta", "l4eta"]
 #hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
-hnames = ["b_z1m"]
+#hnames = ["b_z1m"]
 
 H = len(hnames)
 
@@ -313,8 +313,8 @@ for sel in selection:
 ####
 
 
-#for sel in ["4l"]:
-for sel in selection:
+for sel in ["4e"]:
+#for sel in selection:
     print("Drawing", sel, "plots...")
 
     for h in range(H):
@@ -429,16 +429,11 @@ for sel in selection:
         ##
 
         # Titles
-#       ax_top.text(    0.025,  0.95,
-#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-#               verticalalignment = 'top', transform = ax_top.transAxes)
         ax_top.text(0.025,  0.95,   "CMS",
-                size = "xx-large",  weight = "bold",
-#               fontproperties = helvet_bold,
+                size = "xx-large",  weight = "bold",    family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.text(0.025,  0.875,  "Work in Progress",
-                size = "x-large",   style = "italic",
-#               fontproperties = helvet_bold,
+                size = "x-large",   style = "italic",   family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.set_title(r'\Large{19.7\,fb$^{-1}$ (8\,TeV) $+$ 137\,fb$^{-1}$ (13\,TeV)', loc='right')
 
@@ -474,6 +469,7 @@ for sel in selection:
                 xtitle = r'$m_{2\mu 2\mathrm{e}}$ (GeV)'
             elif sel == "4e":
                 xtitle = r'$m_{4\mathrm{e}}$ (GeV)'
+        xtitle = xtitle.replace("mbox", "mathrm")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
 
@@ -522,7 +518,7 @@ for sel in selection:
         else:
             leg_loc = 'upper right'
 
-        if hnames[h] in ["sin_phi", "cos_theta_z1", "cos_theta_z2", "b_ttm"]:
+        if hnames[h] in ["sin_phi", "cos_theta_z1", "cos_theta_z2", "b_ttm", "l1eta", "l2eta", "l3eta", "l4eta"]:
             leg_ncol = 2
         else:
             leg_ncol = 1

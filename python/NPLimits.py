@@ -96,6 +96,7 @@ for filename in listdir(inpath.replace("root://cmseos.fnal.gov/", "/eos/uscms"))
     acc = tree.GetEntries("isFiducial") / tree.GetEntries()
 
     mU = round(rootfile.Get("mU").GetVal(), 1)
+    wU = round(rootfile.Get("wU").GetVal() * 1000, 8)
     ge = round(rootfile.Get("ge").GetVal(), 6)
     gmu = round(rootfile.Get("gmu").GetVal(), 6)
     xsec = round(rootfile.Get("xsec").GetVal(), 8)
@@ -124,7 +125,7 @@ for filename in listdir(inpath.replace("root://cmseos.fnal.gov/", "/eos/uscms"))
     else:
         print("ge != gmu")
 
-    print("mU:",  mU, "\tg:", g, "\txsec:", xsec, "\tacc:", acc)
+    print("mU (GeV):", mU, "\twU (MeV):", wU, "\tg:", g, "\txsec:", xsec, "\tacc:", acc)
 
     lhs = acc * xsec
 

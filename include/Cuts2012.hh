@@ -31,7 +31,9 @@ const float     MUON_MASS = 0.105658369,                        ELEC_MASS = 0.00
 //  PHASE SPACE
 //
 
-const float     M_MIN = 80,             M_MAX = 100,            MLL_MIN = 4;
+//const float     M_MIN = 80,             M_MAX = 100,            MLL_MIN = 4;
+const float     M_MIN = 80,             M_MAX = 100,            MLL_MIN = 1;
+//const float     M_MIN = 50,             M_MAX = TMath::Infinity(),      MLL_MIN = 4;
 
 
 
@@ -48,7 +50,8 @@ const float     FID_ETA_MAX = 2.5;
 //  RECO SELECTION
 //
 
-const float     Z1_M_MIN = 12,          Z_M_MAX = 120;
+const float     Z1_M_MIN = 1,          Z_M_MAX = 120;
+//const float     Z1_M_MIN = 12,          Z_M_MAX = 120;
 const float     MUON_PT1_MIN = 20,      MUON_PT2_MIN = 10,      MUON_PT_MIN = 5;
 const float     ELEC_PT1_MIN = 20,      ELEC_PT2_MIN = 10,      ELEC_PT_MIN = 7;
 const float     MUON_ETA_MAX = 2.4,     ELEC_ETA_MAX = 2.5;

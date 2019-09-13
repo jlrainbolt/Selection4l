@@ -40,10 +40,9 @@ using namespace std;
 **  Reads from post-BLT analyzer (PhaseSpaceAnalyzer) ntuples and write out gen-level files that
 **  are identical to the BoostedAnalysis output format ("boosted_").
 **
-**  Currently only implemented for signal (zz_4l) events...and only uses hard leptons.
 */
 
-void GenAnalysis(const bool fidOnly = kFALSE)
+void GenAnalysis(const bool fidOnly = kFALSE, const TString suff = "zz_4l")
 {
 
     //
@@ -70,6 +69,8 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     TString selection2l[N]  = { "",     "mumu", "mumu", "ee"    };
     unsigned chanIdx[N]     = { 5,      6,      7,      9       };
 
+    bool aMC = suff.Contains("aMC");
+
 
 
     //
@@ -78,6 +79,8 @@ void GenAnalysis(const bool fidOnly = kFALSE)
 
     TString prefix  = "boosted";
     TString suffix  = fidOnly ? "fiducial" : "phase_space"; 
+    if (aMC)
+        suffix = suffix + "_aMC";
     TString outName = prefix + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
@@ -165,7 +168,7 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     //  INPUT FILE
     //
 
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/gen_zz_4l_0.root";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/gen_" + suff + "_0.root";
     TFile   *inFile = TFile::Open(inPath);
 
     cout << "Opened " << inPath << endl;
@@ -176,7 +179,7 @@ void GenAnalysis(const bool fidOnly = kFALSE)
     //  INPUT BRANCHES
     //
 
-    TTreeReader reader("tree_zz_4l", inFile);
+    TTreeReader reader("tree_" + suff, inFile);
 
     TTreeReaderValue    <UInt_t>                runNum_     (reader,    "runNumber");
     TTreeReaderValue    <UInt_t>                evtNum_     (reader,    "evtNumber");
@@ -204,7 +207,7 @@ void GenAnalysis(const bool fidOnly = kFALSE)
 
     TH1D *hPhaseSpaceEvents, *hFiducialEvents;
 
-    inFile->GetObject("PhaseSpaceEvents_zz_4l", hPhaseSpaceEvents);
+    inFile->GetObject("PhaseSpaceEvents_" + suff, hPhaseSpaceEvents);
     hPhaseSpaceEvents->SetName("PhaseSpaceEvents_" + suffix);
     hPhaseSpaceEvents->SetDirectory(outFile);
     hPhaseSpaceEvents->Sumw2();
@@ -349,7 +352,10 @@ void GenAnalysis(const bool fidOnly = kFALSE)
         if      (channel == 6)                      // 4m
         {
             C = M4;
-            MakePairsFromMother(muons, &z1, &z2);
+            if (aMC)
+                MakePairsMaxDiff(muons, &z1, &z2);
+            else
+                MakePairsFromMother(muons, &z1, &z2);
         }
         else if (channel == 7)                      // 2m2e
         {
@@ -366,7 +372,10 @@ void GenAnalysis(const bool fidOnly = kFALSE)
         else if (channel == 9)                      // 4e
         {
             C = E4;
-            MakePairsFromMother(elecs, &z1, &z2);
+            if (aMC)
+                MakePairsMaxDiff(elecs, &z1, &z2);
+            else
+                MakePairsFromMother(elecs, &z1, &z2);
         }
         else
         {
@@ -389,35 +398,6 @@ void GenAnalysis(const bool fidOnly = kFALSE)
             cout << endl;
         }
 
-
-/*
-        //
-        //  FIDUCIAL CHECK
-        //
-
-        isFiducial = kTRUE;     // innocent until proven guilty?
-
-        // Pt requirement
-        if (leps[0].p4.Pt() < FID_PT1_MIN)
-            isFiducial = kFALSE;
-
-        if (leps[1].p4.Pt() < FID_PT2_MIN)
-            isFiducial = kFALSE;
-
-        if (leps[2].p4.Pt() < FID_PT_MIN)
-            isFiducial = kFALSE;
-
-        if (leps[3].p4.Pt() < FID_PT_MIN)
-            isFiducial = kFALSE;
-
-
-        // Eta requirement
-        for (unsigned i = 0; i < leps.size(); i++)
-        {
-            if (fabs(leps[i].p4.Eta()) > FID_ETA_MAX)
-                isFiducial = kFALSE;
-        }
-*/
 
         hFiducialEvents->Fill(1, weight);
 

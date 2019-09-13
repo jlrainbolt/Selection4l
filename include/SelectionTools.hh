@@ -28,6 +28,9 @@ bool MakePairsMaxDiff(const vector<Lepton>&, LeptonPair*, LeptonPair*);
 // Make pairs by maximizing mass of one same-flavor, opposite-sign pair
 bool MakePairsMaxZ1(const vector<Lepton>&, LeptonPair*, LeptonPair*);
 
+// Make pairs by naively looking for opposite sign
+bool MakePairs6l(const vector<Lepton>&, LeptonPair*, LeptonPair*, LeptonPair*);
+
 
 
 //

@@ -29,9 +29,9 @@ nameTeX = {"b_z1m":r"m_{\mathrm{Z}_{1}}", "b_z2m":r"m_{\mathrm{Z}_{2}}",
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("eyu", 'f4'), ("eyd", 'f4'), ("b", 'f4')])
 
-
+#hnames = ["sin_phi"]
 hnames = ["b_ttm", "b_l1p", "b_z1m", "b_z2m", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2",
-            "cos_theta_z1", "cos_theta_z2", "sin_phi_10"]
+            "cos_theta_z1", "cos_theta_z2", "sin_phi"]
 H = len(hnames)
 
 # Single-parameter result
@@ -120,17 +120,24 @@ for year in ["2017", "2016", "2012"]:
 
 
 # Phase space events
-ps = np.empty(H, dtype=T)
+ps, amc = np.empty(H, dtype=T), np.empty(H, dtype=T)
 h = 0
 
 psName = prefix + "_" + YEAR_STR + "_phase_space.root"
 psFile = TFile(psName, "READ")
 print("Opened", psName)
 
+amcName = prefix + "_2016_phase_space_aMC.root"
+amcFile = TFile(amcName, "READ")
+print("Opened", amcName)
+
 for hname in hnames:
     ps[h]['4l'] = psFile.Get("4l/" + hname + "_phase_space")
     ps[h]['4l'].SetDirectory(0)
 #   ps[h]['4l'].SetBinErrorOption(TH1.kPoisson)
+
+    amc[h]['4l'] = amcFile.Get("4l/" + hname + "_phase_space_aMC")
+    amc[h]['4l'].SetDirectory(0)
 
     h = h + 1
 h = 0
@@ -174,6 +181,7 @@ for sel in ["4l"]:
             sample[h][sel].Scale(scale / sample[h][sel].Integral())
         
         ps[h][sel].Scale(scale / ps[h][sel].Integral())
+        amc[h][sel].Scale(scale / amc[h][sel].Integral())
 
 
 # Systemtatic uncertainty
@@ -249,6 +257,13 @@ for sel in ["4l"]:
             v_pred[i]['eyu']    = ps[h][sel].GetBinError(i+1)
             v_pred[i]['eyd']    = ps[h][sel].GetBinError(i+1)
 
+        v_amc = np.zeros(amc[h][sel].GetNbinsX(), dtype=V)
+        for i in range(len(v_amc)):
+            v_amc[i]['x']       = amc[h][sel].GetBinLowEdge(i+1)
+            v_amc[i]['y']       = amc[h][sel].GetBinContent(i+1)
+            v_amc[i]['eyu']     = amc[h][sel].GetBinError(i+1)
+            v_amc[i]['eyd']     = amc[h][sel].GetBinError(i+1)
+
         # Ratio
         v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
         v_ratio_stat = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
@@ -279,6 +294,10 @@ for sel in ["4l"]:
                             linewidth = 0,  ecolor = lBlue,
                             fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
                             )
+        p_amc = ax_top.errorbar(    v_data['x'],    v_amc['y'],     xerr = v_ratio['ex'], 
+                            linewidth = 0,  ecolor = lRed,
+                            fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
+                            )
         ax_top.errorbar(    v_data['x'],    v_data['y'],            yerr = (v_data['eyd'], v_data['eyu']), 
                             linewidth = 0,  ecolor = '#C0C0C0',     elinewidth = 4 * lErrorLineWidth4l,
                             marker = None,   capsize = 0
@@ -291,20 +310,18 @@ for sel in ["4l"]:
 
         top_min, top_max = ax_top.get_ylim()
 
-        if hnames[h] in ["b_ttm", "angle_z1l2_z2", "sin_phi"]:
+        if hnames[h] in ["b_ttm", "angle_z1l2_z2"]:
             top_max = 3.5
         elif hnames[h] == "b_l1p":
             top_max = 5.5
-        elif hnames[h] in ["b_z1m", "sin_phi_10"]:
+        elif hnames[h] in ["sin_phi_10"]:
             top_max = 5
         elif hnames[h] == "b_z2m":
             top_max = 10
         elif hnames[h] == "angle_z1leps":
             top_max = 8
-        elif hnames[h] in ["angle_z2leps", "cos_theta_z1"]:
+        elif hnames[h] in ["angle_z2leps", "cos_theta_z1", "cos_theta_z2", "sin_phi", "b_z1m"]:
             top_max = 4
-        elif hnames[h] == "cos_theta_z2":
-            top_max = 3
 
         ax_top.set_ylim(0, top_max)
 
@@ -411,19 +428,16 @@ for sel in ["4l"]:
         ##  LEGEND
         ##
 
-        if hnames[h] in ["angle_z1leps", "b_l1p"]:
+        if hnames[h] in ["angle_z1leps", "b_l1p", "b_z1m"]:
             leg_loc = 'center left'
 #       elif hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
 #           leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'
 
-        if year == "2017" and hnames[h] == "zzm" and sel == "4e":
-            leg_loc = 'upper right'
-
         ax_top.legend(
-                (   p_data,     p_pred, ),
-                (   'Measured', 'POWHEG',
+                (   p_data,     p_pred,     p_amc),
+                (   'Measured', 'POWHEG',   'aMC@NLO',
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 

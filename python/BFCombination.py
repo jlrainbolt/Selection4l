@@ -12,7 +12,7 @@ from iminuit import Minuit
 ##  OPTIONS
 ##
 
-N = 3  # number of parameters
+N = 1  # number of parameters
 
 
 ##
@@ -229,7 +229,6 @@ unc_ecal = bf_meas * np.array([
                     [ ecal_unc["2017"]["4m"], ecal_unc["2017"]["2m2e"], ecal_unc["2017"]["4e"], ],
                     [ ecal_unc["2018"]["4m"], ecal_unc["2018"]["2m2e"], ecal_unc["2018"]["4e"], ],
                     ])
-unc_ecal *= 1.0016
 print("Prefiring uncertainties", "\n",  unc_ecal.flatten(), "\n")
 
 cov_ecal = get_cov_corr(unc_ecal)

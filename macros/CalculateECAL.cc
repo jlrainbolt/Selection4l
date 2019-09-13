@@ -36,16 +36,16 @@ void CalculateECAL()
     //  FOUR-LEPTON
     //
 
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/selected_zz_4l.root";
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_update/selected_zz_4l.root";
     TFile   *zzFile = TFile::Open(inPath);
 
     cout << "Opened " << inPath << endl;
 
-    TTreeReader reader("4l_zz_4l", zzFile);
+//  TTreeReader reader("4l_zz_4l", zzFile);
+    TTreeReader reader("2m2e_zz_4l", zzFile);
 
-    TTreeReaderValue    <UInt_t>    channel_        (reader,    "channel");
+    TTreeReaderValue    <UShort_t>  channel_        (reader,    "channel");
     TTreeReaderValue    <Float_t>   genWeight_      (reader,    "genWeight");
-    TTreeReaderValue    <Float_t>   qtWeight_       (reader,    "qtWeight");
     TTreeReaderValue    <Float_t>   ecalWeight_     (reader,    "ecalWeight");
     TTreeReaderValue    <Float_t>   ecalWeightUp_   (reader,    "ecalWeightUp");
     TTreeReaderValue    <Float_t>   ecalWeightDown_ (reader,    "ecalWeightDown");
@@ -65,19 +65,9 @@ void CalculateECAL()
         unsigned channel = *channel_;
         float genWeight = *genWeight_;
 
-//      if ((channel == 6) || (channel == 9))
-//          genWeight = 0;
-
         float nomWeight = genWeight * *ecalWeight_;
         float upWeight = genWeight * *ecalWeightUp_;
         float dnWeight = genWeight * *ecalWeightDown_;
-
-        if ((channel == 6) || (channel == 7))
-        {
-            nomWeight = genWeight;
-            upWeight = genWeight;
-            dnWeight = genWeight;
-        }
 
         sel_4l_gen += genWeight;    sel_4l_nom += nomWeight;
         sel_4l_up += upWeight;      sel_4l_dn += dnWeight;
@@ -94,7 +84,7 @@ void CalculateECAL()
 
     // Open one file
 
-    inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "/selected_zjets_m-50.root";
+    inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_update/selected_zjets_m-50.root";
     TFile   *dyFile = TFile::Open(inPath);
 
     float mod = 100;
@@ -104,6 +94,7 @@ void CalculateECAL()
     for (unsigned i = 0; i < N; i++)
     {
         reader.SetTree(sel_2l[i] + "_zjets_m-50", dyFile);
+//      reader.SetTree("mumu_zjets_m-50", dyFile);
         reader.Restart();
 
         cout << "Loaded branches" << endl;
@@ -111,30 +102,20 @@ void CalculateECAL()
 
         // Event loop
 
-        int nEvents = reader.GetEntries(kTRUE) / mod;
+        nEvents = reader.GetEntries(kTRUE) / mod;
 
         cout << endl;
-        cout << "Running over " << nEvents << " total " << sel_2l[i] << " events" << endl;
+        cout << "Running over " << nEvents << " total " << "ll" << " events" << endl;
         cout << endl;
 
         while (reader.Next() && (reader.GetCurrentEntry() < nEvents))
         {
             unsigned channel = *channel_;
-            float genWeight = (*genWeight_) * (*qtWeight_);
-
-//          if (channel != 3)
-//              genWeight = 0;
+            float genWeight = (*genWeight_);
 
             float nomWeight = genWeight * *ecalWeight_;
             float upWeight = genWeight * *ecalWeightUp_;
             float dnWeight = genWeight * *ecalWeightDown_;
-
-            if (channel == 3)
-            {
-                nomWeight = genWeight;
-                upWeight = genWeight;
-                dnWeight = genWeight;
-            }
 
             sel_2l_gen += genWeight;    sel_2l_nom += nomWeight;
             sel_2l_up += upWeight;      sel_2l_dn += dnWeight;
@@ -154,12 +135,12 @@ void CalculateECAL()
 
     cout << setprecision(16);
 
-    cout << "eff_nom = [\t" << sel_4l_gen / sel_4l_nom << "\t" << sel_2l_gen / sel_2l_nom << endl;
+    cout << "eff_nom = [\t" << sel_4l_nom / sel_4l_gen << "\t" << sel_2l_nom / sel_2l_gen << endl;
     cout << "\t" << "];" << endl << endl;
 
-    cout << "eff_up = [\t" << sel_4l_gen / sel_4l_up << "\t" << sel_2l_gen / sel_2l_up << endl;
+    cout << "eff_up = [\t" << sel_4l_up / sel_4l_gen << "\t" << sel_2l_up / sel_2l_gen << endl;
     cout << "\t" << "];" << endl << endl;
 
-    cout << "eff_dn = [\t" << sel_4l_gen / sel_4l_dn << "\t" << sel_2l_gen / sel_2l_dn << endl;
+    cout << "eff_dn = [\t" << sel_4l_dn / sel_4l_gen << "\t" << sel_2l_dn / sel_2l_gen << endl;
     cout << "\t" << "];" << endl << endl;
 }

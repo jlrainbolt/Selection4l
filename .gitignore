@@ -35,6 +35,7 @@ docker*
 !data/**
 !madgraph/*
 !madgraph/*/*
+madgraph/*/SubProcesses/*/*
 madgraph/output
 madgraph/*/*.tar.gz
 madgraph/*.tar.gz

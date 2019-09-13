@@ -1,0 +1,243 @@
+[?1034h************************************************************
+*                                                          *
+*                     W E L C O M E to                     *
+*              M A D G R A P H 5 _ a M C @ N L O           *
+*                                                          *
+*                                                          *
+*                 *                       *                *
+*                   *        * *        *                  *
+*                     * * * * 5 * * * *                    *
+*                   *        * *        *                  *
+*                 *                       *                *
+*                                                          *
+*         VERSION 2.6.1                 2017-12-12         *
+*                                                          *
+*    The MadGraph5_aMC@NLO Development Team - Find us at   *
+*    https://server06.fynu.ucl.ac.be/projects/madgraph     *
+*                            and                           *
+*            http://amcatnlo.web.cern.ch/amcatnlo/         *
+*                                                          *
+*               Type 'help' for in-line help.              *
+*           Type 'tutorial' to learn how MG5 works         *
+*    Type 'tutorial aMCatNLO' to learn how aMC@NLO works   *
+*    Type 'tutorial MadLoop' to learn how MadLoop works    *
+*                                                          *
+************************************************************
+load MG5 configuration from ../../../../../cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/input/mg5_configuration.txt 
+set collier to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/collier/1.1-92381/x86_64-slc6-gcc62-opt
+Using golem library in /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/lib
+set fastjet to fastjet-config
+set lhapdf to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/lhapdf/6.2.0-46baa/x86_64-slc6-gcc62-opt/bin/lhapdf-config
+set ninja to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/gosam_contrib/2.0-779ba/x86_64-slc6-gcc62-opt/lib
+Using default text editor "vi". Set another one in ./input/mg5_configuration.txt
+Using default eps viewer "evince". Set another one in ./input/mg5_configuration.txt
+No valid web browser found. Please set in ./input/mg5_configuration.txt
+Loading default model: sm
+INFO: reload from .py file 
+INFO: load particles 
+INFO: load vertices 
+INFO: Restrict model sm with file ../../../../../cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/models/sm/restrict_default.dat . 
+INFO: Run "set stdout_level DEBUG" before import for more information. 
+INFO: Change particles name to pass to MG5 convention 
+Defined multiparticle p = g u c d s u~ c~ d~ s~
+Defined multiparticle j = g u c d s u~ c~ d~ s~
+Defined multiparticle l+ = e+ mu+
+Defined multiparticle l- = e- mu-
+Defined multiparticle vl = ve vm vt
+Defined multiparticle vl~ = ve~ vm~ vt~
+Defined multiparticle all = g u c d s u~ c~ d~ s~ a ve vm vt e- mu- ve~ vm~ vt~ e+ mu+ t b t~ b~ z w+ h w- ta- ta+
+MG5_aMC>Traceback (most recent call last):
+  File "/cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/bin/mg5_aMC", line 178, in <module>
+    cmd_line.cmdloop()
+  File "/cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/madgraph/interface/extended_cmd.py", line 931, in cmdloop
+    line = raw_input(self.prompt)
+IOError: [Errno 9] Bad file descriptor
+[?1034h************************************************************
+*                                                          *
+*                     W E L C O M E to                     *
+*              M A D G R A P H 5 _ a M C @ N L O           *
+*                                                          *
+*                                                          *
+*                 *                       *                *
+*                   *        * *        *                  *
+*                     * * * * 5 * * * *                    *
+*                   *        * *        *                  *
+*                 *                       *                *
+*                                                          *
+*         VERSION 2.6.1                 2017-12-12         *
+*                                                          *
+*    The MadGraph5_aMC@NLO Development Team - Find us at   *
+*    https://server06.fynu.ucl.ac.be/projects/madgraph     *
+*                            and                           *
+*            http://amcatnlo.web.cern.ch/amcatnlo/         *
+*                                                          *
+*               Type 'help' for in-line help.              *
+*           Type 'tutorial' to learn how MG5 works         *
+*    Type 'tutorial aMCatNLO' to learn how aMC@NLO works   *
+*    Type 'tutorial MadLoop' to learn how MadLoop works    *
+*                                                          *
+************************************************************
+load MG5 configuration from ../../../../../cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/input/mg5_configuration.txt 
+set collier to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/collier/1.1-92381/x86_64-slc6-gcc62-opt
+Using golem library in /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/lib
+set fastjet to fastjet-config
+set lhapdf to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/lhapdf/6.2.0-46baa/x86_64-slc6-gcc62-opt/bin/lhapdf-config
+set ninja to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/gosam_contrib/2.0-779ba/x86_64-slc6-gcc62-opt/lib
+Using default text editor "vi". Set another one in ./input/mg5_configuration.txt
+Using default eps viewer "evince". Set another one in ./input/mg5_configuration.txt
+No valid web browser found. Please set in ./input/mg5_configuration.txt
+Loading default model: sm
+INFO: reload from .py file 
+INFO: load particles 
+INFO: load vertices 
+INFO: Restrict model sm with file ../../../../../cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/models/sm/restrict_default.dat . 
+INFO: Run "set stdout_level DEBUG" before import for more information. 
+INFO: Change particles name to pass to MG5 convention 
+Defined multiparticle p = g u c d s u~ c~ d~ s~
+Defined multiparticle j = g u c d s u~ c~ d~ s~
+Defined multiparticle l+ = e+ mu+
+Defined multiparticle l- = e- mu-
+Defined multiparticle vl = ve vm vt
+Defined multiparticle vl~ = ve~ vm~ vt~
+Defined multiparticle all = g u c d s u~ c~ d~ s~ a ve vm vt e- mu- ve~ vm~ vt~ e+ mu+ t b t~ b~ z w+ h w- ta- ta+
+MG5_aMC>Traceback (most recent call last):
+  File "/cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/bin/mg5_aMC", line 178, in <module>
+    cmd_line.cmdloop()
+  File "/cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/madgraph/interface/extended_cmd.py", line 931, in cmdloop
+    line = raw_input(self.prompt)
+IOError: [Errno 9] Bad file descriptor
+[?1034h************************************************************
+*                                                          *
+*                     W E L C O M E to                     *
+*              M A D G R A P H 5 _ a M C @ N L O           *
+*                                                          *
+*                                                          *
+*                 *                       *                *
+*                   *        * *        *                  *
+*                     * * * * 5 * * * *                    *
+*                   *        * *        *                  *
+*                 *                       *                *
+*                                                          *
+*         VERSION 2.6.1                 2017-12-12         *
+*                                                          *
+*    The MadGraph5_aMC@NLO Development Team - Find us at   *
+*    https://server06.fynu.ucl.ac.be/projects/madgraph     *
+*                            and                           *
+*            http://amcatnlo.web.cern.ch/amcatnlo/         *
+*                                                          *
+*               Type 'help' for in-line help.              *
+*           Type 'tutorial' to learn how MG5 works         *
+*    Type 'tutorial aMCatNLO' to learn how aMC@NLO works   *
+*    Type 'tutorial MadLoop' to learn how MadLoop works    *
+*                                                          *
+************************************************************
+load MG5 configuration from ../../../../../cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/input/mg5_configuration.txt 
+set collier to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/collier/1.1-92381/x86_64-slc6-gcc62-opt
+Using golem library in /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/lib
+set fastjet to fastjet-config
+set lhapdf to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/lhapdf/6.2.0-46baa/x86_64-slc6-gcc62-opt/bin/lhapdf-config
+set ninja to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/gosam_contrib/2.0-779ba/x86_64-slc6-gcc62-opt/lib
+Using default text editor "vi". Set another one in ./input/mg5_configuration.txt
+Using default eps viewer "evince". Set another one in ./input/mg5_configuration.txt
+No valid web browser found. Please set in ./input/mg5_configuration.txt
+import /uscms_data/d3/jrainbol/Selection4l/madgraph/launch
+The import format was not given, so we guess it as proc_v4
+[1;31mERROR: I/O error on file /uscms_data/d3/jrainbol/Selection4l/madgraph/launch (2): No such file or directory [0m
+[1;31mCommand "import /uscms_data/d3/jrainbol/Selection4l/madgraph/launch" interrupted in sub-command:
+"#import proc_v4 /uscms_data/d3/jrainbol/Selection4l/madgraph/launch" with error:
+InvalidCmd : "/uscms_data/d3/jrainbol/Selection4l/madgraph/launch" is not a valid path[0m
+quit
+ 
+
+ 
+
+[?1034h************************************************************
+*                                                          *
+*                     W E L C O M E to                     *
+*              M A D G R A P H 5 _ a M C @ N L O           *
+*                                                          *
+*                                                          *
+*                 *                       *                *
+*                   *        * *        *                  *
+*                     * * * * 5 * * * *                    *
+*                   *        * *        *                  *
+*                 *                       *                *
+*                                                          *
+*         VERSION 2.6.1                 2017-12-12         *
+*                                                          *
+*    The MadGraph5_aMC@NLO Development Team - Find us at   *
+*    https://server06.fynu.ucl.ac.be/projects/madgraph     *
+*                            and                           *
+*            http://amcatnlo.web.cern.ch/amcatnlo/         *
+*                                                          *
+*               Type 'help' for in-line help.              *
+*           Type 'tutorial' to learn how MG5 works         *
+*    Type 'tutorial aMCatNLO' to learn how aMC@NLO works   *
+*    Type 'tutorial MadLoop' to learn how MadLoop works    *
+*                                                          *
+************************************************************
+load MG5 configuration from ../../../../../cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/input/mg5_configuration.txt 
+set collier to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/collier/1.1-92381/x86_64-slc6-gcc62-opt
+Using golem library in /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/lib
+set fastjet to fastjet-config
+set lhapdf to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/lhapdf/6.2.0-46baa/x86_64-slc6-gcc62-opt/bin/lhapdf-config
+set ninja to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/gosam_contrib/2.0-779ba/x86_64-slc6-gcc62-opt/lib
+Using default text editor "vi". Set another one in ./input/mg5_configuration.txt
+Using default eps viewer "evince". Set another one in ./input/mg5_configuration.txt
+No valid web browser found. Please set in ./input/mg5_configuration.txt
+import /uscms_data/d3/jrainbol/Selection4l/madgraph/launch
+The import format was not given, so we guess it as proc_v4
+[1;31mERROR: I/O error on file /uscms_data/d3/jrainbol/Selection4l/madgraph/launch (2): No such file or directory [0m
+[1;31mCommand "import /uscms_data/d3/jrainbol/Selection4l/madgraph/launch" interrupted in sub-command:
+"#import proc_v4 /uscms_data/d3/jrainbol/Selection4l/madgraph/launch" with error:
+InvalidCmd : "/uscms_data/d3/jrainbol/Selection4l/madgraph/launch" is not a valid path[0m
+quit
+ 
+
+ 
+
+[?1034h************************************************************
+*                                                          *
+*                     W E L C O M E to                     *
+*              M A D G R A P H 5 _ a M C @ N L O           *
+*                                                          *
+*                                                          *
+*                 *                       *                *
+*                   *        * *        *                  *
+*                     * * * * 5 * * * *                    *
+*                   *        * *        *                  *
+*                 *                       *                *
+*                                                          *
+*         VERSION 2.6.1                 2017-12-12         *
+*                                                          *
+*    The MadGraph5_aMC@NLO Development Team - Find us at   *
+*    https://server06.fynu.ucl.ac.be/projects/madgraph     *
+*                            and                           *
+*            http://amcatnlo.web.cern.ch/amcatnlo/         *
+*                                                          *
+*               Type 'help' for in-line help.              *
+*           Type 'tutorial' to learn how MG5 works         *
+*    Type 'tutorial aMCatNLO' to learn how aMC@NLO works   *
+*    Type 'tutorial MadLoop' to learn how MadLoop works    *
+*                                                          *
+************************************************************
+load MG5 configuration from ../../../../../cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/input/mg5_configuration.txt 
+set collier to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/collier/1.1-92381/x86_64-slc6-gcc62-opt
+Using golem library in /cvmfs/sft.cern.ch/lcg/views/LCG_93/x86_64-slc6-gcc62-opt/lib
+set fastjet to fastjet-config
+set lhapdf to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/lhapdf/6.2.0-46baa/x86_64-slc6-gcc62-opt/bin/lhapdf-config
+set ninja to /cvmfs/sft.cern.ch/lcg/releases/MCGenerators/gosam_contrib/2.0-779ba/x86_64-slc6-gcc62-opt/lib
+Using default text editor "vi". Set another one in ./input/mg5_configuration.txt
+Using default eps viewer "evince". Set another one in ./input/mg5_configuration.txt
+No valid web browser found. Please set in ./input/mg5_configuration.txt
+import /uscms_data/d3/jrainbol/Selection4l/madgraph/launch
+The import format was not given, so we guess it as proc_v4
+[1;31mERROR: I/O error on file /uscms_data/d3/jrainbol/Selection4l/madgraph/launch (2): No such file or directory [0m
+[1;31mCommand "import /uscms_data/d3/jrainbol/Selection4l/madgraph/launch" interrupted in sub-command:
+"#import proc_v4 /uscms_data/d3/jrainbol/Selection4l/madgraph/launch" with error:
+InvalidCmd : "/uscms_data/d3/jrainbol/Selection4l/madgraph/launch" is not a valid path[0m
+quit
+ 
+
+ 
+

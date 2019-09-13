@@ -35,7 +35,7 @@ define l+ = e+ mu+
 define l- = e- mu-
 define vl = ve vm vt
 define vl~ = ve~ vm~ vt~
-import model models/Standard_Model_UFO
+import model models/StandardModel
 Traceback (most recent call last):
   File "/cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/madgraph/interface/extended_cmd.py", line 1467, in onecmd
     return self.onecmd_orig(line, **opt)
@@ -49,7 +49,7 @@ Traceback (most recent call last):
     model_path = find_ufo_path(model_name)
   File "/cvmfs/sft.cern.ch/lcg/releases/MCGenerators/madgraph5amc/2.6.1.atlas-ade8b/x86_64-slc6-gcc62-opt/models/import_ufo.py", line 84, in find_ufo_path
     raise UFOImportError("Path %s is not a valid pathname" % model_name)
-UFOImportError: Path models/Standard_Model_UFO is not a valid pathname
+UFOImportError: Path models/StandardModel is not a valid pathname
                           MadGraph5_aMC@NLO Options    
                           ----------------    
         complex_mass_scheme 	:	False

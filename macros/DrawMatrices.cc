@@ -124,6 +124,8 @@ void DrawMatrices()
         resp[h]->SetNdivisions(resp[h]->GetNbinsY(), "y");
         resp[h]->GetYaxis()->SetTitleOffset(0.6);
         resp[h]->GetZaxis()->SetTitleOffset(0.8);
+        if (hnames[h].EqualTo("sin_phi"))
+            resp[h]->SetMarkerSize(1.25);
 
         resp[h]->SetMinimum(0);
         resp[h]->SetMaximum(1);
@@ -159,6 +161,8 @@ void DrawMatrices()
         cov[h]->SetNdivisions(resp[h]->GetNbinsY(), "y");
         cov[h]->GetYaxis()->SetTitleOffset(0.6);
         cov[h]->GetZaxis()->SetTitleOffset(0.8);
+        if (hnames[h].EqualTo("sin_phi"))
+            cov[h]->SetMarkerSize(1.25);
 
         float cov_median = 0.5 * (cov[h]->GetMaximum() - cov[h]->GetMinimum());
         cov[h]->DrawClone("COLZ");
@@ -193,6 +197,8 @@ void DrawMatrices()
         var[h]->SetNdivisions(resp[h]->GetNbinsY(), "y");
         var[h]->GetYaxis()->SetTitleOffset(0.6);
         var[h]->GetZaxis()->SetTitleOffset(0.8);
+        if (hnames[h].EqualTo("sin_phi"))
+            var[h]->SetMarkerSize(1.25);
 
         float var_median = 0.5 * (var[h]->GetMaximum() - var[h]->GetMinimum());
         var[h]->DrawClone("COLZ");

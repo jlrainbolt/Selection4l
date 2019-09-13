@@ -163,17 +163,18 @@ void DrawRatios()
         Facelift(c_reco_gen);
 
         gen[h]->SetMinimum(0);
+        gen[h]->SetMaximum(1.5 * gen[h]->GetMaximum());
         gen[h]->SetStats(0);
         gen[h]->SetLineColor(lRed);
         gen[h]->SetLineWidth(4);
 
         reco[h]->SetMinimum(0);
-        reco[h]->SetMaximum(1.5 * gen[h]->GetMaximum());
+        reco[h]->SetMaximum(gen[h]->GetMaximum());
         reco[h]->SetStats(0);
         reco[h]->SetLineColor(lBlue);
         reco[h]->SetLineWidth(4);
 
-        TRatioPlot *r_reco_gen = new TRatioPlot(reco[h], gen[h], "divsym");
+        TRatioPlot *r_reco_gen = new TRatioPlot(gen[h], reco[h], "divsym");
         r_reco_gen->SetH1DrawOpt("E");
         r_reco_gen->SetH2DrawOpt("E");
         r_reco_gen->SetSeparationMargin(0.01);
@@ -201,7 +202,7 @@ void DrawRatios()
         Facelift(r_reco_gen->GetLowerRefYaxis());
         r_reco_gen->GetLowerRefGraph()->SetMinimum(0.8);
         r_reco_gen->GetLowerRefGraph()->SetMaximum(1.2);
-        r_reco_gen->GetLowerRefYaxis()->SetTitle("Reco/Gen");
+        r_reco_gen->GetLowerRefYaxis()->SetTitle("Gen/Reco");
         r_reco_gen->SetLowBottomMargin(3 * lCanvasMargin);
         r_reco_gen->SetLeftMargin(1.2 * lCanvasMargin);
         r_reco_gen->GetLowerPad()->Modified();

@@ -17,79 +17,42 @@ when_to_transfer_output = ON_EXIT
 request_cpus            = 2
 request_memory          = 4000
 
-arguments   = "$(model) $(finalstate) $(nevents) $(MUb) $(gUbe) $(gUbmu)"
+arguments   = "$(model) $(finalstate) $(nevents) $(MUb) $(gUbe) $(gUbmu) $(wUb)"
 
 model       = VectorU
 finalstate  = 4m
 nevents     = 10000
 
 gUbe = 0
+gUbmu = 0.2
+mUB = 50
 
+    wUb = 0.000005305165052
+    queue
 
-    mUb = 45
+    wUb = 0.00005305165052
+    queue
 
-        gUbmu = 0.08
-        queue
+    wUb = 0.0005305165052
+    queue
 
-        gUbmu = 0.06
-        queue
+    wUb = 0.005305165052
+    queue
 
+    wUb = 0.05305165052
+    queue
 
-    mUb = 28
+    wUb = Auto
+    queue
 
-        gUbmu = 0.025
-        queue
+    wUb = 0.5305165052
+    queue
 
+    wUb = 5.305165052
+    queue
 
-    mUb = 26
+    wUb = 53.05165052
+    queue
 
-        gUbmu = 0.025
-        queue
-
-
-    mUb = 24
-
-        gUbmu = 0.022
-        queue
-
-
-    mUb = 22
-
-        gUbmu = 0.035
-        queue
-
-        gUbmu = 0.022
-        queue
-
-
-    mUb = 16
-
-        gUbmu = 0.018
-        queue
-
-
-    mUb = 14
-
-        gUbmu = 0.018
-        queue
-
-
-    mUb = 12
-
-        gUbmu = 0.016
-        queue
-
-
-    mUb = 5
-
-        gUbmu = 0.014
-        queue
-
-
-    mUb = 4
-
-        gUbmu = 0.025
-        queue
-
-        gUbmu = 0.022
-        queue
+    wUb = 530.5165052
+    queue

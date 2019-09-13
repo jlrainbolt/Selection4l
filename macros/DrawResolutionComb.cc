@@ -26,7 +26,7 @@ using namespace std;
 **  Draws resolution of distributions for a "matched_" sample
 */ 
 
-void DrawResolutionComb()
+void DrawResolutionComb(TString chan = "4l")
 {
 
     //
@@ -36,6 +36,7 @@ void DrawResolutionComb()
     vector<tuple<TString, TString, TString, int, float, float, float>> v = {
 
         //          name            quantity            axis label          bins xmin   xmax  width
+        make_tuple( "zzm",          "zzp4.M()",         _m_(_4l),           100, -20,   20,    1),
         make_tuple( "b_z1m",        "b_z1p4.M()",       _m_(_Z1),           100, -10,   10,    8),
         make_tuple( "b_z2m",        "b_z2p4.M()",       _m_(_Z2),           100, -10,   10,    4),
         make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  100, -10,   10,    5),
@@ -55,7 +56,7 @@ void DrawResolutionComb()
     //
 
     TString prefix  = "resolution";
-    TString inName  = prefix + "_sum.root";
+    TString inName  = prefix + "_" + chan + ".root";
     TFile   *inFile = new TFile(inName);
 
     cout << endl << endl << "Opened " << inName << endl << endl;
@@ -67,7 +68,7 @@ void DrawResolutionComb()
     //
 
     TString suffix = "zz_4l";
-    TString outName = prefix + "_comb.root";
+    TString outName = prefix + "_comb_" + chan + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -86,31 +87,38 @@ void DrawResolutionComb()
         float   xmin,   xmax,       width;
         TString weight = "weight";
         tie(hname, quantity, xlabel, bins, xmin, xmax, width) = v[j];
+        if (chan.EqualTo("4e"))
+            width *= 2;
 
         // Get and draw histogram
         TH1D *h;
         inFile->GetObject(hname + "_" + suffix, h);
         h->SetDirectory(0);
        
-        TCanvas *canvas = new TCanvas("comb_" + hname + "_resolution", "", 100, 100);
+        TCanvas *canvas = new TCanvas("comb_" + chan + "_" + hname + "_resolution", "", 100, 100);
         canvas->cd();
         Facelift(canvas);
 //      canvas->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
         canvas->SetMargin(1.2*lCanvasMargin, 0.9*lCanvasMargin, 0.9*lCanvasMargin, 0.6*lCanvasMargin);
 
+        h->SetMaximum(1.25 * h->GetMaximum());
         h->SetFillColor(kWhite);
         h->SetLineColor(kViolet);
         h->SetLineWidth(3);
         h->GetYaxis()->SetTitle("Events");
+//      h->GetXaxis()->SetTitle("\\Delta m_{4\\mu}\\mbox{ (GeV)}");
+//      h->GetXaxis()->SetTitle("\\Delta m_{4\\mbox{e}}\\mbox{ (GeV)}");
+        h->GetXaxis()->SetTitle("\\Delta m_{2\\mu2\\mbox{e}}\\mbox{ (GeV)}");
         h->GetYaxis()->SetTitleOffset(lTitleOffsetY);
+        h->SetStats(1);
         h->Draw("HIST");
 
         canvas->Update();
-//      TPaveStats *stats = (TPaveStats*)h->GetListOfFunctions()->FindObject("stats");
-//      stats->SetOptStat(1000111110);
-//      stats->SetTextFont(lHelveticaMediumR);
-//      stats->SetTextSize(lSmall);
-//      stats->SetX1NDC(0.7); stats->SetY1NDC(0.5);
+        TPaveStats *stats = (TPaveStats*)h->GetListOfFunctions()->FindObject("stats");
+        stats->SetOptStat(1000111110);
+        stats->SetTextFont(lHelveticaMediumR);
+        stats->SetTextSize(lSmall);
+        stats->SetX1NDC(0.7); stats->SetY1NDC(0.7);
 
         float x = 0.5 * width;
         float y1 = 0, y2 = gPad->GetUymax();

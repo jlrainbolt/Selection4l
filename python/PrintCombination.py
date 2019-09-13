@@ -4,7 +4,7 @@ from __future__ import division
 import numpy as np
 
 from ROOT import TFile, TTree, TH1D
-from secret_number import *
+from scipy.stats import chi2
 
 
 
@@ -19,6 +19,7 @@ period      = [ "2012", "2016", "2017", "2018"  ]
 
 P, M = len(period), len(selection)
 n_params = [1, M, P, P*M]
+dof = {1:P*M - 1, M:P*M - M, P:P*M - P, P*M:1}
 name = ["SM", "BSM", "Yearly", "Individual"]
 name = dict(zip(n_params, name))
 
@@ -50,6 +51,7 @@ for year in period:
 alpha_stat, alpha_total = {}, {}
 delta_stat, delta_syst, delta_total = {}, {}, {}
 chi_sq_stat, chi_sq_total = {}, {}
+prob_stat, prob_total = {}, {}
 bf_pred = {}
 
 for N in n_params:
@@ -60,6 +62,7 @@ for N in n_params:
     delta_stat[N], delta_total[N] = npzfile["delta_stat"], npzfile["delta_total"]
     delta_syst[N] = npzfile["delta_syst"]
     chi_sq_stat[N], chi_sq_total[N] = npzfile["chi_sq_stat"], npzfile["chi_sq_total"]
+    prob_stat[N], prob_total[N] = npzfile["chi_sq_stat"], npzfile["chi_sq_total"]
 
     if N == 1:
         bf_pred = npzfile["bf_pred"]
@@ -67,6 +70,13 @@ for N in n_params:
 bf_comb = bf_pred * alpha_total[1]
 bf_comb_stat = bf_comb * delta_stat[1]
 bf_comb_syst = bf_comb * delta_syst[1]
+
+
+# Calculate probability
+for N in n_params:
+    for prob in [prob_stat, prob_total]:
+        prob[N] = chi2.sf(prob[N], dof[N])
+
 
 
 ##
@@ -131,17 +141,18 @@ print("Wrote table to", fileName)
 
 fileName = "BFCombination.tex"
 f = open(fileName, "w")
-fmt = '%.2f'
+fmt, fmt2 = '%.2f', '%.3f'
 
 
-f.write(r"\begin{tabular}{l ll rr c rrr c rr}" + "\n")
+f.write(r"\begin{tabular}{l ll rr c rrr}" + "\n")
 f.write(r"\toprule" + "\n")
 
-f.write("\t" + r"& & & \multicolumn{2}{c}{Signal strength} && "
-        + r"\multicolumn{3}{c}{Precision (\%)} && \multicolumn{2}{c}{$\chi^2$} \\" + "\n")
-f.write(r"\rulepad \cline{4-5} \cline{7-9} \cline{11-12} \rulepad" + "\n")
-f.write("\t" + r"Param. & \multicolumn{2}{l}{Category} & \stat & \total && "
-        + r"\stat & \syst & \total && \stat & \total \\" + "\n")
+f.write("\t" + r"& & & \multicolumn{2}{c}{Signal strength} && \multicolumn{3}{c}{Precision (\%)}"
+        + r" \\" + "\n")
+f.write(r"\rulepad \cline{4-5} \cline{7-9} \rulepad" + "\n")
+f.write("\t" + r"Param. & \multicolumn{2}{l}{Category} & \multicolumn{1}{l}{\stat} & "
+        + r"\multicolumn{1}{l}{\total} && \multicolumn{1}{l}{\stat} & \multicolumn{1}{l}{\syst}"
+        + r" & \multicolumn{1}{l}{\total} \\ " + "\n")
 f.write(r"\midrule" + "\n")
 
 for N in n_params:
@@ -152,9 +163,21 @@ for N in n_params:
                 + fmt % np.squeeze(alpha_total[N]) + " && "
                 + fmt % np.squeeze(100 * delta_stat[N]) + " & "
                 + fmt % np.squeeze(100 * delta_syst[N]) + " & "
-                + fmt % np.squeeze(100 * delta_total[N]) + " && "
-                + fmt % np.squeeze(chi_sq_stat[N]) + " & "
-                + fmt % np.squeeze(chi_sq_total[N]) + r" \\" + "\n")
+                + fmt % np.squeeze(100 * delta_total[N])) # + " && "
+        '''
+                + '%i' % dof[N] + " & " + fmt % np.squeeze(chi_sq_stat[N]) + " & "
+                + fmt % np.squeeze(chi_sq_total[N]) + " && ")
+        if prob_stat[N] > 0.999:
+            f.write("$> 0.999$")
+        else:
+            f.write(fmt2 % np.squeeze(prob_stat[N]))
+        f.write(" & ")
+        if prob_total[N] > 0.999:
+            f.write("$> 0.999$")
+        else:
+            f.write(fmt2 % np.squeeze(prob_total[N]))
+            '''
+        f.write(r" \\" + "\n")
 
     elif N == M:
         for sel in selection:
@@ -166,11 +189,7 @@ for N in n_params:
                     + fmt % np.squeeze(alpha_total[N][i]) + " && "
                     + fmt % np.squeeze(100 * delta_stat[N][i]) + " & "
                     + fmt % np.squeeze(100 * delta_syst[N][i]) + " & "
-                    + fmt % np.squeeze(100 * delta_total[N][i]))
-            if sel == "4m":
-                f.write(" && " + fmt % np.squeeze(chi_sq_stat[N]) + " & "
-                        + fmt % np.squeeze(chi_sq_total[N]))
-            f.write(r" \\" + "\n")
+                    + fmt % np.squeeze(100 * delta_total[N][i]) + r" \\" + "\n")
 
     elif N == P:
         for year in period:
@@ -181,11 +200,7 @@ for N in n_params:
                     + " & " + fmt % np.squeeze(alpha_total[N][i]) + " && "
                     + fmt % np.squeeze(100 * delta_stat[N][i]) + " & "
                     + fmt % np.squeeze(100 * delta_syst[N][i]) + " & "
-                    + fmt % np.squeeze(100 * delta_total[N][i]))
-            if year == "2012":
-                f.write(" && " + fmt % np.squeeze(chi_sq_stat[N]) + " & "
-                        + fmt % np.squeeze(chi_sq_total[N]))
-            f.write(r" \\" + "\n")
+                    + fmt % np.squeeze(100 * delta_total[N][i]) + r" \\" + "\n")
 
     elif N == P*M:
         for year in period:
@@ -201,20 +216,50 @@ for N in n_params:
                     + fmt % np.squeeze(alpha_total[N][i]) + " && "
                     + fmt % np.squeeze(100 * delta_stat[N][i]) + " & "
                     + fmt % np.squeeze(100 * delta_syst[N][i]) + " & "
-                    + fmt % np.squeeze(100 * delta_total[N][i]))
-                if year == "2012" and sel == "4m":
-                    f.write(" && " + fmt % np.squeeze(chi_sq_stat[N]) + " & "
-                            + fmt % np.squeeze(chi_sq_total[N]))
-                f.write(r" \\" + "\n")
+                    + fmt % np.squeeze(100 * delta_total[N][i]) + r" \\" + "\n")
 
             if year != "2018":
                 f.write(r"\addlinespace" + "\n")
 
         f.write(r"\bottomrule" + "\n")
-    
-    f.write(r"\addlinespace\addlinespace" + "\n")
 
 f.write(r"\end{tabular}" + "\n")
 
 f.close()
+
+print("Wrote table to", fileName)
+
+
+
+fileName = "CombinationChi2.tex"
+f = open(fileName, "w")
+
+f.write(r"\begin{tabular}{l r c rr c rr}" + "\n")
+f.write(r"\toprule" + "\n")
+
+f.write("\t" + r"&&& \multicolumn{2}{c}{$\chi^2$} && \multicolumn{2}{c}{Prob.} \\" + "\n")
+f.write(r"\rulepad \cline{4-5} \cline{7-8} \rulepad" + "\n")
+f.write("\t" + r"Param. & \multicolumn{1}{l}{d.f.} && \multicolumn{1}{l}{\stat} & "
+        + r"\multicolumn{1}{l}{\total} && \multicolumn{1}{l}{\stat} & "
+        + r"\multicolumn{1}{l}{\total}" + r" \\ " + "\n")
+f.write(r"\midrule" + "\n")
+
+for N in n_params:
+    f.write("\t" + name[N] + " & " + '%i' % dof[N] + " && " + fmt % np.squeeze(chi_sq_stat[N])
+            + " & " + fmt % np.squeeze(chi_sq_total[N]) + " && ")
+    if prob_stat[N] > 0.999:
+        f.write("$> 0.999$")
+    else:
+        f.write(fmt2 % np.squeeze(prob_stat[N]))
+    f.write(" & ")
+    if prob_total[N] > 0.999:
+        f.write("$> 0.999$")
+    else:
+        f.write(fmt2 % np.squeeze(prob_total[N]))
+    f.write(r" \\" + "\n")
+
+f.write(r"\bottomrule" + "\n")
+f.write(r"\end{tabular}" + "\n")
+f.close()
+
 print("Wrote table to", fileName)

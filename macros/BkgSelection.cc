@@ -23,8 +23,8 @@
 // Cuts
 //#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
-//#include "Cuts2012.hh"
+//#include "Cuts2016.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -127,6 +127,10 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
         tree[i]->Branch("idWeight",     &idWeight);
         tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
+
+        tree[i]->Branch("muonTrig",     &muonTrig);     tree[i]->Branch("doubleMuTrig", &diMuTrig);           
+        tree[i]->Branch("singleMuTrig", &siMuTrig);     tree[i]->Branch("electronTrig", &elecTrig);           
+        tree[i]->Branch("doubleElTrig", &diElTrig);     tree[i]->Branch("singleElTrig", &siElTrig); 
         
         if (isLoose)
         {
@@ -310,15 +314,14 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
         runNum      = *runNum_;         evtNum      = *evtNum_;         lumiSec     = *lumiSec_;
         genWeight   = *genWeight_;      ecalWeight  = *ecalWeight_;     puWeight    = *puWeight_;
         nPV         = *nPV_;            hasTauDecay = *hasTauDecay_;
+        muonTrig    = *muonTrig_;       diMuTrig    = *diMuTrig_;       siMuTrig    = *siMuTrig_;
+        elecTrig    = *elecTrig_;       diElTrig    = *diElTrig_;       siElTrig    = *siElTrig_;
 
         // Needing initialization
         nLooseMuons = 0;                nLooseElecs = 0;                nLooseLeps  = 0;
         trigWeight  = 1;                qtWeight    = 1;                idWeight    = 1;
 
         // Used in analysis, but not written out
-        bool        muonTrig    = *muonTrig_,       elecTrig    = *elecTrig_;
-        bool        diMuTrig    = *diMuTrig_,       siMuTrig    = *siMuTrig_;
-        bool        diElTrig    = *diElTrig_;       siElTrig    = *siElTrig_;
         unsigned    nMuons      = *nMuons_,         nElecs      = *nElecs_;
         unsigned    nTightMuons = *nTightMuons_,    nTightElecs = *nTightElecs_;
 

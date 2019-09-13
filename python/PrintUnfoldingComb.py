@@ -44,8 +44,8 @@ f.write("\t\t" + r"$x$ & \multicolumn{1}{l}{$\nu$} & $\cond(R)$ & "
 f.write(r"\midrule" + "\n")
 
 for h in range(len(names)):
-    if names[h] in ["sin_phi", "sin_phi_10"]:
-        continue
+#   if names[h] in ["sin_phi", "sin_phi_10"]:
+#       continue
 
     f.write("\t" + nameTeX[names[h]] + " & {:,.0f}".format(np.squeeze(bins[h])) 
             + " & {:,.2f}".format(np.squeeze(cond_num[h]))

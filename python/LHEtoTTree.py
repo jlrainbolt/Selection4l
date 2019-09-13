@@ -71,7 +71,8 @@ if isBSM:
 ##
 
 if isBSM:
-    outname = model + "_M-" + "{:g}".format(MUb) + "_ge-" + "{:g}".format(gUbe).replace("0.", "")
+    outname = model + "_M-" + "{:g}".format(MUb) + "_W-" + "{:1.0e}".format(WUb)
+    outname = outname + "_ge-" + "{:g}".format(gUbe).replace("0.", "")
     outname = outname + "_gmu-" + "{:g}".format(gUbmu).replace("0.", "") + ".root"
 else:
     outname = model + ".root"

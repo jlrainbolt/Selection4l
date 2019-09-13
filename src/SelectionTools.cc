@@ -263,6 +263,117 @@ bool MakePairsMaxZ1(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2)
 
 
 
+//
+//  6L SAME FLAVOR
+//
+
+bool MakePairs6l(const vector<Lepton> &leps, LeptonPair *z1, LeptonPair *z2, LeptonPair *z3)
+{
+    if (leps.size() != 6)
+        return kFALSE;
+
+    vector<bool> isMatched = {kFALSE, kFALSE, kFALSE, kFALSE, kFALSE, kFALSE};
+
+    unsigned A1 = 0, A2;    // index of lepA2
+
+    // Look for opposite-sign, same-flavor match for l1
+    for (unsigned j = 1; j < leps.size(); j++)
+    {
+        if  (
+                (leps[A1].q != leps[j].q) &&
+                (abs(leps[A1].pdg) == abs(leps[j].pdg))
+            )
+        {
+            A2 = j;
+            isMatched[A1] = kTRUE;
+            isMatched[A2] = kTRUE;
+            break;
+        }
+    }
+//  if (!isMatched[A1] || !isMatched[A2])
+//      return kFALSE;
+
+
+    unsigned B1, B2;    // index of lepB2
+
+    // Look for opposite-sign, same-flavor match for l2
+    for (unsigned i = 1; i < leps.size(); i++)
+    {
+        if (isMatched[i])
+            continue;
+
+        for (unsigned j = 2; j < leps.size(); j++)
+        {
+            if (isMatched[j])
+                continue;
+
+            if  (
+                    (leps[j].q != leps[i].q) &&
+                    (abs(leps[j].pdg) == abs(leps[i].pdg))
+                )
+            {
+                B1 = i;
+                B2 = j;
+                isMatched[B1] = kTRUE;
+                isMatched[B2] = kTRUE;
+                break;
+            }
+        }
+    }
+//  if (!isMatched[B1] || !isMatched[B2])
+//      return kFALSE;
+
+
+    unsigned C1, C2;    // index of lepB2
+
+    // Look for opposite-sign, same-flavor match for l2
+    for (unsigned i = 1; i < leps.size(); i++)
+    {
+        if (isMatched[i])
+            continue;
+
+        for (unsigned j = 2; j < leps.size(); j++)
+        {
+            if (isMatched[j])
+                continue;
+
+            if  (
+                    (leps[j].q != leps[i].q) &&
+                    (abs(leps[j].pdg) == abs(leps[i].pdg))
+                )
+            {
+                C1 = i;
+                C2 = j;
+                isMatched[C1] = kTRUE;
+                isMatched[C2] = kTRUE;
+                break;
+            }
+        }
+    }
+//  if (!isMatched[C1] || !isMatched[C2])
+//      return kFALSE;
+
+
+    // Assign selected configuration
+    if (isMatched[A1] && isMatched[A2])
+        z1->SetMembers(leps[A1], leps[A2]);
+    if (isMatched[B1] && isMatched[B2])
+        z2->SetMembers(leps[B1], leps[B2]);
+    if (isMatched[C1] && isMatched[C2])
+        z3->SetMembers(leps[C1], leps[C2]);
+
+
+    // Set mothers (can always be changed outside function)
+    z1->SetMothers(1);
+    z2->SetMothers(2);
+    z3->SetMothers(3);
+
+    return kTRUE;
+}
+
+
+
+
 
 
 ////

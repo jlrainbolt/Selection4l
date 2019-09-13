@@ -34,7 +34,7 @@ from matplotlib import rc
 rc('text', usetex=True)
 mpl.rcParams["font.family"] = "serif"
 mpl.rcParams["font.serif"] = "Palatino"
-mpl.rcParams["font.sans-serif"] = "Helvetica"
+mpl.rcParams["font.sans-serif"] = "Liberation Sans"
 #mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{palatino}']
 #mpl.rcParams['text.latex.preamble'] = [ r'\usepackage{helvet}',]
 #                                       r'\usepackage{sansmath}', r'\sansmath'] 

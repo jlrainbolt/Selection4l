@@ -6,6 +6,8 @@ nevents="$3"
 MUb="$4"
 gUbe="$5"
 gUbmu="$6"
+WUb="$7"
+#WUb="Auto"
 
 
 echo "Date:     " `date`
@@ -28,7 +30,7 @@ echo "set iseed 0" >> input.txt
 if [[ ${model} == *"U" ]]
 then
     echo "set MUb $MUb" >> input.txt
-    echo "set WUb Auto" >> input.txt
+    echo "set WUb $WUb" >> input.txt
     echo "set gUbe $gUbe" >> input.txt
     echo "set gUbmu $gUbmu" >> input.txt
 fi
