@@ -69,11 +69,9 @@ print("Opened", elName)
 
 
 # Get histograms for 2018
-#hnames = ["zzm"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt", "l1eta", "l2eta", "l3eta", "l4eta"]
+hnames = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
 #hnames = ["sin_phi"]
-hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt", "l1eta", "l2eta", "l3eta", "l4eta"]
-#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
-#hnames = ["b_z1m"]
 
 H = len(hnames)
 
@@ -144,6 +142,8 @@ for suff in mc_suff[year]:
     if suff == "zjets_m-50":
         mc[suff] = mc_arr[j]
         j = j + 1
+        continue
+    elif suff in ["ttbar", "tt_2l2nu"]:
         continue
 
     # Get 2018 histograms
@@ -285,6 +285,8 @@ year = "2018"
 for h in range(H):
     data[h]['4e'].Rebin(2)
     for suff in mc_suff[year]:
+        if suff in ["ttbar", "tt_2l2nu"]:
+            continue
         mc[suff][h]['4e'].Rebin(2)
 
 
@@ -296,6 +298,8 @@ for sel in selection:
         for suff in mc_suff[year]:
             if suff == "zz_4l":
                 total[h][sel] = mc[suff][h][sel].Clone()
+            elif suff in ["ttbar", "tt_2l2nu"]:
+                continue
             else:
                 total[h][sel].Add(mc[suff][h][sel])
 
@@ -313,7 +317,7 @@ for sel in selection:
 ####
 
 
-for sel in ["4e"]:
+for sel in ["4l"]:
 #for sel in selection:
     print("Drawing", sel, "plots...")
 
@@ -335,6 +339,8 @@ for sel in ["4e"]:
         v_mc = {}
         j = 0
         for suff in MC_SUFF:
+            if suff in ["ttbar", "tt_2l2nu"]:
+                continue
             for i in range(len(v_mc_arr[0])):
                 v_mc_arr[j][i]['x'] = total[h][sel].GetBinLowEdge(i+1)
                 v_mc_arr[j][i]['y'] = mc[suff][h][sel].GetBinContent(i+1)
@@ -376,6 +382,8 @@ for sel in ["4e"]:
 
         p_mc = {}
         for suff in MC_SUFF:
+            if suff in ["ttbar", "tt_2l2nu"]:
+                continue
             p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
                                 bottom = v_mc[suff]['b'],   align = 'edge',     linewidth=0,
                                 color = COLOR[suff]

@@ -14,10 +14,11 @@ from PlotUtils import *
 ##  SAMPLE INFO
 ##
 
-prefix = "ext"
+cut = "mll"
+prefix = cut
 
 selection = ["4l", "4m", "2m2e", "4e"]
-period = ["2012", "2016", "2017", "2018"]
+period = ["2016", "2017", "2018"]
 
 T = np.dtype([(sel, object) for sel in selection])
 U = np.dtype([(sel, 'f4') for sel in selection])
@@ -27,29 +28,23 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 # Get header info
 lumi, xsec, ngen, mc_suff = {}, {}, {}, {}
 
-from Cuts2012 import *
-lumi[YEAR_STR] = INT_LUMI
-xsec[YEAR_STR] = XSEC
-ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
-
 from Cuts2016 import *
 lumi[YEAR_STR] = INT_LUMI
 xsec[YEAR_STR] = XSEC
 ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
+mc_suff[YEAR_STR] = MC_SUFF_MLL
 
 from Cuts2017 import *
 lumi[YEAR_STR] = INT_LUMI
 xsec[YEAR_STR] = XSEC
 ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
+mc_suff[YEAR_STR] = MC_SUFF_MLL
 
 from Cuts2018 import *
 lumi[YEAR_STR] = INT_LUMI
 xsec[YEAR_STR] = XSEC
 ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
+mc_suff[YEAR_STR] = MC_SUFF_MLL
 
 
 
@@ -71,7 +66,11 @@ print("Opened", elName)
 
 
 # Get histograms for 2018
-hnames = ["zzm_50_150", "zzm_50_250", "zzm_50_350", "zzm_60_120", "zzm_70_110", "zzm_75_105"]
+#hnames = ["zzm"]
+#hnames = ["sin_phi"]
+hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt", "l1eta", "l2eta", "l3eta", "l4eta"]
+#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
+#hnames = ["b_z1m"]
 
 H = len(hnames)
 
@@ -93,8 +92,8 @@ muFile.Close()
 elFile.Close()
 
 
-# Add 2012, 2016, & 2017
-for year in ["2017", "2016", "2012"]:
+# Add 2016 & 2017
+for year in ["2017", "2016"]:
     # Muon file
     muName = prefix + "_" + year + "_muon_" + year + ".root"
     muFile = TFile(muName, "READ")
@@ -162,10 +161,9 @@ for suff in mc_suff[year]:
 
             h = h + 1
         h = 0
-    inFile.Close()
 
-    # Add 2012, 2016, & 2017
-    for year in ["2017", "2016", "2012"]:
+    # Add 2016 & 2017
+    for year in ["2017", "2016"]:
         if suff not in mc_suff[year]:
             continue
 
@@ -180,15 +178,16 @@ for suff in mc_suff[year]:
                 hist = inFile.Get(sel + "/" + hname + "_" + suff)
                 hist.SetDirectory(0)
                 hist.Scale(sf)
+
                 mc_arr[j][h][sel].Add(hist)
 
                 h = h + 1
             h = 0
-        inFile.Close()
 
 
     mc[suff] = mc_arr[j]
     j = j + 1
+    inFile.Close()
 
 print("Got MC histograms")
 print("")
@@ -200,11 +199,15 @@ print("")
 ##
 
 # Get number of nonprompt events
-npt = {}
+npt, npt_frac = {}, {}
 
 for year in period:
-    npt[year] = np.zeros(1, dtype=U)
-    inPath = EOS_PATH + "/Extended/" + year + "_new/"
+    infile = "nonprompt" + year + ".npz"
+    npzfile = np.load(infile)
+    npt[year] = npzfile['npt']
+
+    npt_frac[year] = np.zeros(1, dtype=U)
+    inPath = EOS_PATH + "/Selected/" + year + "_trig/"
     muBkgName = inPath + "background_muon_" + year + ".root"
     elBkgName = inPath + "background_electron_" + year + ".root"
     muBkgFile = TFile.Open(muBkgName)
@@ -215,24 +218,16 @@ for year in period:
     for sel in selection:
         muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
         elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
-        npt[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0)")
-        npt[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0)")
+        npt[year][sel] = muBkgTree.GetEntries("(nLooseLeptons == 0)") + elBkgTree.GetEntries("(nLooseLeptons == 0)")
+#       npt_frac[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0) && " + prefix)
+#       npt_frac[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0) && " + prefix)
+#       npt_frac[year][sel] /= (muBkgTree.GetEntries("nLooseLeptons == 0") + elBkgTree.GetEntries("nLooseLeptons == 0"))
+
+#       if np.isfinite(npt_frac[year][sel]):
+#           npt[year][sel] *= npt_frac[year][sel]
 
     muBkgFile.Close()
     elBkgFile.Close()
-
-    # Subtract prompt contributions
-    for suff in mc_suff[year]:
-        if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"]:
-            continue
-        else:
-            sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
-            bkgName = inPath + "background_" + suff + ".root"
-            bkgFile = TFile.Open(bkgName)
-            print("Opened", bkgName) 
-            bkgTree = bkgFile.Get(sel + "_" + suff)
-            npt[year][sel] -= sf * bkgTree.GetEntries("(nLooseLeptons == 0)")
-            bkgFile.Close()
 
 print(npt)
 
@@ -249,12 +244,6 @@ elName = prefix + "_" + YEAR_STR + "_electron_" + YEAR_STR + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
 
-sf_npt = {}
-sf_npt["2012"] = {"4l":0.10, "4m":0, "2m2e":0.15, "4e":0.04}
-sf_npt["2016"] = {"4l":0.04, "4m":0.13, "2m2e":0.05, "4e":0}
-sf_npt["2017"] = {"4l":0.09, "4m":0.32, "2m2e":0.09, "4e":0.03}
-sf_npt["2018"] = {"4l":0.02, "4m":0.04, "2m2e":0.03, "4e":0}
-
 
 # Get histograms for 2018
 h = 0
@@ -263,25 +252,10 @@ for sel in selection:
     for hname in hnames:
         mc['zjets_m-50'][h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
         mc['zjets_m-50'][h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR))
+
         mc['zjets_m-50'][h][sel].SetDirectory(0)
-
-        # Subtract prompt contributions
-        for suff in mc_suff[year]:
-            if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"]:
-                continue
-            else:
-                inName = prefix + "_" + year + "_" + suff + ".root"
-                inFile = TFile.Open(inName)
-                print("Opened", inName)
-
-                sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
-                tmp = inFile.Get(sel + "/" + hname + "_" + suff)
-                tmp.Scale(sf)
-                mc['zjets_m-50'][h][sel].Add(tmp, -1)
-
-#       sf = npt[year][sel] / mc['zjets_m-50'][h][sel].Integral()
-#       mc['zjets_m-50'][h][sel].Scale(sf)
-        mc['zjets_m-50'][h][sel].Scale(sf_npt[year][sel])
+        sf = npt[year][sel] / mc['zjets_m-50'][h][sel].Integral()
+        mc['zjets_m-50'][h][sel].Scale(sf)
 
         h = h + 1
     h = 0
@@ -290,8 +264,8 @@ muFile.Close()
 elFile.Close()
 
 
-# Add 2012, 2016, & 2017
-for year in ["2017", "2016", "2012"]:
+# Add 2016 & 2017
+for year in ["2017", "2016"]:
     # Muon file
     muName = prefix + "_" + year + "_muon_" + year + ".root"
     muFile = TFile(muName, "READ")
@@ -309,30 +283,12 @@ for year in ["2017", "2016", "2012"]:
         for hname in hnames:
             hist = muFile.Get(sel + "/" + hname + "_muon_" + year)
             hist.Add(elFile.Get(sel + "/" + hname + "_electron_" + year))
+
             hist.SetDirectory(0)
-
-            # Subtract prompt contributions
-            for suff in mc_suff[year]:
-                if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"]:
-                    continue
-                else:
-                    inName = prefix + "_" + year + "_" + suff + ".root"
-                    inFile = TFile.Open(inName)
-                    print("Opened", inName)
-
-                    sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
-                    tmp = inFile.Get(sel + "/" + hname + "_" + suff)
-                    tmp.Scale(sf)
-                    hist.Add(tmp, -1)
-
-                    inFile.Close()
-
-#           sf = npt[year][sel] / hist.Integral()
-#           hist.Scale(sf_npt[year][sel])
+            sf = npt[year][sel] / hist.Integral()
             hist.Scale(sf)
 
             mc['zjets_m-50'][h][sel].Add(hist)
-
             h = h + 1
         h = 0
 
@@ -340,8 +296,6 @@ for year in ["2017", "2016", "2012"]:
     elFile.Close()
 print("Got data histograms")
 print("")
-
-
 
 
 
@@ -357,7 +311,8 @@ for h in range(H):
     for suff in mc_suff[year]:
         if suff in ["ttbar", "tt_2l2nu"]:
             continue
-        mc[suff][h]['4e'].Rebin(2)
+        else:
+            mc[suff][h]['4e'].Rebin(2)
 
 
 # Get total
@@ -366,7 +321,7 @@ total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
 for sel in selection:
     for h in range(H):
         for suff in mc_suff[year]:
-            if suff == "zz_4l":
+            if suff == "zz_4l_m-1":
                 total[h][sel] = mc[suff][h][sel].Clone()
             elif suff in ["ttbar", "tt_2l2nu"]:
                 continue
@@ -387,8 +342,8 @@ for sel in selection:
 ####
 
 
-for sel in ["4l"]:
-#for sel in selection:
+#for sel in ["4e"]:
+for sel in selection:
     print("Drawing", sel, "plots...")
 
     for h in range(H):
@@ -408,7 +363,7 @@ for sel in ["4l"]:
         v_mc_arr = np.zeros([N_MC, total[h][sel].GetNbinsX()], dtype=V)
         v_mc = {}
         j = 0
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_MLL:
             if suff in ["ttbar", "tt_2l2nu"]:
                 continue
             for i in range(len(v_mc_arr[0])):
@@ -438,31 +393,20 @@ for sel in ["4l"]:
 
         width = total[h][sel].GetBinWidth(1)
 
-        if hnames[h] in ["zzm_350", "zzm_500", "zzm_1000"]:
-            fig_size = (12, 6)
-        else:
-            fig_size = (6, 6)
-
-        fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec,
-                            figsize = fig_size)
+        fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
         fig.subplots_adjust(left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
                             top = lTopMargin,   hspace = lHorizSpace
                             )
 
-        if hnames[h] in ["zzm_60_120", "zzm_70_110", "zzm_75_105"]:
-            m_size = lMarkerSize2l
-        else:
-            m_size = lMarkerSize2l/2
-
         # Top plots
         p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = v_data['ey'], 
                             linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
-                            marker = 'o',   capsize = lCapSize,     markersize = m_size,
+                            marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
                             markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                             )
 
         p_mc = {}
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_MLL:
             if suff in ["ttbar", "tt_2l2nu"]:
                 continue
             p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
@@ -472,26 +416,29 @@ for sel in ["4l"]:
 
         top_min, top_max = ax_top.get_ylim()
 
-        if hnames[h] in ["zzm_60_120", "zzm_70_110", "zzm_75_105"]:
-            if sel == "4l":
-                top_max = 350
-            elif sel == "4m":
-                top_max = 200
-            elif sel == "2m2e":
-                top_max = 140
-            elif sel == "4e":
-                top_max = 70
-        elif hnames[h] == "sin_phi":
-            if sel == "4l":
-                top_max = 550
-            elif sel == "4m":
-                top_max = 275
-            elif sel == "2m2e":
-                top_max = 225
-            elif sel == "4e":
-                top_max = 85
-        elif hnames[h] in ["b_ttm", "cos_theta_z2"]:
-            top_max = 1.5 * top_max
+        if hnames[h] in ["zzm", "mz1"]:
+            top_max = 1.1 * top_max
+        elif "eta" in hnames[h]:
+            top_max = 1.4 * top_max
+#           if sel == "4l":
+#               top_max = 350
+#           elif sel == "4m":
+#               top_max = 200
+#           elif sel == "2m2e":
+#               top_max = 140
+#           elif sel == "4e":
+#               top_max = 70
+#       elif hnames[h] == "sin_phi":
+#           if sel == "4l":
+#               top_max = 550
+#           elif sel == "4m":
+#               top_max = 275
+#           elif sel == "2m2e":
+#               top_max = 225
+#           elif sel == "4e":
+#               top_max = 85
+#       elif hnames[h] in ["b_ttm", "cos_theta_z2"]:
+#           top_max = 1.5 * top_max
         else:
             top_max = 1.3 * top_max
 
@@ -501,19 +448,12 @@ for sel in ["4l"]:
         # Ratio plot
         ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],   xerr = v_ratio['ex'],   yerr = v_ratio['ey'], 
                     linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
-                    marker = 'o',   capsize = lCapSize,     markersize = m_size,
+                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
                     markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
                     )
 
         ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')
-#       if sel == "4e":
-#           ax_bot.set_ylim(0, 3)
-#       else:
         ax_bot.set_ylim(lRatioMin4l, lRatioMax4l)
-
-
-        # x limits
-        plt.xlim(v_mc['zz_4l']['x'][0], v_mc['zz_4l']['x'][-1] + width)
 
 
 
@@ -528,10 +468,10 @@ for sel in ["4l"]:
         ax_top.text(0.025,  0.875,  "Work in Progress",
                 size = "x-large",   style = "italic",   family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
-        ax_top.set_title(r'\Large{19.7\,fb$^{-1}$ (8\,TeV) $+$ 137\,fb$^{-1}$ (13\,TeV)', loc='right')
+        ax_top.set_title(r'\Large{137\,fb$^{-1}$ (13\,TeV)', loc='right')
 
         # Top y axis
-        unit = '$' + mc['zz_4l'][h][sel].GetYaxis().GetTitle() + '$'
+        unit = '$' + mc['zz_4l_m-1'][h][sel].GetYaxis().GetTitle() + '$'
         ytitle = r"Events$/$" + '%g' % width + " " + unit
         if hnames[h] == "zzm":
             if sel == "4e":
@@ -552,7 +492,7 @@ for sel in ["4l"]:
         ax_bot.yaxis.set_label_coords(-0.08, 0.5)
 
         # Shared x axis
-        xtitle = '$' + mc['zz_4l'][h][sel].GetXaxis().GetTitle() + '$'
+        xtitle = '$' + mc['zz_4l_m-1'][h][sel].GetXaxis().GetTitle() + '$'
         if hnames[h] == "zzm":
             if sel == "4l":
                 xtitle = r'$m_{4\ell}$ (GeV)'
@@ -565,6 +505,38 @@ for sel in ["4l"]:
         xtitle = xtitle.replace("mbox", "mathrm")
         ax_bot.set_xlabel(xtitle, horizontalalignment='right')
         ax_bot.xaxis.set_label_coords(1, -0.3)
+
+        
+
+        ##
+        ##  TICKS
+        ##
+
+        # x axes
+        plt.xlim(v_mc['zz_4l_m-1']['x'][0], v_mc['zz_4l_m-1']['x'][-1] + width)
+
+        major_step, minor_step = 2 * width, width
+        if sel == "4e" and hnames[h] == "zzm":
+            major_step = width
+
+        for ax in [ax_bot.xaxis, ax_top.xaxis]:
+            ax.set_ticks( np.arange(
+                            v_mc['zz_4l_m-1']['x'][0],
+                            v_mc['zz_4l_m-1']['x'][-1] + major_step,
+                            step = major_step)
+                            )
+            ax.set_ticks( np.arange(
+                            v_mc['zz_4l_m-1']['x'][0],
+                            v_mc['zz_4l_m-1']['x'][-1] + minor_step,
+                            step = minor_step),
+                        minor = True)
+
+        # Top y axis
+#       ax_top.ticklabel_format(axis = 'y', style = 'sci')
+#       ax_top.yaxis.get_major_formatter().set_powerlimits((0, 1))
+
+        # Bottom y axis
+        ax_bot.yaxis.set_ticks( np.arange(lRatioMin4l+0.5, lRatioMax4l, step = 0.5) )
 
 
 
@@ -584,7 +556,7 @@ for sel in ["4l"]:
 
         ax_top.legend(
                 (   p_data,
-                    p_mc['zz_4l'],          p_mc['zjets_m-50'], p_mc['ww_2l2nu'],
+                    p_mc['zz_4l_m-1'],          p_mc['zjets_m-50'], p_mc['ww_2l2nu'],
                     p_mc['zzz_4l2nu'],      p_mc['ggH_zz_4l'],  p_mc['ttz_2l2nu']
                     ),
                 (   r'Data',
@@ -594,6 +566,6 @@ for sel in ["4l"]:
                 loc = leg_loc, numpoints = 1, frameon = False, ncol = leg_ncol
             )
 
-        fig_name = "ext_" + hnames[h] + "_" + sel + ".pdf"
+        fig_name = cut + "_" + hnames[h] + "_" + sel + ".pdf"
         fig.savefig(fig_name)
         plt.clf()

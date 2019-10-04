@@ -23,9 +23,9 @@
 #include "SelectionTools.hh"
 
 // Cuts
-#include "Cuts2018.hh"
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -81,7 +81,7 @@ void RecoSelection( const TString suffix,           const TString id,
 
     const bool isData       = suffix.Contains(YEAR_STR);
 
-    const bool isSignal     = suffix.EqualTo("zz_4l") || suffix.Contains("aMC");
+    const bool isSignal     = suffix.EqualTo("zz_4l") || suffix.EqualTo("zz_4l_aMC") || suffix.EqualTo("zz_4l_m-1");
     const bool isDrellYan   = suffix.EqualTo("zjets_m-50");
 
     const unsigned N = 6;   // Channel indices
@@ -236,8 +236,8 @@ void RecoSelection( const TString suffix,           const TString id,
     //
 
     TString inName  = suffix + "_" + id + ".root";
-//  TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_update/";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_update/";
+//  TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/";
     TFile   *inFile = TFile::Open(inPath + inName);
 
     cout << endl << endl << "Opened " << inPath + inName << endl;

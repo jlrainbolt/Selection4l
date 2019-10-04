@@ -7,9 +7,9 @@ import numpy as np
 from ROOT import TFile, TH1, TKey
 
 from PlotUtils import *
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
-from Cuts2016 import *
+#from Cuts2016 import *
 #from Cuts2012 import *
 
 
@@ -30,7 +30,8 @@ V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')]
 ##  DATA
 ##
 
-prefix = "2l"
+prefix = "ext_2l"
+#prefix = "2l"
 
 # Muon file
 muName = prefix + "_" + YEAR_STR + "_" + MU_SUFF + ".root"
@@ -231,16 +232,11 @@ for sel in selection:
         ##
 
         # Titles
-#       ax_top.text(    0.025,  0.95,
-#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-#               verticalalignment = 'top', transform = ax_top.transAxes)
         ax_top.text(0.025,  0.95,   "CMS",
-                size = "xx-large",  weight = "bold",
-#               fontproperties = helvet_bold,
+                size = "xx-large",  weight = "bold",    family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.text(0.025,  0.875,  "Work in Progress",
-                size = "x-large",   style = "italic",
-#               fontproperties = helvet_bold,
+                size = "x-large",   style = "italic",   family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
 
         ax_top.set_title(r'\Large{' + '%.1f' % INT_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S 

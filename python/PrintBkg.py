@@ -5,8 +5,8 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2018 import *
-from Cuts2017 import *
+from Cuts2018 import *
+#from Cuts2017 import *
 #from Cuts2016 import *
 #from Cuts2012 import *
 
@@ -16,6 +16,7 @@ selection   = ["4l", "4m", "2m2e", "4e"]
 
 if tightOnly:
     cut = "(nLooseLeptons == 0)"
+#   cut = "(nLooseLeptons == 0) && (l3p4.Pt() > 7) && (l4p4.Pt() > 7)"
 else:
     cut = "(nLooseLeptons > 0)"
     infile = "nonprompt" + YEAR_STR + ".npz"

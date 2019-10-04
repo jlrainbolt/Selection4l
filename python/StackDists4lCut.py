@@ -14,10 +14,15 @@ from PlotUtils import *
 ##  SAMPLE INFO
 ##
 
-cut = "mll"
+cut = "notSingleMuTrig"
 prefix = cut
+#cut2 = cut.replace("notD", "!d")
+cut2 = cut.replace("notS", "!s")
 
-selection = ["4l", "4m", "2m2e", "4e"]
+print(cut2)
+
+#selection = ["4l", "4m", "2m2e", "4e"]
+selection = ["4m"]
 period = ["2012", "2016", "2017", "2018"]
 
 T = np.dtype([(sel, object) for sel in selection])
@@ -32,25 +37,25 @@ from Cuts2012 import *
 lumi[YEAR_STR] = INT_LUMI
 xsec[YEAR_STR] = XSEC
 ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
+mc_suff[YEAR_STR] = MC_SUFF_4L
 
 from Cuts2016 import *
 lumi[YEAR_STR] = INT_LUMI
 xsec[YEAR_STR] = XSEC
 ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
+mc_suff[YEAR_STR] = MC_SUFF_4L
 
 from Cuts2017 import *
 lumi[YEAR_STR] = INT_LUMI
 xsec[YEAR_STR] = XSEC
 ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
+mc_suff[YEAR_STR] = MC_SUFF_4L
 
 from Cuts2018 import *
 lumi[YEAR_STR] = INT_LUMI
 xsec[YEAR_STR] = XSEC
 ngen[YEAR_STR] = NGEN
-mc_suff[YEAR_STR] = MC_SUFF
+mc_suff[YEAR_STR] = MC_SUFF_4L
 
 
 
@@ -148,6 +153,8 @@ for suff in mc_suff[year]:
         mc[suff] = mc_arr[j]
         j = j + 1
         continue
+    elif suff in ["ttbar", "tt_2l2nu"]:
+        continue
 
     # Get 2018 histograms
     year = "2018"
@@ -223,12 +230,12 @@ for year in period:
         muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
         elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
         npt[year][sel] = muBkgTree.GetEntries("(nLooseLeptons == 0)") + elBkgTree.GetEntries("(nLooseLeptons == 0)")
-#       npt_frac[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0) && " + prefix)
-#       npt_frac[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0) && " + prefix)
-#       npt_frac[year][sel] /= (muBkgTree.GetEntries("nLooseLeptons == 0") + elBkgTree.GetEntries("nLooseLeptons == 0"))
+        npt_frac[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut2)
+        npt_frac[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut2)
+        npt_frac[year][sel] /= (muBkgTree.GetEntries("nLooseLeptons == 0") + elBkgTree.GetEntries("nLooseLeptons == 0"))
 
-#       if np.isfinite(npt_frac[year][sel]):
-#           npt[year][sel] *= npt_frac[year][sel]
+        if np.isfinite(npt_frac[year][sel]):
+            npt[year][sel] *= npt_frac[year][sel]
 
     muBkgFile.Close()
     elBkgFile.Close()
@@ -259,6 +266,8 @@ for sel in selection:
 
         mc['zjets_m-50'][h][sel].SetDirectory(0)
         sf = npt[year][sel] / mc['zjets_m-50'][h][sel].Integral()
+        if not np.isfinite(sf):
+            sf = 0
         mc['zjets_m-50'][h][sel].Scale(sf)
 
         h = h + 1
@@ -290,6 +299,8 @@ for year in ["2017", "2016", "2012"]:
 
             hist.SetDirectory(0)
             sf = npt[year][sel] / hist.Integral()
+            if not np.isfinite(sf):
+                sf = 0
             hist.Scale(sf)
 
             mc['zjets_m-50'][h][sel].Add(hist)
@@ -308,12 +319,16 @@ print("")
 ##
 
 year = "2018"
-
+'''
 # Rebin 4e
-#for h in range(H):
-#    data[h]['4e'].Rebin(2)
-#    for suff in mc_suff[year]:
-#        mc[suff][h]['4e'].Rebin(2)
+for h in range(H):
+    data[h]['4e'].Rebin(2)
+    for suff in mc_suff[year]:
+        if suff in ["ttbar", "tt_2l2nu"]:
+            continue
+        else:
+            mc[suff][h]['4e'].Rebin(2)
+'''
 
 
 # Get total
@@ -324,6 +339,8 @@ for sel in selection:
         for suff in mc_suff[year]:
             if suff == "zz_4l":
                 total[h][sel] = mc[suff][h][sel].Clone()
+            elif suff in ["ttbar", "tt_2l2nu"]:
+                continue
             else:
                 total[h][sel].Add(mc[suff][h][sel])
 
@@ -341,7 +358,7 @@ for sel in selection:
 ####
 
 
-for sel in ["4e"]:
+for sel in ["4m"]:
 #for sel in selection:
     print("Drawing", sel, "plots...")
 
@@ -362,7 +379,9 @@ for sel in ["4e"]:
         v_mc_arr = np.zeros([N_MC, total[h][sel].GetNbinsX()], dtype=V)
         v_mc = {}
         j = 0
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_4L:
+            if suff in ["ttbar", "tt_2l2nu"]:
+                continue
             for i in range(len(v_mc_arr[0])):
                 v_mc_arr[j][i]['x'] = total[h][sel].GetBinLowEdge(i+1)
                 v_mc_arr[j][i]['y'] = mc[suff][h][sel].GetBinContent(i+1)
@@ -403,7 +422,9 @@ for sel in ["4e"]:
                             )
 
         p_mc = {}
-        for suff in MC_SUFF:
+        for suff in MC_SUFF_4L:
+            if suff in ["ttbar", "tt_2l2nu"]:
+                continue
             p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
                                 bottom = v_mc[suff]['b'],   align = 'edge',     linewidth=0,
                                 color = COLOR[suff]

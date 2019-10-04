@@ -25,7 +25,10 @@ arguments   = "$(suffix) $INT(Step)"
 #   suffix = zz_4l
 #   queue 1
 
-    suffix = zz_4l_aMC
+#   suffix = zz_4l_aMC
+#   queue 2
+
+    suffix = zz_4l_m-1
     queue 2
 
 #   suffix = zjets_m-50

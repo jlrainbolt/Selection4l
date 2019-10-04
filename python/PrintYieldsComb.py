@@ -11,6 +11,7 @@ from ROOT import TFile, TTree, TH1D
 ##  SAMPLE INFO
 ##
 
+#selection   = ["4l", "4m", "2m2e", "4e"]
 selection   = ["mumu", "ee", "4l", "4m", "2m2e", "4e"]
 selTeX      = {"mumu":r"\MM", "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "2m2e":r"\tMtE", "4e":r"\fE", "ll":r"\LL"}
 selDef      = {"mumu":"MM", "ee":"EE", "4l":"4L", "4m":"4M", "4e":"4E", "2m2e":"2M2E", "ll":"LL"}
@@ -239,7 +240,7 @@ for year in period:
         cat_["Non"][sel] += npt[year][sel]
         cat_unc_["Non"][sel] += npt_unc[year][sel] ** 2
 
-'''
+
 for sel in sel_4l:
     if sel == "4l":
         continue
@@ -256,7 +257,7 @@ for sel in sel_4l:
     for categ in cat:
         cat_[categ]["4l"] += cat_[categ][sel]
         cat_unc_[categ]["4l"] += cat_unc_[categ][sel]
-'''
+
 
 
 for sel in sel_2l:

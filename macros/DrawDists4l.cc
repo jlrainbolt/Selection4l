@@ -68,12 +68,12 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
         make_tuple( "zzm",      "zzp4.M()",      _m_(_4l),      _GeV,       20,     80,     100),
         make_tuple( "zzpt",     "zzp4.Pt()",     _pT_(_4l),     _GeV,       20,     0,      100),
 
-//      make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       20,     12,     92),
-        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       18,     1,      91),
+        make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       20,     12,     92),
+//      make_tuple( "z1m",      "z1p4.M()",      _m_(_Z1),      _GeV,       18,     1,      91),
         make_tuple( "z1pt",     "z1p4.Pt()",     _pT_(_Z1),     _GeV,       20,     0,      100),
 
-//      make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       20,     4,      44),
-        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       20,     1,      41),
+        make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       20,     4,      44),
+//      make_tuple( "z2m",      "z2p4.M()",      _m_(_Z2),      _GeV,       20,     1,      41),
         make_tuple( "z2pt",     "z2p4.Pt()",     _pT_(_Z2),     _GeV,       20,     0,      60),
 
         make_tuple( "l1pt",     "l1p4.Pt()",     _pT_(_l_(1)),  _GeV,       26,     20,     72),
@@ -89,30 +89,30 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
         make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     20,     -2.5,   2.5),
  
         // Z rest frame kinematics                                                
-//      make_tuple( "b_z1m",    "b_z1p4.M()",    _m_(_Z1),      _GeV,       11,     4,      92),
-//      make_tuple( "b_z2m",    "b_z2p4.M()",    _m_(_Z2),      _GeV,       11,     4,      37),
-//      make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
-//                              
-//      make_tuple( "b_l1p",    "b_l1v3.Mag()",  _p_(_l_(1)),   _GeV,       10,     25,     50),
-//      make_tuple( "b_l2p",    "b_l2v3.Mag()",  _p_(_l_(2)),   _GeV,       10,     15,     45),
-//      make_tuple( "b_l3p",    "b_l3v3.Mag()",  _p_(_l_(3)),   _GeV,       10,     4,      24),
-//      make_tuple( "b_l4p",    "b_l4v3.Mag()",  _p_(_l_(4)),   _GeV,       10,     0,      20),
-//                      
-//                      
-//      // Observables      
-//      make_tuple( "psi",          "psi",          _psi,           "",     20,     -5000,  5000),
-//      make_tuple( "phi",      "phi/3.141592654",  _phi,           _pirad, 20,     -1,     1),
-//      make_tuple( "cos_phi",      "cos_phi",      _cosphi,        _units, 20,     -1,     1),
-//      make_tuple( "sin_phi",      "sin_phi",      _sinphi,        _units, 20,     -1,     1),
-//      make_tuple( "sin_phi_10",   "sin_phi",      _sinphi,        _units, 10,     -1,     1),
-//      make_tuple( "cos_theta_z1", "cos_theta_z1", _costheta_(_Z1),_units, 10,     -1,     1),
-//      make_tuple( "cos_theta_z2", "cos_theta_z2", _costheta_(_Z2),_units, 10,     -1,     1),
-//      make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
-//                                                  _alpha_(_Z1),   _pirad, 10,     0,      1),
-//      make_tuple( "angle_z2leps", "angle_z2leps/3.141592654",
-//                                                  _alpha_(_Z2),   _pirad, 10,     0,      1),
-//      make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.141592654",
-//                                                  _beta,          _pirad, 10,     0,      1)
+        make_tuple( "b_z1m",    "b_z1p4.M()",    _m_(_Z1),      _GeV,       11,     4,      92),
+        make_tuple( "b_z2m",    "b_z2p4.M()",    _m_(_Z2),      _GeV,       11,     4,      37),
+        make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
+                                
+        make_tuple( "b_l1p",    "b_l1v3.Mag()",  _p_(_l_(1)),   _GeV,       10,     25,     50),
+        make_tuple( "b_l2p",    "b_l2v3.Mag()",  _p_(_l_(2)),   _GeV,       10,     15,     45),
+        make_tuple( "b_l3p",    "b_l3v3.Mag()",  _p_(_l_(3)),   _GeV,       10,     4,      24),
+        make_tuple( "b_l4p",    "b_l4v3.Mag()",  _p_(_l_(4)),   _GeV,       10,     0,      20),
+                        
+                        
+        // Observables      
+        make_tuple( "psi",          "psi",          _psi,           "",     20,     -5000,  5000),
+        make_tuple( "phi",      "phi/3.141592654",  _phi,           _pirad, 20,     -1,     1),
+        make_tuple( "cos_phi",      "cos_phi",      _cosphi,        _units, 20,     -1,     1),
+        make_tuple( "sin_phi",      "sin_phi",      _sinphi,        _units, 20,     -1,     1),
+        make_tuple( "sin_phi_10",   "sin_phi",      _sinphi,        _units, 10,     -1,     1),
+        make_tuple( "cos_theta_z1", "cos_theta_z1", _costheta_(_Z1),_units, 10,     -1,     1),
+        make_tuple( "cos_theta_z2", "cos_theta_z2", _costheta_(_Z2),_units, 10,     -1,     1),
+        make_tuple( "angle_z1leps", "angle_z1leps/3.141592654",
+                                                    _alpha_(_Z1),   _pirad, 10,     0,      1),
+        make_tuple( "angle_z2leps", "angle_z2leps/3.141592654",
+                                                    _alpha_(_Z2),   _pirad, 10,     0,      1),
+        make_tuple( "angle_z1l2_z2","angle_z1l2_z2/3.141592654",
+                                                    _beta,          _pirad, 10,     0,      1)
     };
 
 

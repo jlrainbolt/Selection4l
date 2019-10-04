@@ -16,59 +16,62 @@ when_to_transfer_output = ON_EXIT
 
 arguments   = "$(suffix) $INT(Step)"
 
-    suffix = muon_2018
-    queue 11
+#   suffix = muon_2018
+#   queue 11
 
-    suffix = electron_2018
-    queue 9
+#   suffix = electron_2018
+#   queue 9
 
-    suffix = zjets_m-50
-    queue 6
+#   suffix = zjets_m-50
+#   queue 6
 
-    suffix = zz_4l
-    queue 1
+#   suffix = zz_4l
+#   queue 1
 
-    suffix = zz_4l_aMC
+#   suffix = zz_4l_aMC
+#   queue 2
+
+    suffix = zz_4l_m-1
     queue 2
 
-    suffix = ttbar
-    queue 1
+#   suffix = ttbar
+#   queue 1
 
-    suffix = tt_2l2nu
-    queue 1
+#   suffix = tt_2l2nu
+#   queue 1
 
-    suffix = ttz_2l2nu
-    queue 1
+#   suffix = ttz_2l2nu
+#   queue 1
 
-    suffix = ww_2l2nu
-    queue 1
+#   suffix = ww_2l2nu
+#   queue 1
 
-    suffix = wz_2l2q
-    queue 1
+#   suffix = wz_2l2q
+#   queue 1
 
-    suffix = wz_3lnu
-    queue 1
+#   suffix = wz_3lnu
+#   queue 1
 
-    suffix = zz_2l2nu
-    queue 1
+#   suffix = zz_2l2nu
+#   queue 1
 
-    suffix = zz_2l2q
-    queue 1
+#   suffix = zz_2l2q
+#   queue 1
 
-    suffix = ggH_zz_4l
-    queue 1
+#   suffix = ggH_zz_4l
+#   queue 1
 
-    suffix = vbfH_zz_4l
-    queue 1
+#   suffix = vbfH_zz_4l
+#   queue 1
 
-    suffix = wwz_4l2nu
-    queue 1
+#   suffix = wwz_4l2nu
+#   queue 1
 
-    suffix = wzz_4l2nu
-    queue 1
+#   suffix = wzz_4l2nu
+#   queue 1
 
-    suffix = zzz_4l2nu
-    queue 1
+#   suffix = zzz_4l2nu
+#   queue 1
 
-    suffix = zzg_4l2nu
-    queue 1
+#   suffix = zzg_4l2nu
+#   queue 1

@@ -8,6 +8,8 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
+#include "TMath.h"
+#include "TError.h"
 
 // Custom
 #include "Cuts2018.hh"
@@ -19,12 +21,12 @@ using namespace std;
 
 
 /*
-**  DrawDists4l
+**  DrawDists2l
 **
-**  Draws UNSCALED distributions for a "boosted_" sample
+**  Draws UNSCALED distributions for a "selected_" sample
 */ 
 
-void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg = kFALSE)
+void DrawDists2lExt(const TString suffix, const TString year)
 {
     if (!year.EqualTo(YEAR_STR))
     {
@@ -36,11 +38,11 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
     //  SAMPLE INFO
     //
 
-    const unsigned N = 4;
-    unsigned                   L4 = 0,  M4 = 1, ME = 2, E4 = 3;     // Indices
-    TString selection[N]    = {"4l",    "4m",   "2m2e", "4e"};
-    unsigned chanIdx[N]     = {5,       6,      7,      9};
-    TString lepChan[N]      = {_l,      _mu,    _l,     _e};
+    const unsigned N = 3;
+    unsigned                   LL = 0,  MM = 1, EE = 2;     // Indices
+    TString selection[N]    = {"ll",    "mumu", "ee"};
+    unsigned chanIdx[N]     = {2,       3,      4};
+    TString lepChan[N]      = {_l,      _mu,    _e};
 
 
 
@@ -48,8 +50,8 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
     //  OUTPUT FILE
     //
 
-    TString prefix  = isBkg ? "bkg_" : "";
-    TString outName = prefix + "ext_" + year + "_" + suffix + ".root";
+    TString prefix  = "ext_2l";
+    TString outName = prefix + "_" + YEAR_STR + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -60,15 +62,22 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
 
     vector<tuple<TString, TString, TString, TString, int, float, float>> v = {
 
-        //          name        quantity         axis label     unit        bins    xmin    xmax
+        //          name        quantity        x label         unit        bins    xmin    xmax
+        make_tuple( "nPV",      "nPV",          _nPV,           _unit,      60,     0,      60),
+                                                                    
+        // Lab frame kinematics                                     
+        make_tuple( "z1m",      "z1p4.M()",     _m_(_ll),       _GeV,       60,     60,     120),
+        make_tuple( "z1pt",     "z1p4.Pt()",    _pT_(_ll),      _GeV,       40,     0,      80),
+        make_tuple( "z1y",      "z1p4.Rapidity()",_y_(_ll),     _units,     40,     -2.5,   2.5),
+                                                                
+        make_tuple( "l1pt",     "l1p4.Pt()",    _pT_(_l_(1)),   _GeV,       40,     20,     100),
+        make_tuple( "l1eta",    "l1p4.Eta()",   _eta_(_l_(1)),  _units,     40,     -2.5,   2.5),
+                                                                
+        make_tuple( "l2pt",     "l2p4.Pt()",    _pT_(_l_(2)),   _GeV,       40,     10,     50),
+        make_tuple( "l2eta",    "l2p4.Eta()",   _eta_(_l_(2)),  _units,     40,     -2.5,   2.5),
 
-        // Lab frame kinematics
-        make_tuple( "zzm_60_120",   "zzp4.M()",  _m_(_4l),      _GeV,       60,     60,     120),
-        make_tuple( "zzm_70_110",   "zzp4.M()",  _m_(_4l),      _GeV,       40,     70,     110),
-        make_tuple( "zzm_75_105",   "zzp4.M()",  _m_(_4l),      _GeV,       30,     75,     105),
-        make_tuple( "zzm_50_150",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     150),
-        make_tuple( "zzm_50_250",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     250),
-        make_tuple( "zzm_50_350",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     350),
+        make_tuple( "dphi",     "fabs(l1p4.Phi()-l2p4.Phi())/3.141492654",
+                                                _dphi_(_ll),    _pirad,     40,     -0,     2)
     };
 
 
@@ -77,9 +86,9 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
     //  INPUT FILE
     //
 
-    TString tag     = isBkg ? "background" : "selected";
-    TString inName  = tag + "_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Extended/" + year + "_new/" + inName;
+    TString inName  = "selected_" + suffix + ".root";
+//  TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Extended/" + YEAR_STR + "_new/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -115,7 +124,7 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
     ////
 
 
-    for (unsigned i = 0; i < N; i++)
+    for (unsigned i = 1; i < N; i++)
     {
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);
@@ -139,20 +148,13 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
             TString hname,  quantity,   xlabel, unit;
             int     bins;
             float   xmin,   xmax;
-            TString weight = "weight";
+            TString weight = "weight * (z1p4.M()>60) * (z1p4.M()<120)";
 
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
 
-            if (selection[i].EqualTo("4m") && quantity.Contains("Eta"))
-            {
-                bins = 24;
-                xmin = -2.4;
-                xmax = 2.4;
-            }
-
 
             // Create and draw histogram
-            TH1D *h = new TH1D(hname + "_" + suffix, "", bins, xmin, xmax);
+            TH1D *h = new TH1D(hname + "_" + suffix, quantity+" {"+weight+"}", bins, xmin, xmax);
             h->Sumw2(kTRUE);
             h->SetBinErrorOption(TH1::kPoisson);
 
@@ -162,7 +164,6 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
 
             h->GetXaxis()->SetTitle(xlabel);
             h->GetYaxis()->SetTitle(unit);
-            h->SetStats(0);
             h->Write();
         }
 

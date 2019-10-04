@@ -80,7 +80,6 @@ for sel in selection:
         data[h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + year))
 
         data[h][sel].SetDirectory(0)
-#       data[h][sel].SetBinErrorOpt(kPoisson)
 
         h = h + 1
     h = 0
@@ -133,11 +132,14 @@ mc = {}
 h, j = 0, 0
 year = "2018"
 
+
 # Loop over all samples
 for suff in mc_suff[year]:
     if suff == "zjets_m-50":
         mc[suff] = mc_arr[j]
         j = j + 1
+        continue
+    elif suff in ["ttbar", "tt_2l2nu"]:
         continue
 
     # Get 2018 histograms
@@ -279,22 +281,32 @@ year = "2018"
 for h in range(H):
     data[h]['4e'].Rebin(2)
     for suff in mc_suff[year]:
+        if suff in ["ttbar", "tt_2l2nu"]:
+            continue
         mc[suff][h]['4e'].Rebin(2)
 
 
 # Get total
-total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
+total_aMC, total_pow = np.empty(H, dtype=T), np.empty(H, dtype=T)
+ratio_aMC, ratio_pow = np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 for sel in selection:
     for h in range(H):
+        total_pow[h][sel] = mc["zz_4l"][h][sel].Clone()
+
         for suff in mc_suff[year]:
             if suff == "zz_4l_aMC":
-                total[h][sel] = mc[suff][h][sel].Clone()
+                total_aMC[h][sel] = mc[suff][h][sel].Clone()
+            elif suff in ["ttbar", "tt_2l2nu", "zz_4l"]:
+                continue
             else:
-                total[h][sel].Add(mc[suff][h][sel])
+                total_aMC[h][sel].Add(mc[suff][h][sel])
+                total_pow[h][sel].Add(mc[suff][h][sel])
 
-        ratio[h][sel] = data[h][sel].Clone()
-        ratio[h][sel].Divide(total[h][sel])
+        ratio_aMC[h][sel] = data[h][sel].Clone()
+        ratio_aMC[h][sel].Divide(total_aMC[h][sel])
+        ratio_pow[h][sel] = data[h][sel].Clone()
+        ratio_pow[h][sel].Divide(total_pow[h][sel])
 
 
 
@@ -307,7 +319,7 @@ for sel in selection:
 ####
 
 
-#for sel in ["4e"]:
+#for sel in ["4l"]:
 for sel in selection:
     print("Drawing", sel, "plots...")
 
@@ -325,12 +337,14 @@ for sel in selection:
             v_data[i]['ey'] = data[h][sel].GetBinError(i+1)
 
         # MC
-        v_mc_arr = np.zeros([N_MC, total[h][sel].GetNbinsX()], dtype=V)
+        v_mc_arr = np.zeros([N_MC, total_aMC[h][sel].GetNbinsX()], dtype=V)
         v_mc = {}
         j = 0
         for suff in MC_SUFF_AMC:
+            if suff in ["ttbar", "tt_2l2nu"]:
+                continue
             for i in range(len(v_mc_arr[0])):
-                v_mc_arr[j][i]['x'] = total[h][sel].GetBinLowEdge(i+1)
+                v_mc_arr[j][i]['x'] = total_aMC[h][sel].GetBinLowEdge(i+1)
                 v_mc_arr[j][i]['y'] = mc[suff][h][sel].GetBinContent(i+1)
 
             v_mc[suff] = v_mc_arr[j]
@@ -338,15 +352,23 @@ for sel in selection:
 
         # "Bottoms"
         for j in range(N_MC - 1):
-            v_mc_arr[j]['b'] = np.sum(v_mc_arr[j+1:]['y'], axis=0)
+            v_mc_arr[j]['b'] = np.sum(v_mc_arr[j+1:-2]['y'], axis=0)
+        v_mc_arr[-1]['b'] = v_mc_arr[0]['b']
+
 
         # Ratio
-        v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
-        for i in range(len(v_ratio)):
-            v_ratio[i]['x']     = ratio[h][sel].GetBinCenter(i+1)
-            v_ratio[i]['ex']    = ratio[h][sel].GetBinWidth(i+1) / 2
-            v_ratio[i]['y']     = ratio[h][sel].GetBinContent(i+1)
-            v_ratio[i]['ey']    = ratio[h][sel].GetBinError(i+1)
+        v_ratio_aMC = np.zeros(ratio_aMC[h][sel].GetNbinsX(), dtype=V)
+        v_ratio_pow = np.zeros(ratio_pow[h][sel].GetNbinsX(), dtype=V)
+        for i in range(len(v_ratio_aMC)):
+            v_ratio_aMC[i]['x']     = ratio_aMC[h][sel].GetBinCenter(i+1)
+            v_ratio_aMC[i]['ex']    = ratio_aMC[h][sel].GetBinWidth(i+1) / 2
+            v_ratio_aMC[i]['y']     = ratio_aMC[h][sel].GetBinContent(i+1)
+            v_ratio_aMC[i]['ey']    = ratio_aMC[h][sel].GetBinError(i+1)
+
+            v_ratio_pow[i]['x']     = ratio_pow[h][sel].GetBinCenter(i+1)
+            v_ratio_pow[i]['ex']    = ratio_pow[h][sel].GetBinWidth(i+1) / 2
+            v_ratio_pow[i]['y']     = ratio_pow[h][sel].GetBinContent(i+1)
+            v_ratio_pow[i]['ey']    = ratio_pow[h][sel].GetBinError(i+1)
 
 
 
@@ -354,7 +376,7 @@ for sel in selection:
         ##  MAKE PLOTS
         ##
 
-        width = total[h][sel].GetBinWidth(1)
+        width = total_aMC[h][sel].GetBinWidth(1)
 
         fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
         fig.subplots_adjust(left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
@@ -370,10 +392,22 @@ for sel in selection:
 
         p_mc = {}
         for suff in MC_SUFF_AMC:
-            p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
-                                bottom = v_mc[suff]['b'],   align = 'edge',     linewidth=0,
-                                color = COLOR[suff]
-                                )
+            if suff in ["ttbar", "tt_2l2nu"]:
+                continue
+            elif suff == "zz_4l":
+                p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
+                        bottom = v_mc[suff]['b'],   align = 'edge',     linewidth = 0,
+                        edgecolor = COLOR[suff],    fill = False,       hatch='///'
+                        )
+                ax_top.errorbar(v_data['x'],    v_mc[suff]['y'],    xerr = v_ratio_aMC['ex'], 
+                        linewidth = 0,  ecolor = COLOR[suff],   elinewidth = lErrorLineWidth4l,
+                        marker = None,  capsize = 0
+                        )
+            else:
+                p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
+                        bottom = v_mc[suff]['b'],   align = 'edge',     linewidth = 0,
+                        color = COLOR[suff]
+                        )
 
         top_min, top_max = ax_top.get_ylim()
 
@@ -404,10 +438,20 @@ for sel in selection:
 
 
         # Ratio plot
-        ax_bot.errorbar(v_ratio['x'],   v_ratio['y'],   xerr = v_ratio['ex'],   yerr = v_ratio['ey'], 
-                    linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
+        ax_bot.errorbar(v_ratio_aMC['x'],       v_ratio_aMC['y'],
+                    xerr = v_ratio_aMC['ex'],   yerr = v_ratio_aMC['ey'], 
+                    linewidth = 0,  ecolor = COLOR["zz_4l_aMC"],
+                    elinewidth = lErrorLineWidth4l,
                     marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
-                    markeredgecolor = lMarkerColor,         markerfacecolor = lMarkerColor
+                    markeredgecolor = COLOR["zz_4l_aMC"],   markerfacecolor = COLOR["zz_4l_aMC"]
+                    )
+
+        ax_bot.errorbar(v_ratio_pow['x'],       v_ratio_pow['y'],
+                    xerr = v_ratio_pow['ex'],   yerr = v_ratio_pow['ey'], 
+                    linewidth = 0,  ecolor = COLOR["zz_4l"],
+                    elinewidth = lErrorLineWidth4l,
+                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
+                    markeredgecolor = COLOR["zz_4l"],       markerfacecolor = COLOR["zz_4l"]
                     )
 
         ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')
@@ -518,12 +562,12 @@ for sel in selection:
             leg_ncol = 1
 
         ax_top.legend(
-                (   p_data,
-                    p_mc['zz_4l_aMC'],      p_mc['zjets_m-50'], p_mc['ww_2l2nu'],
+                (   p_data,                 p_mc["zz_4l_aMC"],
+                    p_mc['zz_4l'],          p_mc['zjets_m-50'], p_mc['ww_2l2nu'],
                     p_mc['zzz_4l2nu'],      p_mc['ggH_zz_4l'],  p_mc['ttz_2l2nu']
                     ),
-                (   r'Data',
-                    r'$\mbox{Z}\to4\ell$ (a\textsc{mc@nlo)',    r'Nonprompt',       r'VV',
+                (   r'Data',                r'$\mbox{Z}\to4\ell$ (a\textsc{mc@nlo})',
+                    r'$\mbox{Z}\to4\ell$ (\textsc{powheg})',    r'Nonprompt',       r'VV',
                     r'VVV',                 r'H',               r'$\mbox{t}\bar{\mbox{t}}\mbox{Z}$' 
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False, ncol = leg_ncol

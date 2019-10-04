@@ -60,6 +60,111 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 
 
     //
+    //  SF HISTOGRAMS
+    //
+
+
+    // Muon ID
+
+    TH2     *mu_err;
+    TString idName = "muon_id_smear_" + YEAR_STR + ".root";
+    TString idPath = BLT_PATH + "/BLTAnalysis/data/" + idName;
+    TFile   *idFile = TFile::Open(idPath);
+
+    cout << "Opened " << idPath << endl;
+
+    idFile->GetObject("ERROR", mu_err);
+    mu_err->SetDirectory(0);
+
+    idFile->Close();
+    cout << "Closed " << idPath << endl;
+
+    float MU_PT_MIN = mu_err->GetYaxis()->GetXmin();
+    float MU_PT_MAX = mu_err->GetYaxis()->GetXmax();
+
+    if (YEAR_STR.EqualTo("2012"))
+    {
+        MU_PT_MIN = mu_err->GetXaxis()->GetXmin();
+        MU_PT_MAX = mu_err->GetXaxis()->GetXmax();
+    }
+
+    cout << "Limits: " << MU_PT_MIN << ", " << MU_PT_MAX << endl << endl;
+
+
+    // Electron ID
+
+    TH2     *el_err;
+    idName = "electron_id_smear_" + YEAR_STR + ".root";
+    idPath = BLT_PATH + "/BLTAnalysis/data/" + idName;
+    idFile = TFile::Open(idPath);
+
+    cout << "Opened " << idPath << endl;
+
+    idFile->GetObject("ERROR", el_err);
+    el_err->SetDirectory(0);
+
+    idFile->Close();
+    cout << "Closed " << idPath << endl;
+
+    float EL_PT_MIN = el_err->GetYaxis()->GetXmin();
+    float EL_PT_MAX = el_err->GetYaxis()->GetXmax();
+
+    if (YEAR_STR.EqualTo("2012"))
+    {
+        EL_PT_MIN = el_err->GetXaxis()->GetXmin();
+        EL_PT_MAX = el_err->GetXaxis()->GetXmax();
+    }
+
+    cout << "Limits: " << EL_PT_MIN << ", " << EL_PT_MAX << endl << endl;
+
+
+    // Electron reco
+
+    float   RECO_PT_MIN, RECO_PT_THRESH, RECO_PT_MAX;
+    TH2     *reco_err, *reco_err_lowEt;
+
+    if (!YEAR_STR.EqualTo("2012"))
+    {
+        idName = "electron_reco_smear_" + YEAR_STR + ".root";
+        idPath = BLT_PATH + "/BLTAnalysis/data/" + idName;
+        idFile = TFile::Open(idPath);
+
+        cout << "Opened " << idPath << endl;
+
+        idFile->GetObject("ERROR", reco_err);
+        reco_err->SetDirectory(0);
+
+        idFile->Close();
+        cout << "Closed " << idPath << endl;
+
+        if (YEAR_STR.EqualTo("2018"))
+            RECO_PT_MIN = reco_err->GetYaxis()->GetXmin();
+        else
+        {
+            idName = "electron_reco_smear_" + YEAR_STR + "_lowEt.root";
+            idPath = BLT_PATH + "/BLTAnalysis/data/" + idName;
+            idFile = TFile::Open(idPath);
+
+            cout << "Opened " << idPath << endl;
+
+            idFile->GetObject("ERROR", reco_err_lowEt);
+            reco_err_lowEt->SetDirectory(0);
+
+            idFile->Close();
+            cout << "Closed " << idPath << endl;
+
+            RECO_PT_MIN = reco_err_lowEt->GetYaxis()->GetXmin();
+        }
+
+        RECO_PT_THRESH = reco_err->GetYaxis()->GetXmin();
+        RECO_PT_MAX = reco_err->GetYaxis()->GetXmax();
+
+        cout << "Limits: " << RECO_PT_MIN << ", " << RECO_PT_THRESH << ", " << RECO_PT_MAX << endl << endl;
+    }
+
+
+
+    //
     //  OUTPUT FILE
     //
 
@@ -84,6 +189,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     UShort_t            nPV;
     Float_t             weight,     genWeight,  qtWeight,   puWeight,   ecalWeight;
     Float_t             trigWeight, idWeight;
+    Float_t             wtMuonIDUp, wtMuonIDDn, wtElecIDUp, wtElecIDDn, wtElecRecoUp,wtElecRecoDn;
     UInt_t              channel;
     Bool_t              hasTauDecay;
 
@@ -123,6 +229,9 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
         tree[i]->Branch("ecalWeight",   &ecalWeight);   tree[i]->Branch("trigWeight",   &trigWeight);
         tree[i]->Branch("idWeight",     &idWeight);
         tree[i]->Branch("channel",      &channel);      tree[i]->Branch("hasTauDecay",  &hasTauDecay);
+        tree[i]->Branch("wtMuonIDUp",   &wtMuonIDUp);   tree[i]->Branch("wtMuonIDDn",   &wtMuonIDDn);
+        tree[i]->Branch("wtElecIDUp",   &wtElecIDUp);   tree[i]->Branch("wtElecIDDn",   &wtElecIDDn);
+        tree[i]->Branch("wtElecRecoUp", &wtElecRecoUp); tree[i]->Branch("wtElecRecoDn", &wtElecRecoDn);
 
         tree[i]->Branch("psi",              &psi);      tree[i]->Branch("phi",          &phi);
         tree[i]->Branch("sin_phi",          &sin_phi);  tree[i]->Branch("cos_phi",      &cos_phi);
@@ -166,8 +275,8 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     TString inName  = "selected_" + suffix + ".root";
     if (isBkg)
         inName = "background_" + suffix + ".root";
-//  TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_update/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
+//  TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_update/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;
@@ -272,6 +381,9 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
             l3p4    = *l3p4_;       l3pdg   = *l3pdg_;      l3z = *l3z_;        l3pdg = *l3pdg_;
             l4p4    = *l4p4_;       l4pdg   = *l4pdg_;      l4z = *l4z_;        l4pdg = *l4pdg_;
 
+            wtMuonIDUp  = weight;       wtElecIDUp  = weight;       wtElecRecoUp    = weight;
+            wtMuonIDDn  = weight;       wtElecIDDn  = weight;       wtElecRecoDn    = weight;
+
 
 
             //
@@ -287,6 +399,83 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 
             for (unsigned i = 0; i < leps.size(); i++)
                 leps[i].q = -1 * copysign(1, leps[i].pdg);
+
+
+
+            //
+            //  ID/RECO WEIGHT
+            //
+
+            for (unsigned i = 0; i < leps.size(); i++)
+            {
+                // Muons
+                if (abs(leps[i].pdg) == 13)
+                {
+                    TLorentzVector p4 = leps[i].p4;
+
+                    float pt = p4.Pt(), eta = p4.Eta();
+                    if (pt > MU_PT_MAX)
+                        pt = 0.99 * MU_PT_MAX;
+                    else if (pt < MU_PT_MIN)
+                        continue;
+
+                    int bin;
+                    if (YEAR_STR.EqualTo("2012"))
+                        bin = mu_err->FindBin(pt, eta);
+                    else
+                        bin = mu_err->FindBin(eta, pt);
+
+                    wtMuonIDUp *= (1 + mu_err->GetBinContent(bin));
+                    wtMuonIDDn *= (1 - mu_err->GetBinContent(bin));
+                }
+
+                // Electrons
+                else if (abs(leps[i].pdg) == 11)
+                {
+                    TLorentzVector p4 = leps[i].p4;
+                    float pt = p4.Pt(), eta = p4.Eta();
+
+                    // ID
+
+                    if (pt > EL_PT_MAX)
+                        pt = 0.99 * EL_PT_MAX;
+                    else if (pt < EL_PT_MIN)
+                        continue;
+
+                    int bin;
+                    if (YEAR_STR.EqualTo("2012"))
+                        bin = el_err->FindBin(pt, eta);
+                    else
+                        bin = el_err->FindBin(eta, pt);
+
+                    wtElecIDUp *= (1 + el_err->GetBinContent(bin));
+                    wtElecIDDn *= (1 - el_err->GetBinContent(bin));
+
+
+                    // Reco
+
+                    if (YEAR_STR.EqualTo("2012"))
+                        continue;
+
+                    if (pt > RECO_PT_MAX)
+                        pt = 0.99 * RECO_PT_MAX;
+                    else if (pt < RECO_PT_MIN)
+                        continue;
+
+                    if (pt < RECO_PT_THRESH)  // should automatically exclude 2018
+                    {
+                        bin = reco_err_lowEt->FindBin(eta, pt);
+                        wtElecRecoUp *= (1 + reco_err_lowEt->GetBinContent(bin));
+                        wtElecRecoDn *= (1 - reco_err_lowEt->GetBinContent(bin));
+                    }
+                    else
+                    {
+                        bin = reco_err->FindBin(eta, pt);
+                        wtElecRecoUp *= (1 + reco_err->GetBinContent(bin));
+                        wtElecRecoDn *= (1 - reco_err->GetBinContent(bin));
+                    }
+                }
+            }
 
 
 
