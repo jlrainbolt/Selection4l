@@ -377,7 +377,10 @@ print("Background systematic covariance", "\n", cov_bsys, "\n")
 # Total covariance
 #cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr
 #cov_syst += cov_muid + cov_elid + cov_reco + cov_bsta + cov_bsys
-cov_syst = cov_reco
+
+cov_syst = cov_reco + cov_elid
+#cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr + cov_bsta + cov_bsys
+
 cov_total = cov_stat + cov_syst
 
 print("Total covariance", "\n", cov_total, "\n")

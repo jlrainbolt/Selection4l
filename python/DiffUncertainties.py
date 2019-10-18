@@ -11,7 +11,7 @@ from PlotUtils import *
 from Cuts2018 import *
 
 
-np.set_printoptions(precision=5, suppress=True, linewidth=110)
+np.set_printoptions(precision=4, suppress=True, linewidth=100)
 
 ##
 ##  SAMPLE INFO
@@ -21,7 +21,8 @@ period  = ["2018", "2017", "2016", "2012"]
 hnames  = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
         "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
 uncertainty = ["MuonID", "ElecID", "ElecReco"]
-delta = {"MuonID":0.01213, "ElecID":0.00931, "ElecReco":0.00791}  # FIXME load from npz
+delta = {"MuonID":0.01213, "ElecID":0.00931, "ElecReco":0.00791, "Others":0.01397}
+# FIXME load from npz
 
 H = len(hnames)
 V = np.dtype([(unc, object) for unc in uncertainty])
@@ -104,56 +105,65 @@ print("Got nominal and up/down histograms", "\n")
 ####
 ####
 
-for unc in uncertainty:
-    for h in range(H):
+cov = []
 
-        ##
-        ##  GET BIN CONTENT
-        ##
+for h in range(H):
+    print(hnames[h])
+
+
+    ##
+    ##  GET BIN CONTENT
+    ##
+ 
+    # Diff
+    nbins = nom[h].GetNbinsX()
+ 
+    f = np.zeros(nbins)
+    for i in range(nbins):
+        f[i] = nom[h].GetBinContent(i+1)
+ 
+    # Slicing
+    if hnames[h] == "b_z1m":
+        s = slice(2, -1)
+    elif hnames[h] == "b_z2m":
+        s = slice(1, None)
+    elif hnames[h] == "b_l1p":
+        s = slice(0, -1)
+    elif hnames[h] == "angle_z1leps":
+        s = slice(2, -1)
+    elif hnames[h] == "angle_z1l2_z2":
+        s = slice(1, -1)
+    elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
+        s = slice(1, -1)
+    else:
+        s = slice(0, None)
+ 
+    f = f[s]
+    nbins = len(f)
+#   print("f:", f, sep="\n", end="\n\n")
      
-        # Diff
-        nbins = nom[h].GetNbinsX()
-     
-        f, delta_f = np.zeros(nbins), np.zeros(nbins)
-        for i in range(nbins):
-            f[i] = nom[h].GetBinContent(i+1)
+    cov.append(delta["Others"] ** 2 * np.tensordot(f, f.T, axes=0))
+
+    for unc in uncertainty:
+        delta_f = np.zeros(nom[h].GetNbinsX())
+
+        for i in range(nom[h].GetNbinsX()):
             delta_f[i] = (up[h][unc].GetBinContent(i+1) - dn[h][unc].GetBinContent(i+1)) / 2
-     
-        # Slicing
-        if hnames[h] == "b_z1m":
-            s = slice(2, -1)
-        elif hnames[h] == "b_z2m":
-            s = slice(1, None)
-        elif hnames[h] == "b_l1p":
-            s = slice(0, -1)
-        elif hnames[h] == "angle_z1leps":
-            s = slice(2, -1)
-        elif hnames[h] == "angle_z1l2_z2":
-            s = slice(1, -1)
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
-            s = slice(1, -1)
-        else:
-            s = slice(0, None)
-     
-        f = f[s]
         delta_f = delta_f[s]
-        nbins = len(f)
      
-        cov = np.tensordot(delta_f, delta_f.T, axes=0)
+        cov_h = np.tensordot(delta_f, delta_f.T, axes=0)
      
-        print(hnames[h])
-        print(unc)
-#       print("f:", f, sep="\n", end="\n\n")
-#       print("delta f:", delta_f, sep="\n", end="\n\n")
-#       print("w:", cov, sep="\n", end="\n\n")
-     
-        chi_sq_1 = multi_dot([np.zeros(nbins), pinv(cov), np.zeros(nbins).T])
-        chi_sq_unc = multi_dot([f, pinv(cov), f.T])
+        chi_sq_1 = multi_dot([np.zeros(nbins), pinv(cov_h), np.zeros(nbins).T])
+        chi_sq_unc = multi_dot([f, pinv(cov_h), f.T])
      
         sigma_sq = (chi_sq_unc - chi_sq_1) * delta[unc] ** 2
-#       print("chi^2(1):", chi_sq_1, sep="\n", end="\n\n")
-#       print("chi^2(1+unc):", chi_sq_unc, sep="\n", end="\n\n")
-#       print("sigma^2:", sigma_sq)
-        print("sigma:", np.sqrt(sigma_sq))
-        print("")
+        cov_h = sigma_sq * cov_h
+
+        cov[-1] = cov[-1] + cov_h
+
+    cov_old = 0.02217 ** 2 * np.tensordot(f, f.T, axes=0)
+
+    print("old covariance\n", cov_old, "\n\n")
+    print("new covariance\n", cov[-1], "\n\n")
+    print("difference\n", cov[-1] - cov_old)
     print("\n\n\n")
