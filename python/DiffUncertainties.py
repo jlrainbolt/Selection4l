@@ -4,7 +4,7 @@ from __future__ import division
 import numpy as np
 from numpy.linalg import multi_dot, pinv
 
-from ROOT import TFile, TH1
+from ROOT import TFile, TH1, TH2, TH2D
 
 from PlotUtils import *
 
@@ -22,9 +22,11 @@ hnames  = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
         "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
 uncertainty = ["MuonID", "ElecID", "ElecReco"]
 delta = {"MuonID":0.01213, "ElecID":0.00931, "ElecReco":0.00791, "Others":0.01397}
+total_syst = 0.02217
 # FIXME load from npz
 
 H = len(hnames)
+T = np.dtype([(sel, object) for sel in ["4l"]])
 V = np.dtype([(unc, object) for unc in uncertainty])
 
 sel = "4l"
@@ -97,6 +99,17 @@ for year in period:
 print("Got nominal and up/down histograms", "\n")
 
 
+# Unfolding covariance matrices
+
+infile = "unfoldingcomb.npz"
+npzfile = np.load(infile)
+
+cov_unf = []
+for hname in hnames:
+    cov_unf.append(npzfile["cov_mat_" + hname])
+
+
+
 
 
 ####
@@ -105,10 +118,16 @@ print("Got nominal and up/down histograms", "\n")
 ####
 ####
 
-cov = []
+
+# Arrays
+cov, cov_tot = [], []
+
+# Histograms
+hcov_new, hcov_unf, hcov_tot = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
+
 
 for h in range(H):
-    print(hnames[h])
+#   print(hnames[h])
 
 
     ##
@@ -116,11 +135,11 @@ for h in range(H):
     ##
  
     # Diff
-    nbins = nom[h].GetNbinsX()
+    nbins = nom[h].GetNbinsX() + 2
  
     f = np.zeros(nbins)
     for i in range(nbins):
-        f[i] = nom[h].GetBinContent(i+1)
+        f[i] = nom[h].GetBinContent(i)
  
     # Slicing
     if hnames[h] == "b_z1m":
@@ -137,19 +156,16 @@ for h in range(H):
         s = slice(1, -1)
     else:
         s = slice(0, None)
- 
+
     f = f[s]
     nbins = len(f)
-#   print("f:", f, sep="\n", end="\n\n")
-     
     cov.append(delta["Others"] ** 2 * np.tensordot(f, f.T, axes=0))
 
     for unc in uncertainty:
-        delta_f = np.zeros(nom[h].GetNbinsX())
+        delta_f = np.zeros(nbins)
 
-        for i in range(nom[h].GetNbinsX()):
-            delta_f[i] = (up[h][unc].GetBinContent(i+1) - dn[h][unc].GetBinContent(i+1)) / 2
-        delta_f = delta_f[s]
+        for i in range(nbins):
+            delta_f[i] = (up[h][unc].GetBinContent(i) - dn[h][unc].GetBinContent(i)) / 2
      
         cov_h = np.tensordot(delta_f, delta_f.T, axes=0)
      
@@ -161,9 +177,64 @@ for h in range(H):
 
         cov[-1] = cov[-1] + cov_h
 
-    cov_old = 0.02217 ** 2 * np.tensordot(f, f.T, axes=0)
+    cov_tot.append(cov[-1] + cov_unf[h])
 
-    print("old covariance\n", cov_old, "\n\n")
-    print("new covariance\n", cov[-1], "\n\n")
-    print("difference\n", cov[-1] - cov_old)
-    print("\n\n\n")
+
+
+    ##
+    ##  DRAW RESULTS
+    ##
+
+    o = s.start
+    bmin = o - 0.5
+    bmax = bmin + nbins
+
+    # New covariance matrix
+    hcov_new[h][sel] = TH2D(hnames[h] + "_cov_syst", "", nbins, bmin, bmax, nbins, bmin, bmax)
+    hcov_new[h][sel].SetXTitle("i (bin)");
+    hcov_new[h][sel].SetYTitle("j (bin)");
+    for i in range(nbins):
+        for j in range(nbins):
+            hcov_new[h][sel].SetBinContent(i + 1, j + 1, cov[-1][i][j])
+
+
+    # Unfolding covariance matrix
+    hcov_unf[h][sel] = TH2D(hnames[h] + "_cov_unf", "", nbins, bmin, bmax, nbins, bmin, bmax)
+    hcov_unf[h][sel].SetXTitle("i (bin)");
+    hcov_unf[h][sel].SetYTitle("j (bin)");
+    for i in range(nbins):
+        for j in range(nbins):
+            hcov_unf[h][sel].SetBinContent(i + 1, j + 1, cov_unf[h][i][j])
+
+
+    # Total covariance matrix
+    hcov_tot[h][sel] = TH2D(hnames[h] + "_cov_tot", "", nbins, bmin, bmax, nbins, bmin, bmax)
+    hcov_tot[h][sel].SetXTitle("i (bin)");
+    hcov_tot[h][sel].SetYTitle("j (bin)");
+    for i in range(nbins):
+        for j in range(nbins):
+            hcov_tot[h][sel].SetBinContent(i + 1, j + 1, cov_tot[-1][i][j])
+
+
+
+##
+##  OUTPUT FILE
+##
+
+# Create file
+outName = "ddr_uncertainty.root"
+outFile = TFile(outName, "RECREATE")
+
+
+for h in range(H):
+    outFile.mkdir(hnames[h])
+    outFile.cd(hnames[h])
+
+    # Write histograms
+    hcov_new[h]['4l'].Write()
+    hcov_unf[h]['4l'].Write()
+    hcov_tot[h]['4l'].Write()
+
+
+outFile.Close()
+print("Wrote output to", outName)

@@ -243,6 +243,8 @@ var = np.empty(H, dtype=T)
 bins, n_iter, cond_num = np.empty(H), np.empty(H), np.empty(H)
 chisq_smr, chisq_unf = np.empty(H), np.empty(H)
 
+cov_mat = []
+
 
 for sel in ["4l"]:
     for h in range(H):
@@ -383,6 +385,8 @@ for sel in ["4l"]:
         n_iter[h] = results['num_iterations']
         print("Iterations:", n_iter[h])
 
+        cov_mat.append(results['covariance_matrix'])
+
 
 
         ##
@@ -456,7 +460,6 @@ for sel in ["4l"]:
             var[h][sel].SetBinContent(i + 1, i + 1, v_data[i]['y'])
 
 
-
         # Bottom line test 
         diff_unf = v_result['y'] - v_gen['y']
         chisq_unf[h] = multi_dot([diff_unf.T, pinv(v_cov), diff_unf])
@@ -511,7 +514,13 @@ names = np.array(hnames, dtype=object)   # strings of (ugly) names
 print("")
 outfile = "unfoldingcomb.npz"
 np.savez(outfile, names=names, bins=bins, cond_num=cond_num, n_iter=n_iter,
-        chisq_smr=chisq_smr, chisq_unf=chisq_unf)
+        chisq_smr=chisq_smr, chisq_unf=chisq_unf,
+        cov_mat_b_z1m=cov_mat[0], cov_mat_b_z2m=cov_mat[1], cov_mat_b_l1p=cov_mat[2],
+        cov_mat_b_ttm=cov_mat[3], cov_mat_cos_theta_z1=cov_mat[4],
+        cov_mat_cos_theta_z2=cov_mat[5], cov_mat_angle_z1leps=cov_mat[6],
+        cov_mat_angle_z2leps=cov_mat[7], cov_mat_angle_z1l2_z2=cov_mat[8],
+        cov_mat_sin_phi=cov_mat[9], cov_mat_sin_phi_10=cov_mat[10])
+
 
 print("Wrote arrays to", outfile)
 
