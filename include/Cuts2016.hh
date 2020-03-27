@@ -36,7 +36,8 @@ const float     ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
 
 
-const float     NGEN_ZZ_4L = 6669988,               XSEC_ZZ_4L = 1.256;
+const float     NGEN_ZZ_4L  = 6669988,              XSEC_ZZ_4L  = 1.256;
+const float     NGEN_ZJETS  = 80924255,             XSEC_ZJETS  = 5765.4;
 
 
 

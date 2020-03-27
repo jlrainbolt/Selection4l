@@ -304,7 +304,7 @@ for sel in ["4l"]:
 
         # Slicing
         if hnames[h] == "b_z1m":
-            s = slice(2, -1)
+            s = slice(3, -1)
             v_eff['y'][2] = col_sums[2] / (col_sums[2] + col_sums[1] + col_sums[0])
             v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
         elif hnames[h] == "b_z2m":

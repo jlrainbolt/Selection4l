@@ -370,7 +370,7 @@ void MatchedAnalysis()
             //
 
             // Make sure there are enough lepons available for matching
-            // (Remember: there *can* be extras!
+            // (Remember: there *can* be extras!)
 
             hMatchedEvents->Fill(1, weight);
 

@@ -99,7 +99,7 @@ for year in period:
 print("Got nominal and up/down histograms", "\n")
 
 
-# Unfolding covariance matrices
+# Unfolding covariance matrices and scaling
 
 infile = "unfoldingcomb.npz"
 npzfile = np.load(infile)
@@ -107,6 +107,14 @@ npzfile = np.load(infile)
 cov_unf = []
 for hname in hnames:
     cov_unf.append(npzfile["cov_mat_" + hname])
+
+
+infile = "scaling.npz"
+npzfile = np.load(infile)
+
+scl_vec = []
+for hname in hnames:
+    scl_vec.append(npzfile["scl_vec_" + hname])
 
 
 
@@ -120,30 +128,29 @@ for hname in hnames:
 
 
 # Arrays
-cov, cov_tot = [], []
+cov, cov_tot, scl_mat = [], [], []
 
 # Histograms
 hcov_new, hcov_unf, hcov_tot = np.empty(H, dtype=T), np.empty(H, dtype=T), np.empty(H, dtype=T)
 
 
 for h in range(H):
-#   print(hnames[h])
+    print(hnames[h])
 
 
     ##
     ##  GET BIN CONTENT
     ##
  
-    # Diff
     nbins = nom[h].GetNbinsX() + 2
  
     f = np.zeros(nbins)
     for i in range(nbins):
         f[i] = nom[h].GetBinContent(i)
- 
+
     # Slicing
     if hnames[h] == "b_z1m":
-        s = slice(2, -1)
+        s = slice(3, -1)
     elif hnames[h] == "b_z2m":
         s = slice(1, None)
     elif hnames[h] == "b_l1p":
@@ -157,19 +164,28 @@ for h in range(H):
     else:
         s = slice(0, None)
 
+    # Slice nominal histogram to visible bins
     f = f[s]
-    nbins = len(f)
+    nvbins = len(f)
+
+    # Get systematics from "other" sources (just fraction of bin count)
     cov.append(delta["Others"] ** 2 * np.tensordot(f, f.T, axes=0))
 
+
+    # Difference of upper and lower uncertainty variations
     for unc in uncertainty:
         delta_f = np.zeros(nbins)
 
         for i in range(nbins):
             delta_f[i] = (up[h][unc].GetBinContent(i) - dn[h][unc].GetBinContent(i)) / 2
+
+        # Slice to visible bins
+        delta_f = delta_f[s]
      
         cov_h = np.tensordot(delta_f, delta_f.T, axes=0)
      
-        chi_sq_1 = multi_dot([np.zeros(nbins), pinv(cov_h), np.zeros(nbins).T])
+        # Find total uncertainty such that change in chi-squared = 1
+        chi_sq_1 = multi_dot([np.zeros(nvbins), pinv(cov_h), np.zeros(nvbins).T])
         chi_sq_unc = multi_dot([f, pinv(cov_h), f.T])
      
         sigma_sq = (chi_sq_unc - chi_sq_1) * delta[unc] ** 2
@@ -177,7 +193,15 @@ for h in range(H):
 
         cov[-1] = cov[-1] + cov_h
 
-    cov_tot.append(cov[-1] + cov_unf[h])
+
+
+    # Scaling
+    scl_vec[h] = scl_vec[h][s]
+    scl_mat.append(np.tensordot(scl_vec[h], scl_vec[h].T, axes=0))
+
+    cov[h] = np.multiply(scl_mat[h], cov[h])
+    cov_unf[h] = np.multiply(scl_mat[h], cov_unf[h])
+    cov_tot.append(cov[h] + cov_unf[h])
 
 
 
@@ -187,32 +211,32 @@ for h in range(H):
 
     o = s.start
     bmin = o - 0.5
-    bmax = bmin + nbins
+    bmax = bmin + nvbins
 
     # New covariance matrix
-    hcov_new[h][sel] = TH2D(hnames[h] + "_cov_syst", "", nbins, bmin, bmax, nbins, bmin, bmax)
+    hcov_new[h][sel] = TH2D(hnames[h] + "_cov_syst", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
     hcov_new[h][sel].SetXTitle("i (bin)");
     hcov_new[h][sel].SetYTitle("j (bin)");
-    for i in range(nbins):
-        for j in range(nbins):
+    for i in range(nvbins):
+        for j in range(nvbins):
             hcov_new[h][sel].SetBinContent(i + 1, j + 1, cov[-1][i][j])
 
 
     # Unfolding covariance matrix
-    hcov_unf[h][sel] = TH2D(hnames[h] + "_cov_unf", "", nbins, bmin, bmax, nbins, bmin, bmax)
+    hcov_unf[h][sel] = TH2D(hnames[h] + "_cov_unf", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
     hcov_unf[h][sel].SetXTitle("i (bin)");
     hcov_unf[h][sel].SetYTitle("j (bin)");
-    for i in range(nbins):
-        for j in range(nbins):
+    for i in range(nvbins):
+        for j in range(nvbins):
             hcov_unf[h][sel].SetBinContent(i + 1, j + 1, cov_unf[h][i][j])
 
 
     # Total covariance matrix
-    hcov_tot[h][sel] = TH2D(hnames[h] + "_cov_tot", "", nbins, bmin, bmax, nbins, bmin, bmax)
+    hcov_tot[h][sel] = TH2D(hnames[h] + "_cov_tot", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
     hcov_tot[h][sel].SetXTitle("i (bin)");
     hcov_tot[h][sel].SetYTitle("j (bin)");
-    for i in range(nbins):
-        for j in range(nbins):
+    for i in range(nvbins):
+        for j in range(nvbins):
             hcov_tot[h][sel].SetBinContent(i + 1, j + 1, cov_tot[-1][i][j])
 
 

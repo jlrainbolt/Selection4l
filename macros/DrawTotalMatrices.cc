@@ -56,12 +56,15 @@ void DrawTotalMatrices()
     //  GET HISTOGRAMS
     //
 
-    TH2 *syst[H], *tot[H];
+    TH2 *syst[H], *unf[H], *tot[H];
 
     for (unsigned h = 0; h < H; h++)
     {
         inFile->GetObject(hnames[h] + "/" + hnames[h] + "_cov_syst", syst[h]);
         syst[h]->SetDirectory(0);
+
+        inFile->GetObject(hnames[h] + "/" + hnames[h] + "_cov_unf", unf[h]);
+        unf[h]->SetDirectory(0);
 
         inFile->GetObject(hnames[h] + "/" + hnames[h] + "_cov_tot", tot[h]);
         tot[h]->SetDirectory(0);
@@ -131,6 +134,42 @@ void DrawTotalMatrices()
 
         c_syst->AutoExec();
         c_syst->SaveAs(".pdf");
+
+
+        // Unfolding covariance matrix
+        title = "Unfolding covariance matrix";
+        TCanvas *c_unf = new TCanvas("comb_" + hnames[h] + "_unf_cov", "", 
+                lCanvasSize, lCanvasSize);
+        c_unf->SetCanvasSize(lCanvasSize, 0.5*lCanvasSize);
+        c_unf->SetMargin(0.6*lCanvasMargin, 1.1*lCanvasMargin, lCanvasMargin, lCanvasMargin);
+
+        c_unf->cd();
+        c_unf->AddExec("t_unf", "gStyle->SetPaintTextFormat(\".2f\")");
+        c_unf->AddExec("p_unf", "gStyle->SetPalette(kBird)");
+        unf[h]->SetTitle(title);
+        unf[h]->SetStats(0);
+        unf[h]->SetMarkerSize(2);
+        unf[h]->SetZTitle("\\sigma^{2}_{ij} (Events/bin)^{2}");
+        unf[h]->SetTitleSize(0.05, "xyz");
+        unf[h]->SetTickLength(0, "xy");
+        unf[h]->SetNdivisions(syst[h]->GetNbinsX(), "x");
+        unf[h]->SetNdivisions(syst[h]->GetNbinsY(), "y");
+        unf[h]->GetYaxis()->SetTitleOffset(0.6);
+        unf[h]->GetZaxis()->SetTitleOffset(0.8);
+        if (hnames[h].EqualTo("sin_phi"))
+            unf[h]->SetMarkerSize(1.25);
+
+        float unf_median = 0.5 * (unf[h]->GetMaximum() - unf[h]->GetMinimum());
+        unf[h]->DrawClone("COLZ");
+        unf[h]->GetZaxis()->SetRangeUser(unf[h]->GetMinimum(), unf_median);
+        unf[h]->SetMarkerColor(kWhite);
+        unf[h]->DrawClone("TEXT SAME");
+        unf[h]->GetZaxis()->SetRangeUser(unf_median, unf[h]->GetMaximum());
+        unf[h]->SetMarkerColor(kBlack);
+        unf[h]->DrawClone("TEXT SAME");
+
+        c_unf->AutoExec();
+        c_unf->SaveAs(".pdf");
 
 
         // Total covariance matrix

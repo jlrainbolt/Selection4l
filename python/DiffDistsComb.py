@@ -29,9 +29,8 @@ nameTeX = {"b_z1m":r"m_{\mathrm{Z}_{1}}", "b_z2m":r"m_{\mathrm{Z}_{2}}",
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("eyu", 'f4'), ("eyd", 'f4'), ("b", 'f4')])
 
-#hnames = ["sin_phi"]
-hnames = ["b_ttm", "b_l1p", "b_z1m", "b_z2m", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2",
-            "cos_theta_z1", "cos_theta_z2", "sin_phi"]
+hnames  = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
+                "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
 H = len(hnames)
 
 # Single-parameter result
@@ -171,20 +170,39 @@ print("")
 ##
 
 scale = alpha * bf_pred * GAMMA_Z
+scl = []
 
 for sel in ["4l"]:
     for h in range(H):
-        axe[h][sel].Divide(ps[h][sel])
 
+        # Divide by acceptance and efficiency
+        axe[h][sel].Divide(ps[h][sel])
         for sample in [data, stat]:
             sample[h][sel].Divide(axe[h][sel])
+
+        nbins = data[h][sel].GetNbinsX() + 2
+        scl.append(np.ones(nbins))
+
+        for i in range(nbins):
+            bc = axe[h][sel].GetBinContent(i)
+            if bc != 0:
+                scl[-1][i] /= bc
+            else:
+                scl[-1][i] = 0
+
+        # Scale to partial width
+        scl[-1] *= scale / data[h][sel].Integral()
+        print(scl[-1])
+
+        for sample in [data, stat]:
             sample[h][sel].Scale(scale / sample[h][sel].Integral())
         
         ps[h][sel].Scale(scale / ps[h][sel].Integral())
         amc[h][sel].Scale(scale / amc[h][sel].Integral())
 
 
-# Systemtatic uncertainty
+
+# Systematic uncertainty
 for sel in ["4l"]:
     for h in range(H):
 
@@ -193,11 +211,6 @@ for sel in ["4l"]:
             data[h][sel].SetBinError(i + 1,
                     np.sqrt((data[h][sel].GetBinContent(i + 1) * delta_syst) ** 2
                         + data[h][sel].GetBinError(i + 1) ** 2))
-#       print(data[h]['4l'].GetBinErrorOption())
-
-        # Get rid of the prediction uncertainty
-#       for i in range(ps[h][sel].GetNbinsX()):
-#           ps[h][sel].SetBinError(i+1, 0)
 
 
 # Get ratio
@@ -247,7 +260,7 @@ for sel in ["4l"]:
             v_stat[i]['eyu']    = stat[h][sel].GetBinErrorUp(i+1)
             v_stat[i]['eyd']    = stat[h][sel].GetBinErrorLow(i+1)
 
-        print(v_stat['y'] - v_data['y'])
+#       print(v_stat['y'] - v_data['y'])
 
         # MC
         v_pred = np.zeros(ps[h][sel].GetNbinsX(), dtype=V)
@@ -444,3 +457,13 @@ for sel in ["4l"]:
         fig.savefig("comb_" + hnames[h] + "_ddr.pdf")
         plt.clf()
 
+
+# Save arrays
+outfile = "scaling.npz"
+np.savez(outfile, scl_vec_b_z1m=scl[0], scl_vec_b_z2m=scl[1], scl_vec_b_l1p=scl[2],
+        scl_vec_b_ttm=scl[3], scl_vec_cos_theta_z1=scl[4],
+        scl_vec_cos_theta_z2=scl[5], scl_vec_angle_z1leps=scl[6],
+        scl_vec_angle_z2leps=scl[7], scl_vec_angle_z1l2_z2=scl[8],
+        scl_vec_sin_phi=scl[9])
+
+print("Wrote arrays to", outfile)

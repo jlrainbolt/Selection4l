@@ -101,38 +101,8 @@ const float     INT_LUMI = 19.71;
 const float                                         ELEC_TRIG_SF = 1;
 const TString   MU_SUFF = "muon_" + YEAR_STR,       EL_SUFF = "electron_" + YEAR_STR;
 
-// Event numbers from TotalEvents histogram in "selected" ntuples (bin1 - 2*bin10)
-//
-// Cross sections from
-//      https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
-const float     NGEN_ZZ_4L      = 1499064 + 1499093 + 1497445 + 823922 + 823911 + 824466;
-const float     XSEC_ZZ_4L      = 3 * 0.1767 + 3 * 0.07691;
-const float     NGEN_ZJETS_M50  = 30459503,         XSEC_ZJETS_M50  = 3531.9;
-const float     NGEN_ZJETS_M10  = 33648307,         XSEC_ZJETS_M10  = 11050;
-const float     NGEN_TTBAR      = 12011428,         XSEC_TTBAR      = 25.81;
-const float     NGEN_TTZ_2L2NU  = 210160,           XSEC_TTZ_2L2NU  = 0.2057;
-const float     NGEN_WW_2L2NU   = 10000431,         XSEC_WW_2L2NU   = 57.25;
-const float     NGEN_WZ_2L2Q    = 3215990,          XSEC_WZ_2L2Q    = 5.09;
-const float     NGEN_WZ_3LNU    = 2017979,          XSEC_WZ_3LNU    = 1.086;
-const float     NGEN_ZZ_2L2NU   = 954911,           XSEC_ZZ_2L2NU   = 0.71;
-const float     NGEN_ZZ_2L2Q    = 1936727,          XSEC_ZZ_2L2Q    = 2.47;
-
-const unsigned  N_MC = 9,      ZZ = 0,     DY = 1;
-const TString   MC_SUFF[N_MC] = {   "zz",           "zjets_m-50",   // "zjets_m-10",
-                                    "ttbar",        "ttz_2l2nu",    "ww_2l2nu",
-                                    "wz_2l2q",      "wz_3lnu",      "zz_2l2nu",     "zz_2l2q"
-                                };
-const float     NGEN[N_MC] = {  NGEN_ZZ_4L,     NGEN_ZJETS_M50, // NGEN_ZJETS_M10,
-                                NGEN_TTBAR,     NGEN_TTZ_2L2NU, NGEN_WW_2L2NU,
-                                NGEN_WZ_2L2Q,   NGEN_WZ_3LNU,   NGEN_ZZ_2L2NU,  NGEN_ZZ_2L2Q
-                                };
-const float     XSEC[N_MC] = {  XSEC_ZZ_4L,     XSEC_ZJETS_M50, // XSEC_ZJETS_M10,
-                                XSEC_TTBAR,     XSEC_TTZ_2L2NU, XSEC_WW_2L2NU,
-                                XSEC_WZ_2L2Q,   XSEC_WZ_3LNU,   XSEC_ZZ_2L2NU,  XSEC_ZZ_2L2Q
-                                };
-const int       COLOR[N_MC] = { lLightBlue,     lYellow,        // lYellow,
-                                lGreen,         lGreen,         lOrange,
-                                lOrange,        lOrange,        lOrange,        lOrange
-                                };
+const float     NGEN_ZZ_4L  = 1499064 + 1499093 + 1497445 + 823922 + 823911 + 824466;
+const float     XSEC_ZZ_4L  = 3 * 0.1767 + 3 * 0.07691;
+const float     NGEN_ZJETS  = 30459503,         XSEC_ZJETS  = 3531.9;
 
 #endif // CUTS2012_HH

@@ -27,8 +27,11 @@
     // Load custom colors
     gROOT->ProcessLine(".x LoadColors.cc");
 
-/*
+
     // Set plotting options
+    gStyle->SetErrorX(0);
+    gStyle->SetOptFit(1);
+/*
 //  gStyle->SetPaintTextFormat(".4f");
 
 
