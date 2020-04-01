@@ -14,8 +14,7 @@ from Cuts2016 import *
 
 selection   = [ "mumu", "ee", "4l", "4m", "2m2e", "4e"]
 selTeX      = { "4m":r"\fM", "4e":r"\fE", "2m2e":r"\tMtE" }
-selDef      = { "mumu":"MM",    "ee":"EE",  "4l":"4L",  "4m":"4M",  "4e":"4E",  "2m2e":"2M2E"   }
-channel     = { "mumu":3,       "ee":4,     "4m":6,     "2m2e":7,   "2e2m":8,   "4e":9  }
+channel     = { "mumu":3,       "ee":4,     "4l":5,     "4m":6,     "2m2e":7,   "4e":9  }
 T = np.dtype([(sel, 'f4') for sel in selection])
 
 year = "2016"
@@ -26,7 +25,7 @@ year = "2016"
 ##  GET HISTOGRAMS
 ##
 
-inPath, pref = EOS_PATH + "/BLT/" + year + "_update/", "eff"
+inPath, pref = EOS_PATH + "/BLT/" + year + "_update/", "eff2"
 selHistName, matHistName = "SelectedEvents", "MatchedEvents"
 selHist, matHist = {}, {}
 
@@ -62,14 +61,7 @@ effH.Divide(selH)
 
 eff = np.zeros(1, dtype=T)
 for sel in selection:
-    if sel == "4l":
-        continue
-    else:
-        eff[sel] = effH.GetBinContent(channel[sel])
-
-num = matH.GetBinContent(channel["4m"]) + matH.GetBinContent(channel["2m2e"]) + matH.GetBinContent(channel["4e"])
-den = selH.GetBinContent(channel["4m"]) + selH.GetBinContent(channel["2m2e"]) + selH.GetBinContent(channel["4e"])
-eff["4l"] = num / den
+    eff[sel] = effH.GetBinContent(channel[sel])
 
 print("Channel", "\t", "Efficiency")
 for sel in selection:
