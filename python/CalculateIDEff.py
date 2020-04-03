@@ -59,10 +59,11 @@ selH.Add(selHist["zjets_m-50"])
 effH = matH.Clone()
 effH.Divide(selH)
 
-eff = np.zeros(1, dtype=T)
+eff, unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 for sel in selection:
     eff[sel] = effH.GetBinContent(channel[sel])
+    unc[sel] = effH.GetBinError(channel[sel])
 
 print("Channel", "\t", "Efficiency")
 for sel in selection:
-    print(sel, "\t\t", np.squeeze(eff[sel]))
+    print(sel, "\t\t", np.squeeze(eff[sel]), "+-", np.squeeze(unc[sel]))

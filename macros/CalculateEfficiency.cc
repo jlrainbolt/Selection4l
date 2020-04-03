@@ -49,6 +49,7 @@ void CalculateEfficiency(TString suffix)
     const unsigned N = 6;
     unsigned                MM = 0, EE = 1, L4 = 2, M4 = 3, ME = 4, E4 = 5;     // Indices
     TString selection[N] = {"mumu", "ee",   "4l",   "4m",   "2m2e", "4e"    };
+    TString selTeX[N] =    {"\\mu^{+}\\mu^{-}", "\\mbox{e}^{+}\\mbox{e}^{-}", "4l", "4\\mu", "2\\mu 2\\mbox{e}", "4\\mbox{e}"};
     unsigned chanIdx[N]  = {3,      4,      5,      6,      7,      9       };
     unsigned idxChan[10]= {9,  9,  9,  0,  1,  2,  3,  4,  9,  5   };
 
@@ -96,13 +97,13 @@ void CalculateEfficiency(TString suffix)
     TH1D *hLeptonDenom[N], *hMuonDenom[N], *hElectronDenom[N];
     for (unsigned i = 0; i < N; i++)
     {
-        hLeptonEff[i] = new TH1D("LeptonEff_" + selection[i], selection[i] + " lepton eff", 5, -0.5, 4.5);
+        hLeptonEff[i] = new TH1D("LeptonEff_" + selection[i], selTeX[i] + " lepton eff", 5, -0.5, 4.5);
         hLeptonEff[i]->SetDirectory(outFile);
         hLeptonEff[i]->Sumw2();
-        hMuonEff[i] = new TH1D("MuonEff_" + selection[i], selection[i] + " muon eff", 5, -0.5, 4.5);
+        hMuonEff[i] = new TH1D("MuonEff_" + selection[i], selTeX[i] + " muon eff", 5, -0.5, 4.5);
         hMuonEff[i]->SetDirectory(outFile);
         hMuonEff[i]->Sumw2();
-        hElectronEff[i] = new TH1D("ElectronEff_" + selection[i], selection[i] + " electron eff", 5, -0.5, 4.5);
+        hElectronEff[i] = new TH1D("ElectronEff_" + selection[i], selTeX[i] + " electron eff", 5, -0.5, 4.5);
         hElectronEff[i]->SetDirectory(outFile);
         hElectronEff[i]->Sumw2();
 
@@ -128,40 +129,40 @@ void CalculateEfficiency(TString suffix)
 
     for (unsigned i = 0; i < N; i++)
     {
-        hLeptonPtEff[i][0] = new TH1D("LeptonPtEff_" + selection[i], selection[i] + " lepton eff", 23, 5, 74);
-        hMuonPtEff[i][0] = new TH1D("MuonPtEff_" + selection[i], selection[i] + " muon eff", 23, 5, 74);
-        hElectronPtEff[i][0] = new TH1D("ElectronPtEff_" + selection[i], selection[i] + " electron eff", 23, 5, 74);
+        hLeptonPtEff[i][0] = new TH1D("LeptonPtEff_" + selection[i], selTeX[i] + ": \\mbox{leptons}", 23, 5, 74);
+        hMuonPtEff[i][0] = new TH1D("MuonPtEff_" + selection[i], selTeX[i] + ": \\mbox{muons}", 23, 5, 74);
+        hElectronPtEff[i][0] = new TH1D("ElectronPtEff_" + selection[i], selTeX[i] + ": \\mbox{electrons}", 23, 5, 74);
         hLeptonPtDenom[i][0] = new TH1D("LeptonPtDenom_" + selection[i], "", 23, 5, 74);
         hMuonPtDenom[i][0] = new TH1D("MuonPtDenom_" + selection[i], "", 23, 5, 74);
         hElectronPtDenom[i][0] = new TH1D("ElectronPtDenom_" + selection[i], "", 23, 5, 74);
 
-        hLeptonPtEff[i][1] = new TH1D("Lepton1PtEff_" + selection[i], selection[i] + " lepton 1 eff", 26, 20, 72);
-        hMuonPtEff[i][1] = new TH1D("Muon1PtEff_" + selection[i], selection[i] + " muon 1 eff", 26, 20, 72);
-        hElectronPtEff[i][1] = new TH1D("Electron1PtEff_" + selection[i], selection[i] + " electron 1 eff", 26, 20, 72);
+        hLeptonPtEff[i][1] = new TH1D("Lepton1PtEff_" + selection[i], selTeX[i] + ": l_{1}", 26, 20, 72);
+        hMuonPtEff[i][1] = new TH1D("Muon1PtEff_" + selection[i], selTeX[i] + ": \\mu_{1}", 26, 20, 72);
+        hElectronPtEff[i][1] = new TH1D("Electron1PtEff_" + selection[i], selTeX[i] + ": \\mbox{e}_{1}", 26, 20, 72);
         hLeptonPtDenom[i][1] = new TH1D("Lepton1PtDenom_" + selection[i], "", 26, 20, 72);
         hMuonPtDenom[i][1] = new TH1D("Muon1PtDenom_" + selection[i], "", 26, 20, 72);
         hElectronPtDenom[i][1] = new TH1D("Electron1PtDenom_" + selection[i], "", 26, 20, 72);
 
-        hLeptonPtEff[i][2] = new TH1D("Lepton2PtEff_" + selection[i], selection[i] + " lepton 2 eff", 20, 10, 50);
-        hMuonPtEff[i][2] = new TH1D("Muon2PtEff_" + selection[i], selection[i] + " muon 2 eff", 20, 10, 50);
-        hElectronPtEff[i][2] = new TH1D("Electron2PtEff_" + selection[i], selection[i] + " electron 2 eff", 20, 10, 50);
+        hLeptonPtEff[i][2] = new TH1D("Lepton2PtEff_" + selection[i], selTeX[i] + ": l_{2}", 20, 10, 50);
+        hMuonPtEff[i][2] = new TH1D("Muon2PtEff_" + selection[i], selTeX[i] + ": \\mu_{2}", 20, 10, 50);
+        hElectronPtEff[i][2] = new TH1D("Electron2PtEff_" + selection[i], selTeX[i] + ": \\mbox{e}_2", 20, 10, 50);
         hLeptonPtDenom[i][2] = new TH1D("Lepton2PtDenom_" + selection[i], "", 20, 10, 50);
         hMuonPtDenom[i][2] = new TH1D("Muon2PtDenom_" + selection[i], "", 20, 10, 50);
         hElectronPtDenom[i][2] = new TH1D("Electron2PtDenom_" + selection[i], "", 20, 10, 50);
 
-        hLeptonPtEff[i][3] = new TH1D("Lepton3PtEff_" + selection[i], selection[i] + " lepton 3 eff", 24, 5, 29);
-        hMuonPtEff[i][3] = new TH1D("Muon3PtEff_" + selection[i], selection[i] + " muon 3 eff", 24, 5, 29);
-        hElectronPtEff[i][3] = new TH1D("Electron3PtEff_" + selection[i], selection[i] + " electron 3 eff", 24, 5, 29);
+        hLeptonPtEff[i][3] = new TH1D("Lepton3PtEff_" + selection[i], selection[i] + ": l_{3}", 24, 5, 29);
+        hMuonPtEff[i][3] = new TH1D("Muon3PtEff_" + selection[i], selection[i] + ": \\mu_{3}", 24, 5, 29);
+        hElectronPtEff[i][3] = new TH1D("Electron3PtEff_" + selection[i], selection[i] + ": \\mbox{e}_{3}", 24, 5, 29);
         hLeptonPtDenom[i][3] = new TH1D("Lepton3PtDenom_" + selection[i], "", 24, 5, 29);
         hMuonPtDenom[i][3] = new TH1D("Muon3PtDenom_" + selection[i], "", 24, 5, 29);
         hElectronPtDenom[i][3] = new TH1D("Electron3PtDenom_" + selection[i], "", 24, 5, 29);
 
-        hLeptonPtEff[i][4] = new TH1D("Lepton4PtEff_" + selection[i], selection[i] + " lepton 4 eff", 20, 5, 25);
-        hMuonPtEff[i][4] = new TH1D("Muon4PtEff_" + selection[i], selection[i] + " muon 4 eff", 20, 5, 25);
-        hElectronPtEff[i][4] = new TH1D("Electron4PtEff_" + selection[i], selection[i] + " electron 4 eff", 20, 5, 25);
+        hLeptonPtEff[i][4] = new TH1D("Lepton4PtEff_" + selection[i], selection[i] + ": l_{4}", 20, 5, 25);
+        hMuonPtEff[i][4] = new TH1D("Muon4PtEff_" + selection[i], selection[i] + ": \\mu_{4}", 20, 5, 25);
+        hElectronPtEff[i][4] = new TH1D("Electron4PtEff_" + selection[i], selection[i] + ": \\mbox{e}_{4}", 18, 7, 25);
         hLeptonPtDenom[i][4] = new TH1D("Lepton4PtDenom_" + selection[i], "", 20, 5, 25);
         hMuonPtDenom[i][4] = new TH1D("Muon4PtDenom_" + selection[i], "", 20, 5, 25);
-        hElectronPtDenom[i][4] = new TH1D("Electron4PtDenom_" + selection[i], "", 20, 5, 25);
+        hElectronPtDenom[i][4] = new TH1D("Electron4PtDenom_" + selection[i], "", 18, 7, 25);
 
         for (unsigned j = 0; j < 5; j++)
         {
@@ -169,19 +170,19 @@ void CalculateEfficiency(TString suffix)
 
             if (j == 0)
             {
-                hLeptonEtaEff[i][j] = new TH1D("LeptonEtaEff_" + selection[i], selection[i] + " lepton " + strj + " eff", 20, -2.4, 2.4);
-                hMuonEtaEff[i][j] = new TH1D("MuonEtaEff_" + selection[i], selection[i] + " muon " + strj + " eff", 20, -2.4, 2.4);
-                hElectronEtaEff[i][j] = new TH1D("ElectronEtaEff_" + selection[i], selection[i] + " electron " + strj + " eff", 20, -2.4, 2.4);
+                hLeptonEtaEff[i][j] = new TH1D("LeptonEtaEff_" + selection[i], selTeX[i] + ": leptons", 20, -2.5, 2.5);
+                hMuonEtaEff[i][j] = new TH1D("MuonEtaEff_" + selection[i], selTeX[i] + ": muons", 20, -2.5, 2.5);
+                hElectronEtaEff[i][j] = new TH1D("ElectronEtaEff_" + selection[i], selTeX[i] + ": electrons", 20, -2.5, 2.5);
             }
             else
             {
-                hLeptonEtaEff[i][j] = new TH1D("Lepton" + strj + "EtaEff_" + selection[i], selection[i] + " lepton " + strj + " eff", 20, -2.4, 2.4);
-                hMuonEtaEff[i][j] = new TH1D("Muon" + strj + "EtaEff_" + selection[i], selection[i] + " muon " + strj + " eff", 20, -2.4, 2.4);
-                hElectronEtaEff[i][j] = new TH1D("Electron" + strj + "EtaEff_" + selection[i], selection[i] + " electron " + strj + " eff", 20, -2.4, 2.4);
+                hLeptonEtaEff[i][j] = new TH1D("Lepton" + strj + "EtaEff_" + selection[i], selTeX[i] + ": l_{" + strj + "}", 20, -2.5, 2.5);
+                hMuonEtaEff[i][j] = new TH1D("Muon" + strj + "EtaEff_" + selection[i], selTeX[i] + ": \\mu_{" + strj + "}", 20, -2.5, 2.5);
+                hElectronEtaEff[i][j] = new TH1D("Electron" + strj + "EtaEff_" + selection[i], selTeX[i] + ": \\mbox{e}_{" + strj + "}", 20, -2.5, 2.5);
             }
-            hLeptonEtaDenom[i][j] = new TH1D("Lepton" + strj + "EtaDenom_" + selection[i], "", 20, -2.4, 2.4);
-            hMuonEtaDenom[i][j] = new TH1D("Muon" + strj + "EtaDenom_" + selection[i], "", 20, -2.4, 2.4);
-            hElectronEtaDenom[i][j] = new TH1D("Electron" + strj + "EtaDenom_" + selection[i], "", 20, -2.4, 2.4);
+            hLeptonEtaDenom[i][j] = new TH1D("Lepton" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
+            hMuonEtaDenom[i][j] = new TH1D("Muon" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
+            hElectronEtaDenom[i][j] = new TH1D("Electron" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
 
             hLeptonPtEff[i][j]->SetDirectory(outFile);
             hLeptonPtEff[i][j]->Sumw2();
@@ -229,6 +230,13 @@ void CalculateEfficiency(TString suffix)
             hLeptonEtaEff[i][j]->SetXTitle("\\eta^{l_{" + strj + "}}");
             hMuonEtaEff[i][j]->SetXTitle("\\eta^{\\mu_{" + strj + "}}");
             hElectronEtaEff[i][j]->SetXTitle("\\eta^{e_{" + strj + "}}");
+
+            hLeptonPtEff[i][j]->SetYTitle("Efficiency");
+            hMuonPtEff[i][j]->SetYTitle("Efficiency");
+            hElectronPtEff[i][j]->SetYTitle("Efficiency");
+            hLeptonEtaEff[i][j]->SetYTitle("Efficiency");
+            hMuonEtaEff[i][j]->SetYTitle("Efficiency");
+            hElectronEtaEff[i][j]->SetYTitle("Efficiency");
         }
     }
 
