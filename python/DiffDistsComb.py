@@ -60,16 +60,9 @@ for hname in hnames:
 
     stat[h]['4l'] = ufFile.Get(hname + "/" + hname + "_stat")
     stat[h]['4l'].SetDirectory(0)
-#   stat[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
     h = h + 1
 ufFile.Close()
-
-#h = 0
-#for hname in hnames:
-#    data[h]['4l'].SetBinErrorOption(TH1.kPoisson)
-#    h = h + 1
-#h = 0
 
 print("Got data histograms")
 print("")
@@ -94,7 +87,6 @@ for hname in hnames:
     axe[h]['4l'] = zzFile.Get("4l/" + hname + "_zz_4l")
     axe[h]['4l'].SetDirectory(0)
     axe[h]['4l'].SetName(hname + "_acc_x_eff")
-#   axe[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
     h = h + 1
 h = 0
@@ -111,7 +103,6 @@ for year in ["2017", "2016", "2012"]:
         hist = zzFile.Get("4l/" + hname + "_zz_4l")
         hist.SetDirectory(0)
         axe[h]['4l'].Add(hist)
-#       axe[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
         h = h + 1
     h = 0
@@ -133,7 +124,6 @@ print("Opened", amcName)
 for hname in hnames:
     ps[h]['4l'] = psFile.Get("4l/" + hname + "_phase_space")
     ps[h]['4l'].SetDirectory(0)
-#   ps[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
     amc[h]['4l'] = amcFile.Get("4l/" + hname + "_phase_space_aMC")
     amc[h]['4l'].SetDirectory(0)
@@ -154,7 +144,6 @@ for year in ["2017", "2016", "2012"]:
             hist = psFile.Get(sel + "/" + hname + "_phase_space")
             hist.SetDirectory(0)
             ps[h][sel].Add(hist)
-#           ps[h]['4l'].SetBinErrorOption(TH1.kPoisson)
 
             h = h + 1
         h = 0
@@ -192,7 +181,6 @@ for sel in ["4l"]:
 
         # Scale to partial width
         scl[-1] *= scale / data[h][sel].Integral()
-        print(scl[-1])
 
         for sample in [data, stat]:
             sample[h][sel].Scale(scale / sample[h][sel].Integral())
@@ -456,6 +444,8 @@ for sel in ["4l"]:
 
         fig.savefig("comb_" + hnames[h] + "_ddr.pdf")
         plt.clf()
+
+print(scl)
 
 
 # Save arrays

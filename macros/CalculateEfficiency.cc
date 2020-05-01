@@ -49,7 +49,7 @@ void CalculateEfficiency(TString suffix)
     const unsigned N = 6;
     unsigned                MM = 0, EE = 1, L4 = 2, M4 = 3, ME = 4, E4 = 5;     // Indices
     TString selection[N] = {"mumu", "ee",   "4l",   "4m",   "2m2e", "4e"    };
-    TString selTeX[N] =    {"\\mu^{+}\\mu^{-}", "\\mbox{e}^{+}\\mbox{e}^{-}", "4l", "4\\mu", "2\\mu 2\\mbox{e}", "4\\mbox{e}"};
+    TString selTeX[N] =    {"\\mu^{+}\\mu^{-}", "\\mbox{e}^{+}\\mbox{e}^{-}", "4l", "4\\mu", "2\\mu2\\mbox{e}", "4\\mbox{e}"};
     unsigned chanIdx[N]  = {3,      4,      5,      6,      7,      9       };
     unsigned idxChan[10]= {9,  9,  9,  0,  1,  2,  3,  4,  9,  5   };
 
@@ -60,7 +60,7 @@ void CalculateEfficiency(TString suffix)
     //
 
     TString prefix  = "eff";
-    TString outName = prefix + "_" + suffix + ".root";
+    TString outName = prefix + "_" + suffix + "_" + YEAR_STR + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -126,43 +126,60 @@ void CalculateEfficiency(TString suffix)
     TH1D *hLeptonPtDenom[N][5], *hMuonPtDenom[N][5], *hElectronPtDenom[N][5];
     TH1D *hLeptonEtaEff[N][5], *hMuonEtaEff[N][5], *hElectronEtaEff[N][5];
     TH1D *hLeptonEtaDenom[N][5], *hMuonEtaDenom[N][5], *hElectronEtaDenom[N][5];
+    TCanvas *cMuonPtEff[N][5], *cMuonEtaEff[N][5], *cElectronPtEff[N][5], *cElectronEtaEff[N][5];
+    int csize = 1000;
 
     for (unsigned i = 0; i < N; i++)
     {
-        hLeptonPtEff[i][0] = new TH1D("LeptonPtEff_" + selection[i], selTeX[i] + ": \\mbox{leptons}", 23, 5, 74);
-        hMuonPtEff[i][0] = new TH1D("MuonPtEff_" + selection[i], selTeX[i] + ": \\mbox{muons}", 23, 5, 74);
-        hElectronPtEff[i][0] = new TH1D("ElectronPtEff_" + selection[i], selTeX[i] + ": \\mbox{electrons}", 23, 5, 74);
-        hLeptonPtDenom[i][0] = new TH1D("LeptonPtDenom_" + selection[i], "", 23, 5, 74);
-        hMuonPtDenom[i][0] = new TH1D("MuonPtDenom_" + selection[i], "", 23, 5, 74);
-        hElectronPtDenom[i][0] = new TH1D("ElectronPtDenom_" + selection[i], "", 23, 5, 74);
+        hLeptonPtEff[i][0] = new TH1D("hLeptonPtEff_" + selection[i], selTeX[i] + ": \\mbox{leptons}", 23, 5, 74);
+        hMuonPtEff[i][0] = new TH1D("hMuonPtEff_" + selection[i], selTeX[i] + ": \\mbox{muons}", 23, 5, 74);
+        hElectronPtEff[i][0] = new TH1D("hElectronPtEff_" + selection[i], selTeX[i] + ": \\mbox{electrons}", 22, 7, 73);
+        hLeptonPtDenom[i][0] = new TH1D("hLeptonPtDenom_" + selection[i], "", 23, 5, 74);
+        hMuonPtDenom[i][0] = new TH1D("hMuonPtDenom_" + selection[i], "", 23, 5, 74);
+        hElectronPtDenom[i][0] = new TH1D("hElectronPtDenom_" + selection[i], "", 22, 7, 73);
 
-        hLeptonPtEff[i][1] = new TH1D("Lepton1PtEff_" + selection[i], selTeX[i] + ": l_{1}", 26, 20, 72);
-        hMuonPtEff[i][1] = new TH1D("Muon1PtEff_" + selection[i], selTeX[i] + ": \\mu_{1}", 26, 20, 72);
-        hElectronPtEff[i][1] = new TH1D("Electron1PtEff_" + selection[i], selTeX[i] + ": \\mbox{e}_{1}", 26, 20, 72);
-        hLeptonPtDenom[i][1] = new TH1D("Lepton1PtDenom_" + selection[i], "", 26, 20, 72);
-        hMuonPtDenom[i][1] = new TH1D("Muon1PtDenom_" + selection[i], "", 26, 20, 72);
-        hElectronPtDenom[i][1] = new TH1D("Electron1PtDenom_" + selection[i], "", 26, 20, 72);
+        cMuonPtEff[i][0] = new TCanvas("MuonPtEff_" + selection[i], "", csize, csize);
+        cElectronPtEff[i][0] = new TCanvas("ElectronPtEff_" + selection[i], "", csize, csize);
 
-        hLeptonPtEff[i][2] = new TH1D("Lepton2PtEff_" + selection[i], selTeX[i] + ": l_{2}", 20, 10, 50);
-        hMuonPtEff[i][2] = new TH1D("Muon2PtEff_" + selection[i], selTeX[i] + ": \\mu_{2}", 20, 10, 50);
-        hElectronPtEff[i][2] = new TH1D("Electron2PtEff_" + selection[i], selTeX[i] + ": \\mbox{e}_2", 20, 10, 50);
-        hLeptonPtDenom[i][2] = new TH1D("Lepton2PtDenom_" + selection[i], "", 20, 10, 50);
-        hMuonPtDenom[i][2] = new TH1D("Muon2PtDenom_" + selection[i], "", 20, 10, 50);
-        hElectronPtDenom[i][2] = new TH1D("Electron2PtDenom_" + selection[i], "", 20, 10, 50);
+        hLeptonPtEff[i][1] = new TH1D("hLepton1PtEff_" + selection[i], selTeX[i] + ": l_{1}", 26, 20, 72);
+        hMuonPtEff[i][1] = new TH1D("hMuon1PtEff_" + selection[i], selTeX[i] + ": \\mu_{1}", 26, 20, 72);
+        hElectronPtEff[i][1] = new TH1D("hElectron1PtEff_" + selection[i], selTeX[i] + ": \\mbox{e}_{1}", 26, 20, 72);
+        hLeptonPtDenom[i][1] = new TH1D("hLepton1PtDenom_" + selection[i], "", 26, 20, 72);
+        hMuonPtDenom[i][1] = new TH1D("hMuon1PtDenom_" + selection[i], "", 26, 20, 72);
+        hElectronPtDenom[i][1] = new TH1D("hElectron1PtDenom_" + selection[i], "", 26, 20, 72);
 
-        hLeptonPtEff[i][3] = new TH1D("Lepton3PtEff_" + selection[i], selection[i] + ": l_{3}", 24, 5, 29);
-        hMuonPtEff[i][3] = new TH1D("Muon3PtEff_" + selection[i], selection[i] + ": \\mu_{3}", 24, 5, 29);
-        hElectronPtEff[i][3] = new TH1D("Electron3PtEff_" + selection[i], selection[i] + ": \\mbox{e}_{3}", 24, 5, 29);
-        hLeptonPtDenom[i][3] = new TH1D("Lepton3PtDenom_" + selection[i], "", 24, 5, 29);
-        hMuonPtDenom[i][3] = new TH1D("Muon3PtDenom_" + selection[i], "", 24, 5, 29);
-        hElectronPtDenom[i][3] = new TH1D("Electron3PtDenom_" + selection[i], "", 24, 5, 29);
+        cMuonPtEff[i][1] = new TCanvas("Muon1PtEff_" + selection[i], "", csize, csize);
+        cElectronPtEff[i][1] = new TCanvas("Electron1PtEff_" + selection[i], "", csize, csize);
 
-        hLeptonPtEff[i][4] = new TH1D("Lepton4PtEff_" + selection[i], selection[i] + ": l_{4}", 20, 5, 25);
-        hMuonPtEff[i][4] = new TH1D("Muon4PtEff_" + selection[i], selection[i] + ": \\mu_{4}", 20, 5, 25);
-        hElectronPtEff[i][4] = new TH1D("Electron4PtEff_" + selection[i], selection[i] + ": \\mbox{e}_{4}", 18, 7, 25);
-        hLeptonPtDenom[i][4] = new TH1D("Lepton4PtDenom_" + selection[i], "", 20, 5, 25);
-        hMuonPtDenom[i][4] = new TH1D("Muon4PtDenom_" + selection[i], "", 20, 5, 25);
-        hElectronPtDenom[i][4] = new TH1D("Electron4PtDenom_" + selection[i], "", 18, 7, 25);
+        hLeptonPtEff[i][2] = new TH1D("hLepton2PtEff_" + selection[i], selTeX[i] + ": l_{2}", 20, 10, 50);
+        hMuonPtEff[i][2] = new TH1D("hMuon2PtEff_" + selection[i], selTeX[i] + ": \\mu_{2}", 20, 10, 50);
+        hElectronPtEff[i][2] = new TH1D("hElectron2PtEff_" + selection[i], selTeX[i] + ": \\mbox{e}_{2}", 20, 10, 50);
+        hLeptonPtDenom[i][2] = new TH1D("hLepton2PtDenom_" + selection[i], "", 20, 10, 50);
+        hMuonPtDenom[i][2] = new TH1D("hMuon2PtDenom_" + selection[i], "", 20, 10, 50);
+        hElectronPtDenom[i][2] = new TH1D("hElectron2PtDenom_" + selection[i], "", 20, 10, 50);
+
+        cMuonPtEff[i][2] = new TCanvas("Muon2PtEff_" + selection[i], "", csize, csize);
+        cElectronPtEff[i][2] = new TCanvas("Electron2PtEff_" + selection[i], "", csize, csize);
+
+        hLeptonPtEff[i][3] = new TH1D("hLepton3PtEff_" + selection[i], selection[i] + ": l_{3}", 24, 5, 29);
+        hMuonPtEff[i][3] = new TH1D("hMuon3PtEff_" + selection[i], selection[i] + ": \\mu_{3}", 24, 5, 29);
+        hElectronPtEff[i][3] = new TH1D("hElectron3PtEff_" + selection[i], selection[i] + ": \\mbox{e}_{3}", 22, 7, 29);
+        hLeptonPtDenom[i][3] = new TH1D("hLepton3PtDenom_" + selection[i], "", 24, 5, 29);
+        hMuonPtDenom[i][3] = new TH1D("hMuon3PtDenom_" + selection[i], "", 24, 5, 29);
+        hElectronPtDenom[i][3] = new TH1D("hElectron3PtDenom_" + selection[i], "", 22, 7, 29);
+
+        cMuonPtEff[i][3] = new TCanvas("Muon3PtEff_" + selection[i], "", csize, csize);
+        cElectronPtEff[i][3] = new TCanvas("Electron3PtEff_" + selection[i], "", csize, csize);
+
+        hLeptonPtEff[i][4] = new TH1D("hLepton4PtEff_" + selection[i], selection[i] + ": l_{4}", 20, 5, 25);
+        hMuonPtEff[i][4] = new TH1D("hMuon4PtEff_" + selection[i], selection[i] + ": \\mu_{4}", 20, 5, 25);
+        hElectronPtEff[i][4] = new TH1D("hElectron4PtEff_" + selection[i], selection[i] + ": \\mbox{e}_{4}", 18, 7, 25);
+        hLeptonPtDenom[i][4] = new TH1D("hLepton4PtDenom_" + selection[i], "", 20, 5, 25);
+        hMuonPtDenom[i][4] = new TH1D("hMuon4PtDenom_" + selection[i], "", 20, 5, 25);
+        hElectronPtDenom[i][4] = new TH1D("hElectron4PtDenom_" + selection[i], "", 18, 7, 25);
+
+        cMuonPtEff[i][4] = new TCanvas("Muon4PtEff_" + selection[i], "", csize, csize);
+        cElectronPtEff[i][4] = new TCanvas("Electron4PtEff_" + selection[i], "", csize, csize);
 
         for (unsigned j = 0; j < 5; j++)
         {
@@ -170,19 +187,25 @@ void CalculateEfficiency(TString suffix)
 
             if (j == 0)
             {
-                hLeptonEtaEff[i][j] = new TH1D("LeptonEtaEff_" + selection[i], selTeX[i] + ": leptons", 20, -2.5, 2.5);
-                hMuonEtaEff[i][j] = new TH1D("MuonEtaEff_" + selection[i], selTeX[i] + ": muons", 20, -2.5, 2.5);
-                hElectronEtaEff[i][j] = new TH1D("ElectronEtaEff_" + selection[i], selTeX[i] + ": electrons", 20, -2.5, 2.5);
+                hLeptonEtaEff[i][j] = new TH1D("hLeptonEtaEff_" + selection[i], selTeX[i] + ": leptons", 20, -2.5, 2.5);
+                hMuonEtaEff[i][j] = new TH1D("hMuonEtaEff_" + selection[i], selTeX[i] + ": muons", 20, -2.4, 2.4);
+                hElectronEtaEff[i][j] = new TH1D("hElectronEtaEff_" + selection[i], selTeX[i] + ": electrons", 20, -2.5, 2.5);
+
+                cMuonEtaEff[i][0] = new TCanvas("MuonEtaEff_" + selection[i], "", csize, csize);
+                cElectronEtaEff[i][0] = new TCanvas("ElectronEtaEff_" + selection[i], "", csize, csize);
             }
             else
             {
-                hLeptonEtaEff[i][j] = new TH1D("Lepton" + strj + "EtaEff_" + selection[i], selTeX[i] + ": l_{" + strj + "}", 20, -2.5, 2.5);
-                hMuonEtaEff[i][j] = new TH1D("Muon" + strj + "EtaEff_" + selection[i], selTeX[i] + ": \\mu_{" + strj + "}", 20, -2.5, 2.5);
-                hElectronEtaEff[i][j] = new TH1D("Electron" + strj + "EtaEff_" + selection[i], selTeX[i] + ": \\mbox{e}_{" + strj + "}", 20, -2.5, 2.5);
+                hLeptonEtaEff[i][j] = new TH1D("hLepton" + strj + "EtaEff_" + selection[i], selTeX[i] + ": l_{" + strj + "}", 20, -2.5, 2.5);
+                hMuonEtaEff[i][j] = new TH1D("hMuon" + strj + "EtaEff_" + selection[i], selTeX[i] + ": \\mu_{" + strj + "}", 20, -2.4, 2.4);
+                hElectronEtaEff[i][j] = new TH1D("hElectron" + strj + "EtaEff_" + selection[i], selTeX[i] + ": \\mbox{e}_{" + strj + "}", 20, -2.5, 2.5);
+
+                cMuonEtaEff[i][j] = new TCanvas("Muon" + strj + "EtaEff_" + selection[i], "", csize, csize);
+                cElectronEtaEff[i][j] = new TCanvas("Electron" + strj + "EtaEff_" + selection[i], "", csize, csize);
             }
-            hLeptonEtaDenom[i][j] = new TH1D("Lepton" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
-            hMuonEtaDenom[i][j] = new TH1D("Muon" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
-            hElectronEtaDenom[i][j] = new TH1D("Electron" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
+            hLeptonEtaDenom[i][j] = new TH1D("hLepton" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
+            hMuonEtaDenom[i][j] = new TH1D("hMuon" + strj + "EtaDenom_" + selection[i], "", 20, -2.4, 2.4);
+            hElectronEtaDenom[i][j] = new TH1D("hElectron" + strj + "EtaDenom_" + selection[i], "", 20, -2.5, 2.5);
 
             hLeptonPtEff[i][j]->SetDirectory(outFile);
             hLeptonPtEff[i][j]->Sumw2();
@@ -237,6 +260,16 @@ void CalculateEfficiency(TString suffix)
             hLeptonEtaEff[i][j]->SetYTitle("Efficiency");
             hMuonEtaEff[i][j]->SetYTitle("Efficiency");
             hElectronEtaEff[i][j]->SetYTitle("Efficiency");
+        }
+
+        for (unsigned j = 0; j < 5; j++)
+        {
+            hLeptonPtEff[i][j]->SetMarkerStyle(20);
+            hMuonPtEff[i][j]->SetMarkerStyle(20);
+            hElectronPtEff[i][j]->SetMarkerStyle(20);
+            hLeptonEtaEff[i][j]->SetMarkerStyle(20);
+            hMuonEtaEff[i][j]->SetMarkerStyle(20);
+            hElectronEtaEff[i][j]->SetMarkerStyle(20);
         }
     }
 
@@ -575,19 +608,19 @@ void CalculateEfficiency(TString suffix)
 
     for (unsigned i = 0; i < N; i++)
     {
-        hLeptonEff[i]->Divide(hLeptonDenom[i]);
-        hMuonEff[i]->Divide(hMuonDenom[i]);
-        hElectronEff[i]->Divide(hElectronDenom[i]);
+        hLeptonEff[i]->Divide(hLeptonEff[i], hLeptonDenom[i], 1, 1, "B");
+        hMuonEff[i]->Divide(hMuonEff[i], hMuonDenom[i], 1, 1, "B");
+        hElectronEff[i]->Divide(hElectronEff[i], hElectronDenom[i], 1, 1, "B");
 
         for (unsigned j = 0; j < 5; j++)
         {
-            hLeptonPtEff[i][j]->Divide(hLeptonPtDenom[i][j]);
-            hMuonPtEff[i][j]->Divide(hMuonPtDenom[i][j]);
-            hElectronPtEff[i][j]->Divide(hElectronPtDenom[i][j]);
+            hLeptonPtEff[i][j]->Divide(hLeptonPtEff[i][j], hLeptonPtDenom[i][j], 1, 1, "B");
+            hMuonPtEff[i][j]->Divide(hMuonPtEff[i][j], hMuonPtDenom[i][j], 1, 1, "B");
+            hElectronPtEff[i][j]->Divide(hElectronPtEff[i][j], hElectronPtDenom[i][j], 1, 1, "B");
 
-            hLeptonEtaEff[i][j]->Divide(hLeptonEtaDenom[i][j]);
-            hMuonEtaEff[i][j]->Divide(hMuonEtaDenom[i][j]);
-            hElectronEtaEff[i][j]->Divide(hElectronEtaDenom[i][j]);
+            hLeptonEtaEff[i][j]->Divide(hLeptonEtaEff[i][j], hLeptonEtaDenom[i][j], 1, 1, "B");
+            hMuonEtaEff[i][j]->Divide(hMuonEtaEff[i][j], hMuonEtaDenom[i][j], 1, 1, "B");
+            hElectronEtaEff[i][j]->Divide(hElectronEtaEff[i][j], hElectronEtaDenom[i][j], 1, 1, "B");
         }
     }
 
@@ -621,6 +654,16 @@ void CalculateEfficiency(TString suffix)
             {
                 hMuonPtEff[i][j]->Write();
                 hMuonEtaEff[i][j]->Write();
+
+                cMuonPtEff[i][j]->cd();
+                hMuonPtEff[i][j]->Draw();
+                cMuonPtEff[i][j]->Write();
+                cMuonPtEff[i][j]->SaveAs(".pdf");
+
+                cMuonEtaEff[i][j]->cd();
+                hMuonEtaEff[i][j]->Draw();
+                cMuonEtaEff[i][j]->Write();
+                cMuonEtaEff[i][j]->SaveAs(".pdf");
             }
         }
     }
@@ -639,6 +682,16 @@ void CalculateEfficiency(TString suffix)
             {
                 hElectronPtEff[i][j]->Write();
                 hElectronEtaEff[i][j]->Write();
+
+                cElectronPtEff[i][j]->cd();
+                hElectronPtEff[i][j]->Draw();
+                cElectronPtEff[i][j]->Write();
+                cElectronPtEff[i][j]->SaveAs(".pdf");
+
+                cElectronEtaEff[i][j]->cd();
+                hElectronEtaEff[i][j]->Draw();
+                cElectronEtaEff[i][j]->Write();
+                cElectronEtaEff[i][j]->SaveAs(".pdf");
             }
         }
     }

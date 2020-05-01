@@ -29,6 +29,12 @@ qcd = 0.008592
 pdf = 0.001185
 pileup = 0.008885
 
+# Systematic uncertainty for nonprompt
+DELTA_LAMBDA = 0.3
+
+# Systematic uncertainties for MC
+UNC_DIBOSON,        UNC_TTBAR,      UNC_TAUTAU,     UNC_OTHER    =  0.1,    0.1,    0.05,   0.2
+
 
 
 ##
@@ -97,10 +103,18 @@ MC_TEX_ = [ r"$\ZZtofL$",       r"$\ZZtofL$ (a\textsc{mc@nlo})",        r"$\ZZto
             r"$\ggF\HtoZZtofL$",r"$\VBF\HtoZZtofL$",                    r"$\TTZtoLLNuNu$",
             ]
 
+MC_UNC_ = [ UNC_DIBOSON,        UNC_DIBOSON,        UNC_DIBOSON,        UNC_TAUTAU,
+            UNC_TTBAR,          UNC_TTBAR,                              UNC_DIBOSON,
+            UNC_DIBOSON,        UNC_DIBOSON,        UNC_DIBOSON,        UNC_DIBOSON,
+            UNC_OTHER,          UNC_OTHER,          UNC_OTHER,          UNC_OTHER,
+            UNC_OTHER,          UNC_OTHER,                              UNC_OTHER,
+            ]
+
 NGEN    = dict(zip(MC_SUFF, NGEN_))
 XSEC    = dict(zip(MC_SUFF, XSEC_))
 COLOR   = dict(zip(MC_SUFF, COLOR_))
 MC_TEX  = dict(zip(MC_SUFF, MC_TEX_))
+MC_UNC  = dict(zip(MC_SUFF, MC_UNC_))
 
 MC_SUFF_4L = list(MC_SUFF)
 MC_SUFF_4L.remove("zz_4l_aMC")

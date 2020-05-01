@@ -49,7 +49,7 @@ for sel in selection:
     muTree = muFile.Get(sel + "_" + MU_SUFF)
     elTree = elFile.Get(sel + "_" + EL_SUFF)
     data[sel] = muTree.GetEntries() + elTree.GetEntries()
-#   data[sel] = muTree.GetEntries(c#ut2) + elTree.GetEntries(cut2)
+#   data[sel] = muTree.GetEntries(cut2) + elTree.GetEntries(cut2)
 
 muFile.Close()
 elFile.Close()
@@ -60,9 +60,11 @@ elFile.Close()
 ##  MONTE CARLO
 ##
 
-mc_arr, mc_unc_arr = np.zeros(N_MC, dtype=T), np.zeros(N_MC, dtype=T)
+mc_arr, mc_stat_arr = np.zeros(N_MC, dtype=T), np.zeros(N_MC, dtype=T)
+mc_sys_arr, mc_unc_arr = np.zeros(N_MC, dtype=T), np.zeros(N_MC, dtype=T)
 sig, sig_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
-mc, mc_unc = {}, {}
+sig_stat, sig_sys = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
+mc, mc_stat, mc_sys, mc_unc = {}, {}, {}, {}
 row = 0
 
 # Loop over all samples
@@ -92,7 +94,9 @@ for suff in MC_SUFF:
             sig[sel] = sf * hist.Integral()
 #           tree.Draw("1>>hist", "!hasTauDecay * " + weight + " * " + weight + " * " + cut2, "goff")
             tree.Draw("1>>hist", "!hasTauDecay * " + weight + " * " + weight, "goff")
-            sig_unc[sel] = sf * np.sqrt(hist.Integral())
+            sig_stat[sel] = sf * np.sqrt(hist.Integral())
+            sig_sys[sel] = MC_UNC[suff] * sig[sel]
+            sig_unc[sel] = np.sqrt(sig_stat[sel] ** 2 + sig_sys[sel] ** 2)
             cut = "hasTauDecay"
             weight = cut + " * " + weight
  
@@ -103,13 +107,17 @@ for suff in MC_SUFF:
 
 #       tree.Draw("1>>hist", weight + " * " + weight + " * " + cut2, "goff")
         tree.Draw("1>>hist", weight + " * " + weight, "goff")
-        mc_unc_arr[row][sel] = sf * np.sqrt(hist.Integral())
+        mc_stat_arr[row][sel] = sf * np.sqrt(hist.Integral())
+        mc_sys_arr[row][sel] = MC_UNC[suff] * mc_arr[row][sel]
+        mc_unc_arr[row][sel] = np.sqrt(mc_stat_arr[row][sel] ** 2 + mc_sys_arr[row][sel] ** 2)
 
         mc_arr[row][sel] = np.abs(mc_arr[row][sel])
 
         hist.Delete()
 
     mc[suff] = mc_arr[row]
+    mc_stat[suff] = mc_stat_arr[row]
+    mc_sys[suff] = mc_sys_arr[row]
     mc_unc[suff] = mc_unc_arr[row]
     row = row + 1
     inFile.Close()
@@ -125,8 +133,13 @@ for suff in MC_SUFF:
 if YEAR_STR != "2012":
     for sel in ["mumu", "ee"]:
         mc['ttbar'][sel] = mc['ttbar'][sel] + mc['tt_2l2nu'][sel]
-        mc_unc['ttbar'][sel] = np.sqrt(mc_unc['ttbar'][sel] ** 2 + mc_unc['tt_2l2nu'][sel] ** 2)
+        mc_stat['ttbar'][sel] = np.sqrt(mc_stat['ttbar'][sel] ** 2 + mc_stat['tt_2l2nu'][sel] ** 2)
+        mc_sys['ttbar'][sel] = mc['ttbar'][sel] * MC_UNC['ttbar']
+        mc_unc['ttbar'][sel] = np.sqrt(mc_stat['ttbar'][sel] ** 2 + mc_sys['ttbar'][sel] ** 2)
+
         mc['tt_2l2nu'][sel] = 0
+        mc_stat['tt_2l2nu'][sel] = 0
+        mc_sys['tt_2l2nu'][sel] = 0
         mc_unc['tt_2l2nu'][sel] = 0
 
 
@@ -134,12 +147,15 @@ if YEAR_STR != "2012":
 # Get nonprompt background
 infile = "nonprompt" + YEAR_STR + ".npz"
 npzfile = np.load(infile)
-npt_, npt_unc_ = npzfile['npt'], npzfile['npt_unc']
-npt, npt_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
+npt_, npt_stat_ = npzfile['npt'], npzfile['npt_unc']
+npt, npt_stat, npt_sys = np.zeros(1, dtype=T), np.zeros(1, dtype=T), np.zeros(1, dtype=T)
+npt_unc = np.zeros(1, dtype=T)
 
 for sel in ["4l", "4m", "2m2e", "4e"]:
     npt[sel] = npt_[sel]
-    npt_unc[sel] = npt_unc_[sel]
+    npt_stat[sel] = npt_stat_[sel]
+    npt_sys[sel] = DELTA_LAMBDA * npt[sel]
+    npt_unc[sel] = np.sqrt(npt_stat[sel] **2 + npt_sys[sel] ** 2)
 
 
 # Get total expected and background events
@@ -230,23 +246,23 @@ for suff in MC_SUFF:
     if suff == "tt_2l2nu":
         continue
     if suff == "zz_4l" and sel in ["4l", "4m", "2m2e", "4e"]:
-        f.write("\t&\t&\t" + r"$\ZZtoTtL$")
+        f.write("\t&\t&\t" + r"$\ZZtofL$")
     elif suff == "zjets_m-50" and sel in ["mumu", "ee"]:
         f.write("\t&\t&\t" + r"$\ZtoTT$")
     else:
         f.write("\t&\t&\t" + MC_TEX[suff])
 
-        for sel in selection:
-            if sel in ["mumu", "ee"]:
-                fmt = '%i'
-            else:
-                fmt = '%.2f'
-            if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"]:
-                continue
-            else:
-                f.write(" & " + fmt % np.squeeze(mc[suff][sel]) + " & "
-                        + fmt % np.squeeze(mc_unc[suff][sel]))
-        f.write(r" \\" + "\n")
+    for sel in selection:
+        if sel in ["mumu", "ee"]:
+            fmt = '%i'
+        else:
+            fmt = '%.2f'
+        if suff in ["zjets_m-50", "ttbar"] and sel in ["4l", "4m", "2m2e", "4e"]:
+            continue
+        else:
+            f.write(" & " + fmt % np.squeeze(mc[suff][sel]) + " & "
+                    + fmt % np.squeeze(mc_unc[suff][sel]))
+    f.write(r" \\" + "\n")
 
 f.write(r"\midrule" + "\n")
 
@@ -278,7 +294,8 @@ print("Wrote table to", fileName)
 
 print("")
 outfile = "yields" + YEAR_STR + ".npz"
-np.savez(outfile, data=data, exp=exp, exp_unc=exp_unc, sig=sig, sig_unc=sig_unc, bg=bg,
-        bg_unc=bg_unc, mc=mc_arr, mc_unc=mc_unc_arr, npt=npt, npt_unc=npt_unc)
+np.savez(outfile, data=data, exp=exp, exp_unc=exp_unc, sig=sig, sig_unc=sig_unc, sig_stat=sig_stat, sig_sys=sig_sys, 
+        bg=bg, bg_unc=bg_unc, mc=mc_arr, mc_stat=mc_stat_arr, mc_sys=mc_sys_arr, mc_unc=mc_unc_arr,
+        npt=npt, npt_stat=npt_stat, npt_sys=npt_sys, npt_unc=npt_unc)
 
 print("Wrote arrays to", outfile)

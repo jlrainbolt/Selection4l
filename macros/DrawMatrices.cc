@@ -164,7 +164,7 @@ void DrawMatrices()
         if (hnames[h].EqualTo("sin_phi"))
             cov[h]->SetMarkerSize(1.25);
 
-        float cov_median = 0.5 * (cov[h]->GetMaximum() - cov[h]->GetMinimum());
+        float cov_median = 0.5 * (cov[h]->GetMaximum() - cov[h]->GetMinimum()) + cov[h]->GetMinimum();
         cov[h]->DrawClone("COLZ");
         cov[h]->GetZaxis()->SetRangeUser(cov[h]->GetMinimum(), cov_median);
         cov[h]->SetMarkerColor(kWhite);
@@ -200,7 +200,7 @@ void DrawMatrices()
         if (hnames[h].EqualTo("sin_phi"))
             var[h]->SetMarkerSize(1.25);
 
-        float var_median = 0.5 * (var[h]->GetMaximum() - var[h]->GetMinimum());
+        float var_median = 0.5 * (var[h]->GetMaximum() - var[h]->GetMinimum()) + var[h]->GetMinimum();
         var[h]->DrawClone("COLZ");
         var[h]->GetZaxis()->SetRangeUser(var[h]->GetMinimum(), var_median);
         var[h]->SetMarkerColor(kWhite);

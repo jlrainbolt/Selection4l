@@ -12,10 +12,10 @@
 #include "TLine.h"
 
 // Custom
-#include "Cuts2018.hh"
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-//#include "Cuts2012.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -33,10 +33,11 @@ void DrawMeanPileup(TString selection = "mumu")
     //  INPUT FILE
     //
 
-    TString suffix = MU_SUFF;
+    TString suffix = "zjets_m-50";
+//  TString suffix = "zz_4l";
     TString inName = "selected_" + suffix + ".root";
-    TString inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_update/" + inName;
-//  TString inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
+//  TString inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_update/" + inName;
+    TString inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_old/" + inName;
     TFile *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -65,7 +66,7 @@ void DrawMeanPileup(TString selection = "mumu")
     cout << selection + " tree has " << tree->GetEntries() << " events." << flush;
 
     // Get parameters
-    TString hname = "nPV",  quantity = "nPV";
+    TString hname = "nPU",  quantity = "nPU";
     int     bins = 34;
     float   xmin = 2,       xmax = 70;
     TString weight = "weight";
@@ -75,7 +76,7 @@ void DrawMeanPileup(TString selection = "mumu")
     h->SetStatOverflows(TH1::kIgnore);
     tree->Draw(quantity + ">>+" + YEAR_STR, weight);
 
-    TString xlabel = "n_{PV}";
+    TString xlabel = "n_{PU}";
     h->GetXaxis()->SetTitle(xlabel);
     h->GetYaxis()->SetTitle("Events");
     h->Sumw2(kTRUE);

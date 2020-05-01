@@ -11,7 +11,7 @@ from PlotUtils import *
 from Cuts2018 import *
 
 
-np.set_printoptions(precision=4, suppress=True, linewidth=100)
+np.set_printoptions(precision=6, suppress=True, linewidth=200)
 
 ##
 ##  SAMPLE INFO
@@ -108,7 +108,6 @@ cov_unf = []
 for hname in hnames:
     cov_unf.append(npzfile["cov_mat_" + hname])
 
-
 infile = "scaling.npz"
 npzfile = np.load(infile)
 
@@ -150,16 +149,14 @@ for h in range(H):
 
     # Slicing
     if hnames[h] == "b_z1m":
-        s = slice(3, -1)
+        s = slice(2, -1)
     elif hnames[h] == "b_z2m":
         s = slice(1, None)
     elif hnames[h] == "b_l1p":
         s = slice(0, -1)
     elif hnames[h] == "angle_z1leps":
         s = slice(2, -1)
-    elif hnames[h] == "angle_z1l2_z2":
-        s = slice(1, -1)
-    elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
+    elif hnames[h] in ["angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
         s = slice(1, -1)
     else:
         s = slice(0, None)
@@ -262,3 +259,18 @@ for h in range(H):
 
 outFile.Close()
 print("Wrote output to", outName)
+
+
+
+##
+##  PRINT TEXT
+##
+
+filePref = "total_cov"
+
+for h in range(H):
+    fileName = filePref + "_" + hnames[h] + ".tex"
+    np.savetxt(fileName, cov_tot[h], fmt='% .2e', comments='', header=r'\begin{verbatim}',
+            footer=r'\end{verbatim}')
+
+print("Wrote arrays to", filePref + "_*.tex")
