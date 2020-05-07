@@ -12,7 +12,7 @@ from iminuit import Minuit
 ##  OPTIONS
 ##
 
-N = 1  # number of parameters
+N = 4  # number of parameters
 
 
 ##
@@ -33,26 +33,31 @@ np.set_printoptions(precision=5, suppress=True, linewidth=100)
 ##  DATA
 ##
 
-bf, bf_stat, diff, bg_unc, npt, sig = {}, {}, {}, {}, {}, {}
+bf, bf_stat, diff, sig = {}, {}, {}, {}
+mc_stat, mc_syst, npt_stat, npt_syst = {}, {}, {}, {}
 
 infile = "bf_measurements.npz"
 npzfile = np.load(infile)
 
 bf["2012"], bf_stat["2012"] = npzfile["bf_2012"], npzfile["bf_stat_2012"]
-diff["2012"], bg_unc["2012"] = npzfile["diff_2012"], npzfile["bg_unc_2012"]
-npt["2012"], sig["2012"] = npzfile["npt_2012"], npzfile["sig_2012"]
+diff["2012"], sig["2012"] = npzfile["diff_2012"], npzfile["sig_2012"]
+mc_stat["2012"], mc_syst["2012"] = npzfile["mc_stat_2012"], npzfile["mc_syst_2012"]
+npt_stat["2012"], npt_syst["2012"] = npzfile["npt_stat_2012"], npzfile["npt_syst_2012"]
 
 bf["2016"], bf_stat["2016"] = npzfile["bf_2016"], npzfile["bf_stat_2016"]
-diff["2016"], bg_unc["2016"] = npzfile["diff_2016"], npzfile["bg_unc_2016"]
-npt["2016"], sig["2016"] = npzfile["npt_2016"], npzfile["sig_2016"]
+diff["2016"], sig["2016"] = npzfile["diff_2016"], npzfile["sig_2016"]
+mc_stat["2016"], mc_syst["2016"] = npzfile["mc_stat_2016"], npzfile["mc_syst_2016"]
+npt_stat["2016"], npt_syst["2016"] = npzfile["npt_stat_2016"], npzfile["npt_syst_2016"]
 
 bf["2017"], bf_stat["2017"] = npzfile["bf_2017"], npzfile["bf_stat_2017"]
-diff["2017"], bg_unc["2017"] = npzfile["diff_2017"], npzfile["bg_unc_2017"]
-npt["2017"], sig["2017"] = npzfile["npt_2017"], npzfile["sig_2017"]
+diff["2017"], sig["2017"] = npzfile["diff_2017"], npzfile["sig_2017"]
+mc_stat["2017"], mc_syst["2017"] = npzfile["mc_stat_2017"], npzfile["mc_syst_2017"]
+npt_stat["2017"], npt_syst["2017"] = npzfile["npt_stat_2017"], npzfile["npt_syst_2017"]
 
 bf["2018"], bf_stat["2018"] = npzfile["bf_2018"], npzfile["bf_stat_2018"]
-diff["2018"], bg_unc["2018"] = npzfile["diff_2018"], npzfile["bg_unc_2018"]
-npt["2018"], sig["2018"] = npzfile["npt_2018"], npzfile["sig_2018"]
+diff["2018"], sig["2018"] = npzfile["diff_2018"], npzfile["sig_2018"]
+mc_stat["2018"], mc_syst["2018"] = npzfile["mc_stat_2018"], npzfile["mc_syst_2018"]
+npt_stat["2018"], npt_syst["2018"] = npzfile["npt_stat_2018"], npzfile["npt_syst_2018"]
 
 
 mu_id_unc, el_id_unc, el_reco_unc, ecal_unc = {}, {}, {}, {}
@@ -336,7 +341,7 @@ cov_reco = rho_reco * get_cov_corr(unc_reco)
 print("Electron reco covariance", "\n",  cov_reco, "\n")
 
 
-# Background statistical
+# Background statistical (MC)
 diff_evts = np.array([
                     [   diff["2012"]["4m"],     diff["2012"]["2m2e"],   diff["2012"]["4e"]  ],
                     [   diff["2016"]["4m"],     diff["2016"]["2m2e"],   diff["2016"]["4e"]  ],
@@ -345,41 +350,79 @@ diff_evts = np.array([
                     ])
 diff_evts = np.squeeze(diff_evts)
 
-unc_bsta = np.array([
-                    [   bg_unc["2012"]["4m"],   bg_unc["2012"]["2m2e"], bg_unc["2012"]["4e"]    ],
-                    [   bg_unc["2016"]["4m"],   bg_unc["2016"]["2m2e"], bg_unc["2016"]["4e"]    ],
-                    [   bg_unc["2017"]["4m"],   bg_unc["2017"]["2m2e"], bg_unc["2017"]["4e"]    ],
-                    [   bg_unc["2018"]["4m"],   bg_unc["2018"]["2m2e"], bg_unc["2018"]["4e"]    ],
+unc_msta = np.array([
+                    [   mc_stat["2012"]["4m"],  mc_stat["2012"]["2m2e"],    mc_stat["2012"]["4e"]   ],
+                    [   mc_stat["2016"]["4m"],  mc_stat["2016"]["2m2e"],    mc_stat["2016"]["4e"]   ],
+                    [   mc_stat["2017"]["4m"],  mc_stat["2017"]["2m2e"],    mc_stat["2017"]["4e"]   ],
+                    [   mc_stat["2018"]["4m"],  mc_stat["2018"]["2m2e"],    mc_stat["2018"]["4e"]   ],
                     ])
-unc_bsta = np.squeeze(unc_bsta)
-unc_bsta = bf_meas * unc_bsta / diff_evts
-print("Background statistical uncertainties", "\n",  unc_bsta.flatten(), "\n")
+unc_msta = np.squeeze(unc_msta)
+unc_msta = bf_meas * unc_msta / diff_evts
+print("Background statistical uncertainties (MC)", "\n",  unc_msta.flatten(), "\n")
 
-cov_bsta = get_cov_uncorr(unc_bsta)
-print("Background statistical covariance", "\n", cov_bsta, "\n")
+cov_msta = get_cov_uncorr(unc_msta)
+print("Background statistical covariance (MC)", "\n", cov_msta, "\n")
 
 
-# Background systematic
-unc_bsys = np.array([
-                    [   npt["2012"]["4m"],      npt["2012"]["2m2e"],    npt["2012"]["4e"]   ],
-                    [   npt["2016"]["4m"],      npt["2016"]["2m2e"],    npt["2016"]["4e"]   ],
-                    [   npt["2017"]["4m"],      npt["2017"]["2m2e"],    npt["2017"]["4e"]   ],
-                    [   npt["2018"]["4m"],      npt["2018"]["2m2e"],    npt["2018"]["4e"]   ],
+# Background statistical (nonprompt)
+unc_nsta = np.array([
+                    [   npt_stat["2012"]["4m"], npt_stat["2012"]["2m2e"],   npt_stat["2012"]["4e"]  ],
+                    [   npt_stat["2016"]["4m"], npt_stat["2016"]["2m2e"],   npt_stat["2016"]["4e"]  ],
+                    [   npt_stat["2017"]["4m"], npt_stat["2017"]["2m2e"],   npt_stat["2017"]["4e"]  ],
+                    [   npt_stat["2018"]["4m"], npt_stat["2018"]["2m2e"],   npt_stat["2018"]["4e"]  ],
                     ])
-unc_bsys = np.squeeze(unc_bsys)
-unc_bsys = bf_meas * DELTA_LAMBDA * unc_bsys / diff_evts
-print("Background systematic uncertainties", "\n",  unc_bsys.flatten(), "\n")
+unc_nsta = np.squeeze(unc_nsta)
+unc_nsta = bf_meas * unc_nsta / diff_evts
+print("Background statistical uncertainties (nonprompt)", "\n",  unc_nsta.flatten(), "\n")
 
-cov_bsys = get_cov_corr(unc_bsys)
-print("Background systematic covariance", "\n", cov_bsys, "\n")
+cov_nsta = get_cov_uncorr(unc_nsta)
+print("Background statistical covariance (nonprompt)", "\n", cov_nsta, "\n")
+
+
+# Background systematic (MC)
+unc_msys = np.array([
+                    [   mc_syst["2012"]["4m"],  mc_syst["2012"]["2m2e"],    mc_syst["2012"]["4e"]   ],
+                    [   mc_syst["2016"]["4m"],  mc_syst["2016"]["2m2e"],    mc_syst["2016"]["4e"]   ],
+                    [   mc_syst["2017"]["4m"],  mc_syst["2017"]["2m2e"],    mc_syst["2017"]["4e"]   ],
+                    [   mc_syst["2018"]["4m"],  mc_syst["2018"]["2m2e"],    mc_syst["2018"]["4e"]   ],
+                    ])
+unc_msys = np.squeeze(unc_msys)
+unc_msys = bf_meas * unc_msys / diff_evts
+print("Background systematic uncertainties (MC)", "\n",  unc_msys.flatten(), "\n")
+
+cov_msys = get_cov_corr(unc_msys)
+print("Background systematic covariance (MC)", "\n", cov_msys, "\n")
+
+
+# Background systematic (nonprompt)
+unc_nsys = np.array([
+                    [   npt_syst["2012"]["4m"], npt_syst["2012"]["2m2e"],   npt_syst["2012"]["4e"]  ],
+                    [   npt_syst["2016"]["4m"], npt_syst["2016"]["2m2e"],   npt_syst["2016"]["4e"]  ],
+                    [   npt_syst["2017"]["4m"], npt_syst["2017"]["2m2e"],   npt_syst["2017"]["4e"]  ],
+                    [   npt_syst["2018"]["4m"], npt_syst["2018"]["2m2e"],   npt_syst["2018"]["4e"]  ],
+                    ])
+unc_nsys = np.squeeze(unc_nsys)
+unc_nsys = bf_meas * unc_nsys / diff_evts
+print("Background systematic uncertainties (nonprompt)", "\n",  unc_nsys.flatten(), "\n")
+
+cov_nsys = get_cov_corr(unc_nsys)
+print("Background systematic covariance (MC)", "\n", cov_nsys, "\n")
 
 
 # Total covariance
-#cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr
-#cov_syst += cov_muid + cov_elid + cov_reco + cov_bsta + cov_bsys
+cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr
+cov_syst += cov_muid + cov_elid + cov_reco + cov_msta + cov_msys + cov_nsta + cov_nsys
 
-cov_syst = cov_reco + cov_elid
-#cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr + cov_bsta + cov_bsys
+# Electron ID/reco only
+#cov_syst = cov_reco + cov_elid
+
+# Muon ID/reco only
+#cov_syst = cov_muid
+
+# Other
+#cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr
+#cov_syst += cov_msta + cov_msys + cov_nsta + cov_nsys
+
 
 cov_total = cov_stat + cov_syst
 
@@ -474,14 +517,6 @@ print("\n")
 
 
 ##
-##  LATEX
-##
-
-
-
-
-
-##
 ##  SAVE
 ##
 
@@ -492,6 +527,7 @@ outfile = "combination_" + str(len(alpha_0)) + ".npz"
 np.savez(outfile, bf_pred=bf_pred, alpha_total=alpha_total, alpha_stat=alpha_stat,
         sigma_stat=sigma_stat, sigma_syst=sigma_syst, sigma_total=sigma_total,
         delta_stat=delta_stat, delta_syst=delta_syst, delta_total=delta_total,
-        chi_sq_total=chi_sq_total, chi_sq_stat=chi_sq_stat)
+        chi_sq_total=chi_sq_total, chi_sq_stat=chi_sq_stat,
+        cov_total=cov_total, cov_stat=cov_stat, cov_syst=cov_syst)
 
 print("Wrote arrays to", outfile, "\n")

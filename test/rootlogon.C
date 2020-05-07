@@ -31,7 +31,7 @@
     // Set plotting options
 //  gStyle->SetErrorX(0);
     gStyle->SetOptFit(1);
-    gStyle->SetOptStat(0);
+    gStyle->SetOptStat(1100);
 /*
 //  gStyle->SetPaintTextFormat(".4f");
 

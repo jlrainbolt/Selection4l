@@ -113,7 +113,7 @@ void DrawTotalMatrices()
         syst[h]->SetTitle(title);
         syst[h]->SetStats(0);
         syst[h]->SetMarkerSize(2);
-        syst[h]->SetZTitle("\\sigma^{2}_{ij} (Events/bin)^{2}");
+        syst[h]->SetZTitle("\\sigma^{2}_{ij} (kEv/bin)^{2}");
         syst[h]->SetTitleSize(0.05, "xyz");
         syst[h]->SetTickLength(0, "xy");
         syst[h]->SetNdivisions(syst[h]->GetNbinsX(), "x");
@@ -153,7 +153,7 @@ void DrawTotalMatrices()
         unf[h]->SetTitle(title);
         unf[h]->SetStats(0);
         unf[h]->SetMarkerSize(2);
-        unf[h]->SetZTitle("\\sigma^{2}_{ij} (Events/bin)^{2}");
+        unf[h]->SetZTitle("\\sigma^{2}_{ij} (kEv/bin)^{2}");
         unf[h]->SetTitleSize(0.05, "xyz");
         unf[h]->SetTickLength(0, "xy");
         unf[h]->SetNdivisions(syst[h]->GetNbinsX(), "x");

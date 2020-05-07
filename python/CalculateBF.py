@@ -29,18 +29,24 @@ sel_2l = ["mumu", "ee"]
 ##  DATA
 ##
 
-data, sig, bg, npt, bg_unc, diff = {}, {}, {}, {}, {}, {}
+data, sig, bg, bg_unc, bg_stat, bg_sys, diff = {}, {}, {}, {}, {}, {}, {}
+mc_stat, mc_sys, npt_stat, npt_sys = {}, {}, {}, {}
+mc_stat_arr, mc_sys_arr = {}, {}
 
 for year in period:
     infile = "yields" + year + ".npz"
     npzfile = np.load(infile)
     data[year], sig[year], bg[year] = npzfile["data"], npzfile["sig"], npzfile["bg"]
-    bg_unc[year], npt[year] = npzfile["bg_unc"], npzfile["npt"]
+    bg_unc[year], bg_stat[year], bg_sys[year] = npzfile["bg_unc"], npzfile["bg_stat"], npzfile["bg_sys"]
+    npt_stat[year], npt_sys[year] = npzfile["npt_stat"], npzfile["npt_sys"]
+    mc_stat_arr[year], mc_sys_arr[year] = npzfile["mc_stat"], npzfile["mc_sys"]
 
-    diff_ = np.zeros(1, dtype=T)
+    diff_, mc_stat_, mc_sys_ = np.zeros(1, dtype=T), np.zeros(1, dtype=T), np.zeros(1, dtype=T)
     for sel in selection:
+        mc_stat_[sel] = np.sqrt(np.sum(mc_stat_arr[year][sel] ** 2))
+        mc_sys_[sel] = np.sqrt(np.sum(mc_sys_arr[year][sel] ** 2))
         diff_[sel] = data[year][sel] - bg[year][sel]
-    diff[year] = diff_
+    diff[year], mc_stat[year], mc_sys[year] = diff_, mc_stat_, mc_sys_
 
 n_dy, lumi, xsec, ngen = {}, {}, {}, {}
 mu_id_unc, el_id_unc, el_reco_unc, ecal_unc = {}, {}, {}, {}
@@ -172,7 +178,7 @@ for year in period:
         bf_stat_[sel] = bf_[sel] * pr_stat_[sel]
 
         pr_syst_[sel] = (bg_unc[year][sel] / diff[year][sel]) ** 2
-        pr_syst_[sel] += (DELTA_LAMBDA * npt[year][sel] / diff[year][sel]) ** 2
+#       pr_syst_[sel] += (DELTA_LAMBDA * npt[year][sel] / diff[year][sel]) ** 2
 
         for src in [mu_id_unc, el_id_unc, el_reco_unc, ecal_unc]:
             pr_syst_[sel] += src[year][sel] ** 2
@@ -210,13 +216,23 @@ print("")
 outfile = "bf_measurements.npz"
 np.savez(outfile, bf_2012=bf["2012"], bf_2016=bf["2016"], bf_2017=bf["2017"], bf_2018=bf["2018"],
         bf_stat_2012=bf_stat["2012"], bf_stat_2016=bf_stat["2016"], bf_stat_2017=bf_stat["2017"],
-        bf_stat_2018=bf_stat["2018"], bf_syst_2012=bf_syst["2012"], bf_syst_2016=bf_syst["2016"],
-        bf_syst_2017=bf_syst["2017"], bf_syst_2018=bf_syst["2018"], diff_2012=diff["2012"],
+        bf_stat_2018=bf_stat["2018"],
+        bf_syst_2012=bf_syst["2012"], bf_syst_2016=bf_syst["2016"],
+        bf_syst_2017=bf_syst["2017"], bf_syst_2018=bf_syst["2018"],
+        diff_2012=diff["2012"],
         diff_2016=diff["2016"], diff_2017=diff["2017"], diff_2018=diff["2018"],
-        bg_unc_2012=bg_unc["2012"], bg_unc_2016=bg_unc["2016"], bg_unc_2017=bg_unc["2017"],
-        bg_unc_2018=bg_unc["2018"],
+        bg_stat_2012=bg_stat["2012"], bg_stat_2016=bg_stat["2016"], bg_stat_2017=bg_stat["2017"],
+        bg_stat_2018=bg_stat["2018"], bg_syst_2012=bg_sys["2012"], bg_syst_2016=bg_sys["2016"],
+        bg_syst_2017=bg_sys["2017"], bg_syst_2018=bg_sys["2018"],
         sig_2012=sig["2012"], sig_2016=sig["2016"], sig_2017=sig["2017"], sig_2018=sig["2018"],
-        npt_2012=npt["2012"], npt_2016=npt["2016"], npt_2017=npt["2017"], npt_2018=npt["2018"])
+#       npt_2012=npt["2012"], npt_2016=npt["2016"], npt_2017=npt["2017"], npt_2018=npt["2018"])
+        npt_stat_2012=npt_stat["2012"], npt_stat_2016=npt_stat["2016"], npt_stat_2017=npt_stat["2017"],
+        npt_stat_2018=npt_stat["2018"], npt_syst_2012=npt_sys["2012"], npt_syst_2016=npt_sys["2016"],
+        npt_syst_2017=npt_sys["2017"], npt_syst_2018=npt_sys["2018"],
+        mc_stat_2012=mc_stat["2012"], mc_stat_2016=mc_stat["2016"], mc_stat_2017=mc_stat["2017"],
+        mc_stat_2018=mc_stat["2018"], mc_syst_2012=mc_sys["2012"], mc_syst_2016=mc_sys["2016"],
+        mc_syst_2017=mc_sys["2017"], mc_syst_2018=mc_sys["2018"]
+        )
 
 
 print("Wrote arrays to", outfile)

@@ -30,6 +30,8 @@ mc_suff["2017"] = MC_SUFF
 from Cuts2018 import MC_SUFF, MC_TEX
 mc_suff["2018"] = MC_SUFF
 
+from Cuts2018 import UNC_DIBOSON, UNC_TTBAR, UNC_TAUTAU, UNC_OTHER
+
 sel_4l = ["4l", "4m", "2m2e", "4e"]
 sel_2l = ["ll", "mumu", "ee"]
 
@@ -184,7 +186,7 @@ for sel in selection:
 ##  ADD SAMPLES
 ##
 
-cat = ["Non", "VV", "tt", "tau", "VVV", "H", "ttZ"]
+category = ["Non", "VV", "tt", "tau", "VVV", "H", "ttZ"]
 name = {"Non":"Nonprompt", "VV":"Diboson", "VVV":"Triboson", "H":"Higgs", "ttZ":r"$\ttbar\PZ$",
         "tt":r"$\ttbar$", "tau":R"$\ZtoTT$"}
 
@@ -196,17 +198,21 @@ exp_unc_, sig_unc_, bg_unc_ = np.zeros(1, dtype=V), np.zeros(1, dtype=V), np.zer
 pur_, pur_unc_ = np.zeros(1, dtype=V), np.zeros(1, dtype=V)
 sf_, sf_unc_ = np.zeros(1, dtype=V), np.zeros(1, dtype=V)
 
-cat_arr, cat_unc_arr = np.zeros(len(cat), dtype=V), np.zeros(len(cat), dtype=V)
+cat_arr, cat_unc_arr = np.zeros(len(category), dtype=V), np.zeros(len(category), dtype=V)
 cat_, cat_unc_ = {}, {}
 
 row = 0
-for categ in cat:
-    cat_[categ] = cat_arr[row]
-    cat_unc_[categ] = cat_unc_arr[row]
+for cat in category:
+    cat_[cat] = cat_arr[row]
+    cat_unc_[cat] = cat_unc_arr[row]
     row += 1
+
 
 for year in period:
     for sel in selection:
+        if sel == "4l":
+            continue
+
         obs_[sel] += data[year][sel]
         exp_[sel] += exp[year][sel]
         sig_[sel] += sig[year][sel]
@@ -219,7 +225,7 @@ for year in period:
         for suff in mc_suff[year]:
             if suff in ["zz_4l", "ww_2l2nu", "wz_2l2q", "wz_3lnu", "zz_2l2nu", "zz_2l2q"]:
                 cat_["VV"][sel] += mc[year][suff][sel]
-                cat_unc_["VV"][sel] += mc_unc[year][suff][sel] ** 2
+                cat_unc_["VV"][sel] += mc_unc[year][suff][sel] ** 2 
             elif suff in ["wwz_4l2nu", "wzz_4l2nu", "zzz_4l2nu", "zzg_4l2nu"]:
                 cat_["VVV"][sel] += mc[year][suff][sel]
                 cat_unc_["VVV"][sel] += mc_unc[year][suff][sel] ** 2
@@ -237,6 +243,9 @@ for year in period:
                 cat_unc_["tau"][sel] += mc_unc[year][suff][sel] ** 2
 
     for sel in sel_4l:
+        if sel == "4l":
+            continue
+
         cat_["Non"][sel] += npt[year][sel]
         cat_unc_["Non"][sel] += npt_unc[year][sel] ** 2
 
@@ -254,9 +263,9 @@ for sel in sel_4l:
     sig_unc_["4l"] += sig_unc_[sel]
     bg_unc_["4l"] += bg_unc_[sel]
 
-    for categ in cat:
-        cat_[categ]["4l"] += cat_[categ][sel]
-        cat_unc_[categ]["4l"] += cat_unc_[categ][sel]
+    for cat in category:
+        cat_[cat]["4l"] += cat_[cat][sel]
+        cat_unc_[cat]["4l"] += cat_unc_[cat][sel]
 
 
 
@@ -273,12 +282,12 @@ for sel in sel_2l:
     sig_unc_["ll"] += sig_unc_[sel]
     bg_unc_["ll"] += bg_unc_[sel]
 
-    for categ in cat:
-        cat_[categ]["ll"] += cat_[categ][sel]
-        cat_unc_[categ]["ll"] += cat_unc_[categ][sel]
+    for cat in category:
+        cat_[cat]["ll"] += cat_[cat][sel]
+        cat_unc_[cat]["ll"] += cat_unc_[cat][sel]
 
 
-for sel in sel_2l + sel_4l:
+for sel in (sel_2l + sel_4l):
     exp_unc_[sel] = np.sqrt(exp_unc_[sel])
     sig_unc_[sel] = np.sqrt(sig_unc_[sel])
     bg_unc_[sel] = np.sqrt(bg_unc_[sel])
@@ -288,8 +297,8 @@ for sel in sel_2l + sel_4l:
     sf_[sel]        = obs_[sel] / exp_[sel] * 100
     sf_unc_[sel]    = sf_[sel] * np.sqrt(1 / obs_[sel] + exp_unc_[sel] / exp_[sel] ** 2)
 
-    for categ in cat:
-        cat_unc_[categ][sel] = np.sqrt(cat_unc_[categ][sel])
+    for cat in category:
+        cat_unc_[cat][sel] = np.sqrt(cat_unc_[cat][sel])
 
 
 
@@ -366,11 +375,11 @@ for sel_ in ["ll", "4l"]:
 
     f.write(r"\addlinespace" + "\n")
 
-    for categ in categories:
-        f.write("\t&\t&\t" + name[categ])
+    for cat in categories:
+        f.write("\t&\t&\t" + name[cat])
         for sel in selection:
-            f.write(" & " + fmt.format(np.squeeze(cat_[categ][sel])) + " & "
-                    + fmt.format(np.squeeze(cat_unc_[categ][sel])))
+            f.write(" & " + fmt.format(np.squeeze(cat_[cat][sel])) + " & "
+                    + fmt.format(np.squeeze(cat_unc_[cat][sel])))
             if sel == sel_:
                 f.write(" &")
         f.write(r" \\" + "\n")

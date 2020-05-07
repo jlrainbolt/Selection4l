@@ -5,10 +5,10 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -161,6 +161,7 @@ for sel in ["4l", "4m", "2m2e", "4e"]:
 # Get total expected and background events
 exp, exp_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 bg, bg_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
+bg_stat, bg_sys = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 pur, pur_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 sf, sf_unc = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
 
@@ -168,7 +169,9 @@ for sel in selection:
     exp[sel]        = np.sum(mc_arr[sel]) + sig[sel] + npt[sel]
     exp_unc[sel]    = np.sqrt(np.sum(mc_unc_arr[sel] ** 2) + sig_unc[sel] ** 2 + npt_unc[sel] ** 2)
     bg[sel]         = np.sum(mc_arr[sel]) + npt[sel]
-    bg_unc[sel]     = np.sqrt(np.sum(mc_unc_arr[sel] ** 2) + npt_unc[sel] ** 2)
+    bg_stat[sel]    = np.sqrt(np.sum(mc_stat_arr[sel] ** 2) + npt_stat[sel] ** 2)
+    bg_sys[sel]     = np.sqrt(np.sum(mc_sys_arr[sel] ** 2) + npt_sys[sel] ** 2)
+    bg_unc[sel]     = np.sqrt(bg_stat[sel] ** 2 + bg_sys[sel] ** 2)
     pur[sel]        = sig[sel] / exp[sel] * 100
     pur_unc[sel]    = pur[sel] * np.sqrt(sig_unc[sel] / sig[sel] ** 2 + exp_unc[sel] / exp[sel] ** 2)
     sf[sel]         = data[sel] / exp[sel] * 100
@@ -295,7 +298,7 @@ print("Wrote table to", fileName)
 print("")
 outfile = "yields" + YEAR_STR + ".npz"
 np.savez(outfile, data=data, exp=exp, exp_unc=exp_unc, sig=sig, sig_unc=sig_unc, sig_stat=sig_stat, sig_sys=sig_sys, 
-        bg=bg, bg_unc=bg_unc, mc=mc_arr, mc_stat=mc_stat_arr, mc_sys=mc_sys_arr, mc_unc=mc_unc_arr,
-        npt=npt, npt_stat=npt_stat, npt_sys=npt_sys, npt_unc=npt_unc)
+        bg=bg, bg_unc=bg_unc, bg_stat=bg_stat, bg_sys=bg_sys, mc=mc_arr, mc_stat=mc_stat_arr,
+        mc_sys=mc_sys_arr, mc_unc=mc_unc_arr, npt=npt, npt_stat=npt_stat, npt_sys=npt_sys, npt_unc=npt_unc)
 
 print("Wrote arrays to", outfile)
