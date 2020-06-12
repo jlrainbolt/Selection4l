@@ -10,10 +10,10 @@
 #include "TH1.h"
 
 // Custom
-#include "Cuts2018.hh"
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-//#include "Cuts2012.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -90,7 +90,7 @@ void DrawDiffDists(const TString suffix, const TString year, const bool isBkg = 
 
     TString tag     = isBkg ? "boosted_bkg" : "boosted";
     TString inName  = tag + "_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Boosted/" + year + "_wt/" + inName;
+    TString inPath  = EOS_PATH + "/Boosted/" + year + "_wt2/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;

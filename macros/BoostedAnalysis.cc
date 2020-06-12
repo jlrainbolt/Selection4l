@@ -20,10 +20,10 @@
 #include "LeptonPair.hh"
 
 // Cuts
-#include "Cuts2018.hh"
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-//#include "Cuts2012.hh"
+#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -425,8 +425,10 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
                     else
                         bin = mu_err->FindBin(eta, pt);
 
-                    wtMuonIDUp *= (1 + mu_err->GetBinContent(bin));
-                    wtMuonIDDn *= (1 - mu_err->GetBinContent(bin));
+                    wtMuonIDUp *= (1 + 0.01);
+                    wtMuonIDDn *= (1 - 0.01);
+//                  wtMuonIDUp *= (1 + mu_err->GetBinContent(bin));
+//                  wtMuonIDDn *= (1 - mu_err->GetBinContent(bin));
                 }
 
                 // Electrons
@@ -448,8 +450,10 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
                     else
                         bin = el_err->FindBin(eta, pt);
 
-                    wtElecIDUp *= (1 + el_err->GetBinContent(bin));
-                    wtElecIDDn *= (1 - el_err->GetBinContent(bin));
+                    wtElecIDUp *= (1 + 0.01);
+                    wtElecIDDn *= (1 - 0.01);
+//                  wtElecIDUp *= (1 + el_err->GetBinContent(bin));
+//                  wtElecIDDn *= (1 - el_err->GetBinContent(bin));
 
 
                     // Reco
@@ -462,18 +466,21 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
                     else if (pt < RECO_PT_MIN)
                         continue;
 
-                    if (pt < RECO_PT_THRESH)  // should automatically exclude 2018
-                    {
-                        bin = reco_err_lowEt->FindBin(eta, pt);
-                        wtElecRecoUp *= (1 + reco_err_lowEt->GetBinContent(bin));
-                        wtElecRecoDn *= (1 - reco_err_lowEt->GetBinContent(bin));
-                    }
-                    else
-                    {
-                        bin = reco_err->FindBin(eta, pt);
-                        wtElecRecoUp *= (1 + reco_err->GetBinContent(bin));
-                        wtElecRecoDn *= (1 - reco_err->GetBinContent(bin));
-                    }
+                    wtElecRecoUp *= (1 + 0.01);
+                    wtElecRecoDn *= (1 - 0.01);
+
+//                  if (pt < RECO_PT_THRESH)  // should automatically exclude 2018
+//                  {
+//                      bin = reco_err_lowEt->FindBin(eta, pt);
+//                      wtElecRecoUp *= (1 + reco_err_lowEt->GetBinContent(bin));
+//                      wtElecRecoDn *= (1 - reco_err_lowEt->GetBinContent(bin));
+//                  }
+//                  else
+//                  {
+//                      bin = reco_err->FindBin(eta, pt);
+//                      wtElecRecoUp *= (1 + reco_err->GetBinContent(bin));
+//                      wtElecRecoDn *= (1 - reco_err->GetBinContent(bin));
+//                  }
                 }
             }
 

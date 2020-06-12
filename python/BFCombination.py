@@ -453,6 +453,7 @@ def target_func_stat(alpha):
 print("STATISTICAL COVARIANCE", "\n")
 minuit = Minuit.from_array_func(target_func_stat, alpha_0, error=0, errordef=1)
 minuit.migrad()
+minuit.hesse()
 
 alpha_stat = minuit.np_values()
 sigma_stat = minuit.np_errors()
@@ -475,6 +476,7 @@ def target_func_total(alpha):
 print("TOTAL COVARIANCE", "\n")
 minuit = Minuit.from_array_func(target_func_total, alpha_0, error=0, errordef=1)
 minuit.migrad()
+minuit.hesse()
 
 alpha_total = minuit.np_values()
 sigma_total = minuit.np_errors()
