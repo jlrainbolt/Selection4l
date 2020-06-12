@@ -273,4 +273,25 @@ for h in range(H):
     np.savetxt(fileName, cov_tot[h], fmt='% .2e', comments='', header=r'\begin{verbatim}',
             footer=r'\end{verbatim}')
 
-print("Wrote arrays to", filePref + "_*.tex")
+print("Printed arrays to", filePref + "_*.tex")
+
+
+
+##
+##  SAVE MATRICES
+##
+
+names = np.array(hnames, dtype=object)   # strings of (ugly) names
+
+print("")
+outfile = "diffuncertainties.npz"
+np.savez(outfile, names=names,
+        cov_tot_b_z1m=cov_tot[0], cov_tot_b_z2m=cov_tot[1], cov_tot_b_l1p=cov_tot[2],
+        cov_tot_b_ttm=cov_tot[3], cov_tot_cos_theta_z1=cov_tot[4],
+        cov_tot_cos_theta_z2=cov_tot[5], cov_tot_angle_z1leps=cov_tot[6],
+        cov_tot_angle_z2leps=cov_tot[7], cov_tot_angle_z1l2_z2=cov_tot[8],
+        cov_tot_sin_phi=cov_tot[9])
+
+
+print("Wrote arrays to", outfile)
+

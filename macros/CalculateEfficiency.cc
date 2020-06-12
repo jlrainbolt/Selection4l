@@ -8,6 +8,7 @@
 // ROOT
 #include "TString.h"
 #include "TFile.h"
+#include "TCanvas.h"
 #include "TH1.h"
 #include "TTree.h"
 #include "TTreeReader.h"
@@ -614,9 +615,23 @@ void CalculateEfficiency(TString suffix)
 
         for (unsigned j = 0; j < 5; j++)
         {
+            if ((j == 1) && (i == 3))
+            {
+                cout << "Num: " << hMuonPtEff[i][j]->GetBinContent(1);
+                cout << "\tUnc: " << hMuonPtEff[i][j]->GetBinError(1) << endl;
+                cout << "Denom: " << hMuonPtDenom[i][j]->GetBinContent(1);
+                cout << "\tUnc: " << hMuonPtDenom[i][j]->GetBinError(1) << endl;
+            }
+
             hLeptonPtEff[i][j]->Divide(hLeptonPtEff[i][j], hLeptonPtDenom[i][j], 1, 1, "B");
             hMuonPtEff[i][j]->Divide(hMuonPtEff[i][j], hMuonPtDenom[i][j], 1, 1, "B");
             hElectronPtEff[i][j]->Divide(hElectronPtEff[i][j], hElectronPtDenom[i][j], 1, 1, "B");
+
+            if ((j == 1) && (i == 3))
+            {
+                cout << "Quot: " << hMuonPtEff[i][j]->GetBinContent(1);
+                cout << "\tUnc: " << hMuonPtEff[i][j]->GetBinError(1) << endl;
+            }
 
             hLeptonEtaEff[i][j]->Divide(hLeptonEtaEff[i][j], hLeptonEtaDenom[i][j], 1, 1, "B");
             hMuonEtaEff[i][j]->Divide(hMuonEtaEff[i][j], hMuonEtaDenom[i][j], 1, 1, "B");

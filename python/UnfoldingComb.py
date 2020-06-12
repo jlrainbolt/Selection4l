@@ -8,7 +8,7 @@ from pyunfold import iterative_unfold
 #from pyunfold.callbacks import Logger
 #from scipy.stats import chi2
 
-from ROOT import TFile, TH1, TH2, TH2D, TCanvas, TLegend
+from ROOT import TFile, TH1, TH1D, TH2, TH2D, TCanvas, TLegend
 
 from Cuts2018 import *
 from PlotUtils import *
@@ -305,9 +305,8 @@ for sel in ["4l"]:
         # Slicing
         if hnames[h] == "b_z1m":
             s = slice(2, -1)
-            v_eff['y'][2] = col_sums[2] / (col_sums[2] + col_sums[1] + col_sums[0])
+            v_eff['y'][3] = col_sums[2] / (col_sums[2] + col_sums[1] + col_sums[0])
             v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
-#           s = slice(3, -1)
         elif hnames[h] == "b_z2m":
             s = slice(1, None)
             v_eff['y'][1] = col_sums[1] / (col_sums[1] + col_sums[0])
@@ -395,7 +394,7 @@ for sel in ["4l"]:
         ##
 
         # Unfolded result (total unc. and stat. only)
-        v_result, v_stat            = np.zeros_like(v_gen, dtype=V), np.zeros_like(v_gen, dtype=V)
+        v_result, v_stat= np.zeros_like(v_gen, dtype=V), np.zeros_like(v_gen, dtype=V)
         v_result['y']   = np.dot(v_data['y'], results['unfolding_matrix'])
         v_stat['y']     = results['unfolded']
         v_result['ey']  = np.sqrt(results['stat_err']**2, results['sys_err']**2)
@@ -405,6 +404,24 @@ for sel in ["4l"]:
         print(v_result['y'])
 
         o = s.start
+
+        if hnames[h] in ["b_z1m", "angle_z1leps"]:
+            xmin = data[h][sel].GetBinLowEdge(o)
+            xmax = data[h][sel].GetBinLowEdge(data[h][sel].GetNbinsX() + 1)
+            print(xmin, xmax)
+
+            rebin = TH1D(hnames[h] + "_rebin", "", bins[h], xmin, xmax)
+
+            for i in range(len(v_data)):
+                rebin[h][sel].SetBinContent(i + 1, data[h][se].GetBinContent(i + o))
+                rebin[h][sel].DetBinError(i + 1, data[h][se].GetBinError(i + o))
+
+            data[h][sel].Delete()
+            data[h][sel] = rebin[h][sel]
+            rebin[h][sel].SetName(hnames[h] + "_data")
+
+            o = 1
+            
 
         result[h][sel] = data[h][sel].Clone(hnames[h] + "_result")
         result[h][sel].SetYTitle("")
