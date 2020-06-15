@@ -21,9 +21,9 @@ np.set_printoptions(precision=6, suppress=True, linewidth=200)
 period  = ["2018", "2017", "2016", "2012"]
 hnames  = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
         "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
-uncertainty = ["MuonID", "ElecID", "ElecReco"]
-delta = {"MuonID":0.01213, "ElecID":0.00931, "ElecReco":0.00791, "Others":0.01397}
-total_syst = 0.02217
+uncertainty = ["MuonID", "ElecID", "ElecReco", "Others"]
+sigma = {"MuonID":0.01272, "ElecID":0.00998, "ElecReco":0.00851, "Others":0.01486}
+total_syst = 0.02355
 # FIXME load from npz
 
 H = len(hnames)
@@ -79,6 +79,9 @@ for year in period:
             nom[h].Add(nom_)
 
         for unc in uncertainty:
+            if unc == "Others":
+                continue
+
             up_ = inFile.Get("wt" + unc + "Up/" + sel + "/" + hname + "_" + suff)
             up_.SetDirectory(0)
             up_.Scale(sf)
@@ -182,31 +185,25 @@ for h in range(H):
     f_meas = f_meas[s]
     nvbins = len(f)
 
-#   # Get systematics from "other" sources (just fraction of bin count)
-#   cov.append(delta["Others"] ** 2 * np.tensordot(f, f.T, axes=0))
 
 
     # Difference of upper and lower uncertainty variations
     cov_src_ = []
     for unc in uncertainty:
-        delta_f = np.zeros(nbins)
+        if unc == "Others":
+            # Get systematics from "other" sources (just fraction of bin count)
+            cov_src_.append(sigma["Others"] ** 2 * np.tensordot(f, f.T, axes=0))
 
-        for i in range(nbins):
-            delta_f[i] = (up[h][unc].GetBinContent(i) - dn[h][unc].GetBinContent(i)) / 2
+        else:
+            delta_f = np.zeros(nbins)
 
-        # Slice to visible bins
-        delta_f = delta_f[s]
+            for i in range(nbins):
+                delta_f[i] = (up[h][unc].GetBinContent(i) - dn[h][unc].GetBinContent(i)) / 2
+
+            # Slice to visible bins
+            delta_f = delta_f[s]
      
-        cov_src_.append(np.tensordot(delta_f, delta_f.T, axes=0))
-  
-#       # Find total uncertainty such that change in chi-squared = 1
-#       chi_sq_1 = multi_dot([np.zeros(nvbins), pinv(cov_h), np.zeros(nvbins).T])
-#       chi_sq_unc = multi_dot([f, pinv(cov_h), f.T])
-#    
-#       sigma_sq = (chi_sq_unc - chi_sq_1) * delta[unc] ** 2
-#       cov_h = sigma_sq * cov_h
-
-#       cov[-1] = cov[-1] + cov_h
+            cov_src_.append(np.tensordot(delta_f, delta_f.T, axes=0))
     cov_src.append(cov_src_)
     data_arr.append(f_meas)
     nom_arr.append(f)
@@ -272,8 +269,8 @@ def get_vec(meas, pred, param):
 ##  LOOP
 ##
 
-mu_stat, sigma_stat, delta_stat = np.empty(H), np.empty(H), np.empty(H)
-min_mu_total, min_sigma_syst, min_delta_syst = np.empty([H,U]), np.empty([H,U]), np.empty([H,U])
+mu_stat, sigma_stat = np.empty(H), np.empty(H)
+min_mu_total, min_sigma_syst = np.empty([H,U]), np.empty([H,U])
 min_alpha = np.empty([H,U])
 
 for h in range(H):
@@ -326,7 +323,7 @@ for h in range(H):
 
 
 
-        alpha_range = np.arange(0.45, 0.9, 0.01)
+        alpha_range = np.arange(0.45, 1.05, 0.01)
         mu_total, sigma_total = np.empty_like(alpha_range), np.empty_like(alpha_range)
 
 
@@ -356,29 +353,23 @@ for h in range(H):
         ##  SYSTEMATIC PART
         ##
 
-        delta_stat[h] = sigma_stat[h] / mu_stat[h]
-        delta_total = sigma_total / mu_total
-
-        delta_syst = np.sqrt(delta_total ** 2 - delta_stat[h] ** 2)
-        sigma_syst = mu_total * delta_syst
+        sigma_syst = np.sqrt(sigma_total ** 2 - sigma_stat[h] ** 2)
 
 #       print("\n\n")
-#       print("delta syst:", delta_syst)
 #       print("sigma syst:", sigma_syst)
 
-        print("desired delta?: ", delta[uncertainty[u]])
+        print("desired sigma?: ", sigma[uncertainty[u]])
 
-        diff = np.abs(delta_syst - delta[uncertainty[u]])
-#       print("diff:", delta_syst)
+        diff = np.abs(sigma_syst - sigma[uncertainty[u]])
+#       print("diff:", sigma_syst)
 
         idx = np.argmin(diff)
 
         min_alpha[h][u] = alpha_range[idx]
         min_mu_total[h][u] = mu_total[idx]
         min_sigma_syst[h][u] = sigma_syst[idx]
-        min_delta_syst[h][u] = delta_syst[idx]
 
-        print("min: ", delta_syst[idx])
+        print("min: ", sigma_syst[idx])
         print("min alpha: ", alpha_range[idx])
         print("")
 
@@ -392,42 +383,71 @@ for h in range(H):
 ####
 
 
+cov_syst, cov_tot = [], []
+
+for h in range(H):
+    for u in range(U):
+        if u == 0:
+            cov_syst_ = min_alpha[h][u] * cov_src[h][u]
+        else:
+            cov_syst_ = cov_syst_ + min_alpha[h][u] * cov_src[h][u]
+    cov_syst.append(cov_syst_)
+    cov_tot.append(cov_syst_ + cov_unf[h])
 
 
-'''
-    ##
-    ##  DRAW RESULTS
-    ##
+
+##
+##  DRAW RESULTS
+##
+
+hcov_syst, hcov_unf, hcov_tot = np.empty(H, dtype=object), np.empty(H, dtype=object), np.empty(H, dtype=object)
+
+for h in range(H):
+
+    if hnames[h] == "b_z1m":
+        s = slice(2, -1)
+    elif hnames[h] == "b_z2m":
+        s = slice(1, None)
+    elif hnames[h] == "b_l1p":
+        s = slice(0, -1)
+    elif hnames[h] == "angle_z1leps":
+        s = slice(2, -1)
+    elif hnames[h] in ["angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
+        s = slice(1, -1)
+    else:
+        s = slice(0, None)
+
 
     o = s.start
+    nvbins = len(nom_arr[h])
     bmin = o - 0.5
     bmax = bmin + nvbins
 
-    # New covariance matrix
-    hcov_new[h][sel] = TH2D(hnames[h] + "_cov_syst", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
-    hcov_new[h][sel].SetXTitle("i (bin)");
-    hcov_new[h][sel].SetYTitle("j (bin)");
+    # Systematic covariance matrix
+    hcov_syst[h] = TH2D(hnames[h] + "_cov_syst", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
+    hcov_syst[h].SetXTitle("i (bin)");
+    hcov_syst[h].SetYTitle("j (bin)");
     for i in range(nvbins):
         for j in range(nvbins):
-            hcov_new[h][sel].SetBinContent(i + 1, j + 1, cov[-1][i][j])
+            hcov_syst[h].SetBinContent(i + 1, j + 1, cov_syst[h][i][j])
 
 
     # Unfolding covariance matrix
-    hcov_unf[h][sel] = TH2D(hnames[h] + "_cov_unf", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
-    hcov_unf[h][sel].SetXTitle("i (bin)");
-    hcov_unf[h][sel].SetYTitle("j (bin)");
+    hcov_unf[h] = TH2D(hnames[h] + "_cov_unf", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
+    hcov_unf[h].SetXTitle("i (bin)");
+    hcov_unf[h].SetYTitle("j (bin)");
     for i in range(nvbins):
         for j in range(nvbins):
-            hcov_unf[h][sel].SetBinContent(i + 1, j + 1, cov_unf[h][i][j])
+            hcov_unf[h].SetBinContent(i + 1, j + 1, cov_unf[h][i][j])
 
 
     # Total covariance matrix
-    hcov_tot[h][sel] = TH2D(hnames[h] + "_cov_tot", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
-    hcov_tot[h][sel].SetXTitle("i (bin)");
-    hcov_tot[h][sel].SetYTitle("j (bin)");
+    hcov_tot[h] = TH2D(hnames[h] + "_cov_tot", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
+    hcov_tot[h].SetXTitle("i (bin)");
+    hcov_tot[h].SetYTitle("j (bin)");
     for i in range(nvbins):
         for j in range(nvbins):
-            hcov_tot[h][sel].SetBinContent(i + 1, j + 1, cov_tot[-1][i][j])
+            hcov_tot[h].SetBinContent(i + 1, j + 1, cov_tot[h][i][j])
 
 
 
@@ -445,9 +465,9 @@ for h in range(H):
     outFile.cd(hnames[h])
 
     # Write histograms
-    hcov_new[h]['4l'].Write()
-    hcov_unf[h]['4l'].Write()
-    hcov_tot[h]['4l'].Write()
+    hcov_syst[h].Write()
+    hcov_unf[h].Write()
+    hcov_tot[h].Write()
 
 
 outFile.Close()
@@ -487,4 +507,3 @@ np.savez(outfile, names=names,
 
 
 print("Wrote arrays to", outfile)
-'''

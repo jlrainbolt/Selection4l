@@ -414,7 +414,8 @@ cov_syst = cov_pu + cov_pdf + cov_qcd + cov_ecal + cov_mutr + cov_eltr
 cov_syst += cov_muid + cov_elid + cov_reco + cov_msta + cov_msys + cov_nsta + cov_nsys
 
 # Electron ID/reco only
-#cov_syst = cov_reco + cov_elid
+#cov_syst = cov_elid
+#cov_syst = cov_reco
 
 # Muon ID/reco only
 #cov_syst = cov_muid
@@ -494,6 +495,9 @@ else:
 
 bf_comb = alpha_f * np.tile(bf_pred, P)
 
+sigma_stat = delta_stat * alpha_total
+sigma_syst = delta_syst * alpha_total
+
 print("\n\n")
 
 
@@ -504,6 +508,10 @@ print("\n\n")
 
 print("Statistical-only parameters", "\n", alpha_stat, "\n")
 print("Total covariance parameters", "\n", alpha_total, "\n")
+
+print("Statistical errors", "\n", sigma_stat, "\n")
+print("Systematic errors", "\n", sigma_syst, "\n")
+print("Total errors", "\n", sigma_total, "\n")
 
 print("Fractional statistical errors", "\n", delta_stat, "\n")
 print("Fractional systematic errors", "\n", delta_syst, "\n")
@@ -521,9 +529,6 @@ print("\n")
 ##
 ##  SAVE
 ##
-
-sigma_stat = delta_stat * alpha_total
-sigma_syst = delta_syst * alpha_total
 
 outfile = "combination_" + str(len(alpha_0)) + ".npz"
 np.savez(outfile, bf_pred=bf_pred, alpha_total=alpha_total, alpha_stat=alpha_stat,
