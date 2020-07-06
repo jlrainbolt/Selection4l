@@ -121,9 +121,10 @@ for year in period:
             tree.Draw("sin_phi>>hist", weight + cut, "goff")
             pos_bkg_[sel] += sf * hist.GetBinContent(2)
             neg_bkg_[sel] += sf * hist.GetBinContent(1)
+            unc_[sel] += (MC_UNC[suff] * sf * hist.Integral()) ** 2 # square of systematic unc
 
             tree.Draw("0>>hist", weight + " * " + weight + cut, "goff")
-            unc_[sel] += sf * hist.Integral()
+            unc_[sel] += sf * hist.Integral()   # sum of square of event weights
 
             hist.Delete()
 
@@ -166,8 +167,8 @@ for year in period:
         pos_bkg[year][sel] += sf * hist.GetBinContent(2)
         neg_bkg[year][sel] += sf * hist.GetBinContent(1)
 
-        unc[year][sel] += npt_unc[year][sel] ** 2
-        unc[year][sel] += (DELTA_LAMBDA * npt[year][sel]) ** 2
+        unc[year][sel] += npt_unc[year][sel] ** 2   # nonprompt statistical uncertainty
+        unc[year][sel] += (DELTA_LAMBDA * npt[year][sel]) ** 2  # nonprompt systematic uncertainty
 
         hist.Delete()
 
@@ -192,13 +193,12 @@ for sel in selection:
         pos_tot[sel] += pos[year][sel]
         neg_tot[sel] += neg[year][sel]
 
-        syst_unc[sel] += unc[year][sel]
-        unc[year][sel] = np.sqrt(unc[year][sel])
+        syst_unc[sel] += unc[year][sel] # this is the SQUARED BACKGROUND uncertainty
 
     total = pos_tot[sel] + neg_tot[sel]
     assy[sel] = (pos_tot[sel] - neg_tot[sel]) / total
 
-    stat_unc[sel] = 1 / np.sqrt(total)
+    stat_unc[sel] = 1 / np.sqrt(total)  # this is NOT squared
     syst_unc[sel] = np.sqrt(1 / (total - unc[year][sel]) - 1 / total)
 #   syst_unc[sel] = max(np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total + syst_unc[sel])),
 #                           np.abs(1 / np.sqrt(total) - 1 / np.sqrt(total - syst_unc[sel])))

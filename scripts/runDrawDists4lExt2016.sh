@@ -1,9 +1,9 @@
 #! /bin/bash
 
 ##
-##  runDrawDists4l2017.sh
+##  runDrawDists4l2016.sh
 ##
-##  Runs DrawDists4l.cc on all 2017 (data and MC) samples
+##  Runs DrawDists4l.cc on all 2016 (data and MC) samples
 ##
 
 for suffix in   "electron_2016" "muon_2016" "zjets_m-50" "ttbar" "tt_2l2nu" "ttz_2l2nu" \

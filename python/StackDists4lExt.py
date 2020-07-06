@@ -16,7 +16,7 @@ from PlotUtils import *
 
 prefix = "ext"
 
-selection = ["4l", "4m", "2m2e", "4e"]
+selection = ["4l"]
 period = ["2012", "2016", "2017", "2018"]
 
 T = np.dtype([(sel, object) for sel in selection])
@@ -71,7 +71,9 @@ print("Opened", elName)
 
 
 # Get histograms for 2018
-hnames = ["zzm_50_150", "zzm_50_250", "zzm_50_350", "zzm_60_120", "zzm_70_110", "zzm_75_105"]
+hnames = ["zzm_50_150", "zzm_50_350", "zzm_50_550", "zzm_60_120", "zzm_80_100"]
+cut = ["(zzp4.M() > 50) * (zzp4.M() < 150)", "(zzp4.M() > 50) * (zzp4.M() < 350)", "(zzp4.M() > 50) * (zzp4.M() < 550)",
+        "(zzp4.M() > 60) * (zzp4.M() < 120)", "(zzp4.M() > 80) * (zzp4.M() < 100)"]
 
 H = len(hnames)
 
@@ -199,40 +201,45 @@ print("")
 ##  BACKGROUND
 ##
 
+
 # Get number of nonprompt events
 npt = {}
 
-for year in period:
-    npt[year] = np.zeros(1, dtype=U)
-    inPath = EOS_PATH + "/Extended/" + year + "_new/"
-    muBkgName = inPath + "background_muon_" + year + ".root"
-    elBkgName = inPath + "background_electron_" + year + ".root"
-    muBkgFile = TFile.Open(muBkgName)
-    print("Opened", muBkgName) 
-    elBkgFile = TFile.Open(elBkgName)
-    print("Opened", elBkgName) 
+for h in range(H):
+    npt_ = {}
+    for year in period:
+        npt_[year] = np.zeros(1, dtype=U)
+        inPath = EOS_PATH + "/Extended/" + year + "_new/"
+        muBkgName = inPath + "background_muon_" + year + ".root"
+        elBkgName = inPath + "background_electron_" + year + ".root"
+        muBkgFile = TFile.Open(muBkgName)
+        print("Opened", muBkgName) 
+        elBkgFile = TFile.Open(elBkgName)
+        print("Opened", elBkgName) 
 
-    for sel in selection:
-        muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
-        elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
-        npt[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0)")
-        npt[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0)")
+        for sel in selection:
+            muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
+            elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
+            npt_[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut[h])
+            npt_[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut[h])
 
-    muBkgFile.Close()
-    elBkgFile.Close()
+        muBkgFile.Close()
+        elBkgFile.Close()
 
-    # Subtract prompt contributions
-    for suff in mc_suff[year]:
-        if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"]:
-            continue
-        else:
-            sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
-            bkgName = inPath + "background_" + suff + ".root"
-            bkgFile = TFile.Open(bkgName)
-            print("Opened", bkgName) 
-            bkgTree = bkgFile.Get(sel + "_" + suff)
-            npt[year][sel] -= sf * bkgTree.GetEntries("(nLooseLeptons == 0)")
-            bkgFile.Close()
+        # Subtract prompt contributions
+        for suff in mc_suff[year]:
+            if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"]:
+                continue
+            else:
+                sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
+                bkgName = inPath + "background_" + suff + ".root"
+                bkgFile = TFile.Open(bkgName)
+                print("Opened", bkgName) 
+                bkgTree = bkgFile.Get(sel + "_" + suff)
+                npt_[year][sel] -= sf * bkgTree.GetEntries("(nLooseLeptons == 0) * " + cut[h])
+                bkgFile.Close()
+
+    npt[hnames[h]] = npt_
 
 print(npt)
 
@@ -248,12 +255,6 @@ print("Opened", muName)
 elName = prefix + "_" + YEAR_STR + "_electron_" + YEAR_STR + ".root"
 elFile = TFile(elName, "READ")
 print("Opened", elName)
-
-sf_npt = {}
-sf_npt["2012"] = {"4l":0.10, "4m":0, "2m2e":0.15, "4e":0.04}
-sf_npt["2016"] = {"4l":0.04, "4m":0.13, "2m2e":0.05, "4e":0}
-sf_npt["2017"] = {"4l":0.09, "4m":0.32, "2m2e":0.09, "4e":0.03}
-sf_npt["2018"] = {"4l":0.02, "4m":0.04, "2m2e":0.03, "4e":0}
 
 
 # Get histograms for 2018
@@ -279,9 +280,8 @@ for sel in selection:
                 tmp.Scale(sf)
                 mc['zjets_m-50'][h][sel].Add(tmp, -1)
 
-#       sf = npt[year][sel] / mc['zjets_m-50'][h][sel].Integral()
-#       mc['zjets_m-50'][h][sel].Scale(sf)
-        mc['zjets_m-50'][h][sel].Scale(sf_npt[year][sel])
+        sf = npt[hname][year][sel] / mc['zjets_m-50'][h][sel].Integral()
+        mc['zjets_m-50'][h][sel].Scale(sf)
 
         h = h + 1
     h = 0
@@ -327,8 +327,7 @@ for year in ["2017", "2016", "2012"]:
 
                     inFile.Close()
 
-#           sf = npt[year][sel] / hist.Integral()
-#           hist.Scale(sf_npt[year][sel])
+            sf = npt[hname][year][sel] / hist.Integral()
             hist.Scale(sf)
 
             mc['zjets_m-50'][h][sel].Add(hist)
@@ -350,7 +349,7 @@ print("")
 ##
 
 year = "2018"
-
+'''
 # Rebin 4e
 for h in range(H):
     data[h]['4e'].Rebin(2)
@@ -358,7 +357,7 @@ for h in range(H):
         if suff in ["ttbar", "tt_2l2nu"]:
             continue
         mc[suff][h]['4e'].Rebin(2)
-
+'''
 
 # Get total
 total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)
@@ -472,30 +471,11 @@ for sel in ["4l"]:
 
         top_min, top_max = ax_top.get_ylim()
 
-        if hnames[h] in ["zzm_60_120", "zzm_70_110", "zzm_75_105"]:
-            if sel == "4l":
-                top_max = 350
-            elif sel == "4m":
-                top_max = 200
-            elif sel == "2m2e":
-                top_max = 140
-            elif sel == "4e":
-                top_max = 70
-        elif hnames[h] == "sin_phi":
-            if sel == "4l":
-                top_max = 550
-            elif sel == "4m":
-                top_max = 275
-            elif sel == "2m2e":
-                top_max = 225
-            elif sel == "4e":
-                top_max = 85
-        elif hnames[h] in ["b_ttm", "cos_theta_z2"]:
-            top_max = 1.5 * top_max
-        else:
-            top_max = 1.3 * top_max
+        top_max = 1.2 * top_max
 
         ax_top.set_ylim(0, top_max)
+
+#       plt.xscale("log")
 
 
         # Ratio plot

@@ -11,7 +11,6 @@ from ROOT import TFile, TTree, TH1D
 ##  SAMPLE INFO
 ##
 
-#selection   = ["4l", "4m", "2m2e", "4e"]
 selection   = ["mumu", "ee", "4l", "4m", "2m2e", "4e"]
 selTeX      = {"mumu":r"\MM", "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "2m2e":r"\tMtE", "4e":r"\fE", "ll":r"\LL"}
 selDef      = {"mumu":"MM", "ee":"EE", "4l":"4L", "4m":"4M", "4e":"4E", "2m2e":"2M2E", "ll":"LL"}

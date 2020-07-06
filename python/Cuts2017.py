@@ -141,3 +141,10 @@ MC_SUFF_MLL.remove("zz_4l_aMC")
 
 MC_SUFF.remove("zz_4l_aMC")
 MC_SUFF.remove("zz_4l_m-1")
+
+MC_SUFF_HZZ = [ "ggH_zz_4l",        "vbfH_zz_4l",       "zz_4l",            "zjets_m-50",
+                "ttbar",            "tt_2l2nu",                             "ww_2l2nu",
+                "wz_2l2q",          "wz_3lnu",          "zz_2l2nu",         "zz_2l2q",
+                "wwz_4l2nu",        "wzz_4l2nu",        "zzz_4l2nu",        "zzg_4l2nu",
+                "ttz_2l2nu",
+                ]

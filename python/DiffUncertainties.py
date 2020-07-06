@@ -369,8 +369,10 @@ for h in range(H):
         min_mu_total[h][u] = mu_total[idx]
         min_sigma_syst[h][u] = sigma_syst[idx]
 
-        print("min: ", sigma_syst[idx])
+#       print("min: ", sigma_syst[idx])
         print("min alpha: ", alpha_range[idx])
+        print("min mu: ", mu_total[idx])
+        print("min diff: ", diff[idx])
         print("")
 
 
@@ -400,6 +402,7 @@ for h in range(H):
 ##  DRAW RESULTS
 ##
 
+hcov_muID, hcov_elID, hcov_reco, hcov_other = np.empty(H, dtype=object), np.empty(H, dtype=object), np.empty(H, dtype=object), np.empty(H, dtype=object)
 hcov_syst, hcov_unf, hcov_tot = np.empty(H, dtype=object), np.empty(H, dtype=object), np.empty(H, dtype=object)
 
 for h in range(H):
@@ -423,6 +426,39 @@ for h in range(H):
     bmin = o - 0.5
     bmax = bmin + nvbins
 
+    # Muon ID covariance matrix
+    hcov_muID[h] = TH2D(hnames[h] + "_cov_MuonID", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
+    hcov_muID[h].SetXTitle("i (bin)");
+    hcov_muID[h].SetYTitle("j (bin)");
+    for i in range(nvbins):
+        for j in range(nvbins):
+            hcov_muID[h].SetBinContent(i + 1, j + 1, cov_src[h][0][i][j])
+
+    # Electron ID covariance matrix
+    hcov_elID[h] = TH2D(hnames[h] + "_cov_ElecID", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
+    hcov_elID[h].SetXTitle("i (bin)");
+    hcov_elID[h].SetYTitle("j (bin)");
+    for i in range(nvbins):
+        for j in range(nvbins):
+            hcov_elID[h].SetBinContent(i + 1, j + 1, cov_src[h][1][i][j])
+
+    # Electron reco covariance matrix
+    hcov_reco[h] = TH2D(hnames[h] + "_cov_ElecReco", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
+    hcov_reco[h].SetXTitle("i (bin)");
+    hcov_reco[h].SetYTitle("j (bin)");
+    for i in range(nvbins):
+        for j in range(nvbins):
+            hcov_reco[h].SetBinContent(i + 1, j + 1, cov_src[h][2][i][j])
+
+    # "Other" covariance matrix
+    hcov_other[h] = TH2D(hnames[h] + "_cov_Others", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
+    hcov_other[h].SetXTitle("i (bin)");
+    hcov_other[h].SetYTitle("j (bin)");
+    for i in range(nvbins):
+        for j in range(nvbins):
+            hcov_other[h].SetBinContent(i + 1, j + 1, cov_src[h][3][i][j])
+
+
     # Systematic covariance matrix
     hcov_syst[h] = TH2D(hnames[h] + "_cov_syst", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
     hcov_syst[h].SetXTitle("i (bin)");
@@ -431,7 +467,6 @@ for h in range(H):
         for j in range(nvbins):
             hcov_syst[h].SetBinContent(i + 1, j + 1, cov_syst[h][i][j])
 
-
     # Unfolding covariance matrix
     hcov_unf[h] = TH2D(hnames[h] + "_cov_unf", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
     hcov_unf[h].SetXTitle("i (bin)");
@@ -439,7 +474,6 @@ for h in range(H):
     for i in range(nvbins):
         for j in range(nvbins):
             hcov_unf[h].SetBinContent(i + 1, j + 1, cov_unf[h][i][j])
-
 
     # Total covariance matrix
     hcov_tot[h] = TH2D(hnames[h] + "_cov_tot", "", nvbins, bmin, bmax, nvbins, bmin, bmax)
@@ -465,6 +499,11 @@ for h in range(H):
     outFile.cd(hnames[h])
 
     # Write histograms
+    hcov_muID[h].Write()
+    hcov_elID[h].Write()
+    hcov_reco[h].Write()
+    hcov_other[h].Write()
+
     hcov_syst[h].Write()
     hcov_unf[h].Write()
     hcov_tot[h].Write()

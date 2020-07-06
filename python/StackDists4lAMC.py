@@ -354,18 +354,22 @@ for sel in selection:
         for j in range(N_MC - 1):
             v_mc_arr[j]['b'] = np.sum(v_mc_arr[j+1:-2]['y'], axis=0)
         v_mc_arr[-1]['b'] = v_mc_arr[0]['b']
+        v_mc["zz_4l"]['b'] = v_mc["zz_4l_aMC"]['b']
+
+
+        width = total_aMC[h][sel].GetBinWidth(1)
 
 
         # Ratio
         v_ratio_aMC = np.zeros(ratio_aMC[h][sel].GetNbinsX(), dtype=V)
         v_ratio_pow = np.zeros(ratio_pow[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_ratio_aMC)):
-            v_ratio_aMC[i]['x']     = ratio_aMC[h][sel].GetBinCenter(i+1)
+            v_ratio_aMC[i]['x']     = ratio_aMC[h][sel].GetBinCenter(i+1) + width / 3
             v_ratio_aMC[i]['ex']    = ratio_aMC[h][sel].GetBinWidth(i+1) / 2
             v_ratio_aMC[i]['y']     = ratio_aMC[h][sel].GetBinContent(i+1)
             v_ratio_aMC[i]['ey']    = ratio_aMC[h][sel].GetBinError(i+1)
 
-            v_ratio_pow[i]['x']     = ratio_pow[h][sel].GetBinCenter(i+1)
+            v_ratio_pow[i]['x']     = ratio_pow[h][sel].GetBinCenter(i+1) + 2 * width / 3
             v_ratio_pow[i]['ex']    = ratio_pow[h][sel].GetBinWidth(i+1) / 2
             v_ratio_pow[i]['y']     = ratio_pow[h][sel].GetBinContent(i+1)
             v_ratio_pow[i]['ey']    = ratio_pow[h][sel].GetBinError(i+1)
@@ -375,8 +379,6 @@ for sel in selection:
         ##
         ##  MAKE PLOTS
         ##
-
-        width = total_aMC[h][sel].GetBinWidth(1)
 
         fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
         fig.subplots_adjust(left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
@@ -392,22 +394,22 @@ for sel in selection:
 
         p_mc = {}
         for suff in MC_SUFF_AMC:
-            if suff in ["ttbar", "tt_2l2nu"]:
+            if suff in ["ttbar", "tt_2l2nu", "zz_4l_aMC"]:
                 continue
-            elif suff == "zz_4l":
-                p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
-                        bottom = v_mc[suff]['b'],   align = 'edge',     linewidth = 0,
-                        edgecolor = COLOR[suff],    fill = False,       hatch='///'
-                        )
-                ax_top.errorbar(v_data['x'],    v_mc[suff]['y'],    xerr = v_ratio_aMC['ex'], 
-                        linewidth = 0,  ecolor = COLOR[suff],   elinewidth = lErrorLineWidth4l,
-                        marker = None,  capsize = 0
-                        )
             else:
                 p_mc[suff] = ax_top.bar(    v_mc[suff]['x'],    v_mc[suff]['y'],    width,
                         bottom = v_mc[suff]['b'],   align = 'edge',     linewidth = 0,
                         color = COLOR[suff]
                         )
+
+            p_mc["zz_4l_aMC"] = ax_top.bar(    v_mc["zz_4l_aMC"]['x'],    v_mc["zz_4l_aMC"]['y'],    width,
+                    bottom = v_mc["zz_4l_aMC"]['b'],        align = 'edge',     linewidth = 0,
+                    edgecolor = (.59,.29,0),        fill = False,     hatch='//'
+                    )
+            ax_top.errorbar(v_data['x'],    v_mc["zz_4l_aMC"]['y'],    xerr = v_ratio_aMC['ex'], 
+                    linewidth = 0,  ecolor = (.59,.29,0),   elinewidth = 2,
+                    marker = None,  capsize = 0
+                    )
 
         top_min, top_max = ax_top.get_ylim()
 
@@ -436,22 +438,25 @@ for sel in selection:
 
         ax_top.set_ylim(0, top_max)
 
+        bins = total_aMC[h][sel].GetNbinsX()
+        aMC_err = np.array([[width / 3], [2 * width / 3]])
+        pow_err = np.array([[2 * width / 3], [width / 3]])
 
         # Ratio plot
         ax_bot.errorbar(v_ratio_aMC['x'],       v_ratio_aMC['y'],
-                    xerr = v_ratio_aMC['ex'],   yerr = v_ratio_aMC['ey'], 
-                    linewidth = 0,  ecolor = COLOR["zz_4l_aMC"],
+                    xerr = np.tile(aMC_err, reps=(1,bins)),   yerr = v_ratio_aMC['ey'], 
+                    linewidth = 0,  ecolor = (.59,.29,0),
                     elinewidth = lErrorLineWidth4l,
-                    marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
-                    markeredgecolor = COLOR["zz_4l_aMC"],   markerfacecolor = COLOR["zz_4l_aMC"]
+                    marker = 'v',   capsize = lCapSize,     markersize = lMarkerSize4l,
+                    markeredgecolor = (.59,.29,0),   markerfacecolor = (.59,.29,0)
                     )
 
         ax_bot.errorbar(v_ratio_pow['x'],       v_ratio_pow['y'],
-                    xerr = v_ratio_pow['ex'],   yerr = v_ratio_pow['ey'], 
-                    linewidth = 0,  ecolor = COLOR["zz_4l"],
+                    xerr = np.tile(pow_err, reps=(1,bins)),   yerr = v_ratio_pow['ey'], 
+                    linewidth = 0,  ecolor = (0,0,0),
                     elinewidth = lErrorLineWidth4l,
                     marker = 'o',   capsize = lCapSize,     markersize = lMarkerSize4l,
-                    markeredgecolor = COLOR["zz_4l"],       markerfacecolor = COLOR["zz_4l"]
+                    markeredgecolor = (0,0,0),       markerfacecolor = (0,0,0)
                     )
 
         ax_bot.axhline(lRatioMid,   color = lRatioLineColor, linestyle = ':')

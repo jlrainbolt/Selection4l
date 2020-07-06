@@ -65,10 +65,12 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
         // Lab frame kinematics
         make_tuple( "zzm_60_120",   "zzp4.M()",  _m_(_4l),      _GeV,       60,     60,     120),
         make_tuple( "zzm_70_110",   "zzp4.M()",  _m_(_4l),      _GeV,       40,     70,     110),
+        make_tuple( "zzm_80_100",   "zzp4.M()",  _m_(_4l),      _GeV,       20,     80,     100),
         make_tuple( "zzm_75_105",   "zzp4.M()",  _m_(_4l),      _GeV,       30,     75,     105),
         make_tuple( "zzm_50_150",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     150),
         make_tuple( "zzm_50_250",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     250),
         make_tuple( "zzm_50_350",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     350),
+        make_tuple( "zzm_50_550",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     550)
     };
 
 
@@ -142,13 +144,6 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
             TString weight = "weight";
 
             tie(hname, quantity, xlabel, unit, bins, xmin, xmax) = v[j];
-
-            if (selection[i].EqualTo("4m") && quantity.Contains("Eta"))
-            {
-                bins = 24;
-                xmin = -2.4;
-                xmax = 2.4;
-            }
 
 
             // Create and draw histogram
