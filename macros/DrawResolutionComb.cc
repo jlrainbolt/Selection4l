@@ -108,7 +108,7 @@ void DrawResolutionComb(TString chan = "4l")
         h->GetYaxis()->SetTitle("Events");
 //      h->GetXaxis()->SetTitle("\\Delta m_{4\\mu}\\mbox{ (GeV)}");
 //      h->GetXaxis()->SetTitle("\\Delta m_{4\\mbox{e}}\\mbox{ (GeV)}");
-        h->GetXaxis()->SetTitle("\\Delta m_{2\\mu2\\mbox{e}}\\mbox{ (GeV)}");
+//      h->GetXaxis()->SetTitle("\\Delta m_{2\\mu2\\mbox{e}}\\mbox{ (GeV)}");
         h->GetYaxis()->SetTitleOffset(lTitleOffsetY);
         h->SetStats(1);
         h->Draw("HIST");

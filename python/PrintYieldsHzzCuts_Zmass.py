@@ -5,8 +5,8 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2018 import *
-from Cuts2017 import *
+from Cuts2018 import *
+#from Cuts2017 import *
 #from Cuts2016 import *
 
 
@@ -29,7 +29,7 @@ cutstr = "HZZCuts_80-100"
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_v1/"
 prefix = "selected"
 
 # Muon file

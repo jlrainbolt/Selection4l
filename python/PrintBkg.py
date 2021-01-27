@@ -5,11 +5,12 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
+#tightOnly = True
 tightOnly = False
 
 selection   = ["4l", "4m", "2m2e", "4e"]
@@ -35,7 +36,7 @@ T = np.dtype([(sel, 'f4') for sel in selection])
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/"
 prefix = "background"
 
 # Muon file

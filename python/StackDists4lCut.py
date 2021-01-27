@@ -14,12 +14,13 @@ from PlotUtils import *
 ##  SAMPLE INFO
 ##
 
-cut = "notSingleMuTrig"
+#cut = "singleMuTrig"
+#cut = "doubleMuTrig"
+#cut = "notSingleMuTrig"
+cut = "notDoubleMuTrig"
 prefix = cut
-#cut2 = cut.replace("notD", "!d")
-cut2 = cut.replace("notS", "!s")
-
-print(cut2)
+cut = cut.replace("notD", "!d")
+cut = cut.replace("notS", "!s")
 
 #selection = ["4l", "4m", "2m2e", "4e"]
 selection = ["4m"]
@@ -210,35 +211,43 @@ print("")
 ##
 
 # Get number of nonprompt events
-npt, npt_frac = {}, {}
+npt = {}
 
-for year in period:
-    infile = "nonprompt" + year + ".npz"
-    npzfile = np.load(infile)
-    npt[year] = npzfile['npt']
+for h in range(H):
+    npt_ = {}
+    for year in period:
+        npt_[year] = np.zeros(1, dtype=U)
+        inPath = EOS_PATH + "/Selected/" + year + "_v1/"
+        muBkgName = inPath + "background_muon_" + year + ".root"
+        elBkgName = inPath + "background_electron_" + year + ".root"
+        muBkgFile = TFile.Open(muBkgName)
+        print("Opened", muBkgName)
+        elBkgFile = TFile.Open(elBkgName)
+        print("Opened", elBkgName)
 
-    npt_frac[year] = np.zeros(1, dtype=U)
-    inPath = EOS_PATH + "/Selected/" + year + "_trig/"
-    muBkgName = inPath + "background_muon_" + year + ".root"
-    elBkgName = inPath + "background_electron_" + year + ".root"
-    muBkgFile = TFile.Open(muBkgName)
-    print("Opened", muBkgName) 
-    elBkgFile = TFile.Open(elBkgName)
-    print("Opened", elBkgName) 
+        for sel in selection:
+            muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
+            elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
+            npt_[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut)
+            npt_[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut)
 
-    for sel in selection:
-        muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
-        elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
-        npt[year][sel] = muBkgTree.GetEntries("(nLooseLeptons == 0)") + elBkgTree.GetEntries("(nLooseLeptons == 0)")
-        npt_frac[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut2)
-        npt_frac[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0) * " + cut2)
-        npt_frac[year][sel] /= (muBkgTree.GetEntries("nLooseLeptons == 0") + elBkgTree.GetEntries("nLooseLeptons == 0"))
+        muBkgFile.Close()
+        elBkgFile.Close()
 
-        if np.isfinite(npt_frac[year][sel]):
-            npt[year][sel] *= npt_frac[year][sel]
+        # Subtract prompt contributions
+#       for suff in mc_suff[year]:
+#           if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"]:
+#               continue
+#           else:
+#               sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
+#               bkgName = inPath + "background_" + suff + ".root"
+#               bkgFile = TFile.Open(bkgName)
+#               print("Opened", bkgName)
+#               bkgTree = bkgFile.Get(sel + "_" + suff)
+#               npt_[year][sel] -= sf * bkgTree.GetEntries("(nLooseLeptons == 0) * " + cut)
+#               bkgFile.Close()
 
-    muBkgFile.Close()
-    elBkgFile.Close()
+    npt[hnames[h]] = npt_
 
 print(npt)
 
@@ -263,11 +272,23 @@ for sel in selection:
     for hname in hnames:
         mc['zjets_m-50'][h][sel] = muFile.Get(sel + "/" + hname + "_muon_" + YEAR_STR)
         mc['zjets_m-50'][h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR))
-
         mc['zjets_m-50'][h][sel].SetDirectory(0)
-        sf = npt[year][sel] / mc['zjets_m-50'][h][sel].Integral()
-        if not np.isfinite(sf):
-            sf = 0
+
+        # Subtract prompt contributions
+#       for suff in mc_suff[year]:
+#           if suff in ["zjets_m-50", "ttbar", "tt_2l2nu"]:
+#               continue
+#           else:
+#               inName = prefix + "_" + year + "_" + suff + ".root"
+#               inFile = TFile.Open(inName)
+#               print("Opened", inName)
+
+#               sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
+#               tmp = inFile.Get(sel + "/" + hname + "_" + suff)
+#               tmp.Scale(sf)
+#               mc['zjets_m-50'][h][sel].Add(tmp, -1)
+
+        sf = npt[hname][year][sel] / mc['zjets_m-50'][h][sel].Integral()
         mc['zjets_m-50'][h][sel].Scale(sf)
 
         h = h + 1
@@ -298,7 +319,7 @@ for year in ["2017", "2016", "2012"]:
             hist.Add(elFile.Get(sel + "/" + hname + "_electron_" + year))
 
             hist.SetDirectory(0)
-            sf = npt[year][sel] / hist.Integral()
+            sf = npt[hname][year][sel] / hist.Integral()
             if not np.isfinite(sf):
                 sf = 0
             hist.Scale(sf)

@@ -43,11 +43,11 @@ print("Opened", elName)
 
 
 # Get histograms
-#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
+hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt"]
 #hnames = ["b_z1m", "b_z2m"]
 #hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt"]
-hnames = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps",
-            "angle_z2leps", "angle_z1l2_z2", "sin_phi_10"]
+#hnames = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps",
+#            "angle_z2leps", "angle_z1l2_z2", "sin_phi_10"]
 
 diff_dists = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps",
             "angle_z2leps", "angle_z1l2_z2", "sin_phi_10"]
@@ -63,7 +63,6 @@ for sel in selection:
         data[h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + YEAR_STR))
 
         data[h][sel].SetDirectory(0)
-        data[h][sel].SetBinErrorOpt(kPoisson)
 
         h = h + 1
     h = 0
@@ -121,7 +120,7 @@ print("")
 ##  BACKGROUND
 ##
 
-prefix = "bkg_all"
+prefix = "bkg"
 
 # Muon file
 muName = prefix + "_" + YEAR_STR + "_muon_" + YEAR_STR + ".root"
@@ -205,8 +204,8 @@ for sel in selection:
 ####
 
 
-for sel in ["4l"]:
-#for sel in selection:
+#for sel in ["4l"]:
+for sel in selection:
 
 
     print("Drawing", sel, "plots...")
@@ -315,10 +314,10 @@ for sel in ["4l"]:
 #               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
 #               verticalalignment = 'top', transform = ax_top.transAxes)
         ax_top.text(0.025,  0.95,   "CMS",
-                size = "xx-large",  weight = "bold", fontdict={'family':'Helvetica'},
+                size = "xx-large",  weight = "bold",    family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.text(0.025,  0.875,  "Work in Progress",
-                size = "x-large",   style = "italic", fontdict={'family':'Helvetica'},
+                size = "x-large",   style = "italic",   family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.set_title(r'\Large{' + '%.1f' % INT_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S
                 + r'\,TeV, ' + YEAR_STR + ')}', loc='right')

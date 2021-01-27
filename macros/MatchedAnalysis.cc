@@ -20,9 +20,9 @@
 #include "LeptonPair.hh"
 
 // Cuts
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -184,7 +184,7 @@ void MatchedAnalysis()
     //
 
     TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;

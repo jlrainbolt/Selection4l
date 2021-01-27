@@ -70,8 +70,8 @@ void CalculateEfficiency(TString suffix)
     //    INPUT FILE
     //
 
-    TString inName  = "eff2_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_update/" + inName;
+    TString inName  = "eff_" + suffix + ".root";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;

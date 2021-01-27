@@ -8,20 +8,19 @@ from ROOT import TFile, TTree, TH1D
 from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
 
 selection   = ["4l", "4m", "2m2e", "4e"]
 
 cut = "(nLooseLeptons == 0)"
 
-cut2 = "(((fabs(z2p4.M() - 91.2) < fabs(z1p4.M() - 91.2)) * (z2p4.M() > 40) * (z2p4.M() < 120) * (z1p4.M() > 12) * (z1p4.M() < 120)) || ((fabs(z2p4.M() - 91.2) > fabs(z1p4.M() - 91.2)) * (z1p4.M() > 40) * (z1p4.M() < 120) * (z2p4.M() > 12) * (z2p4.M() < 120))) * (zzp4.M() > 70)"
-cutstr = "HZZCuts"
+#cut2 = "(((fabs(z2p4.M() - 91.2) < fabs(z1p4.M() - 91.2)) * (z2p4.M() > 40) * (z2p4.M() < 120) * (z1p4.M() > 12) * (z1p4.M() < 120)) || ((fabs(z2p4.M() - 91.2) > fabs(z1p4.M() - 91.2)) * (z1p4.M() > 40) * (z1p4.M() < 120) * (z2p4.M() > 12) * (z2p4.M() < 120))) * (zzp4.M() > 70)"
+#cutstr = "HZZCuts"
 
 #cut2 = "(((fabs(z2p4.M() - 91.2) < fabs(z1p4.M() - 91.2)) * (z2p4.M() > 40) * (z2p4.M() < 120) * (z1p4.M() > 12) * (z1p4.M() < 120)) || ((fabs(z2p4.M() - 91.2) > fabs(z1p4.M() - 91.2)) * (z1p4.M() > 40) * (z1p4.M() < 120) * (z2p4.M() > 12) * (z2p4.M() < 120))) * (zzp4.M() > 118) * (zzp4.M() < 130)"
 #cutstr = "HZZCuts_118-130"
 
-#cut2 = "(((fabs(z2p4.M() - 91.2) < fabs(z1p4.M() - 91.2)) * (z2p4.M() > 40) * (z2p4.M() < 120) * (z1p4.M() > 12) * (z1p4.M() < 120)) || ((fabs(z2p4.M() - 91.2) > fabs(z1p4.M() - 91.2)) * (z1p4.M() > 40) * (z1p4.M() < 120) * (z2p4.M() > 12) * (z2p4.M() < 120))) * (zzp4.M() > 80) * (zzp4.M() < 100)"
-#cutstr = "HZZCuts_80-100"
+cut2 = "(((fabs(z2p4.M() - 91.2) < fabs(z1p4.M() - 91.2)) * (z2p4.M() > 40) * (z2p4.M() < 120) * (z1p4.M() > 12) * (z1p4.M() < 120)) || ((fabs(z2p4.M() - 91.2) > fabs(z1p4.M() - 91.2)) * (z1p4.M() > 40) * (z1p4.M() < 120) * (z2p4.M() > 12) * (z2p4.M() < 120))) * (zzp4.M() > 80) * (zzp4.M() < 100)"
+cutstr = "HZZCuts_80-100"
 
 
 ##
@@ -36,7 +35,7 @@ T = np.dtype([(sel, 'f4') for sel in selection])
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_v1/"
 prefix = "background"
 
 # Muon file

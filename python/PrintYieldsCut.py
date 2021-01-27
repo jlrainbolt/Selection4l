@@ -21,8 +21,27 @@ selection   = ["4l", "4m", "2m2e", "4e"]
 selTeX      = {"mumu":r"\MM", "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "2m2e":r"\tMtE", "4e":r"\fE"}
 T = np.dtype([(sel, 'f4') for sel in selection])
         
-cut2 = "(l3p4.Pt() > 7) * (l4p4.Pt() > 7)"
-cutstr = "Pt7"
+#cut2 = "(l3p4.Pt() > 7) * (l4p4.Pt() > 7)"
+#cutstr = "Pt7"
+
+#cut2 = "(z1pdg == 13)"
+#cutstr = "Z1mu"
+
+#cut2 = "(z1pdg == 11)"
+#cutstr = "Z1e"
+
+#cut2 = "(singleMuTrig)"
+#cutstr = "singleMuTrig"
+
+#cut2 = "(doubleMuTrig)"
+#cutstr = "doubleMuTrig"
+
+#cut2 = "(!singleMuTrig)"
+#cutstr = "notSingleMuTrig"
+
+cut2 = "(!doubleMuTrig)"
+cutstr = "notDoubleMuTrig"
+
 
 
 
@@ -30,7 +49,7 @@ cutstr = "Pt7"
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/"
 prefix = "selected"
 
 # Muon file
@@ -89,21 +108,21 @@ for suff in MC_SUFF:
         
         # Get signal
         if (suff == "zz_4l" and sel in ["4l", "4m", "2m2e", "4e"]) or (suff == "zjets_m-50" and sel in ["mumu", "ee"]):
-            tree.Draw("1>>hist", "!hasTauDecay * " + weight + " * " + cut2, "goff")
+            tree.Draw("1>>hist", "!hasTauDecay * " + cut2 + " * " + weight, "goff")
             sig[sel] = sf * hist.Integral()
-            tree.Draw("1>>hist", "!hasTauDecay * " + weight + " * " + weight + " * " + cut2, "goff")
-            sig_stat[sel] = sf * np.sqrt(hist.Integral())
+            tree.Draw("1>>hist", "!hasTauDecay * " + cut2 + " * " + weight + " * " + weight, "goff")
+            sig_stat[sel] = sf * np.sqrt(hist.GetBinContent(1))
             sig_sys[sel] = MC_UNC[suff] * sig[sel]
             sig_unc[sel] = np.sqrt(sig_stat[sel] ** 2 + sig_sys[sel] ** 2)
             cut = "hasTauDecay"
-            weight = cut + " * " + weight
+            weight = cut + " * " + cut2 + " * " + weight
 
-        tree.Draw("1>>hist", weight, "goff")
+        tree.Draw("1>>hist", cut2 + " * " + weight, "goff")
 
         mc_arr[row][sel] = sf * hist.Integral()
 
-        tree.Draw("1>>hist", weight + " * " + weight + " * " + cut2, "goff")
-        mc_stat_arr[row][sel] = sf * np.sqrt(hist.Integral())
+        tree.Draw("1>>hist", cut2 + " * " + weight + " * " + weight, "goff")
+        mc_stat_arr[row][sel] = sf * np.sqrt(hist.GetBinContent(1))
         mc_sys_arr[row][sel] = MC_UNC[suff] * mc_arr[row][sel]
         mc_unc_arr[row][sel] = np.sqrt(mc_stat_arr[row][sel] ** 2 + mc_sys_arr[row][sel] ** 2)
 
@@ -168,12 +187,20 @@ for sel in selection:
     bg_stat[sel]    = np.sqrt(np.sum(mc_stat_arr[sel] ** 2) + npt_stat[sel] ** 2)
     bg_sys[sel]     = np.sqrt(np.sum(mc_sys_arr[sel] ** 2) + npt_sys[sel] ** 2)
     bg_unc[sel]     = np.sqrt(bg_stat[sel] ** 2 + bg_sys[sel] ** 2)
-    pur[sel]        = sig[sel] / exp[sel] * 100
-    if sig[sel] > 0:
-        pur_unc[sel]    = pur[sel] * np.sqrt(sig_unc[sel] / sig[sel] ** 2 + exp_unc[sel] / exp[sel] ** 2)
+    if exp[sel] > 0:
+        pur[sel]        = sig[sel] / exp[sel] * 100
+        sf[sel]         = data[sel] / exp[sel] * 100
     else:
+        pur[sel]        = 0
+        sf[sel]         = 0
+    if sig[sel] > 0 and exp[sel] > 0:
+        pur_unc[sel]    = pur[sel] * np.sqrt(sig_unc[sel] / sig[sel] ** 2 + exp_unc[sel] / exp[sel] ** 2)
+    elif exp[sel] > 0:
         pur_unc[sel]    = pur[sel] * exp_unc[sel] / exp[sel]
-    sf[sel]         = data[sel] / exp[sel] * 100
+    elif sig[sel] > 0:
+        pur_unc[sel]    = pur[sel] * sig_unc[sel] / sig[sel]
+    else:
+        pur_unc[sel]    = 0
     if data[sel] >0 and exp[sel] > 0:
         sf_unc[sel] = sf[sel] * np.sqrt(1 / data[sel] + exp_unc[sel] / exp[sel] ** 2)
     else:
@@ -304,3 +331,4 @@ np.savez(outfile, data=data, exp=exp, exp_unc=exp_unc, sig=sig, sig_unc=sig_unc,
         mc_sys=mc_sys_arr, mc_unc=mc_unc_arr, npt=npt, npt_stat=npt_stat, npt_sys=npt_sys, npt_unc=npt_unc)
 
 print("Wrote arrays to", outfile)
+

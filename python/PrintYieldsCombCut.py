@@ -36,7 +36,14 @@ sel_4l = ["4l", "4m", "2m2e", "4e"]
 #sel_2l = ["ll", "mumu", "ee"]
 sel_2l = []
 
-cutstr = "Pt7"
+#cutstr = "Pt7"
+#cutstr = "Z1mu"
+#cutstr = "Z1e"
+#cutstr = "singleMuTrig"
+#cutstr = "doubleMuTrig"
+#cutstr = "notSingleMuTrig"
+cutstr = "notDoubleMuTrig"
+
 
 
 
@@ -67,10 +74,20 @@ for year in period:
     pur_, pur_unc_ = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
     sf_, sf_unc_ = np.zeros(1, dtype=T), np.zeros(1, dtype=T)
     for sel in selection:
-        pur_[sel]       = sig[year][sel] / exp[year][sel] * 100
-        pur_unc_[sel]   = pur_[sel] * np.sqrt(sig_unc[year][sel] / sig[year][sel] ** 2 + exp_unc[year][sel] / exp[year][sel] ** 2)
-        sf_[sel]        = data[year][sel] / exp[year][sel] * 100
-        sf_unc_[sel]    = sf_[sel] * np.sqrt(1 / data[year][sel] + exp_unc[year][sel] / exp[year][sel] ** 2)
+        if exp[year][sel] > 0:
+            pur_[sel]       = sig[year][sel] / exp[year][sel] * 100
+            sf_[sel]        = data[year][sel] / exp[year][sel] * 100
+        else:
+            pur_[sel] = 0
+            sf_[sel] = 0
+        if sig[year][sel] > 0 and exp[year][sel] > 0:
+            pur_unc_[sel]   = pur_[sel] * np.sqrt(sig_unc[year][sel] / sig[year][sel] ** 2 + exp_unc[year][sel] / exp[year][sel] ** 2)
+        else:
+            pur_unc_[sel]   = 0 
+        if data[year][sel] > 0 and exp[year][sel] > 0:
+            sf_unc_[sel] = sf_[sel] * np.sqrt(1 / data[year][sel] + exp_unc[year][sel] / exp[year][sel] ** 2)
+        else:
+            sf_unc[sel] = 0
     pur[year], pur_unc[year] = pur_, pur_unc_
     sf[year], sf_unc[year] = sf_, sf_unc_
 
@@ -295,10 +312,20 @@ for sel in (sel_2l + sel_4l):
     sig_unc_[sel] = np.sqrt(sig_unc_[sel])
     bg_unc_[sel] = np.sqrt(bg_unc_[sel])
 
-    pur_[sel]       = sig_[sel] / exp_[sel] * 100
-    pur_unc_[sel]   = pur_[sel] * np.sqrt(sig_unc_[sel] / sig_[sel] ** 2 + exp_unc_[sel] / exp_[sel] ** 2)
-    sf_[sel]        = obs_[sel] / exp_[sel] * 100
-    sf_unc_[sel]    = sf_[sel] * np.sqrt(1 / obs_[sel] + exp_unc_[sel] / exp_[sel] ** 2)
+    if exp_[sel] > 0:
+        pur_[sel]       = sig_[sel] / exp_[sel] * 100
+        sf_[sel]        = obs_[sel] / exp_[sel] * 100
+    else:
+        pur_[sel] = 0
+        sf_[sel] = 0
+    if sig_[sel] > 0 and exp_[sel] > 0:
+        pur_unc_[sel]   = pur_[sel] * np.sqrt(sig_unc_[sel] / sig_[sel] ** 2 + exp_unc_[sel] / exp_[sel] ** 2)
+    else:
+        pur_unc_[sel]   = 0
+    if obs_[sel] > 0 and exp_[sel] > 0:
+        sf_unc_[sel]    = sf_[sel] * np.sqrt(1 / obs_[sel] + exp_unc_[sel] / exp_[sel] ** 2)
+    else:
+        sf_unc_[sel]    = 0
 
     for cat in category:
         cat_unc_[cat][sel] = np.sqrt(cat_unc_[cat][sel])

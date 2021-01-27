@@ -11,8 +11,7 @@ from ROOT import TFile, TTree, TH1D
 ##  SAMPLE INFO
 ##
 
-#selection   = ["4l", "4m", "2m2e", "4e"]
-selection   = ["mumu", "ee", "4l", "4m", "2m2e", "4e"]
+selection   = ["4l", "4m", "2m2e", "4e"]
 selTeX      = {"mumu":r"\MM", "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "2m2e":r"\tMtE", "4e":r"\fE", "ll":r"\LL"}
 selDef      = {"mumu":"MM", "ee":"EE", "4l":"4L", "4m":"4M", "4e":"4E", "2m2e":"2M2E", "ll":"LL"}
 T = np.dtype([(sel, 'f4') for sel in selection])
@@ -33,7 +32,6 @@ MC_SUFF = MC_SUFF_MLL
 from Cuts2018 import UNC_DIBOSON, UNC_TTBAR, UNC_TAUTAU, UNC_OTHER
 
 sel_4l = ["4l", "4m", "2m2e", "4e"]
-sel_2l = ["ll", "mumu", "ee"]
 
 
 
@@ -81,10 +79,7 @@ for year in period:
 # Individual channels
 
 for sel in sel_4l:
-    if sel in sel_2l:
-        fmt = '{:,.0f}'
-    else:
-        fmt = '{:,.2f}'
+    fmt = '{:,.2f}'
 
     fileName = "Yield" + selDef[sel] + "MLL.tex"
     f = open(fileName, "w")
@@ -156,10 +151,7 @@ for sel in sel_4l:
      
     f.write(r"\midrule" + "\n")
 
-    if sel in sel_2l:
-        fmt = '%.4f'
-    else:
-        fmt = '%.2f'
+    fmt = '%.2f'
 
     f.write("\t" + r"\multicolumn{3}{l}{Signal purity (\%)}")
     for year in period:
@@ -190,7 +182,7 @@ category = ["Non", "VV", "tt", "tau", "VVV", "H", "ttZ"]
 name = {"Non":"Nonprompt", "VV":"Diboson", "VVV":"Triboson", "H":"Higgs", "ttZ":r"$\ttbar\PZ$",
         "tt":r"$\ttbar$", "tau":R"$\ZtoTT$"}
 
-V = np.dtype([(sel, 'f4') for sel in sel_2l + sel_4l])
+V = np.dtype([(sel, 'f4') for sel in sel_4l])
 
 obs_, exp_ = np.zeros(1, dtype=V), np.zeros(1, dtype=V)
 sig_, bg_ = np.zeros(1, dtype=V), np.zeros(1, dtype=V)
@@ -269,25 +261,7 @@ for sel in sel_4l:
 
 
 
-for sel in sel_2l:
-    if sel == "ll":
-        continue
-
-    obs_["ll"] += obs_[sel]
-    exp_["ll"] += exp_[sel]
-    sig_["ll"] += sig_[sel]
-    bg_["ll"] += bg_[sel]
-    
-    exp_unc_["ll"] += exp_unc_[sel]
-    sig_unc_["ll"] += sig_unc_[sel]
-    bg_unc_["ll"] += bg_unc_[sel]
-
-    for cat in category:
-        cat_[cat]["ll"] += cat_[cat][sel]
-        cat_unc_[cat]["ll"] += cat_unc_[cat][sel]
-
-
-for sel in (sel_2l + sel_4l):
+for sel in sel_4l:
     exp_unc_[sel] = np.sqrt(exp_unc_[sel])
     sig_unc_[sel] = np.sqrt(sig_unc_[sel])
     bg_unc_[sel] = np.sqrt(bg_unc_[sel])
@@ -307,14 +281,9 @@ for sel in (sel_2l + sel_4l):
 ##
 
 for sel_ in ["4l"]:
-    if sel_ in sel_2l:
-        fmt = '{:,.0f}'
-        selection = sel_2l
-        categories = ["VV", "tt", "tau", "VVV", "H", "ttZ"]
-    else:
-        fmt = '{:,.1f}'
-        selection = sel_4l
-        categories = ["Non", "VV", "VVV", "H", "ttZ"]
+    fmt = '{:,.1f}'
+    selection = sel_4l
+    categories = ["Non", "VV", "VVV", "H", "ttZ"]
 
     fileName = "Yield" + selDef[sel_] + "SumMLL.tex"
     f = open(fileName, "w")
@@ -386,10 +355,7 @@ for sel_ in ["4l"]:
      
     f.write(r"\midrule" + "\n")
 
-    if sel in sel_2l:
-        fmt = '%.4f'
-    else:
-        fmt = '%.1f'
+    fmt = '%.1f'
 
     f.write("\t" + r"\multicolumn{3}{l}{Signal purity (\%)}")
     for sel in selection:

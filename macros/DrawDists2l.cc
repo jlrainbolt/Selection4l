@@ -12,9 +12,9 @@
 #include "TError.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -38,11 +38,11 @@ void DrawDists2l(const TString suffix, const TString year)
     //  SAMPLE INFO
     //
 
-    const unsigned N = 3;
-    unsigned                   LL = 0,  MM = 1, EE = 2;     // Indices
-    TString selection[N]    = {"ll",    "mumu", "ee"};
-    unsigned chanIdx[N]     = {2,       3,      4};
-    TString lepChan[N]      = {_l,      _mu,    _e};
+    const unsigned N = 2;
+    unsigned                   MM = 0, EE = 1;     // Indices
+    TString selection[N]    = {"mumu", "ee"};
+    unsigned chanIdx[N]     = {3,      4};
+    TString lepChan[N]      = {_mu,    _e};
 
 
 
@@ -87,7 +87,7 @@ void DrawDists2l(const TString suffix, const TString year)
     //
 
     TString inName  = "selected_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
@@ -123,7 +123,7 @@ void DrawDists2l(const TString suffix, const TString year)
     ////
 
 
-    for (unsigned i = 1; i < N; i++)
+    for (unsigned i = 0; i < N; i++)
     {
         outFile->mkdir(selection[i]);
         outFile->cd(selection[i]);

@@ -87,8 +87,7 @@ void DrawDists2lExt(const TString suffix, const TString year)
     //
 
     TString inName  = "selected_" + suffix + ".root";
-//  TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
-    TString inPath  = EOS_PATH + "/Extended/" + YEAR_STR + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Extended/" + YEAR_STR + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;

@@ -5,9 +5,9 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
-from Cuts2016 import *
+#from Cuts2016 import *
 
 
 
@@ -15,8 +15,7 @@ from Cuts2016 import *
 ##  SAMPLE INFO
 ##
 
-#selection   = ["4l", "4m", "2m2e", "4e"]
-selection   = ["mumu", "ee", "4l", "4m", "2m2e", "4e"]
+selection   = ["4l", "4m", "2m2e", "4e"]
 selTeX      = {"mumu":r"\MM", "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "2m2e":r"\tMtE", "4e":r"\fE"}
 T = np.dtype([(sel, 'f4') for sel in selection])
 
@@ -121,22 +120,6 @@ for suff in MC_SUFF:
 ##
 ##  ADD SAMPLES
 ##
-
-# Take average of ttbar (inclusive) and tt_2l2nu
-
-if YEAR_STR != "2012":
-    for sel in ["mumu", "ee"]:
-        mc['ttbar'][sel] = mc['ttbar'][sel] + mc['tt_2l2nu'][sel]
-        mc_stat['ttbar'][sel] = np.sqrt(mc_stat['ttbar'][sel] ** 2 + mc_stat['tt_2l2nu'][sel] ** 2)
-        mc_sys['ttbar'][sel] = mc['ttbar'][sel] * MC_UNC['ttbar']
-        mc_unc['ttbar'][sel] = np.sqrt(mc_stat['ttbar'][sel] ** 2 + mc_sys['ttbar'][sel] ** 2)
-
-        mc['tt_2l2nu'][sel] = 0
-        mc_stat['tt_2l2nu'][sel] = 0
-        mc_sys['tt_2l2nu'][sel] = 0
-        mc_unc['tt_2l2nu'][sel] = 0
-
-
 
 # Get nonprompt background
 infile = "nonprompt" + YEAR_STR + "MLL.npz"

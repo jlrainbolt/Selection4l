@@ -58,7 +58,7 @@ void DrawMigration()
 
         //          name            quantity            title               bins    xmin    xmax
         // Z rest frame kinematics
-        make_tuple( "b_z1m",        "b_z1p4.M()",       _m_(_Z1),           11,     4,      92),
+        make_tuple( "b_z1m",        "b_z1p4.M()",       _m_(_Z1),           10,     12,     92),
         make_tuple( "b_z2m",        "b_z2p4.M()",       _m_(_Z2),           11,     4,      37),
         make_tuple( "b_ttm",        "b_ttp4.M()",       _m_(_l_("2,3,4")),  11,     5,      60),
         make_tuple( "b_l1p",        "b_l1v3.Mag()",     _p_(_l_(1)),        10,     25,     50),
@@ -85,7 +85,7 @@ void DrawMigration()
 
     TString suffix  = "zz_4l";
     TString inName  = "matched_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Boosted/" + YEAR_STR + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Boosted/" + YEAR_STR + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;

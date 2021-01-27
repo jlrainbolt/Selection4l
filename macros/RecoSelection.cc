@@ -23,9 +23,9 @@
 #include "SelectionTools.hh"
 
 // Cuts
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -201,8 +201,7 @@ void RecoSelection( const TString suffix,           const TString id,
         }
 
 
-//      if (isSignal && i >= L4)
-        if (isDrellYan && i < L4)
+        if (isSignal && i >= L4)
         {
             tree[i]->Branch("nDressedMuons",            &nDressedMuons);
             tree[i]->Branch("nDressedElectrons",        &nDressedElectrons);
@@ -217,7 +216,7 @@ void RecoSelection( const TString suffix,           const TString id,
             tree[i]->Branch("dressedLeptonsP4",         &dressedLeptonsP4);
 
             tree[i]->Branch("uncorr_l1p4",  &u_l1p4);   tree[i]->Branch("uncorr_l2p4",  &u_l2p4);
-//          tree[i]->Branch("uncorr_l3p4",  &u_l3p4);   tree[i]->Branch("uncorr_l4p4",  &u_l4p4);
+            tree[i]->Branch("uncorr_l3p4",  &u_l3p4);   tree[i]->Branch("uncorr_l4p4",  &u_l4p4);
         }
     }
 
@@ -237,8 +236,7 @@ void RecoSelection( const TString suffix,           const TString id,
     //
 
     TString inName  = suffix + "_" + id + ".root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_update/";
-//  TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_v1/";
     TFile   *inFile = TFile::Open(inPath + inName);
 
     cout << endl << endl << "Opened " << inPath + inName << endl;
@@ -322,8 +320,7 @@ void RecoSelection( const TString suffix,           const TString id,
         }
     }
 
-//  if (isSignal && !systOn)
-    if (isDrellYan && !systOn)
+    if (isSignal && !systOn)
     {
         inTree->SetBranchAddress(   "nDressedMuons",            &nDressedMuons);
         inTree->SetBranchAddress(   "nDressedElectrons",        &nDressedElectrons);
@@ -567,7 +564,7 @@ void RecoSelection( const TString suffix,           const TString id,
         //
         //  TRIGGER MATCHING
         //
-
+/*
         if (muonTrig)
         {
             bool matchedLeg1 = kFALSE, matchedLeg2 = kFALSE, matchedSingle = kFALSE;
@@ -603,7 +600,7 @@ void RecoSelection( const TString suffix,           const TString id,
             diElTrig = diElTrig && matchedLeg1 && matchedLeg2;
             siElTrig = siElTrig && matchedSingle;
         }
-
+*/
 
 /*
         // Enforce kinematic requirements for untriggered events
@@ -1011,11 +1008,10 @@ void RecoSelection( const TString suffix,           const TString id,
         }
 
         // Get gen particle info
-        if  (!isFourLepton && isDrellYan && !systOn)
-//      if  (isFourLepton && isSignal && !systOn)
+        if  (isFourLepton && isSignal && !systOn)
         {
             u_l1p4  = leps[0].u_p4;         u_l2p4  = leps[1].u_p4;
-//          u_l3p4  = leps[2].u_p4;         u_l4p4  = leps[3].u_p4;
+            u_l3p4  = leps[2].u_p4;         u_l4p4  = leps[3].u_p4;
 
             dressedMuonP4->Delete();        dressedElectronP4->Delete();
 

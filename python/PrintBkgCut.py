@@ -14,8 +14,26 @@ selection   = ["4l", "4m", "2m2e", "4e"]
 
 cut = "(nLooseLeptons == 0)"
 
-cut2 = "(l3p4.Pt() > 7) * (l4p4.Pt() > 7)"
-cutstr = "Pt7"
+#cut2 = "(l3p4.Pt() > 7) * (l4p4.Pt() > 7)"
+#cutstr = "Pt7"
+
+#cut2 = "(z1pdg == 13)"
+#cutstr = "Z1mu"
+
+#cut2 = "(z1pdg == 11)"
+#cutstr = "Z1e"
+
+#cut2 = "(singleMuTrig)"
+#cutstr = "singleMuTrig"
+
+cut2 = "(doubleMuTrig)"
+cutstr = "doubleMuTrig"
+
+#cut2 = "(!singleMuTrig)"
+#cutstr = "notSingleMuTrig"
+
+#cut2 = "(!doubleMuTrig)"
+#cutstr = "notDoubleMuTrig"
 
 
 ##
@@ -30,7 +48,7 @@ T = np.dtype([(sel, 'f4') for sel in selection])
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/"
 prefix = "background"
 
 # Muon file
@@ -79,9 +97,9 @@ for suff in MC_SUFF:
         hist.Sumw2()
 
         tree = inFile.Get(sel + "_" + suff)
-        tree.Draw("1>>hist", cut + " * " + weight + " * " + cut2, "goff")
-        mc_arr[row][sel] = sf * hist.Integral()
-        tree.Draw("1>>hist", cut + " * " + weight + " * " + weight + " * " + cut2, "goff")
+        tree.Draw("1>>hist", cut + " * " + cut2 + " * " + weight, "goff")
+        mc_arr[row][sel] = sf * hist.GetBinContent(1)
+        tree.Draw("1>>hist", cut + " * " + cut2 + " * " + weight + " * " + weight, "goff")
 
         mc_unc_arr[row][sel] = sf * np.sqrt(hist.GetBinContent(1))
 

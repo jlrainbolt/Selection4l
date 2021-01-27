@@ -25,9 +25,8 @@ period = ["2018", "2017", "2016", "2012"]
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f8'), ("y", 'f8'), ("ex", 'f8'), ("ey", 'f8'), ("b", 'f8')])
 
-#hnames = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
-#        "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
-hnames = ["sin_phi"]
+hnames = ["b_z1m", "b_z2m", "b_l1p", "b_ttm", "cos_theta_z1", "cos_theta_z2",
+        "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
 H = len(hnames)
 
 
@@ -151,7 +150,7 @@ print("")
 ##  BACKGROUND
 ##
 
-prefix = "bkg_all"
+prefix = "bkg"
 bkg = np.empty(H, dtype=T)
     
 for year in period:
@@ -297,11 +296,7 @@ for sel in ["4l"]:
 #       print(v_gen['y'])
 
         # Slicing
-        if hnames[h] == "b_z1m":
-            s = slice(2, -1)
-            v_eff['y'][2] = col_sums[2] / (col_sums[2] + col_sums[1] + col_sums[0])
-            v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
-        elif hnames[h] == "b_z2m":
+        if hnames[h] == "b_z2m":
             s = slice(1, None)
             v_eff['y'][1] = col_sums[1] / (col_sums[1] + col_sums[0])
         elif hnames[h] == "b_l1p":
@@ -311,11 +306,7 @@ for sel in ["4l"]:
             s = slice(2, -1)
             v_eff['y'][2] = col_sums[2] / (col_sums[2] + col_sums[1] + col_sums[0])
             v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
-        elif hnames[h] == "angle_z1l2_z2":
-            s = slice(1, -1)
-            v_eff['y'][1] = col_sums[1] / (col_sums[1] + col_sums[0])
-            v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
+        elif hnames[h] in ["b_z1m", "angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
             s = slice(1, -1)
             v_eff['y'][1] = col_sums[1] / (col_sums[1] + col_sums[0])
             v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])

@@ -10,9 +10,9 @@
 #include "TH1.h"
 
 // Custom
-#include "Cuts2018.hh"
+//#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-//#include "Cuts2016.hh"
+#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -48,9 +48,8 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
     //  OUTPUT FILE
     //
 
-//  TString prefix  = isBkg ? "bkg_all" : "4l";
     TString prefix  = isBkg ? "bkg_" : "";
-    TString outName = prefix + "mll_" + year + "_" + suffix + ".root";
+    TString outName = prefix + year + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -89,7 +88,7 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
         make_tuple( "l4eta",    "l4p4.Eta()",    _eta_(_l_(4)), _units,     20,     -2.5,   2.5),
  
         // Z rest frame kinematics                                                
-        make_tuple( "b_z1m",    "b_z1p4.M()",    _m_(_Z1),      _GeV,       11,     4,      92),
+        make_tuple( "b_z1m",    "b_z1p4.M()",    _m_(_Z1),      _GeV,       10,     12,     92),
         make_tuple( "b_z2m",    "b_z2p4.M()",    _m_(_Z2),      _GeV,       11,     4,      37),
         make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
                                 
@@ -121,16 +120,15 @@ void DrawDists4l(const TString suffix, const TString year, const bool isBkg = kF
     //  INPUT FILE
     //
 
-//  TString tag     = isBkg ? "bkg_" : "";
-//  TString inName  = "boosted_" + tag + suffix + ".root";
-//  TString inPath  = EOS_PATH + "/Boosted/" + year + "_new/" + inName;
-//  TString inPath  = EOS_PATH + "/Boosted/" + year + "_update/" + inName;
-//  TFile   *inFile = TFile::Open(inPath);
-
-    TString tag     = isBkg ? "background" : "selected";
-    TString inName  = tag + "_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Extended/" + year + "_mll/" + inName;
+    TString tag     = isBkg ? "bkg_" : "";
+    TString inName  = "boosted_" + tag + suffix + ".root";
+    TString inPath  = EOS_PATH + "/Boosted/" + year + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
+
+//  TString tag     = isBkg ? "background" : "selected";
+//  TString inName  = tag + "_" + suffix + ".root";
+//  TString inPath  = EOS_PATH + "/Extended/" + year + "_mll/" + inName;
+//  TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;
 

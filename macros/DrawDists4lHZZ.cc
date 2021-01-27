@@ -77,7 +77,7 @@ void DrawDists4lHZZ(const TString suffix, const TString year, const bool isBkg =
 
     TString tag     = isBkg ? "background" : "selected";
     TString inName  = tag + "_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Extended/" + year + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Extended/" + year + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;

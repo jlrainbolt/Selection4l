@@ -115,16 +115,16 @@ psName = prefix + "_" + YEAR_STR + "_phase_space.root"
 psFile = TFile(psName, "READ")
 print("Opened", psName)
 
-amcName = prefix + "_2016_phase_space_aMC.root"
-amcFile = TFile(amcName, "READ")
-print("Opened", amcName)
+#amcName = prefix + "_2016_phase_space_aMC.root"
+#amcFile = TFile(amcName, "READ")
+#print("Opened", amcName)
 
 for hname in hnames:
     ps[h]['4l'] = psFile.Get("4l/" + hname + "_phase_space")
     ps[h]['4l'].SetDirectory(0)
 
-    amc[h]['4l'] = amcFile.Get("4l/" + hname + "_phase_space_aMC")
-    amc[h]['4l'].SetDirectory(0)
+#    amc[h]['4l'] = amcFile.Get("4l/" + hname + "_phase_space_aMC")
+#    amc[h]['4l'].SetDirectory(0)
 
     h = h + 1
 h = 0
@@ -195,14 +195,14 @@ for sel in ["4l"]:
 
         data[h][sel].Scale(scale / data[h][sel].Integral())
         ps[h][sel].Scale(scale / ps[h][sel].Integral())
-        amc[h][sel].Scale(scale / amc[h][sel].Integral())
+#       amc[h][sel].Scale(scale / amc[h][sel].Integral())
 
 
 
 # Total uncertainty
 for sel in ["4l"]:
     for h in range(H):
-        print(hnames[h])
+#       print(hnames[h])
         # Get from covariance matrix
         for i in range(data[h][sel].GetNbinsX()):
             data[h][sel].SetBinError(i + 1, np.sqrt(cov_tot[h][i][i]))
@@ -237,6 +237,8 @@ for sel in ["4l"]:
         ##  GET BIN CONTENT
         ##
 
+        width = data[h][sel].GetBinWidth(1)
+
         # Data
         v_data = np.zeros(data[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_data)):
@@ -246,19 +248,23 @@ for sel in ["4l"]:
             v_data[i]['eyd']    = data[h][sel].GetBinErrorLow(i+1)
 
         # MC
-        v_pred = np.zeros(ps[h][sel].GetNbinsX(), dtype=V)
-        for i in range(len(v_pred)):
-            v_pred[i]['x']      = ps[h][sel].GetBinLowEdge(i+1)
-            v_pred[i]['y']      = ps[h][sel].GetBinContent(i+1)
-            v_pred[i]['eyu']    = ps[h][sel].GetBinError(i+1)
-            v_pred[i]['eyd']    = ps[h][sel].GetBinError(i+1)
+        v_pred = np.zeros(ps[h][sel].GetNbinsX() + 1, dtype=V)
+        for i in range(1, len(v_pred)):
+            v_pred[i]['x']      = ps[h][sel].GetBinLowEdge(i) + width
+            v_pred[i]['y']      = ps[h][sel].GetBinContent(i)
+            v_pred[i]['eyu']    = ps[h][sel].GetBinError(i)
+            v_pred[i]['eyd']    = ps[h][sel].GetBinError(i)
 
-        v_amc = np.zeros(amc[h][sel].GetNbinsX(), dtype=V)
-        for i in range(len(v_amc)):
-            v_amc[i]['x']       = amc[h][sel].GetBinLowEdge(i+1)
-            v_amc[i]['y']       = amc[h][sel].GetBinContent(i+1)
-            v_amc[i]['eyu']     = amc[h][sel].GetBinError(i+1)
-            v_amc[i]['eyd']     = amc[h][sel].GetBinError(i+1)
+        v_pred[0]['x']      = ps[h][sel].GetBinLowEdge(1)
+        v_pred[0]['y']      = v_pred[1]['y']
+
+
+#       v_amc = np.zeros(amc[h][sel].GetNbinsX(), dtype=V)
+#       for i in range(len(v_amc)):
+#           v_amc[i]['x']       = amc[h][sel].GetBinLowEdge(i+1)
+#           v_amc[i]['y']       = amc[h][sel].GetBinContent(i+1)
+#           v_amc[i]['eyu']     = amc[h][sel].GetBinError(i+1)
+#           v_amc[i]['eyd']     = amc[h][sel].GetBinError(i+1)
 
         # Ratio
         v_ratio = np.zeros(ratio[h][sel].GetNbinsX(), dtype=V)
@@ -275,22 +281,24 @@ for sel in ["4l"]:
         ##  MAKE PLOTS
         ##
 
-        width = data[h][sel].GetBinWidth(1)
-
         fig, (ax_top, ax_bot) = plt.subplots(2, sharex = True, gridspec_kw = lRatioGridSpec)
         fig.subplots_adjust(left = lLeftMargin, right = lRightMargin,   bottom = lBottomMargin,
                             top = lTopMargin,   hspace = lHorizSpace
                             )
 
         # Top plots
-        p_pred = ax_top.errorbar(   v_data['x'],    v_pred['y'],    xerr = v_ratio['ex'], 
-                            linewidth = 0,  ecolor = lBlue,
-                            fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
+#       p_pred = ax_top.errorbar(   v_data['x'],    v_pred['y'],    xerr = v_ratio['ex'], 
+#                           linewidth = 0,  ecolor = lBlue,
+#                           fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
+#                           )
+        p_pred = ax_top.plot(       v_pred['x'],    v_pred['y'],
+                            linewidth = 2 * lErrorLineWidth4l,      color = lBlue,
+                            linestyle = 'steps'
                             )
-        p_amc = ax_top.errorbar(    v_data['x'],    v_amc['y'],     xerr = v_ratio['ex'], 
-                            linewidth = 0,  ecolor = lRed,
-                            fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
-                            )
+#       p_amc = ax_top.errorbar(    v_data['x'],    v_amc['y'],     xerr = v_ratio['ex'], 
+#                           linewidth = 0,  ecolor = lRed,
+#                           fmt = 'None',   capsize = lCapSize,     elinewidth = 2 * lErrorLineWidth4l
+#                           )
         p_data = ax_top.errorbar(   v_data['x'],    v_data['y'],    yerr = (v_data['eyd'], v_data['eyu']), 
                             linewidth = 0,  ecolor = lMarkerColor,  elinewidth = lErrorLineWidth4l,
                             marker = 'o',   capsize = 0,            markersize = lMarkerSize2l,
@@ -333,16 +341,11 @@ for sel in ["4l"]:
         ##
 
         # Titles
-#       ax_top.text(    0.025,  0.95,
-#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-#               verticalalignment = 'top', transform = ax_top.transAxes)
         ax_top.text(0.025,  0.95,   "CMS",
-                size = "xx-large",  weight = "bold",
-#               fontproperties = helvet_bold,
+                size = "xx-large",  weight = "bold",    family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.text(0.025,  0.875,  "Work in Progress",
-                size = "x-large",   style = "italic",
-#               fontproperties = helvet_bold,
+                size = "x-large",   style = "italic",   family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.set_title(r'\Large{19.7\,fb$^{-1}$ (8\,TeV) $+$ 137\,fb$^{-1}$ (13\,TeV)}', loc='right')
 
@@ -380,18 +383,26 @@ for sel in ["4l"]:
         ##
 
         # x axes
-        plt.xlim(v_pred['x'][0], v_pred['x'][-1] + width)
+#       plt.xlim(v_pred['x'][0], v_pred['x'][-1] + width)
+        plt.xlim(v_pred['x'][0], v_pred['x'][-1])
 
         major_step, minor_step = 2 * width, width
         if sel == "4e":
             major_step = width
 
         for ax in [ax_bot.xaxis, ax_top.xaxis]:
-            ax.set_ticks( np.arange(
-                            v_pred['x'][0],
-                            v_pred['x'][-1] + major_step,
-                            step = major_step)
-                            )
+            if hnames[h] in ["b_ttm", "b_z2m"]:
+                ax.set_ticks( np.arange(
+                                v_pred['x'][0],
+                                v_pred['x'][-1],
+                                step = major_step)
+                                )
+            else:
+                ax.set_ticks( np.arange(
+                                v_pred['x'][0],
+                                v_pred['x'][-1] + major_step,
+                                step = major_step)
+                                )
             ax.set_ticks( np.arange(
                             v_pred['x'][0],
                             v_pred['x'][-1] + minor_step,
@@ -415,14 +426,14 @@ for sel in ["4l"]:
 
         if hnames[h] in ["angle_z1leps", "b_l1p", "b_z1m"]:
             leg_loc = 'center left'
-#       elif hnames[h] in ["cos_theta_z1", "cos_theta_z2"]:
-#           leg_loc = 'upper center'
         else:
             leg_loc = 'upper right'
 
         ax_top.legend(
-                (   p_data,     p_pred,     p_amc),
-                (   'Measured', 'POWHEG',   'aMC@NLO',
+                (   p_data,     p_pred[0]),
+                (   'Measured', 'POWHEG',
+#               (   p_data,     p_pred,     p_amc),
+#               (   'Measured', 'POWHEG',   'aMC@NLO',
                     ),
                 loc = leg_loc, numpoints = 1, frameon = False)
 

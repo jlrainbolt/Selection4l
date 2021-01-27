@@ -16,23 +16,23 @@ when_to_transfer_output = ON_EXIT
 
 arguments   = "$(suffix) $INT(Step)"
 
-#   suffix = muon_2017
-#   queue 10
+    suffix = muon_2017
+    queue 10
 
-#   suffix = electron_2017
-#   queue 6
+    suffix = electron_2017
+    queue 6
 
 #   suffix = zz_4l
 #   queue 1
 
 #   suffix = zz_4l_aMC
-#   queue 2
+#   queue 4
 
-    suffix = zz_4l_m-1
-    queue 2
+#   suffix = zz_4l_m-1
+#   queue 4
 
 #   suffix = zjets_m-50
-#   queue 10
+#   queue 18
 
 #   suffix = ttbar
 #   queue 1

@@ -64,11 +64,8 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
 
         // Lab frame kinematics
         make_tuple( "zzm_60_120",   "zzp4.M()",  _m_(_4l),      _GeV,       60,     60,     120),
-        make_tuple( "zzm_70_110",   "zzp4.M()",  _m_(_4l),      _GeV,       40,     70,     110),
         make_tuple( "zzm_80_100",   "zzp4.M()",  _m_(_4l),      _GeV,       20,     80,     100),
-        make_tuple( "zzm_75_105",   "zzp4.M()",  _m_(_4l),      _GeV,       30,     75,     105),
         make_tuple( "zzm_50_150",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     150),
-        make_tuple( "zzm_50_250",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     250),
         make_tuple( "zzm_50_350",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     350),
         make_tuple( "zzm_50_550",   "zzp4.M()",  _m_(_4l),      _GeV,       100,    50,     550)
     };
@@ -81,7 +78,7 @@ void DrawDists4lExt(const TString suffix, const TString year, const bool isBkg =
 
     TString tag     = isBkg ? "background" : "selected";
     TString inName  = tag + "_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Extended/" + year + "_new/" + inName;
+    TString inPath  = EOS_PATH + "/Extended/" + year + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;

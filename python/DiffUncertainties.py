@@ -167,15 +167,14 @@ for h in range(H):
         f_meas[i] = data[h].GetBinContent(i)
 
     # Slicing
-    if hnames[h] == "b_z1m":
-        s = slice(2, -1)
-    elif hnames[h] == "b_z2m":
+    if hnames[h] == "b_z2m":
         s = slice(1, None)
     elif hnames[h] == "b_l1p":
         s = slice(0, -1)
     elif hnames[h] == "angle_z1leps":
-        s = slice(2, -1)
-    elif hnames[h] in ["angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
+        s = slice(1, -1)
+#       s = slice(2, -1)
+    elif hnames[h] in ["b_z1m", "angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
         s = slice(1, -1)
     else:
         s = slice(0, None)
@@ -214,7 +213,7 @@ print("\n")
 
 # Scaling
 for h in range(H):
-#   print(hnames[h])
+    print(hnames[h])
 
     if hnames[h] == "b_z1m":
         s = slice(2, -1)
@@ -223,7 +222,8 @@ for h in range(H):
     elif hnames[h] == "b_l1p":
         s = slice(0, -1)
     elif hnames[h] == "angle_z1leps":
-        s = slice(2, -1)
+#       s = slice(2, -1)
+        s = slice(1, -1)
     elif hnames[h] in ["angle_z1l2_z2", "cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
         s = slice(1, -1)
     else:
@@ -234,6 +234,10 @@ for h in range(H):
 
     data_arr[h] = np.multiply(scl_vec[h], data_arr[h])
     nom_arr[h] = np.multiply(scl_vec[h], nom_arr[h])
+    if hnames[h] == "angle_z1leps":
+        cov_unf[h] = np.vstack((np.atleast_2d(np.zeros(len(cov_unf[h]))), cov_unf[h]))
+        cov_unf[h] = np.hstack((np.atleast_2d(np.zeros(len(cov_unf[h]))).T, cov_unf[h]))
+#       print(cov_unf[h])
     cov_unf[h] = np.multiply(scl_mat[h], cov_unf[h])
 
     for u in range(U):

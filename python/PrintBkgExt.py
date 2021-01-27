@@ -41,7 +41,7 @@ T = np.dtype([(sel, 'f4') for sel in selection])
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_v1/"
 prefix = "background"
 
 # Muon file

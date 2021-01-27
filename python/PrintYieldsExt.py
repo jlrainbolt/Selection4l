@@ -42,7 +42,7 @@ cutstr = "_50-550"
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_v1/"
 prefix = "selected"
 
 # Muon file

@@ -5,10 +5,10 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-from Cuts2018 import *
+#from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-#from Cuts2012 import *
+from Cuts2012 import *
 
 
 
@@ -27,7 +27,7 @@ T = np.dtype([(sel, 'f4') for sel in selection])
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/"
 prefix = "selected"
 
 # Muon file
@@ -229,7 +229,7 @@ f.write(r" \\" + "\n")
 
 f.write(r"\addlinespace" + "\n")
 
-f.write("\t&\t&\t" + r"Nonprompt & \multicolumn{4}{c}{}")
+f.write("\t&\t&\t" + r"Nonprompt")
 for sel in ["4l", "4m", "2m2e", "4e"]:
     if sel in ["mumu", "ee"]:
         fmt = '%i'

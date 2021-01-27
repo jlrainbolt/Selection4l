@@ -14,11 +14,6 @@ selection   = ["4l", "4m", "2m2e", "4e"]
 
 cut = "(nLooseLeptons == 0)"
 
-# Sample
-sample = "ext"
-#sample = "new"
-#sample = "update"
-
 # Region 1
 #cut2 = "(z1p4.M() > 40) * (z2p4.M() > 12) * (zzp4.M() > 80) * (zzp4.M() < 100)"
 #cutstr = "reg1"
@@ -32,12 +27,8 @@ sample = "ext"
 #cutstr = "reg3"
 
 # Region 4
-#cut2 = "(z1p4.M() > 12) * (z1p4.M() < 40) * (z2p4.M() > 4) * (z2p4.M() < 12) * (zzp4.M() > 80) * (zzp4.M() < 100)"
-#cutstr = "reg4"
-
-# Region 0 (nominal)
-cut2 = "(z1p4.M() > 12) * (z2p4.M() > 4) * (zzp4.M() > 80) * (zzp4.M() < 100)"
-cutstr = "reg0"
+cut2 = "(z1p4.M() > 12) * (z1p4.M() < 40) * (z2p4.M() > 4) * (z2p4.M() < 12) * (zzp4.M() > 80) * (zzp4.M() < 100)"
+cutstr = "reg4"
 
 
 ##
@@ -52,15 +43,7 @@ T = np.dtype([(sel, 'f4') for sel in selection])
 ##  DATA
 ##
 
-if sample == "ext":
-    inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_new/"
-elif sample == "new":
-    inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
-elif sample == "update":
-    if YEAR_STR == "2012":
-        inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
-    else:
-        inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_update/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/"
 
 prefix = "background"
 
@@ -180,7 +163,7 @@ for sel in selection:
 ##  WRITE TEX FILES
 ##
 
-prefix = "Background" + YEAR_STR + "_" + cutstr + "_" + sample
+prefix = "Background" + YEAR_STR + "_" + cutstr
 
 fileName = prefix + ".tex"
 
@@ -273,6 +256,6 @@ print("Wrote table to", fileName)
 ##
 
 print("")
-outfile = "nonprompt" + YEAR_STR + "_" + cutstr + "_" + sample + ".npz"
+outfile = "nonprompt" + YEAR_STR + "_" + cutstr + ".npz"
 np.savez(outfile, npt=diff, npt_unc=diff_unc)
 print("Wrote nonprompt arrays to", outfile)

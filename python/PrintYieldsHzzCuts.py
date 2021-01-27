@@ -26,16 +26,13 @@ cutstr = "HZZCuts"
 #cut2 = "(((fabs(z2p4.M() - 91.2) < fabs(z1p4.M() - 91.2)) * (z2p4.M() > 40) * (z2p4.M() < 120) * (z1p4.M() > 12) * (z1p4.M() < 120)) || ((fabs(z2p4.M() - 91.2) > fabs(z1p4.M() - 91.2)) * (z1p4.M() > 40) * (z1p4.M() < 120) * (z2p4.M() > 12) * (z2p4.M() < 120))) * (zzp4.M() > 118) * (zzp4.M() < 130)"
 #cutstr = "HZZCuts_118-130"
 
-#cut2 = "(((fabs(z2p4.M() - 91.2) < fabs(z1p4.M() - 91.2)) * (z2p4.M() > 40) * (z2p4.M() < 120) * (z1p4.M() > 12) * (z1p4.M() < 120)) || ((fabs(z2p4.M() - 91.2) > fabs(z1p4.M() - 91.2)) * (z1p4.M() > 40) * (z1p4.M() < 120) * (z2p4.M() > 12) * (z2p4.M() < 120))) * (zzp4.M() > 80) * (zzp4.M() < 100)"
-#cutstr = "HZZCuts_80-100"
-
 
 
 ##
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_new/"
+inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_v1/"
 prefix = "selected"
 
 # Muon file

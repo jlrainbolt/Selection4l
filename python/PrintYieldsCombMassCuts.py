@@ -34,17 +34,11 @@ from Cuts2018 import UNC_DIBOSON, UNC_TTBAR, UNC_TAUTAU, UNC_OTHER
 sel_4l = ["4l", "4m", "2m2e", "4e"]
 sel_2l = ["ll", "mumu", "ee"]
 
-# Sample
-sample = "ext"
-#sample = "new"
-#sample = "update"
-
 # Region
 #cutstr = "reg1"
 #cutstr = "reg2"
 #cutstr = "reg3"
 cutstr = "reg4"
-#cutstr = "reg0"
 
 
 
@@ -57,7 +51,7 @@ exp_unc, sig_unc, bg_unc, mc_unc, npt_unc = {}, {}, {}, {}, {}
 pur, pur_unc, sf, sf_unc = {}, {}, {}, {}
 
 for year in period:
-    infile = "yields" + year + "_" + cutstr + "_" + sample + ".npz"
+    infile = "yields" + year + "_" + cutstr + ".npz"
     npzfile = np.load(infile)
     data[year], exp[year], sig[year] = npzfile["data"], npzfile["exp"], npzfile["sig"]
     bg[year], npt[year] = npzfile["bg"], npzfile["npt"]
@@ -103,7 +97,7 @@ for sel in sel_4l:
     else:
         fmt = '{:,.2f}'
 
-    fileName = "Yield" + selDef[sel] + "_" + cutstr + "_" + sample + ".tex"
+    fileName = "Yield" + selDef[sel] + "_" + cutstr + ".tex"
     f = open(fileName, "w")
 
     f.write(r"\begin{tabular}{lll r@{ $\pm$ }r r@{ $\pm$ }r r@{ $\pm$ }r r@{ $\pm$ }r}" + "\n")
@@ -315,7 +309,7 @@ for sel_ in ["4l"]:
         selection = sel_4l
         categories = ["Non", "VV", "VVV", "H", "ttZ"]
 
-    fileName = "Yield" + selDef[sel_] + "Sum" + "_" + cutstr + "_" + sample + ".tex"
+    fileName = "Yield" + selDef[sel_] + "Sum" + "_" + cutstr + ".tex"
     f = open(fileName, "w")
 
     if sel_ == "ll":

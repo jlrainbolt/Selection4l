@@ -10,10 +10,10 @@
 #include "TH1.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -93,9 +93,7 @@ void DrawBackground(const TString suffix, const TString year, const bool tightOn
     //
 
     TString inName  = "background_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + year + "_new/" + inName;
-//  TString inName  = "boosted_bkg_" + suffix + ".root";
-//  TString inPath  = HOME_PATH + "/Boosted/" + year + "/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + year + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;

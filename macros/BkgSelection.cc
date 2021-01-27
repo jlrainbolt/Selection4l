@@ -21,9 +21,9 @@
 #include "SelectionTools.hh"
 
 // Cuts
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
-#include "Cuts2016.hh"
+//#include "Cuts2016.hh"
 //#include "Cuts2012.hh"
 
 using namespace std;
@@ -168,7 +168,7 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
     //
 
     TString inName  = suffix + "_" + id + ".root";
-    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_new/";
+    TString inPath  = EOS_PATH + "/BLT/" + YEAR_STR + "_v1/";
     TFile   *inFile = TFile::Open(inPath + inName);
 
     cout << endl << endl << "Opened " << inPath + inName << endl;
@@ -650,10 +650,8 @@ void BkgSelection(const TString suffix, const TString id, const bool isLoose = k
             cout << "Passed pair requirement for " << selection[C] << endl;
 
         const bool  muonPairLeads   = z1.pdg == 13;
-//      const bool  elecTriggered   = !muonTrig && elecTrig;
-        const bool  elecTriggered   = kFALSE;
-        const float LEP_PT1_MIN     = elecTriggered ? FID_PT1_MIN : ELEC_PT1_MIN;
-        const float LEP_PT2_MIN     = elecTriggered ? FID_PT2_MIN : ELEC_PT2_MIN;
+        const float LEP_PT1_MIN     = FID_PT1_MIN;
+        const float LEP_PT2_MIN     = FID_PT2_MIN;
 
 
 

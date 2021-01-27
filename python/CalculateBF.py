@@ -99,7 +99,7 @@ for year in period:
     acc_, eff_, axe_ = np.empty(1, dtype=T), np.empty(1, dtype=T), np.empty(1, dtype=T)
 
     # Get number of gen signal events
-    inPath, pref = EOS_PATH + "/BLT/" + year + "_new/", "gen"
+    inPath, pref = EOS_PATH + "/BLT/" + year + "_v1/", "gen"
     fidHistName, psHistName = "FiducialEvents", "PhaseSpaceEvents"
 
     for suff in ["zz_4l", "zjets_m-50"]:

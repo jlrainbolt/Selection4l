@@ -14,7 +14,8 @@ from PlotUtils import *
 ##  SAMPLE INFO
 ##
 
-selection = ["4l", "4m", "2m2e", "4e"]
+#selection = ["4l", "4m", "2m2e", "4e"]
+selection = ["4l"]
 period = ["2012", "2016", "2017", "2018"]
 
 T = np.dtype([(sel, object) for sel in selection])
@@ -69,9 +70,8 @@ print("Opened", elName)
 
 
 # Get histograms for 2018
-#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt", "l1eta", "l2eta", "l3eta", "l4eta"]
-hnames = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2", "sin_phi"]
-#hnames = ["sin_phi"]
+#hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt", "l1eta", "l2eta", "l3eta", "l4eta", "sin_phi"]
+hnames = ["b_z1m", "b_z2m", "b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
 
 H = len(hnames)
 
@@ -151,7 +151,7 @@ for suff in mc_suff[year]:
     inName = prefix + "_" + year + "_" + suff + ".root"
     inFile = TFile.Open(inName)
     print("Opened", inName)
-
+#
     sf = lumi[year] * 1000 * xsec[year][suff] / ngen[year][suff]
 
     for sel in selection:
@@ -208,7 +208,7 @@ for year in period:
     npt[year] = npzfile['npt']
 
 
-prefix = "bkg_all"
+prefix = "bkg"
 
 # Muon file
 muName = prefix + "_" + YEAR_STR + "_muon_" + YEAR_STR + ".root"
@@ -282,12 +282,13 @@ print("")
 year = "2018"
 
 # Rebin 4e
-for h in range(H):
-    data[h]['4e'].Rebin(2)
-    for suff in mc_suff[year]:
-        if suff in ["ttbar", "tt_2l2nu"]:
-            continue
-        mc[suff][h]['4e'].Rebin(2)
+if "4e" in selection:
+    for h in range(H):
+        data[h]['4e'].Rebin(2)
+        for suff in mc_suff[year]:
+            if suff in ["ttbar", "tt_2l2nu"]:
+                continue
+            mc[suff][h]['4e'].Rebin(2)
 
 
 # Get total
@@ -317,8 +318,8 @@ for sel in selection:
 ####
 
 
-for sel in ["4l"]:
-#for sel in selection:
+#for sel in ["4l"]:
+for sel in selection:
     print("Drawing", sel, "plots...")
 
     for h in range(H):

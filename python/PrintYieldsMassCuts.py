@@ -20,11 +20,6 @@ selection   = ["4l", "4m", "2m2e", "4e"]
 selTeX      = {"mumu":r"\MM", "ee":r"\EE", "4l":r"\fL", "4m":r"\fM", "2m2e":r"\tMtE", "4e":r"\fE"}
 T = np.dtype([(sel, 'f4') for sel in selection])
 
-# Sample
-sample = "ext"
-#sample = "new"
-#sample = "update"
-
 # Region 1
 #cut2 = "(z1p4.M() > 40) * (z2p4.M() > 12) * (zzp4.M() > 80) * (zzp4.M() < 100)"
 #cutstr = "reg1"
@@ -38,12 +33,8 @@ sample = "ext"
 #cutstr = "reg3"
 
 # Region 4
-#cut2 = "(z1p4.M() > 12) * (z1p4.M() < 40) * (z2p4.M() > 4) * (z2p4.M() < 12) * (zzp4.M() > 80) * (zzp4.M() < 100)"
-#cutstr = "reg4"
-
-# Region 0
-cut2 = "(z1p4.M() > 12) * (z2p4.M() > 4) * (zzp4.M() > 80) * (zzp4.M() < 100)"
-cutstr = "reg0"
+cut2 = "(z1p4.M() > 12) * (z1p4.M() < 40) * (z2p4.M() > 4) * (z2p4.M() < 12) * (zzp4.M() > 80) * (zzp4.M() < 100)"
+cutstr = "reg4"
 
 
 
@@ -51,15 +42,7 @@ cutstr = "reg0"
 ##  DATA
 ##
 
-if sample == "ext":
-        inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_new/"
-elif sample == "new":
-    inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
-elif sample == "update":
-    if YEAR_STR == 2012:
-        inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_new/"
-    else:
-        inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_update/"
+inPath = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/"
 
 prefix = "selected"
 
@@ -132,7 +115,7 @@ for suff in MC_SUFF:
             sig_sys[sel] = MC_UNC[suff] * sig[sel]
             sig_unc[sel] = np.sqrt(sig_stat[sel] ** 2 + sig_sys[sel] ** 2)
             cut = "hasTauDecay"
-            weight = cut + " * " + weight
+            weight = cut + " * " + cut2 + " * " + weight
 
         if sel in ["4l", "4m", "2m2e", "4e"]:
             tree.Draw("1>>hist", weight + " * " + cut2, "goff")
@@ -165,7 +148,7 @@ for suff in MC_SUFF:
 ##
 
 # Get nonprompt background
-infile = "nonprompt" + YEAR_STR + "_" + cutstr + "_" + sample + ".npz"
+infile = "nonprompt" + YEAR_STR + "_" + cutstr + ".npz"
 npzfile = np.load(infile)
 npt_, npt_stat_ = npzfile['npt'], npzfile['npt_unc']
 npt, npt_stat, npt_sys = np.zeros(1, dtype=T), np.zeros(1, dtype=T), np.zeros(1, dtype=T)
@@ -209,7 +192,7 @@ for sel in selection:
 ##  WRITE TEX FILES
 ##
 
-fileName = "Yield" + YEAR_STR + "_" + cutstr + "_" + sample  + ".tex"
+fileName = "Yield" + YEAR_STR + "_" + cutstr + ".tex"
 f = open(fileName, "w")
 
 f.write(r"\begin{tabular}{lll r@{ $\pm$ }r r@{ $\pm$ }r r@{ $\pm$ }r r@{ $\pm$ }r r@{ $\pm$ }r r@{ $\pm$ }r}" + "\n")
@@ -322,7 +305,7 @@ print("Wrote table to", fileName)
 ##
 
 print("")
-outfile = "yields" + YEAR_STR + "_" + cutstr + "_" + sample + ".npz"
+outfile = "yields" + YEAR_STR + "_" + cutstr + ".npz"
 np.savez(outfile, data=data, exp=exp, exp_unc=exp_unc, sig=sig, sig_unc=sig_unc, sig_stat=sig_stat, sig_sys=sig_sys, 
         bg=bg, bg_unc=bg_unc, bg_stat=bg_stat, bg_sys=bg_sys, mc=mc_arr, mc_stat=mc_stat_arr,
         mc_sys=mc_sys_arr, mc_unc=mc_unc_arr, npt=npt, npt_stat=npt_stat, npt_sys=npt_sys, npt_unc=npt_unc)

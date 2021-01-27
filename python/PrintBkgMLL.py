@@ -5,23 +5,16 @@ import numpy as np
 
 from ROOT import TFile, TTree, TH1D
 
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
-from Cuts2016 import *
-
-tightOnly = True
+#from Cuts2016 import *
 
 selection   = ["4l", "4m", "2m2e", "4e"]
 
-if tightOnly:
-    cut = "(nLooseLeptons == 0)"
-else:
-    cut = "(nLooseLeptons > 0)"
-    infile = "nonprompt" + YEAR_STR + ".npz"
-    npzfile = np.load(infile)
-    npt_tight, npt_tight_unc = npzfile['npt'], npzfile['npt_unc']
+cut = "(nLooseLeptons == 0)"
 
-#MC_SUFF = MC_SUFF_MLL
+MC_SUFF = MC_SUFF_MLL
+
 
 
 ##
@@ -36,7 +29,7 @@ T = np.dtype([(sel, 'f4') for sel in selection])
 ##  DATA
 ##
 
-inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_mll/"
+inPath = EOS_PATH + "/Extended/" + YEAR_STR + "_mll_v1/"
 prefix = "background"
 
 # Muon file
@@ -159,8 +152,6 @@ for sel in selection:
 prefix = "Background" + YEAR_STR + "MLL"
 
 fileName = prefix + ".tex"
-if not tightOnly:
-    fileName = "Loose" + fileName
 
 fmt = '%.2f'
 
@@ -238,15 +229,6 @@ for sel in selection:
     f.write(r" & " + fmt % np.squeeze(sf[sel]) + r" & " + fmt % np.squeeze(sf_unc[sel]))
 f.write(r" \\" + "\n")
 
-if not tightOnly:
-    f.write(r"\addlinespace" + "\n")
-    f.write("\t" + r"\multicolumn{3}{l}{$\Nnpr / \Nnpr\looseCR$}")
-    for sel in selection:
-        f.write(r" & " + fmt % np.squeeze(npt_tight[sel] / diff[sel]) + r" & "
-                + fmt % np.squeeze((npt_tight[sel] / diff[sel])
-                    * np.sqrt(npt_tight_unc[sel] / diff[sel] ** 2 + npt_unc[sel] / npt[sel] ** 2)))
-    f.write(r" \\" + "\n")
-
 f.write(r"\bottomrule" + "\n")
 f.write(r"\end{tabular}" + "\n")
 
@@ -259,8 +241,7 @@ print("Wrote table to", fileName)
 ##  SAVE
 ##
 
-if tightOnly:
-    print("")
-    outfile = "nonprompt" + YEAR_STR + "MLL.npz"
-    np.savez(outfile, npt=diff, npt_unc=diff_unc)
-    print("Wrote nonprompt arrays to", outfile)
+print("")
+outfile = "nonprompt" + YEAR_STR + "MLL.npz"
+np.savez(outfile, npt=diff, npt_unc=diff_unc)
+print("Wrote nonprompt arrays to", outfile)

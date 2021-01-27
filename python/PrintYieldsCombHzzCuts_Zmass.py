@@ -32,8 +32,6 @@ from Cuts2018 import UNC_DIBOSON, UNC_TTBAR, UNC_TAUTAU, UNC_OTHER
 sel_4l = ["4e", "4m", "2m2e", "4l"]
 
 
-#cutstr = "HZZCuts"
-#cutstr = "HZZCuts_118-130"
 cutstr = "HZZCuts_80-100"
 
 

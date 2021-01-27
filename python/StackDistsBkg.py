@@ -7,10 +7,10 @@ import numpy as np
 from ROOT import TFile, TH1
 
 from PlotUtils import *
-#from Cuts2018 import *
+from Cuts2018 import *
 #from Cuts2017 import *
 #from Cuts2016 import *
-from Cuts2012 import *
+#from Cuts2012 import *
 
 
 
@@ -23,6 +23,7 @@ selection = ["4l"]
 T = np.dtype([(sel, object) for sel in selection])
 V = np.dtype([("x", 'f4'), ("y", 'f4'), ("ex", 'f4'), ("ey", 'f4'), ("b", 'f4')])
 
+#tightOnly = True
 tightOnly = False
 
 
@@ -246,16 +247,11 @@ for sel in ["4l"]:
         ##
 
         # Titles
-#       ax_top.text(    0.025,  0.95,
-#               r'\LARGE{\textbf{CMS}}' + '\n' + r'\Large{\textit{Work in Progress}}',
-#               verticalalignment = 'top', transform = ax_top.transAxes)
         ax_top.text(0.025,  0.95,   "CMS",
-                size = "xx-large",  weight = "bold",
-#               fontproperties = helvet_bold,
+                size = "xx-large",  weight = "bold",    family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.text(0.025,  0.875,  "Work in Progress",
-                size = "x-large",   style = "italic",
-#               fontproperties = helvet_bold,
+                size = "x-large",   style = "italic",    family = "Liberation Sans",
                 verticalalignment = 'top', transform = ax_top.transAxes, usetex = False)
         ax_top.set_title(r'\Large{' + '%.1f' % INT_LUMI + r'\,fb$^{-1}$ (' + '%i' % SQRT_S
                 + r'\,TeV, ' + YEAR_STR + ')}', loc='right')

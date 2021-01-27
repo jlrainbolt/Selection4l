@@ -204,7 +204,7 @@ for year in period:
     npt[year] = npzfile['npt']
 
 
-prefix = "bkg_all"
+prefix = "bkg"
 
 # Muon file
 muName = prefix + "_" + YEAR_STR + "_muon_" + YEAR_STR + ".root"
@@ -364,12 +364,12 @@ for sel in selection:
         v_ratio_aMC = np.zeros(ratio_aMC[h][sel].GetNbinsX(), dtype=V)
         v_ratio_pow = np.zeros(ratio_pow[h][sel].GetNbinsX(), dtype=V)
         for i in range(len(v_ratio_aMC)):
-            v_ratio_aMC[i]['x']     = ratio_aMC[h][sel].GetBinCenter(i+1) + width / 3
+            v_ratio_aMC[i]['x']     = ratio_aMC[h][sel].GetBinCenter(i+1) - width / 6
             v_ratio_aMC[i]['ex']    = ratio_aMC[h][sel].GetBinWidth(i+1) / 2
             v_ratio_aMC[i]['y']     = ratio_aMC[h][sel].GetBinContent(i+1)
             v_ratio_aMC[i]['ey']    = ratio_aMC[h][sel].GetBinError(i+1)
 
-            v_ratio_pow[i]['x']     = ratio_pow[h][sel].GetBinCenter(i+1) + 2 * width / 3
+            v_ratio_pow[i]['x']     = ratio_pow[h][sel].GetBinCenter(i+1) + width / 6
             v_ratio_pow[i]['ex']    = ratio_pow[h][sel].GetBinWidth(i+1) / 2
             v_ratio_pow[i]['y']     = ratio_pow[h][sel].GetBinContent(i+1)
             v_ratio_pow[i]['ey']    = ratio_pow[h][sel].GetBinError(i+1)
@@ -404,7 +404,7 @@ for sel in selection:
 
             p_mc["zz_4l_aMC"] = ax_top.bar(    v_mc["zz_4l_aMC"]['x'],    v_mc["zz_4l_aMC"]['y'],    width,
                     bottom = v_mc["zz_4l_aMC"]['b'],        align = 'edge',     linewidth = 0,
-                    edgecolor = (.59,.29,0),        fill = False,     hatch='//'
+                    edgecolor = (.59,.29,0),        fill = False,     hatch='///'
                     )
             ax_top.errorbar(v_data['x'],    v_mc["zz_4l_aMC"]['y'],    xerr = v_ratio_aMC['ex'], 
                     linewidth = 0,  ecolor = (.59,.29,0),   elinewidth = 2,

@@ -20,10 +20,10 @@
 #include "LeptonPair.hh"
 
 // Cuts
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -58,7 +58,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     TRandom3 *rng = new TRandom3(RNG_SEED);
 
 
-
+/*
     //
     //  SF HISTOGRAMS
     //
@@ -161,7 +161,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
 
         cout << "Limits: " << RECO_PT_MIN << ", " << RECO_PT_THRESH << ", " << RECO_PT_MAX << endl << endl;
     }
-
+*/
 
 
     //
@@ -275,8 +275,7 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
     TString inName  = "selected_" + suffix + ".root";
     if (isBkg)
         inName = "background_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/" + inName;
-//  TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_update/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl;
@@ -411,76 +410,18 @@ void BoostedAnalysis(const TString suffix, const bool isBkg = kFALSE)
                 // Muons
                 if (abs(leps[i].pdg) == 13)
                 {
-                    TLorentzVector p4 = leps[i].p4;
-
-                    float pt = p4.Pt(), eta = p4.Eta();
-                    if (pt > MU_PT_MAX)
-                        pt = 0.99 * MU_PT_MAX;
-                    else if (pt < MU_PT_MIN)
-                        continue;
-
-                    int bin;
-                    if (YEAR_STR.EqualTo("2012"))
-                        bin = mu_err->FindBin(pt, eta);
-                    else
-                        bin = mu_err->FindBin(eta, pt);
-
                     wtMuonIDUp *= (1 + 0.01);
                     wtMuonIDDn *= (1 - 0.01);
-//                  wtMuonIDUp *= (1 + mu_err->GetBinContent(bin));
-//                  wtMuonIDDn *= (1 - mu_err->GetBinContent(bin));
                 }
 
                 // Electrons
                 else if (abs(leps[i].pdg) == 11)
                 {
-                    TLorentzVector p4 = leps[i].p4;
-                    float pt = p4.Pt(), eta = p4.Eta();
-
-                    // ID
-
-                    if (pt > EL_PT_MAX)
-                        pt = 0.99 * EL_PT_MAX;
-                    else if (pt < EL_PT_MIN)
-                        continue;
-
-                    int bin;
-                    if (YEAR_STR.EqualTo("2012"))
-                        bin = el_err->FindBin(pt, eta);
-                    else
-                        bin = el_err->FindBin(eta, pt);
-
                     wtElecIDUp *= (1 + 0.01);
                     wtElecIDDn *= (1 - 0.01);
-//                  wtElecIDUp *= (1 + el_err->GetBinContent(bin));
-//                  wtElecIDDn *= (1 - el_err->GetBinContent(bin));
-
-
-                    // Reco
-
-                    if (YEAR_STR.EqualTo("2012"))
-                        continue;
-
-                    if (pt > RECO_PT_MAX)
-                        pt = 0.99 * RECO_PT_MAX;
-                    else if (pt < RECO_PT_MIN)
-                        continue;
 
                     wtElecRecoUp *= (1 + 0.01);
                     wtElecRecoDn *= (1 - 0.01);
-
-//                  if (pt < RECO_PT_THRESH)  // should automatically exclude 2018
-//                  {
-//                      bin = reco_err_lowEt->FindBin(eta, pt);
-//                      wtElecRecoUp *= (1 + reco_err_lowEt->GetBinContent(bin));
-//                      wtElecRecoDn *= (1 - reco_err_lowEt->GetBinContent(bin));
-//                  }
-//                  else
-//                  {
-//                      bin = reco_err->FindBin(eta, pt);
-//                      wtElecRecoUp *= (1 + reco_err->GetBinContent(bin));
-//                      wtElecRecoDn *= (1 - reco_err->GetBinContent(bin));
-//                  }
                 }
             }
 

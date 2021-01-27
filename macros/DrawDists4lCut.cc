@@ -49,8 +49,13 @@ void DrawDists4lCut(const TString suffix, const TString year, const TString cut 
     //  OUTPUT FILE
     //
 
+    TString cut2 = cut;
+
+    cut2.ReplaceAll("!d", "notD");
+    cut2.ReplaceAll("!s", "notS");
+
     TString prefix  = isBkg ? "bkg_" : "";
-    TString outName = prefix + cut + "_" + year + "_" + suffix + ".root";
+    TString outName = prefix + cut2 + "_" + year + "_" + suffix + ".root";
     TFile *outFile  = new TFile(outName, "RECREATE");
 
 
@@ -95,7 +100,7 @@ void DrawDists4lCut(const TString suffix, const TString year, const TString cut 
 
     TString tag     = isBkg ? "background" : "selected";
     TString inName  = tag + "_" + suffix + ".root";
-    TString inPath  = EOS_PATH + "/Selected/" + year + "_trig/" + inName;
+    TString inPath  = EOS_PATH + "/Selected/" + year + "_v1/" + inName;
     TFile   *inFile = TFile::Open(inPath);
 
     cout << endl << endl << "Opened " << inPath << endl << endl;

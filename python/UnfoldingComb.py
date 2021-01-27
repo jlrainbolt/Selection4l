@@ -147,7 +147,7 @@ print("")
 ##  BACKGROUND
 ##
 
-prefix = "bkg_all"
+prefix = "bkg"
 bkg = np.empty(H, dtype=T)
 
 for year in period:
@@ -303,11 +303,7 @@ for sel in ["4l"]:
 #       print(v_gen['y'])
 
         # Slicing
-        if hnames[h] == "b_z1m":
-            s = slice(2, -1)
-            v_eff['y'][3] = col_sums[2] / (col_sums[2] + col_sums[1] + col_sums[0])
-            v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
-        elif hnames[h] == "b_z2m":
+        if hnames[h] == "b_z2m":
             s = slice(1, None)
             v_eff['y'][1] = col_sums[1] / (col_sums[1] + col_sums[0])
         elif hnames[h] == "b_l1p":
@@ -317,11 +313,7 @@ for sel in ["4l"]:
             s = slice(2, -1)
             v_eff['y'][2] = col_sums[2] / (col_sums[2] + col_sums[1] + col_sums[0])
             v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
-        elif hnames[h] == "angle_z1l2_z2":
-            s = slice(1, -1)
-            v_eff['y'][1] = col_sums[1] / (col_sums[1] + col_sums[0])
-            v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
-        elif hnames[h] in ["cos_theta_z1", "cos_theta_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
+        elif hnames[h] in ["b_z1m", "cos_theta_z1", "cos_theta_z2", "angle_z1l2_z2", "angle_z2leps", "sin_phi", "sin_phi_10"]:
             s = slice(1, -1)
             v_eff['y'][1] = col_sums[1] / (col_sums[1] + col_sums[0])
             v_eff['y'][-2] = col_sums[-2] / (col_sums[-2] + col_sums[-1])
@@ -376,7 +368,6 @@ for sel in ["4l"]:
         ##
 
         results = iterative_unfold( data = v_data['ex'],        data_err = v_data['ey'],
-#       results = iterative_unfold( data = v_data['y'],         data_err = v_data['ey'],
                                     response = v_resp['y'],     response_err = v_resp['ey'],
                                     efficiencies = v_eff['y'],  efficiencies_err = v_eff['ey'],
                                     ts = 'conv',                ts_stopping = 1e-2,
@@ -405,22 +396,22 @@ for sel in ["4l"]:
 
         o = s.start
 
-        if hnames[h] in ["b_z1m", "angle_z1leps"]:
-            xmin = data[h][sel].GetBinLowEdge(o)
-            xmax = data[h][sel].GetBinLowEdge(data[h][sel].GetNbinsX() + 1)
-            print(xmin, xmax)
+#       if hnames[h] in ["angle_z1leps"]:
+#           xmin = data[h][sel].GetBinLowEdge(o)
+#           xmax = data[h][sel].GetBinLowEdge(data[h][sel].GetNbinsX() + 1)
+#           print(xmin, xmax)
 
-            rebin = TH1D(hnames[h] + "_rebin", "", bins[h], xmin, xmax)
+#           rebin = TH1D(hnames[h] + "_rebin", "", int(bins[h]), xmin, xmax)
 
-            for i in range(len(v_data)):
-                rebin[h][sel].SetBinContent(i + 1, data[h][se].GetBinContent(i + o))
-                rebin[h][sel].DetBinError(i + 1, data[h][se].GetBinError(i + o))
+#           for i in range(len(v_data)):
+#               rebin[h][sel].SetBinContent(i + 1, data[h][sel].GetBinContent(i + o))
+#               rebin[h][sel].DetBinError(i + 1, data[h][sel].GetBinError(i + o))
 
-            data[h][sel].Delete()
-            data[h][sel] = rebin[h][sel]
-            rebin[h][sel].SetName(hnames[h] + "_data")
+#           data[h][sel].Delete()
+#           data[h][sel] = rebin[h][sel]
+#           rebin[h][sel].SetName(hnames[h] + "_data")
 
-            o = 1
+#           o = 1
             
 
         result[h][sel] = data[h][sel].Clone(hnames[h] + "_result")

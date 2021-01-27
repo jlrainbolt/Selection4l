@@ -10,10 +10,10 @@
 #include "TH1.h"
 
 // Custom
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -63,7 +63,7 @@ void DrawDiffDists(const TString suffix, const TString year, const bool isBkg = 
     vector<tuple<TString, TString, TString, TString, int, float, float>> v = {
 
         //          name        quantity         axis label     unit        bins    xmin    xmax
-        make_tuple( "b_z1m",    "b_z1p4.M()",    _m_(_Z1),      _GeV,       11,     4,      92),
+        make_tuple( "b_z1m",    "b_z1p4.M()",    _m_(_Z1),      _GeV,       10,     12,     92),
         make_tuple( "b_z2m",    "b_z2p4.M()",    _m_(_Z2),      _GeV,       11,     4,      37),
         make_tuple( "b_ttm",    "b_ttp4.M()",    _m_(_l_("2,3,4")), _GeV,   11,     5,      60),
 

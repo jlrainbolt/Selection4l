@@ -12,10 +12,10 @@
 #include "TMath.h"
 
 // Cuts
-//#include "Cuts2018.hh"
+#include "Cuts2018.hh"
 //#include "Cuts2017.hh"
 //#include "Cuts2016.hh"
-#include "Cuts2012.hh"
+//#include "Cuts2012.hh"
 
 using namespace std;
 
@@ -42,7 +42,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     //  CONTAINERS
     //
 
-    const unsigned  N = 300;    // Number of Gaussian iterations
+    const unsigned  N = 500;    // Number of Gaussian iterations
 
     const unsigned  M4L = 4,            M2L = 2;    // Number of final state trees
     TString sel_4l[M4L]   = { "4l",   "4m",   "2m2e", "4e"};
@@ -119,7 +119,7 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
     //  FOUR-LEPTON
     //
 
-    inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/selected_zz_4l.root";
+    inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/selected_zz_4l.root";
     TFile   *zzFile = TFile::Open(inPath);
 
     cout << "Opened " << inPath << endl;
@@ -225,10 +225,10 @@ void CalculateLeptonID(const TString flavor, const TString type, const TString s
 
     // Open one file
 
-    inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_new/selected_zjets_m-50.root";
+    inPath  = EOS_PATH + "/Selected/" + YEAR_STR + "_v1/selected_zjets_m-50.root";
     TFile   *dyFile = TFile::Open(inPath);
 
-    float mod = 100;
+    float mod = 50;
 
     cout << "Opened " << inPath << endl;
 

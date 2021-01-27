@@ -66,11 +66,7 @@ print("Opened", elName)
 
 
 # Get histograms for 2018
-#hnames = ["zzm"]
-#hnames = ["sin_phi"]
 hnames = ["zzm", "zzpt", "z1m", "z2m", "z1pt", "z2pt", "l1pt", "l2pt", "l3pt", "l4pt", "l1eta", "l2eta", "l3eta", "l4eta"]
-#hnames = ["b_ttm", "b_l1p", "cos_theta_z1", "cos_theta_z2", "angle_z1leps", "angle_z2leps", "angle_z1l2_z2"]
-#hnames = ["b_z1m"]
 
 H = len(hnames)
 
@@ -83,7 +79,6 @@ for sel in selection:
         data[h][sel].Add(elFile.Get(sel + "/" + hname + "_electron_" + year))
 
         data[h][sel].SetDirectory(0)
-#       data[h][sel].SetBinErrorOpt(kPoisson)
 
         h = h + 1
     h = 0
@@ -202,23 +197,23 @@ print("")
 npt, npt_frac = {}, {}
 
 for year in period:
-    infile = "nonprompt" + year + ".npz"
+    infile = "nonprompt" + year + "MLL.npz"
     npzfile = np.load(infile)
     npt[year] = npzfile['npt']
 
-    npt_frac[year] = np.zeros(1, dtype=U)
-    inPath = EOS_PATH + "/Selected/" + year + "_trig/"
-    muBkgName = inPath + "background_muon_" + year + ".root"
-    elBkgName = inPath + "background_electron_" + year + ".root"
-    muBkgFile = TFile.Open(muBkgName)
-    print("Opened", muBkgName) 
-    elBkgFile = TFile.Open(elBkgName)
-    print("Opened", elBkgName) 
+#   npt_frac[year] = np.zeros(1, dtype=U)
+#   inPath = EOS_PATH + "/Extended/" + year + "_mll_v1/"
+#   muBkgName = inPath + "background_muon_" + year + ".root"
+#   elBkgName = inPath + "background_electron_" + year + ".root"
+#   muBkgFile = TFile.Open(muBkgName)
+#   print("Opened", muBkgName) 
+#   elBkgFile = TFile.Open(elBkgName)
+#   print("Opened", elBkgName) 
 
-    for sel in selection:
-        muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
-        elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
-        npt[year][sel] = muBkgTree.GetEntries("(nLooseLeptons == 0)") + elBkgTree.GetEntries("(nLooseLeptons == 0)")
+#   for sel in selection:
+#       muBkgTree = muBkgFile.Get(sel + "_muon_" + year)
+#       elBkgTree = elBkgFile.Get(sel + "_electron_" + year)
+#       npt[year][sel] = muBkgTree.GetEntries("(nLooseLeptons == 0)") + elBkgTree.GetEntries("(nLooseLeptons == 0)")
 #       npt_frac[year][sel] += muBkgTree.GetEntries("(nLooseLeptons == 0) && " + prefix)
 #       npt_frac[year][sel] += elBkgTree.GetEntries("(nLooseLeptons == 0) && " + prefix)
 #       npt_frac[year][sel] /= (muBkgTree.GetEntries("nLooseLeptons == 0") + elBkgTree.GetEntries("nLooseLeptons == 0"))
@@ -226,8 +221,8 @@ for year in period:
 #       if np.isfinite(npt_frac[year][sel]):
 #           npt[year][sel] *= npt_frac[year][sel]
 
-    muBkgFile.Close()
-    elBkgFile.Close()
+#   muBkgFile.Close()
+#   elBkgFile.Close()
 
 print(npt)
 
@@ -304,16 +299,6 @@ print("")
 ##
 
 year = "2018"
-
-# Rebin 4e
-for h in range(H):
-    data[h]['4e'].Rebin(2)
-    for suff in mc_suff[year]:
-        if suff in ["ttbar", "tt_2l2nu"]:
-            continue
-        else:
-            mc[suff][h]['4e'].Rebin(2)
-
 
 # Get total
 total, ratio = np.empty(H, dtype=T), np.empty(H, dtype=T)

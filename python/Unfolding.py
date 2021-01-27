@@ -123,7 +123,7 @@ print("")
 ##  BACKGROUND
 ##
 
-prefix = "bkg_all"
+prefix = "bkg"
 
 # Muon file
 muName = inPath + prefix + "_" + YEAR_STR + "_" + MU_SUFF + ".root"
